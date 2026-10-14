@@ -36,6 +36,9 @@ signal sleep_changed(asleep: bool)
 ## Agarrado (true) ou solto (false). taps_needed = toques em Ataque para escapar.
 signal grab_changed(grabbed: bool, taps_needed: int)
 signal grab_progress(taps: int, taps_needed: int)
+## O herói USOU uma ação (&"leve", &"forte", &"dash", &"cura", &"escudo").
+## Durgan conta isso durante a luta e, na fase 2, copia o que você mais usou.
+signal action_used(action: StringName)
 
 enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED }
 
@@ -505,6 +508,7 @@ func _start_block() -> void:
 	_set_state(State.BLOCK)
 	stats.regen_scale = block_regen_multiplier
 	Sfx.play(&"shield_up", -6.0)
+	action_used.emit(&"escudo")
 
 
 func _state_block(delta: float) -> void:
@@ -792,6 +796,7 @@ func _start_attack(attack: AttackData, combo_index: int) -> bool:
 	_setup_swing(attack, direction, combo_index)
 	_set_state(State.ATTACK)
 	_runner.start(attack, direction)
+	action_used.emit(&"forte" if attack.is_heavy else &"leve")
 	return true
 
 
@@ -895,6 +900,7 @@ func _start_dash() -> bool:
 	if dash_through_enemies:
 		set_collision_mask_value(3, false)
 	Sfx.play(&"dash", -3.0)
+	action_used.emit(&"dash")
 	make_noise(noise_dash)
 	Fx.dust(global_position, 6)
 	visual.scale = Vector2(1.25, 0.8)
@@ -924,6 +930,7 @@ func _start_heal() -> bool:
 	health_flasks -= 1
 	health_flasks_changed.emit(health_flasks, health_flasks_max)
 	_set_state(State.HEAL)
+	action_used.emit(&"cura")
 	return true
 
 

@@ -22,6 +22,7 @@ const CATALOG := {
 	"lembranca_helena": preload("res://data/items/lembranca_helena.tres"),
 	"lembranca_nyssa": preload("res://data/items/lembranca_nyssa.tres"),
 	"lembranca_mabel": preload("res://data/items/lembranca_mabel.tres"),
+	"lembranca_durgan": preload("res://data/items/lembranca_durgan.tres"),
 }
 
 

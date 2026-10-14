@@ -1,0 +1,104 @@
+[gd_scene load_steps=23 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/durgan.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/durgan_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_big.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_chave.tres" id="8_wrench"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_martelada.tres" id="9_slam"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_copia_forte.tres" id="10_copy_heavy"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_estocada.tres" id="11_dash_strike"]
+[ext_resource type="Resource" path="res://data/bosses/durgan.tres" id="12_data"]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="30_ad"]
+[ext_resource type="Texture2D" path="res://assets/sprites/durgan_chave.png" id="36_wrench"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_copia_leve_1.tres" id="37_c1"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_copia_leve_2.tres" id="38_c2"]
+[ext_resource type="Resource" path="res://data/attacks/durgan_copia_leve_3.tres" id="39_c3"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="13_tel"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 8.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 16.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(22, 28)
+
+[node name="DurganVell" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+wrench = ExtResource("8_wrench")
+slam = ExtResource("9_slam")
+copy_heavy = ExtResource("10_copy_heavy")
+dash_strike = ExtResource("11_dash_strike")
+data = ExtResource("12_data")
+wake_distance = 140.0
+memory_reward = 1500
+move_speed = 52.0
+acceleration = 600.0
+max_poise = 180.0
+stagger_time = 1.1
+knockback_taken = 0.1
+copy_light = Array[ExtResource("30_ad")]([ExtResource("37_c1"), ExtResource("38_c2"), ExtResource("39_c3")])
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("13_tel")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -15)
+
+[node name="WeaponPivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(9, -12)
+
+[node name="Wrench" type="Sprite2D" parent="Visual/WeaponPivot"]
+texture = ExtResource("36_wrench")
+offset = Vector2(14, 0)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -10)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(20.0, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -14)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 1050.0
+health_per_vitalidade = 0.0

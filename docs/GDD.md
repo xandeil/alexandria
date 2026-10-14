@@ -48,7 +48,7 @@ governo subiram com a ilha e ainda estão nela ✅ (Soldados Remendados).
 | 1 | Cidade Estilhaçada ✅ (entrada) | Ira — Aldir Cornélios ✅ | cidade em ruínas pegando fogo | 1ª |
 | 4 (dir.) | Bosque do Sono Eterno ✅ | Preguiça — Nyssa Lumevel ✅ | floresta, lagos, cachoeiras | 2ª |
 | 4 (esq.) | Raízes da Fome ✅ | Gula — Mabel Vorágine ✅ | raízes vermelhas retorcidas | 3ª |
-| 5 | Forjas Ocas | Inveja — Durgan Vell | ruínas de pedra com torres | 4ª |
+| 5 | Forjas Ocas ✅ | Inveja — Durgan Vell ✅ | ruínas de pedra com torres | 4ª |
 | 3 | Montanha Carbonizada | Orgulho — Rachel Azheryon Caelis | vulcão com lava | 5ª |
 | 2 | Domínio Congelado | Ganância — Cassian Virel | cidade de cristais de gelo | 6ª |
 | 7 | O Núcleo | Chefe final — o Cavaleiro Desolado | ilha mais alta, jardim com ruínas | final |
@@ -160,7 +160,7 @@ Fichas completas em `data/bosses/*.tres` (uma por chefe).
 | Ira | Aldir Cornélios, O Detentor do Caos ✅ | humano | força | arena destrutível: martelo abre buracos e derruba coberturas | Força |
 | Orgulho | Rachel Azheryon Caelis, O Orgulho do Céu | dragão ígneo | fogo | arena que desmorona aos poucos | Magia |
 | Ganância | Cassian Virel, O Arconte do Zero | humano | gelo | rouba estamina e congela partes da arena | Magia |
-| Inveja | Durgan Vell, O Eco de Bronze | anão | raio | copia os ataques que o jogador mais usou | Fé |
+| Inveja | Durgan Vell, O Eco de Bronze ✅ | anão | raio | copia os ataques que o jogador mais usou | Fé |
 | Gula | Mabel Vorágine, A Fome Que Lembra ✅ | giganta | sangue | agarra, engole e drena memórias; regenera comendo lacaios | Sorte |
 | Preguiça | Nyssa Lumevel, A Que Não Desperta ✅ | fada | sono | Barra de Sonolência: parado/curando = dormir | Fé |
 
@@ -192,8 +192,14 @@ Fichas completas em `data/bosses/*.tres` (uma por chefe).
 - Falas (provisórias, reescreva!): "Ah, visita! Sente-se, sente-se..." · "Ainda estou com FOME. Por que eu ainda estou com fome?!" · "...Eu só queria... que alguém dissesse que estava bom."
 - Depois da vitória: "MEMÓRIA RECUPERADA — Gula · Vazio"; a mesa posta (pratos limpos) fica onde ela sentava; o Vendedor do Teatro passa a lembrar dela (`vendedor_mabel`).
 
+### Durgan Vell — como foi implementado ✅
+- **A contagem (a dica da Bíblia):** o herói emite `Player.action_used` (leve, forte, dash, escudo, cura); Durgan guarda um dicionário ação → número durante a luta inteira. Na fase 2, a próxima ação é sorteada com peso = contagem + 1.
+- **Fase 1 — O Engenheiro:** chave-martelo (leque) e martelada elétrica (círculo; no impacto, um anel de placas acende e dá choque); constrói Torretas de Faísca (até 2) e chama Autômatos de Bronze (1); a cada ~6,5 s acende as placas em volta do herói.
+- **Fase 2 — O Reflexo (50%):** armadura espelhada; os autômatos caem. Copia: o seu combo leve (1–3 cortes), o seu golpe forte, o seu dash (golpe em linha / esquiva — e, se você abusou do dash, ele **esquiva quando você ataca**), o seu escudo (escudo espelhado de frente: 15% do dano, apara e revida) e o seu frasco (bebe até 3 vezes; golpe forte interrompe).
+- Falas (provisórias, reescreva!): "Mais um rosto. Fica parado... deixa eu ver como você é feito." · "Agora eu sou VOCÊ." · "...Diga a ele... que eu fazia igual. Às vezes melhor."
+- Depois da vitória: "MEMÓRIA RECUPERADA — Inveja · Querer ser o outro"; a chave-martelo (com "D. VELL" no cabo) fica onde ele caiu; o Ferreiro do Teatro lembra do irmão (`ferreiro_irmao`) e a forja vai até +5.
+
 ### Ideias de implementação da Bíblia (para os próximos)
-- **Durgan:** dicionário `acao → contagem` durante a luta; na fase 2, escolher o golpe com peso proporcional.
 - **Nyssa:** os ecos da fase 2 reaproveitam animações de chefes que já existem.
 - **Cassian:** `StatsComponent.drain_stamina()` já existe para o roubo de estamina.
 
@@ -217,7 +223,10 @@ Cada ilha: 3–4 inimigos comuns e 2 mini-chefes (o 1º ensina a mecânica, o 2�
 - Boca de Raiz ✅ (enterrada → incha → agarra; exposta depois) · Inchado ✅ (lento; explode ao morrer, ferindo também os inimigos) · Colhedor ✅ (foice de 200° que alcança longe; gira se você cola) · Larva de Seiva ✅ (rouba memórias, brilha e foge; morta, devolve)
 - Mini-chefes ✅: O Banqueteiro (serve lacaios; ferido, COME um para se curar — ensina a matar a fonte de cura; guarda a porta dos fundos) · A Ninhada (solta larvas a cada 20% de vida perdida; engole quem fica no círculo)
 
-**Forjas Ocas (Inveja):** Autômato de Bronze · Torreta de Faísca · Minerador Oco · Imitador · mini: O Protótipo, O Guardião da Âncora.
+**Forjas Ocas (Inveja):** ruínas de pedra com a galeria de estátuas, a oficina, a fábrica de grades e placas, a mina e a câmara da Âncora; canais de metal derretido ✅ (cenário; trilha no alto do Bosque, abre depois de Mabel).
+- Sistema da área ✅: **placas de raio** (`=` no mapa → `Level.plate_cells`; `PlateCharge`: acende → choque → apaga; o escudo não segura, o dash passa).
+- Autômato de Bronze ✅ (rosto do Ferreiro; corte leve a 70%, golpe forte inteiro; às vezes dois golpes) · Torreta de Faísca ✅ (acende a trilha de placas até o herói e em volta dele) · Minerador Oco ✅ (três picaretadas, a terceira pesada) · Imitador ✅ (o seu equipamento; copia golpe, dash, escudo e frasco)
+- Mini-chefes ✅: O Protótipo (o seu corte leve em sequências de 1–3 e o seu dash) · O Guardião da Âncora (carcaça 30%; depois de dois ataques, núcleo exposto 180%; corrente em leque e pilão que acende as placas; vencido, a ilha treme e a porta abre na hora)
 
 **Montanha Carbonizada (Orgulho):** Dragonoide Atirador · Dragão Bestial · Dragão Alado Menor · Brasa Viva · mini: O Capitão Dragonoide, A Matriarca Bestial.
 

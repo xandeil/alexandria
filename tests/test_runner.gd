@@ -36,6 +36,14 @@ const BANQUETEIRO_SCENE := preload("res://scenes/bosses/banqueteiro.tscn")
 const NINHADA_SCENE := preload("res://scenes/bosses/ninhada.tscn")
 const RAIZES := "res://scenes/world/raizes.tscn"
 const ARENA_MABEL := "res://scenes/world/arena_mabel.tscn"
+const FORJAS := "res://scenes/world/forjas.tscn"
+const ARENA_DURGAN := "res://scenes/world/arena_durgan.tscn"
+const AUTOMATO_SCENE := preload("res://scenes/enemies/automato_bronze.tscn")
+const TORRETA_SCENE := preload("res://scenes/enemies/torreta_faisca.tscn")
+const MINERADOR_SCENE := preload("res://scenes/enemies/minerador_oco.tscn")
+const IMITADOR_SCENE := preload("res://scenes/enemies/imitador.tscn")
+const PROTOTIPO_SCENE := preload("res://scenes/bosses/prototipo.tscn")
+const GUARDIAO_SCENE := preload("res://scenes/bosses/guardiao_ancora.tscn")
 ## Os testes gravam num arquivo próprio: o seu save de verdade nunca é tocado.
 const TEST_SAVE := "user://teste_automatico_save.json"
 
@@ -122,6 +130,17 @@ func _ready() -> void:
 		"test_ninhada_splits_and_engulfs",
 		"test_roots_gate",
 		"test_mabel_fight",
+		"test_new_areas_build",
+		"test_live_exit_unlock",
+		"test_plate_charge",
+		"test_bronze_automaton",
+		"test_spark_turret",
+		"test_hollow_miner",
+		"test_imitator_copies",
+		"test_prototype",
+		"test_anchor_guardian",
+		"test_forge_gate_and_smith",
+		"test_durgan_fight",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -652,7 +671,8 @@ func test_levels_build() -> void:
 			for npc in level.get_tree().get_nodes_in_group("npcs"):
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
-			check(lore == 4, "Bosque: 4 pontos de inspeção (%d)" % lore)
+			# 4 de lore + a trilha das Forjas (trancada até vencer Mabel).
+			check(lore == 5, "Bosque: 5 pontos de inspeção (%d)" % lore)
 			var items := 0
 			for node in level.entities.get_children():
 				if node is ItemPickup:
@@ -2728,5 +2748,337 @@ func test_mabel_fight() -> void:
 	check(Game.is_boss_defeated("mabel") and Game.has_item("lembranca_mabel"), "vencida: registro e lembrança")
 	check(get_tree().get_nodes_in_group("flesh_bursts").is_empty(), "nada fica explodindo depois")
 	check(find_npc("mesa_de_mabel") != null, "fica a mesa posta onde ela sentava")
+	level.queue_free()
+	await frames(2)
+
+
+
+# --- Áreas novas: montagem, mapa fechado e TUDO alcançável --------------------------
+
+## Caminho a pé (sem dash) da chegada até cada coisa importante do mapa.
+## Pega erro de desenho: um mini-chefe ou um item num bolsão sem saída.
+func _unreachable(level: Level, from: Vector2) -> Array:
+	var start := Level.cell_at(from)
+	var seen := {start: true}
+	var queue: Array[Vector2i] = [start]
+	while not queue.is_empty():
+		var cell: Vector2i = queue.pop_front()
+		for offset: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var n := cell + offset
+			if seen.has(n):
+				continue
+			var c := level._char_at(n.x, n.y)
+			if c == " " or level._is_wall_char(c) or level.wall_layer.get_cell_source_id(n) != -1 and not level._is_floor_char(c):
+				continue
+			if level.THEMES[level.theme].get("solid", {}).has(c):
+				continue
+			seen[n] = true
+			queue.append(n)
+	var missing := []
+	for y in range(level._height):
+		for x in range(level._width):
+			var c := level._char_at(x, y)
+			if "UO0/@CD>'zs^?123456789".contains(c) and not seen.has(Vector2i(x, y)):
+				missing.append("%s@%d,%d" % [c, x, y])
+	return missing
+
+
+func test_new_areas_build() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
+	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN]:
+		var level := await open_level(path, "porta")
+		check(level.player != null and level.spawns.has("porta"), "%s: herói chega pela porta" % path)
+		var leaks := _find_open_edges(level)
+		check(leaks.is_empty(), "%s: mapa fechado (%s)" % [path, leaks.slice(0, 5)])
+		var missing := _unreachable(level, level.player.global_position)
+		check(missing.is_empty(), "%s: tudo alcançável a pé (%s)" % [path, missing.slice(0, 6)])
+		if path == FORJAS:
+			check(level.plate_cells.size() > 60, "Forjas: placas de metal registradas (%d)" % level.plate_cells.size())
+			var kinds := {}
+			for node in level.entities.get_children():
+				if node.get_script():
+					kinds[(node.get_script() as Script).get_global_name()] = true
+			for name in ["AutomatoBronze", "TorretaFaisca", "MineradorOco", "Imitador", "Prototipo", "GuardiaoAncora", "RestChamber"]:
+				check(kinds.has(name), "Forjas: tem %s" % name)
+		if path == ARENA_DURGAN:
+			check(level.boss_arena != null and level.boss_arena.boss is DurganVell, "Forja do Eco: Durgan")
+			check(not level.boss_arena.arena_rect.has_point(level.player.global_position), "Forja do Eco: chega no corredor")
+		level.queue_free()
+		await frames(2)
+
+
+## Venceu o mini-chefe que guardava a porta: ela abre NA HORA (sem descansar).
+func test_live_exit_unlock() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	var level := await open_level(RAIZES, "porta")
+	check(find_npc("porta_cozinha") != null, "trancada")
+	var cook: Banqueteiro = null
+	for node in level.entities.get_children():
+		if node is Banqueteiro:
+			cook = node
+	cook.start_fight()
+	cook.stats.take_damage(99999.0)
+	await frames(3)
+	var open := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_mabel"):
+			open = true
+	check(open and level.spawns.has("lateral"), "a porta de Mabel abriu na hora")
+	await frames(2)
+	check(find_npc("porta_cozinha") == null, "o ponto 'trancado' sumiu")
+	level.queue_free()
+	await frames(2)
+
+
+func test_plate_charge() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	var cells: Array[Vector2i] = [Level.cell_at(player.global_position)]
+	var charge := PlateCharge.spawn(_world, cells, 0.5, 20.0)
+	await seconds(0.3)
+	check(player.stats.health == hp and not charge.is_live(), "placa acesa: ainda é só aviso")
+	await seconds(0.35)
+	check(player.stats.health < hp, "o raio corre: quem está em cima leva o choque")
+	await seconds(0.4)
+	check(not is_instance_valid(charge), "a placa apaga")
+	# Fora da placa: nada. Com escudo: o raio vem do chão, não segura.
+	hp = player.stats.health
+	player._iframes_left = 0.0
+	var other: Array[Vector2i] = [Level.cell_at(player.global_position) + Vector2i(3, 0)]
+	PlateCharge.spawn(_world, other, 0.2, 20.0)
+	await seconds(0.6)
+	check(player.stats.health == hp, "fora das placas acesas: nada")
+
+
+func test_bronze_automaton() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var auto := spawn_enemy_scene(AUTOMATO_SCENE, Vector2(222, 200)) as AutomatoBronze
+	await frames(3)
+	var light := HitInfo.create(20.0, player.global_position, auto.global_position)
+	var heavy := HitInfo.create(20.0, player.global_position, auto.global_position)
+	heavy.is_heavy = true
+	check(is_equal_approx(auto._incoming_damage_multiplier(light), auto.light_damage_ratio), "bronze: o corte leve perde força")
+	check(is_equal_approx(auto._incoming_damage_multiplier(heavy), 1.0), "o golpe forte entra inteiro")
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	await seconds(2.0)
+	check(player.stats.health < hp, "o martelo lento acerta quem fica parado")
+
+
+func test_spark_turret() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var turret := spawn_enemy_scene(TORRETA_SCENE, Vector2(120, 200)) as TorretaFaisca
+	await frames(3)
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	await seconds(turret.charge_time + 0.1)
+	check(not get_tree().get_nodes_in_group("plate_charges").is_empty(), "mira, carrega e acende as placas até o herói")
+	await seconds(turret.plate_warning + 0.2)
+	check(player.stats.health < hp, "quem fica na trilha leva o raio")
+	# Saindo da trilha a tempo: nada.
+	player.stats.revive()
+	await seconds(1.0)
+	turret._set_ai(TorretaFaisca.AI.COOLDOWN)
+	turret._ai_time = turret.fire_every
+	await seconds(turret.charge_time + 0.15)
+	player.global_position += Vector2(0, 60)
+	player._iframes_left = 0.0
+	hp = player.stats.health
+	await seconds(turret.plate_warning + 0.3)
+	check(player.stats.health == hp, "saiu das placas acesas: escapou")
+
+
+func test_hollow_miner() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var miner := spawn_enemy_scene(MINERADOR_SCENE, Vector2(216, 200)) as MineradorOco
+	player._iframes_left = 999.0
+	var swings := [0]
+	miner._runner.phase_changed.connect(func(p): if p == AttackRunner.Phase.ACTIVE: swings[0] += 1)
+	await seconds(3.0)
+	check(swings[0] >= 3, "sempre três picaretadas (%d)" % swings[0])
+	check(miner.combo.size() == 3 and miner.combo[2].is_heavy, "a terceira é a pesada")
+
+
+func test_imitator_copies() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var mimic := spawn_enemy_scene(IMITADOR_SCENE, Vector2(240, 200)) as Imitador
+	player._iframes_left = 999.0
+	await seconds(0.5)
+	check(mimic.ai == Imitador.AI.STALK, "viu você: estuda de perto")
+	player.facing = Vector2.RIGHT
+	await tap(&"attack")
+	await seconds(0.45)
+	check(mimic.ai == Imitador.AI.ATTACK and mimic._current_attack == mimic.light_attack, "você cortou: ele corta igual")
+	await seconds(1.0)
+	player._start_dash()
+	await seconds(0.35)
+	check(mimic.ai == Imitador.AI.DASH and mimic.hurtbox.invulnerable, "você deu dash: ele também (com i-frames)")
+	await seconds(0.6)
+	# Escudo: só se VOCÊ usa um.
+	check(not mimic.shield_sprite.visible, "sem escudo seu, sem escudo dele")
+	Game.add_item("escudo_remendado")
+	Game.set_shield_equipped(true)
+	await frames(2)
+	check(mimic.shield_sprite.visible, "com o seu escudo, ele aparece com um também")
+	mimic.copy_action(&"escudo")
+	var front := HitInfo.create(20.0, mimic.global_position + mimic.facing * 20.0, mimic.global_position)
+	check(mimic._incoming_damage_multiplier(front) < 0.5, "escudo erguido: segura de frente")
+	# Você bebe: ele "bebe" e se cura.
+	mimic._set_ai(Imitador.AI.STALK)
+	mimic.stats.set_health(mimic.stats.max_health * 0.5)
+	mimic.copy_action(&"cura")
+	await seconds(1.0)
+	check(mimic.stats.health_ratio() > 0.6, "copiou a cura")
+
+
+func test_prototype() -> void:
+	var player := spawn_player(Vector2(140, 200))
+	var proto := spawn_mini(PROTOTIPO_SCENE, Vector2(240, 200)) as Prototipo
+	player._iframes_left = 999.0
+	await frames(3)
+	check(proto.active, "acorda")
+	check(proto.basic_attack.resource_path.ends_with("player_light_1.tres"), "o golpe dele é o SEU corte leve")
+	var dashed := [false]
+	var attacked := [false]
+	for i in 240:
+		await frames(1)
+		if proto.mode == Prototipo.Mode.DASH:
+			dashed[0] = true
+		if proto.mode == Prototipo.Mode.ATTACK:
+			attacked[0] = true
+		if dashed[0] and attacked[0]:
+			break
+	check(dashed[0] and attacked[0], "encurta com dash e corta")
+	proto.stats.take_damage(99999.0)
+	await seconds(0.5)
+	check(Game.is_boss_defeated("prototipo") and Game.item_count("sucata_temperada") >= 4, "vencido: registro e sucata")
+
+
+func test_anchor_guardian() -> void:
+	var player := spawn_player(Vector2(165, 200))
+	var guard := spawn_mini(GUARDIAO_SCENE, Vector2(220, 200)) as GuardiaoAncora
+	await frames(3)
+	check(guard.active, "acorda")
+	var info := HitInfo.create(10.0, player.global_position, guard.global_position)
+	check(is_equal_approx(guard._incoming_damage_multiplier(info), guard.shell_damage_ratio), "a carcaça segura quase tudo")
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	guard._aim = (player.global_position - guard.global_position).normalized()
+	guard._set_mode(GuardiaoAncora.Mode.SWEEP)
+	await seconds(guard.windup + 0.2)
+	check(player.stats.health < hp, "a corrente varre o leque")
+	# Dois ataques → superaquece e o núcleo fica exposto.
+	guard._attacks = 2
+	guard._set_mode(GuardiaoAncora.Mode.DECIDE)
+	await frames(2)
+	check(guard.is_vented() and is_equal_approx(guard._incoming_damage_multiplier(info), guard.core_damage_ratio), "depois de dois ataques: núcleo exposto")
+	guard.stats.take_damage(99999.0)
+	await seconds(0.5)
+	check(Game.is_boss_defeated("guardiao_ancora"), "vencido")
+
+
+func test_forge_gate_and_smith() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	var level := await open_level(BOSQUE, "porta")
+	check(find_npc("trilha_forjas") != null, "antes de Mabel: a trilha das Forjas está presa pelas raízes")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("mabel")
+	level = await open_level(BOSQUE, "porta")
+	var to_forge := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas"):
+			to_forge = true
+	check(to_forge and level.spawns.has("oeste"), "depois de Mabel: a trilha abre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORJAS, "porta")
+	var back := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("bosque") and (node as AreaExit).target_spawn == "oeste":
+			back = true
+	check(back, "as Forjas levam de volta à trilha do Bosque")
+	check(find_npc("porta_ancora") != null, "antes do Guardião: a porta da Forja do Eco está presa")
+	check(level._dialogue_variant("ferreiro") == "ferreiro", "o Ferreiro só lembra do irmão depois")
+	Game.defeated_bosses.append("durgan")
+	check(level._dialogue_variant("ferreiro") == "ferreiro_irmao" and not DialogueData.get_entry("ferreiro_irmao").get("opcoes", []).is_empty(), "depois de Durgan: o Ferreiro lembra (e ainda forja)")
+	check(Game.weapon_level_cap() == Game.WEAPON_LEVEL_CAP_AFTER_DURGAN, "e libera a arma até +5")
+	level.queue_free()
+	await frames(2)
+
+
+func test_durgan_fight() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "guardiao_ancora"])
+	var level := await open_level(ARENA_DURGAN, "porta")
+	var durgan := level.boss_arena.boss as DurganVell
+	var said := []
+	durgan.speech.connect(func(text: String): said.append(text))
+	level.player.global_position = durgan.global_position + Vector2(0, 90)
+	level.player._iframes_left = 999.0
+	await seconds(0.5)
+	check(durgan.active and not said.is_empty() and said[0] == DurganVell.SPEECH_INTRO, "a luta começa")
+	# Ele conta tudo o que você faz.
+	level.player.facing = Vector2.UP
+	await tap(&"attack")
+	await seconds(0.5)
+	level.player._start_dash()
+	await seconds(0.4)
+	check(durgan.counts[&"leve"] >= 1 and durgan.counts[&"dash"] >= 1, "contou: %s" % durgan.counts)
+	# Engenharia: torreta, autômato, placas acesas.
+	var turret := durgan.build_turret()
+	var automaton := durgan.call_automaton()
+	check(turret is TorretaFaisca and automaton is AutomatoBronze and turret.memory_reward == 0, "constrói torreta e chama autômato (sem pagar memórias)")
+	check(durgan.charge_field() != null, "acende as placas em volta do herói")
+	# A martelada acende um anel de placas.
+	var before := get_tree().get_nodes_in_group("plate_charges").size()
+	durgan._go_decide(99.0)
+	durgan._queue_combo([durgan.slam])
+	await seconds(durgan.slam.windup_time + 0.25)
+	check(get_tree().get_nodes_in_group("plate_charges").size() > before, "a martelada elétrica acende o anel de placas")
+	await seconds(1.5)
+	# Metade da vida: o Reflexo (sem pular, e os autômatos caem).
+	durgan.stats.take_damage(99999.0)
+	await frames(2)
+	check(durgan.phase == 2 and is_equal_approx(durgan.stats.health_ratio(), 0.5), "não pula o Reflexo")
+	await seconds(0.3)
+	check(not is_instance_valid(automaton) or automaton.dead, "os rostos de bronze caem")
+	await seconds(2.2)
+	check(not durgan.hurtbox.invulnerable and durgan.phase_label() == "O Reflexo", "fase 2 começa")
+	# Peso = contagem + 1: quem só dá golpe forte, apanha de golpe forte.
+	durgan.counts = {&"leve": 0, &"forte": 40, &"dash": 0, &"escudo": 0, &"cura": 0}
+	var heavy := 0
+	for i in 200:
+		if durgan.pick_copy() == &"forte":
+			heavy += 1
+	check(heavy > 150, "quem abusa do golpe forte enfrenta golpe forte (%d/200)" % heavy)
+	durgan.counts = {&"leve": 0, &"forte": 0, &"dash": 40, &"escudo": 0, &"cura": 0}
+	check(durgan.dodge_chance() > 0.6, "quem abusa do dash enfrenta alguém que esquiva (%.2f)" % durgan.dodge_chance())
+	durgan._go_decide(0.0)
+	level.player.global_position = durgan.global_position + Vector2(0, 30)
+	var dodged := false
+	for i in 8:
+		durgan._go_decide(0.0)
+		durgan._on_player_action(&"leve")
+		if durgan.mode == DurganVell.Mode.DODGE:
+			dodged = true
+			break
+	check(dodged, "você bate: ele esquiva")
+	await seconds(0.5)
+	# Escudo espelhado: de frente quase nada entra — e ele revida.
+	durgan._copy(&"escudo", 30.0)
+	var front := HitInfo.create(20.0, durgan.global_position + durgan.facing * 20.0, durgan.global_position)
+	check(durgan.mode == DurganVell.Mode.GUARD and durgan._incoming_damage_multiplier(front) < 0.5, "copiou o escudo")
+	durgan.hurtbox.receive_hit(front)
+	await frames(2)
+	check(durgan.mode == DurganVell.Mode.ATTACK, "aparou: revida")
+	await seconds(1.5)
+	# Vencido.
+	durgan.stats.take_damage(99999.0)
+	await seconds(4.5)
+	check(Game.is_boss_defeated("durgan") and Game.has_item("lembranca_durgan"), "vencido: registro e lembrança")
+	check(get_tree().get_nodes_in_group("plate_charges").is_empty(), "as placas apagam")
+	check(find_npc("chave_de_durgan") != null, "a chave-martelo fica onde ele caiu")
 	level.queue_free()
 	await frames(2)

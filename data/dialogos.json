@@ -460,5 +460,79 @@
 				"acao": ""
 			}
 		]
+	},
+	"trilha_forjas": {
+		"nome": "Trilha de pedra",
+		"falas": [
+			"Uma trilha sobe entre ruínas de pedra. Correntes enormes atravessam o caminho, presas ao chão.",
+			"Raízes vermelhas se enrolam nelas, apertando, bebendo. Vêm lá das Raízes da Fome. Enquanto alguém lá embaixo tiver fome, elas não soltam."
+		]
+	},
+	"porta_ancora": {
+		"nome": "Porta da Forja",
+		"falas": [
+			"Um portão de bronze, quente ao toque. Do outro lado, um martelo bate no mesmo ritmo do Ferreiro do Teatro.",
+			"A corrente da Âncora mantém o portão preso. A máquina que a guarda ainda está de pé."
+		]
+	},
+	"placa_ancora": {
+		"nome": "Placa",
+		"falas": [
+			"ÂNCORA 5 — forjada por MESTRE VELL.",
+			"Alguém riscou o “MESTRE” com um prego e escreveu por cima, pequeno: “os dois”."
+		]
+	},
+	"galeria_estatuas": {
+		"nome": "Estátuas",
+		"falas": [
+			"Fileiras de estátuas de bronze. Todas com o mesmo rosto: o do Ferreiro do Teatro.",
+			"As do fundo têm outros rostos. Um soldado. Uma criança. A última está sem rosto — só o molde vazio."
+		]
+	},
+	"oficina_durgan": {
+		"nome": "Bancada",
+		"falas": [
+			"Desenhos de rostos espalhados pela bancada, centenas. Embaixo de cada um, a mesma anotação: “quase”.",
+			"Num canto, um desenho diferente: dois anões martelando a mesma bigorna. Um deles foi apagado com tanta força que o papel rasgou."
+		]
+	},
+	"porta_durgan": {
+		"nome": "Martelo distante",
+		"falas": [
+			"Do outro lado da porta, o barulho de um martelo. Depois, o mesmo barulho, um pouco atrasado. Como um eco."
+		]
+	},
+	"forja_do_eco": {
+		"nome": "A Forja do Eco",
+		"falas": [
+			"As placas do chão estão quentes. Cada passo seu ressoa duas vezes.",
+			"Nas paredes, espelhos de bronze polido. Em nenhum deles você se reconhece direito."
+		]
+	},
+	"chave_de_durgan": {
+		"nome": "Chave-martelo",
+		"falas": [
+			"A chave-martelo de Durgan. No cabo, gravado fundo: “D. VELL”.",
+			"É o único lugar da forja inteira onde ele escreveu o próprio nome."
+		]
+	},
+	"ferreiro_irmao": {
+		"nome": "Ferreiro Anão",
+		"falas": [
+			"...Durgan. O nome dele era Durgan.",
+			"A gente forjou as Âncoras juntos. Puseram o meu nome nas placas. Ele nunca disse nada. Eu também não.",
+			"Ele fazia igual. Às vezes melhor. Eu sabia. Devia ter dito.",
+			"Me dá essa espada. Agora eu lembro como ele dobrava o aço. Dá para ir mais longe."
+		],
+		"opcoes": [
+			{
+				"texto": "Melhorar a arma",
+				"acao": "melhorar_arma"
+			},
+			{
+				"texto": "Só olhando",
+				"acao": ""
+			}
+		]
 	}
 }

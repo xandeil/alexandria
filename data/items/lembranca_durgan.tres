@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/lembranca_durgan.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lembranca_durgan"
+display_name = "Lembrança: Inveja · Querer ser o outro"
+description = "Dois irmãos forjaram as Âncoras. O nome de um ficou nas placas. O outro fazia igual, às vezes melhor, e ninguém via — então passou a copiar todo mundo.
+Inveja é querer ser o outro até não sobrar você."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

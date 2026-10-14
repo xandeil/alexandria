@@ -67,6 +67,19 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
   - **Fase 1 — A Anfitriã:** lenta e enorme. **Tapas** (leque vermelho), **frutos de carne** arremessados (círculos onde vão cair) e o **agarrão**: uma linha vai da mão até você — travou (pisca), saia. Pegou: ela **engole** você, prova suas lembranças ("Um aniversário... velas... quem era essa criança?") e se cura enquanto drena memórias. Escapou: ela **engasga** — dano dobrado.
   - **Fase 2 — A Vorágine (metade da vida):** uma **boca se abre no ventre** (de frente, o golpe dói mais). Quatro **Raízes-Veia** brotam e ficam ligadas a ela por linhas que pulsam: **curam Mabel** e delas saem lacaios, que ela **come para se curar e crescer**. Cortar as raízes interrompe a cura.
   - Vencida, fica **a mesa posta** onde ela sentava — e o **Vendedor** do Teatro passa a lembrar de quem comprava humanidade líquida "para as plantas".
+- **Forjas Ocas (Inveja)** — no alto do Bosque, uma trilha de pedra presa por correntes (e pelas raízes de Mabel) se abre depois de vencer Mabel. "Ruínas de pedra por cima, fábrica por baixo. Placas metálicas no chão, correntes enormes descendo até as Âncoras."
+  - **Placas de raio** (mecânica nova): o chão de metal conduz eletricidade. Placas que **acendem em amarelo** vão levar um choque daqui a pouco — saia delas (o escudo não segura; o dash por cima passa).
+  - **Autômato de Bronze:** o rosto do Ferreiro do Teatro, em bronze. Lento e blindado — o corte leve perde força, o **golpe forte** entra inteiro. Às vezes emenda um segundo golpe.
+  - **Torreta de Faísca:** não mira você, mira o **chão**: acende a trilha de placas até você e as placas em volta. Perto dela não há perigo — chegue e desmonte.
+  - **Minerador Oco:** sempre **três** picaretadas (a terceira, pesada, com a picareta bem alto). Depois, fôlego longo: a janela.
+  - **Imitador:** um reflexo de bronze com o **seu** equipamento (a sua espada; o seu escudo, se você usa um). Faz o que você faz, um instante depois: você corta, ele corta; você dá dash, ele também; você ergue o escudo ou bebe, ele copia. Varie.
+  - **Mini-chefe — O Protótipo:** você, em bronze, maior e inacabado. Sabe só o **seu corte leve** (e o dash para chegar perto) — ler o próprio golpe de fora.
+  - **Mini-chefe — O Guardião da Âncora:** máquina enorme presa a uma corrente da ilha. A carcaça segura quase tudo; depois de **dois ataques** ela superaquece e o **núcleo fica exposto**. Corrente (leque enorme) e pilão (círculo + raio nas placas em volta). Vencida, **a ilha treme** e a porta para Durgan se abre na hora.
+- **Durgan Vell, O Eco de Bronze (Inveja)**, na Forja do Eco:
+  - **Fase 1 — O Engenheiro:** chave-martelo elétrica (a martelada acende um anel de placas), **constrói torretas**, **chama autômatos** e acende as placas em volta de você de tempos em tempos.
+  - **Fase 2 — O Reflexo (metade da vida):** armadura espelhada. Durante a luta inteira ele **contou** o que você fez (corte, golpe forte, dash, escudo, frasco) e agora **escolhe o que fazer com peso proporcional**: quem só deu golpe forte apanha de golpe forte; quem abusou do dash enfrenta alguém que **esquiva** quando você ataca; quem se escondeu no escudo encontra um escudo espelhado que **apara e revida**; quem bebeu muito vê ele beber também.
+  - Vencido, a chave-martelo fica onde ele caiu — e o **Ferreiro do Teatro lembra do irmão** e passa a melhorar a arma **até +5**.
+- **Correção:** derrotar um mini-chefe que tranca uma porta (a Mãe dos Esporos, o Banqueteiro, o Guardião) agora **abre a porta na hora**; antes era preciso sair e voltar.
 - **Morte:** "VOCÊ ESQUECEU" — perde metade das memórias, a visão escurece pelas bordas e cabelo/olhos clareiam a cada morte.
 
 | | |
@@ -86,6 +99,9 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
 | ![O Banqueteiro serve](docs/screenshots/r09_banqueteiro_serve.jpg) | ![A Ninhada vai engolir](docs/screenshots/r11_ninhada_engolir.jpg) |
 | ![Mabel — o tapa](docs/screenshots/m03_tapa_aviso.jpg) | ![Mabel — engolido](docs/screenshots/m06_engolido.jpg) |
 | ![Mabel — as raízes](docs/screenshots/m08_voragine_raizes.jpg) | ![Mabel come um lacaio](docs/screenshots/m09_come_lacaio.jpg) |
+| ![A galeria das estátuas](docs/screenshots/f02_galeria_estatuas.jpg) | ![A torreta acende as placas](docs/screenshots/f05_torreta_placas.jpg) |
+| ![O Guardião da Âncora](docs/screenshots/f08_guardiao_pilao_placas.jpg) | ![O núcleo exposto](docs/screenshots/f09_guardiao_nucleo.jpg) |
+| ![Durgan — a martelada elétrica](docs/screenshots/d04_martelada_eletrica.jpg) | ![Durgan — o Reflexo](docs/screenshots/d06_reflexo_escudo.jpg) |
 | ![Buracos na praça](docs/screenshots/25_aldir_salto.jpg) | ![Morte](docs/screenshots/15_morte.jpg) |
 
 ## Controles
@@ -277,6 +293,9 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 - **Uma explosão, duas origens:** `FleshBurst` (aviso no chão → estouro → mancha)
   serve ao Inchado (que fere os outros inimigos também) e aos frutos da Mabel
   (que chegam voando em arco até o centro do círculo).
+- **Contar em vez de adivinhar (Durgan):** o herói emite `action_used(&"leve" | &"forte" | &"dash" | &"escudo" | &"cura")`. Durgan só conta (um dicionário ação → número, a dica da Bíblia) e, na fase 2, sorteia a próxima ação com peso = contagem + 1 (ninguém fica com chance zero). O Imitador escuta o MESMO sinal para copiar na hora. Um sinal, dois usos — e o herói não sabe que nenhum dos dois existe.
+- **Placas que dão choque como dado do mapa:** o `=` do tema "forjas" vira chão E entra em `Level.plate_cells`. Torretas, o Guardião e Durgan só perguntam à fase "quais placas estão perto daqui?" (`plates_near`, `plates_on_line`) e criam um `PlateCharge` (aviso → choque → apaga). Trocar o desenho do mapa muda a luta sem mexer em código.
+- **Ciclo de carregamento:** a `Level` carrega a cena de Durgan, e a torreta usa a classe `Level`. Um `preload` da torreta dentro de Durgan fechava um ciclo e a cena chegava VAZIA ("node count is 0"). Solução: `load()` na hora de construir. Regra prática: `preload` só para o que não depende de quem te carrega.
 - **Ligadura de fonte:** a Pixelify Sans juntava "fi" num glifo próprio que,
   em 7 px, parecia um "Ã" ("A AnÃtriã"). A importação das fontes desliga a
   ligadura `liga` (`opentype_features` no `.import`).
@@ -337,6 +356,10 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 | Boca de Raiz, Inchado, Colhedor, Larva de Seiva | Inspector de `scenes/enemies/boca_de_raiz.tscn`, `inchado.tscn`, `colhedor.tscn`, `larva_seiva.tscn` (toques para escapar, memórias por segundo, raio da explosão, quanto a larva rouba) |
 | Banqueteiro (servir, comer, cura) e Ninhada (larvas por pedaço de vida, engolir) | Inspector de `scenes/bosses/banqueteiro.tscn` e `ninhada.tscn` |
 | Mabel: frutos, agarrão, raízes (cura por raiz), lacaios, crescimento, ventre | Inspector de `scenes/bosses/mabel.tscn` (grupos "Fase 1", "Agarrão", "Fase 2") |
+| Onde o raio corre (as placas) | `=` nos mapas do tema "forjas" (`levels/forjas.txt`, `arena_durgan.txt`); aviso/dano em cada `PlateCharge.spawn(...)` |
+| Autômato, Torreta, Minerador, Imitador | Inspector de `scenes/enemies/automato_bronze.tscn`, `torreta_faisca.tscn`, `minerador_oco.tscn`, `imitador.tscn` (blindagem, alcance da trilha, combo, atraso da cópia) |
+| Protótipo e Guardião da Âncora (carcaça × núcleo, leque, pilão) | Inspector de `scenes/bosses/prototipo.tscn` e `guardiao_ancora.tscn` |
+| Durgan: torretas, autômatos, campo elétrico; esquiva, guarda, bebidas da fase 2 | Inspector de `scenes/bosses/durgan.tscn` (grupos "Fase 1", "Fase 2"); golpes copiados em `data/attacks/durgan_copia_*.tres` |
 
 ## Testes automáticos
 
@@ -344,7 +367,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-68 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+79 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3
@@ -356,7 +379,7 @@ quem fica parado e não acerta quem atravessa com o dash; o abraço avisa; fase
 2 com ecos; o caminho sem violência — ela só observa, a porta abre, o chão some,
 Criança Poupada no Teatro; o caminho da violência — ela levanta, a porta
 tranca, a lembrança, a porta destranca, a cadeira vazia depois), o save v2 com
-migração do v1, o Novo jogo abrindo o prólogo, os inimigos da Cidade (o cão morde e recua; o atirador mira, trava a linha e atira; a bala para na parede e o dash a atravessa; o civil só reage quando provocado), os mini-chefes (o Sargento apita a cada 25% e o pelotão cai junto com ele; o mini-chefe desiste se você foge; a Couraça só sente golpe pelas costas), o inventário e o save v3 (com migração do v2: quem já venceu chefes recebe o que eles deixam), a forja (custo, +24% no golpe, teto antes e depois de Durgan), o Orbe (fragmento vira frasco), itens do chão que não voltam e drops, o escudo (frente × costas × indefensável, quebra de guarda, virar sozinho para a bala) e o menu de inventário, o Bosque (a Barra de Sonolência sobe e desce, dormir e acordar, o dash na nuvem; o barulho de cada ação; o sonâmbulo que vai até o som e volta a dormir; a flor que incha e solta; o cervo que trava a mira e fica tonto na parede; a fada que cura; passar pelo Vigia em silêncio ou acordá-lo; a Mãe dos Esporos e o cipó pesado em quem dorme; a porta do Bosque que abre depois do Aldir), Nyssa (a luta começa ao entrar; sono por ficar parado; bolhas; o anel quando você cola nela; dano enorme não pula o Pesadelo; o chão some e volta; ecos só de chefes vencidos; vitória, lembrança e a cama de flores; outra fala para quem passou pelo Vigia em silêncio; os espinhos que abrem depois da Mãe; a Fada que fala da irmã) e os ecos de cada chefe, as Raízes da Fome (o agarrão: toques para escapar, memórias por segundo, dash que evita, agarrador que some, diálogo que solta; a Boca de Raiz que sobe, agarra e fica exposta; o Inchado que estoura no herói e nos outros inimigos; a foice que alcança de longe e gira; a larva que rouba, foge e devolve ao morrer; o Banqueteiro que serve, come e é interrompido; a Ninhada que se divide e engole; as portas oeste do Teatro e dos fundos da cozinha), Mabel (frutos, engolir e engasgar, fase 2 sem pular, raízes que curam e cospem lacaios, comer e crescer, ventre de frente, raízes cortadas param a cura, vitória e a mesa posta), os mapas (inclusive que são
+migração do v1, o Novo jogo abrindo o prólogo, os inimigos da Cidade (o cão morde e recua; o atirador mira, trava a linha e atira; a bala para na parede e o dash a atravessa; o civil só reage quando provocado), os mini-chefes (o Sargento apita a cada 25% e o pelotão cai junto com ele; o mini-chefe desiste se você foge; a Couraça só sente golpe pelas costas), o inventário e o save v3 (com migração do v2: quem já venceu chefes recebe o que eles deixam), a forja (custo, +24% no golpe, teto antes e depois de Durgan), o Orbe (fragmento vira frasco), itens do chão que não voltam e drops, o escudo (frente × costas × indefensável, quebra de guarda, virar sozinho para a bala) e o menu de inventário, o Bosque (a Barra de Sonolência sobe e desce, dormir e acordar, o dash na nuvem; o barulho de cada ação; o sonâmbulo que vai até o som e volta a dormir; a flor que incha e solta; o cervo que trava a mira e fica tonto na parede; a fada que cura; passar pelo Vigia em silêncio ou acordá-lo; a Mãe dos Esporos e o cipó pesado em quem dorme; a porta do Bosque que abre depois do Aldir), Nyssa (a luta começa ao entrar; sono por ficar parado; bolhas; o anel quando você cola nela; dano enorme não pula o Pesadelo; o chão some e volta; ecos só de chefes vencidos; vitória, lembrança e a cama de flores; outra fala para quem passou pelo Vigia em silêncio; os espinhos que abrem depois da Mãe; a Fada que fala da irmã) e os ecos de cada chefe, as Raízes da Fome (o agarrão: toques para escapar, memórias por segundo, dash que evita, agarrador que some, diálogo que solta; a Boca de Raiz que sobe, agarra e fica exposta; o Inchado que estoura no herói e nos outros inimigos; a foice que alcança de longe e gira; a larva que rouba, foge e devolve ao morrer; o Banqueteiro que serve, come e é interrompido; a Ninhada que se divide e engole; as portas oeste do Teatro e dos fundos da cozinha), Mabel (frutos, engolir e engasgar, fase 2 sem pular, raízes que curam e cospem lacaios, comer e crescer, ventre de frente, raízes cortadas param a cura, vitória e a mesa posta), as Forjas Ocas (placas que avisam e dão choque; o bronze que só sente o golpe forte; a torreta que acende a trilha e quem sai dela escapa; as três picaretadas; o Imitador que copia golpe, dash, escudo e frasco; o Protótipo com o seu corte; o Guardião de carcaça e núcleo; a trilha do Bosque, a porta da Forja e o Ferreiro depois de Durgan), Durgan (conta as suas ações; torreta, autômato e campo elétrico; martelada que acende o anel; o Reflexo sem pular; peso das escolhas; esquiva de quem abusa do dash; escudo que apara e revida; vitória e a chave-martelo), as áreas novas montadas, **fechadas e com tudo alcançável a pé** (um teste de caminho da chegada até cada chefe, item e porta), a porta que abre na hora em que o mini-chefe cai, os mapas (inclusive que são
 **fechados**) e os controles de toque. E os testes de **regressão** de cada bug já corrigido: save com cópia de
 segurança e save corrompido, minimizar no título, pausa soltando os toques,
 tecla do diálogo ignorada, cura guardada no fim do golpe, porta mantendo
@@ -367,8 +390,8 @@ próprio (`user://teste_automatico_save.json`) — o seu nunca é tocado.
 
 Há também `tests/soak_test.tscn` (um robô joga ~8 minutos de jogo — Prólogo
 pelo caminho da violência até a queda, Cidade (de escudo), os dois mini-chefes, a forja e o Orbe, Helena, Aldir e o
-Bosque com os mini-chefes dele e a Nyssa, e as Raízes com o Banqueteiro, a Ninhada e a Mabel (o robô se deixa agarrar e escapa tocando) — procurando erros; aceita durações: `-- 90 150 150 120 90 90`, 0 pula) e
-`tests/screenshot_tour.tscn` (tira as fotos desta página; `-- --only=bosque` ou `-- --only=raizes` tira só as daquela área).
+Bosque com os mini-chefes dele e a Nyssa, as Raízes com o Banqueteiro, a Ninhada e a Mabel (o robô se deixa agarrar e escapa tocando) e as Forjas com o Protótipo, o Guardião e o Durgan — procurando erros; aceita durações: `-- 90 150 150 120 90 90 90`, 0 pula) e
+`tests/screenshot_tour.tscn` (tira as fotos desta página; `-- --only=bosque`, `--only=raizes` ou `--only=forjas` tira só as daquela área).
 Para rodar só alguns testes enquanto mexe numa coisa: `... test_runner.tscn -- vigia sono`.
 
 ## Desempenho em celular fraco
@@ -396,7 +419,7 @@ tamanhos de quadro (herói/soldado/crianças 24×24, Helena 32×32, Governanta
 
 ## Próximos passos sugeridos (pela Bíblia)
 
-1. **Forjas Ocas (Inveja — Durgan Vell)**, a próxima ilha na ordem da Bíblia: ele copia os ataques que você mais usa, e vencê-lo libera o Ferreiro até +5.
+1. **Montanha Carbonizada (Orgulho — Rachel Azheryon Caelis)**, a próxima ilha na ordem da Bíblia: dragões, cinza no ar e uma arena que desmorona aos poucos.
 2. **A Criança Poupada como aliada de verdade:** segui-lo pelas áreas e reagir a cada Pecado vencido (hoje ela fica no Teatro e dá dicas).
 3. Fazer o mundo lembrar da escolha: falas novas da Fada/Orbe para quem feriu as crianças; levar a memória do Aldir ao Teatro (fala nova da Fada/Orbe) e a ordem dos Pecados da Bíblia (Helena por último).
 4. Arte final e animações (as cenas já separam corpo, arma e peças de armadura).

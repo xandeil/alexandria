@@ -65,6 +65,12 @@ const LIBRARY := {
 	&"root_burst": "res://assets/sfx/root_burst.wav",
 	&"gulp": "res://assets/sfx/gulp.wav",
 	&"amb_roots": "res://assets/sfx/amb_roots.wav",
+	&"zap": "res://assets/sfx/zap.wav",
+	&"clank": "res://assets/sfx/clank.wav",
+	&"hum": "res://assets/sfx/hum.wav",
+	&"mirror": "res://assets/sfx/mirror.wav",
+	&"quake": "res://assets/sfx/quake.wav",
+	&"amb_forge": "res://assets/sfx/amb_forge.wav",
 }
 const POOL_SIZE := 12
 

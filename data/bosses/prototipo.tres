@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "prototipo"
+display_name = "O Protótipo"
+title = "Mini-chefe das Forjas Ocas"
+sin = "Mini-chefe"
+sin_meaning = "Inveja"
+race = "Autômato"
+attribute = "Raio"
+area = "Forjas Ocas"
+scaling = "—"
+suggested_order = "1º mini-chefe das Forjas"
+memory_reward = 650
+implemented = true
+unique_mechanic = "Um autômato com o formato do jogador, inacabado. Usa só o ataque básico do jogador (e o dash para chegar perto)."
+phases = Array[String](["Sequências de 1 a 3 cortes leves com o mesmo avanço do herói; dash para encurtar; recuperação depois do combo."])
+history = "O primeiro rosto de alguém que passou pelas forjas. Durgan não terminou: faltavam peças. Faltava alguém dentro."
+meaning = "O primeiro sinal de que Durgan copia."

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Picareta I"
+stamina_cost = 0.0
+damage = 12.0
+poise_damage = 14.0
+knockback = 80.0
+is_heavy = false
+windup_time = 0.45
+lunge_speed = 120.0
+lunge_time = 0.06
+active_time = 0.08
+recovery_time = 0.15
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.7
+reach = 13.0
+radius = 11.0
+hitstop = 0.0
+shake = 0.0
+slash_arc_degrees = 100.0
+slash_radius = 15.0
+slash_color = Color(0.85, 0.88, 0.9, 0.85)
+sound = &"swing"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/forjas_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Forjas" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/forjas.txt"
+area_name = "Forjas Ocas"
+area_subtitle = "Ruínas por cima, fábrica por baixo. Correntes descem até as Âncoras."
+theme = "forjas"
+ambience = &"amb_forge"
+darkness = Color(0.78, 0.76, 0.8, 1)
+outdoor = true
+exit_scene = "res://scenes/world/bosque.tscn"
+exit_spawn = "oeste"
+exit2_scene = "res://scenes/world/arena_durgan.tscn"
+exit2_spawn = "porta"
+exit2_requires = "guardiao_ancora"
+exit2_locked_dialogue = "porta_ancora"
+lore_points = {"1": "placa_ancora", "2": "galeria_estatuas", "3": "oficina_durgan", "5": "porta_durgan"}
+item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2"])
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

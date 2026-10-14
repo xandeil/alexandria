@@ -92,6 +92,9 @@ const BOSS_REWARDS := {
 	"banqueteiro": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"ninhada": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"mabel": {"lembranca_mabel": 1, "fragmento_turvo": 1, "sucata_temperada": 5},
+	"prototipo": {"sucata_temperada": 4},
+	"guardiao_ancora": {"fragmento_turvo": 1, "sucata_temperada": 4},
+	"durgan": {"lembranca_durgan": 1, "fragmento_turvo": 1, "sucata_temperada": 8},
 }
 
 var memories := 0

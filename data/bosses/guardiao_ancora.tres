@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "guardiao_ancora"
+display_name = "O Guardião da Âncora"
+title = "Mini-chefe das Forjas Ocas"
+sin = "Mini-chefe"
+sin_meaning = "Inveja"
+race = "Máquina"
+attribute = "Raio"
+area = "Forjas Ocas"
+scaling = "—"
+suggested_order = "2º mini-chefe das Forjas"
+memory_reward = 700
+implemented = true
+unique_mechanic = "Máquina enorme presa a uma corrente da ilha. A carcaça segura quase tudo; depois de dois ataques superaquece e expõe o núcleo."
+phases = Array[String](["Corrente (leque enorme), pilão (círculo + raio nas placas em volta), vapor (núcleo exposto)."])
+history = "Os irmãos Vell forjaram as Âncoras que prendem as ilhas ao núcleo. Esta máquina guarda uma delas. Destruí-la faz a ilha tremer."
+meaning = "Abre o caminho até Durgan."

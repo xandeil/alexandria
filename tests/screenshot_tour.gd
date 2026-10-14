@@ -22,10 +22,15 @@ func _ready() -> void:
 		await _tour_roots()
 		Game.quit_game()
 		return
+	if only == "forjas":
+		await _tour_forge()
+		Game.quit_game()
+		return
 	if only != "bosque":
 		await _tour()
 	await _tour_forest()
 	await _tour_roots()
+	await _tour_forge()
 	Game.quit_game()
 
 
@@ -743,3 +748,112 @@ func _tour_mabel() -> void:
 	mabel.stats.take_damage(99999.0)
 	await wait(6.0)
 	await shot("m10_mesa_posta")
+
+
+
+## Forjas Ocas e a Forja do Eco.
+func _tour_forge() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
+	Game.add_item("escudo_remendado")
+	Game.set_shield_equipped(true)
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/forjas.tscn") as Level
+	await wait(2.2)
+	await shot("f01_forjas_chegada")
+	level.player._iframes_left = 9999.0
+	# A galeria: estátuas com o rosto do Ferreiro, um Autômato e o Imitador.
+	level.player.global_position = Vector2(12 * 16, 11 * 16)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	await shot("f02_galeria_estatuas")
+	var mimic := _forest_find(level, "Imitador", Vector2(7 * 16, 9 * 16)) as Imitador
+	level.player.global_position = mimic.global_position + Vector2(36, 6)
+	level.camera.snap_to_target()
+	await wait(1.0)
+	level.player.facing = Vector2.LEFT
+	await tap(&"attack")
+	await wait(0.5)
+	await shot("f03_imitador_copia")
+	# A oficina e o Protótipo.
+	var proto := _forest_find(level, "Prototipo", Vector2(35 * 16, 7 * 16)) as Prototipo
+	level.player.global_position = proto.global_position + Vector2(-60, 30)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	await shot("f04_prototipo")
+	proto.reset_fight()
+	# A fábrica: torreta acendendo as placas.
+	var turret := _forest_find(level, "TorretaFaisca", Vector2(49 * 16, 18 * 16)) as TorretaFaisca
+	level.player.global_position = turret.global_position + Vector2(50, 20)
+	level.camera.snap_to_target()
+	await wait(1.4)
+	turret._aim = (level.player.global_position - turret.global_position).normalized()
+	turret.fire()
+	await wait(0.5)
+	await shot("f05_torreta_placas")
+	# A mina: o Minerador ergue a picareta.
+	var miner := _forest_find(level, "MineradorOco", Vector2(27 * 16, 24 * 16)) as MineradorOco
+	level.player.global_position = miner.global_position + Vector2(20, 4)
+	level.camera.snap_to_target()
+	for i in 30:
+		await wait(0.05)
+		if miner._combo_index == 3 and miner._runner.phase == AttackRunner.Phase.WINDUP:
+			break
+	await shot("f06_minerador")
+	# A câmara da Âncora: o Guardião.
+	var guard := _forest_find(level, "GuardiaoAncora", Vector2(64 * 16, 8 * 16)) as GuardiaoAncora
+	level.player.global_position = guard.global_position + Vector2(-50, 40)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	guard._aim = (level.player.global_position - guard.global_position).normalized()
+	guard._set_mode(GuardiaoAncora.Mode.SWEEP)
+	await wait(0.7)
+	await shot("f07_guardiao_corrente")
+	await wait(1.0)
+	guard._set_mode(GuardiaoAncora.Mode.SLAM)
+	await wait(guard.windup + 0.2)
+	await shot("f08_guardiao_pilao_placas")
+	await wait(0.8)
+	guard._set_mode(GuardiaoAncora.Mode.VENT)
+	await wait(0.6)
+	await shot("f09_guardiao_nucleo")
+	await _tour_durgan()
+
+
+func _tour_durgan() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "guardiao_ancora"])
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/arena_durgan.tscn") as Level
+	await wait(1.8)
+	await shot("d01_forja_do_eco")
+	var durgan := level.boss_arena.boss as DurganVell
+	level.player._iframes_left = 9999.0
+	level.player.global_position = durgan.global_position + Vector2(10, 80)
+	level.camera.snap_to_target()
+	await wait(2.0)
+	await shot("d02_engenheiro")
+	durgan._go_decide(99.0)
+	durgan.build_turret()
+	durgan.call_automaton()
+	durgan.charge_field()
+	await wait(0.7)
+	await shot("d03_torretas_placas")
+	await wait(1.0)
+	level.player.global_position = durgan.global_position + Vector2(10, 40)
+	durgan._queue_combo([durgan.slam])
+	await wait(durgan.slam.windup_time + 0.2)
+	await shot("d04_martelada_eletrica")
+	await wait(1.5)
+	durgan.stats.take_damage(durgan.stats.max_health * 0.55)
+	await wait(1.0)
+	await shot("d05_reflexo")
+	await wait(1.6)
+	durgan._go_decide(99.0)
+	durgan._copy(&"escudo", 30.0)
+	await wait(0.4)
+	await shot("d06_reflexo_escudo")
+	await wait(1.4)
+	durgan.stats.take_damage(99999.0)
+	await wait(6.0)
+	await shot("d07_chave_martelo")

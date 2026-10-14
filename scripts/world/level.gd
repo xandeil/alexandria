@@ -37,6 +37,10 @@ extends Node2D
 ##   THEME_ENTITIES/THEME_PROPS): ~ poça de seiva  ( raiz retorcida  ) fruto de carne
 ##           [ canteiro da estufa  ] fogão   z Boca de Raiz  s Inchado  ^ Colhedor
 ##           ? Larvas de Seiva (enxame de 3)  U O Banqueteiro  0 A Ninhada  / Mabel
+##   Forjas Ocas: = placa de metal (conduz raio)  : grade  ~ metal derretido  ( corrente
+##           ) engrenagens  [ prensa  ] estátua de bronze   z Autômato de Bronze
+##           s Torreta de Faísca  ^ Minerador Oco  ? Imitador  U O Protótipo
+##           0 O Guardião da Âncora  / Durgan Vell
 
 const TILE := 16
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
@@ -64,6 +68,17 @@ const THEME_ENTITIES := {
 		"/": {"boss": preload("res://scenes/bosses/mabel.tscn"), "memorial": {"dialogue": "mesa_de_mabel",
 			"name": "Mesa posta", "texture": "res://assets/props/mabel_table.png"}},
 	},
+	"forjas": {
+		"z": {"enemy": preload("res://scenes/enemies/automato_bronze.tscn")},
+		"s": {"enemy": preload("res://scenes/enemies/torreta_faisca.tscn")},
+		"^": {"enemy": preload("res://scenes/enemies/minerador_oco.tscn")},
+		"?": {"enemy": preload("res://scenes/enemies/imitador.tscn")},
+		"U": {"miniboss": "prototipo", "scene": preload("res://scenes/bosses/prototipo.tscn")},
+		"0": {"miniboss": "guardiao_ancora", "scene": preload("res://scenes/bosses/guardiao_ancora.tscn")},
+		"/": {"boss": preload("res://scenes/bosses/durgan.tscn"), "memorial": {"dialogue": "chave_de_durgan",
+			"name": "Chave-martelo", "texture": "res://assets/sprites/durgan_chave.png", "rotation": -0.5,
+			"at_death": true}},
+	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
@@ -73,6 +88,13 @@ const THEME_PROPS := {
 		"[": {"tex": "res://assets/props/planter.png", "box": Vector2(28, 8), "dx": 8},
 		"]": {"tex": "res://assets/props/stove.png", "box": Vector2(14, 8),
 			"light": [Color(1.0, 0.45, 0.25), 0.6, 0.6, Vector2(0, -8)]},
+	},
+	"forjas": {
+		"(": {"tex": "res://assets/props/chain_post.png", "box": Vector2(12, 6)},
+		")": {"tex": "res://assets/props/gear_pile.png"},
+		"[": {"tex": "res://assets/props/press.png", "box": Vector2(28, 9), "dx": 8,
+			"light": [Color(1.0, 0.55, 0.25), 0.5, 0.5, Vector2(0, -6)]},
+		"]": {"tex": "res://assets/props/bronze_statue.png", "box": Vector2(14, 6)},
 	},
 }
 ## Mini-chefes do mapa: caractere → [id na ficha BossData, cena].
@@ -173,6 +195,27 @@ const THEMES := {
 		"shore": Vector2i(1, 2),
 		"cliff_under_walls": true,
 	},
+	"forjas": {
+		"floor": {
+			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
+			",": [Vector2i(7, 0)], ":": [Vector2i(4, 0), Vector2i(4, 0), Vector2i(3, 2)], ";": [Vector2i(5, 0)],
+			"=": [Vector2i(3, 0), Vector2i(3, 0), Vector2i(6, 0)], "k": [Vector2i(2, 0)], "g": [Vector2i(7, 0)],
+			"_": [Vector2i(2, 2)],
+		},
+		"default_floor": ".",
+		# "=" são as placas de metal: o raio das torretas e de Durgan corre por elas.
+		"plates": "=",
+		"wall_top": Vector2i(0, 1),
+		"wall_face": [Vector2i(1, 1), Vector2i(1, 1), Vector2i(2, 1)],
+		"arch": Vector2i(3, 1),
+		"cliff": Vector2i(4, 1),
+		"cliff_low": Vector2i(5, 1),
+		"barrier": Vector2i(6, 1),
+		# Canais de metal derretido: sólidos (e brilham).
+		"solid": {"~": [Vector2i(7, 1), Vector2i(7, 1), Vector2i(0, 2)]},
+		"shore": Vector2i(1, 2),
+		"cliff_under_walls": true,
+	},
 	"laboratorio": {
 		"floor": {
 			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(0, 0), Vector2i(1, 0)],
@@ -227,7 +270,7 @@ const PROPS := {
 @export_file("*.txt") var layout_file := ""
 @export var area_name := ""
 @export var area_subtitle := ""
-@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes") var theme := "teatro"
+@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas") var theme := "teatro"
 @export var ambience: StringName = &"amb_theater"
 ## Cor geral da área (CanvasModulate). Mais escuro = as tochas brilham mais.
 @export var darkness := Color(1, 1, 1)
@@ -292,6 +335,12 @@ var _talking := false
 var _leaving := false
 ## Quantos "@" já foram lidos nesta montagem (índice em item_points).
 var _item_index := 0
+## Placas de metal que conduzem raio (Forjas Ocas): célula → true.
+## Torretas e Durgan "acendem" placas; quem está em cima leva o choque.
+var plate_cells := {}
+## Saídas trancadas à espera de um chefe: abrem NA HORA em que ele cai
+## (antes, só abriam ao recarregar a fase — depois de descansar).
+var _locked_exits: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -333,6 +382,8 @@ func _clear() -> void:
 	_memorial = {}
 	_memorial_point = Vector2.ZERO
 	_item_index = 0
+	plate_cells.clear()
+	_locked_exits.clear()
 	var sky := get_node_or_null("Sky")
 	if sky:
 		sky.free()
@@ -402,6 +453,7 @@ func _build_cell(x: int, y: int, c: String, tiles: Dictionary) -> void:
 	var floors: Dictionary = tiles["floor"]
 	if floors.has(c):
 		floor_layer.set_cell(cell, 0, _pick(floors[c], x, y))
+		_mark_plate(cell, c, tiles)
 		return
 	var solids: Dictionary = tiles.get("solid", {})
 	if solids.has(c) or (c == "<" and solids.has("~")):
@@ -421,8 +473,60 @@ func _build_cell(x: int, y: int, c: String, tiles: Dictionary) -> void:
 		" ":
 			_build_void(x, y, tiles)
 		_:
-			floor_layer.set_cell(cell, 0, _pick(floors[_underlay_char(x, y, tiles)], x, y))
+			var under := _underlay_char(x, y, tiles)
+			floor_layer.set_cell(cell, 0, _pick(floors[under], x, y))
+			_mark_plate(cell, under, tiles)
 			_build_entity(x, y, c)
+
+
+func _mark_plate(cell: Vector2i, c: String, tiles: Dictionary) -> void:
+	if str(tiles.get("plates", "")).contains(c):
+		plate_cells[cell] = true
+
+
+# --- Placas de raio (consultas usadas por torretas e chefes) ---------------------
+
+## A fase que contém este nó (ou null — num teste, o inimigo pode estar solto).
+static func find(node: Node) -> Level:
+	var current := node.get_parent() if node else null
+	while current and not current is Level:
+		current = current.get_parent()
+	return current as Level
+
+
+static func cell_at(point: Vector2) -> Vector2i:
+	return Vector2i(floori(point.x / TILE), floori(point.y / TILE))
+
+
+func is_plate(cell: Vector2i) -> bool:
+	return plate_cells.has(cell)
+
+
+## Placas a até `radius` px de um ponto (entre `inner` e `radius`: um anel).
+func plates_near(center: Vector2, radius: float, inner: float = 0.0) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	var reach := int(ceil(radius / TILE)) + 1
+	var origin := cell_at(center)
+	for dy in range(-reach, reach + 1):
+		for dx in range(-reach, reach + 1):
+			var cell := origin + Vector2i(dx, dy)
+			if not plate_cells.has(cell):
+				continue
+			var d := _cell_center(cell.x, cell.y).distance_to(center)
+			if d <= radius and d >= inner:
+				result.append(cell)
+	return result
+
+
+## Placas ao longo de um segmento (a "trilha" do raio de uma torreta).
+func plates_on_line(from: Vector2, to: Vector2) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	var steps := int(ceil(from.distance_to(to) / (TILE * 0.5))) + 1
+	for i in steps + 1:
+		var cell := cell_at(from.lerp(to, float(i) / steps))
+		if plate_cells.has(cell) and not result.has(cell):
+			result.append(cell)
+	return result
 
 
 ## Lago (sólido) — com margem de grama quando há terra logo acima.
@@ -655,7 +759,9 @@ func _build_entity(x: int, y: int, c: String) -> void:
 ## Saída extra: trancada (vira um ponto "Examinar") até vencer o chefe pedido.
 func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: String, locked_dialogue: String, arrival: String) -> void:
 	if not requires.is_empty() and not Engine.is_editor_hint() and not Game.is_boss_defeated(requires):
-		_make_npc(locked_dialogue, "", "", 1, _cell_feet(x, y), "Examinar")
+		var lock := _make_npc(locked_dialogue, "", "", 1, _cell_feet(x, y), "Examinar")
+		_locked_exits.append({"npc": lock, "x": x, "y": y, "scene": scene, "spawn": spawn, "requires": requires,
+			"arrival": arrival})
 		return
 	var side_exit := EXIT_SCENE.instantiate() as AreaExit
 	side_exit.position = _cell_center(x, y)
@@ -945,6 +1051,10 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Mabel comprava humanidade líquida dele ("para as plantas").
 			if Game.is_boss_defeated("mabel"):
 				return "vendedor_mabel"
+		"ferreiro":
+			# Bíblia: "O Ferreiro reconhece a memória do irmão e muda o diálogo."
+			if Game.is_boss_defeated("durgan"):
+				return "ferreiro_irmao"
 	return dialogue_id
 
 
@@ -1112,6 +1222,7 @@ func _on_fight_ended(victory: bool) -> void:
 	hud.hide_boss()
 	if victory:
 		await _celebrate_victory(subtitle)
+		unlock_exits()
 	Sfx.play_ambience(ambience, -12.0)
 	if rest_chamber:
 		rest_chamber.set_available(true)
@@ -1130,6 +1241,22 @@ func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
 	Sfx.play_ambience(ambience, -12.0)
 	if victory:
 		hud.show_victory("INIMIGO VENCIDO", mini.display_name())
+		unlock_exits()
+
+
+## Abre as saídas cujo chefe acabou de cair (sem precisar sair e voltar).
+func unlock_exits() -> void:
+	for i in range(_locked_exits.size() - 1, -1, -1):
+		var lock: Dictionary = _locked_exits[i]
+		if not Game.is_boss_defeated(lock["requires"]):
+			continue
+		_locked_exits.remove_at(i)
+		if is_instance_valid(lock["npc"]):
+			(lock["npc"] as Node).queue_free()
+		_add_side_exit(lock["x"], lock["y"], lock["scene"], lock["spawn"], "", "", lock["arrival"])
+		Sfx.play(&"door", -4.0)
+		if hud:
+			hud.toast("Uma passagem se abriu.")
 
 
 ## Gancho da vitória (padrão: o título "MEMÓRIA RECUPERADA" e a arma do chefe

@@ -51,6 +51,14 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `z` `s` `^` `?` | Boca de Raiz, Inchado, Colhedor, Larvas de Seiva (um enxame de 3) | — |
 | `U` `0` | mini-chefes: O Banqueteiro, A Ninhada | — |
 | `/` | Mabel Vorágine (`arena_mabel.txt`) | — |
+| **Forjas Ocas** (tema "forjas") | | |
+| `.` `,` `:` `;` | laje de pedra, cinza, grade da fábrica, entulho | não |
+| `=` | **placa de metal**: conduz o raio das torretas e de Durgan | não |
+| `~` | canal de metal derretido (sólido) | sim |
+| `(` `)` `[` `]` | corrente da Âncora, engrenagens, prensa (2 células), estátua de bronze | corrente/prensa/estátua |
+| `z` `s` `^` `?` | Autômato de Bronze, Torreta de Faísca, Minerador Oco, Imitador | — |
+| `U` `0` | mini-chefes: O Protótipo, O Guardião da Âncora | — |
+| `/` | Durgan Vell (`arena_durgan.txt`) | — |
 | `@` | item no chão; QUAL item vem de `item_points` no nó da fase, na ordem de leitura (`"escudo_remendado"`, `"sucata_temperada:2"`) — pego uma vez, não volta | não |
 | `X` `x` `f` `L` `c` `K` | barricada, entulho, fogo, poste, caixote, carro destruído | variam |
 | `G` | portão do Detentor do Caos: falar com ele leva à arena do Aldir | sim |
@@ -72,6 +80,6 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `1`–`9` | ponto de inspeção: o texto vem de `lore_points` no nó da fase | não |
 
 A arena de cada chefe é o retângulo `arena_rect_tiles` no nó da fase
-(x, y, largura, altura em células): Helena no `Teatro`, Aldir na `ArenaAldir`, Nyssa na `ArenaNyssa`, Mabel na `ArenaMabel`,
+(x, y, largura, altura em células): Helena no `Teatro`, Aldir na `ArenaAldir`, Nyssa na `ArenaNyssa`, Mabel na `ArenaMabel`, Durgan na `ArenaDurgan`,
 a Governanta (o refeitório) no `Prologo`.
 Os buracos do martelo não ficam no mapa: abrem durante a luta.

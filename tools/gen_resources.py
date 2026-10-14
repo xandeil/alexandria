@@ -247,6 +247,52 @@ ATTACKS = {
                          windup_time=0.7, lunge_speed=150.0, lunge_time=0.12, active_time=0.12, recovery_time=1.0,
                          track_until=0.6, reach=20.0, radius=20.0, slash_arc_degrees=100.0, slash_radius=24.0,
                          slash_color=(0.9, 0.3, 0.3, 0.95), hitstop=0.1, shake=5.0, sound="&chomp"),
+    # Forjas Ocas ---------------------------------------------------------------------
+    "automato_golpe": dict(display_name="Martelo de bronze", damage=26.0, poise_damage=34.0, knockback=190.0, is_heavy=True,
+                           windup_time=0.85, lunge_speed=90.0, lunge_time=0.1, active_time=0.12, recovery_time=0.9,
+                           track_until=0.6, reach=16.0, radius=14.0, slash_arc_degrees=120.0, slash_radius=20.0,
+                           slash_color=(1.0, 0.8, 0.5, 0.95), hitstop=0.06, shake=3.0, sound="&swing_heavy"),
+    "minerador_1": dict(display_name="Picareta I", damage=12.0, poise_damage=14.0, knockback=80.0,
+                        windup_time=0.45, lunge_speed=120.0, lunge_time=0.06, active_time=0.08, recovery_time=0.15,
+                        track_until=0.7, reach=13.0, radius=11.0, slash_arc_degrees=100.0, slash_radius=15.0,
+                        slash_color=(0.85, 0.88, 0.9, 0.85)),
+    "minerador_2": dict(display_name="Picareta II", damage=12.0, poise_damage=14.0, knockback=80.0,
+                        windup_time=0.3, lunge_speed=120.0, lunge_time=0.06, active_time=0.08, recovery_time=0.15,
+                        track_until=0.7, reach=13.0, radius=11.0, slash_arc_degrees=100.0, slash_radius=15.0,
+                        slash_color=(0.85, 0.88, 0.9, 0.85)),
+    "minerador_3": dict(display_name="Picareta III", damage=22.0, poise_damage=30.0, knockback=170.0, is_heavy=True,
+                        windup_time=0.6, lunge_speed=180.0, lunge_time=0.1, active_time=0.1, recovery_time=1.0,
+                        track_until=0.6, reach=14.0, radius=12.0, slash_arc_degrees=60.0, slash_radius=17.0,
+                        slash_color=(0.9, 0.9, 0.95, 0.95), hitstop=0.06, shake=3.0, sound="&swing_heavy"),
+    "durgan_chave": dict(display_name="Chave-martelo", damage=26.0, poise_damage=30.0, knockback=180.0,
+                         windup_time=0.6, lunge_speed=140.0, lunge_time=0.08, active_time=0.1, recovery_time=0.6,
+                         track_until=0.6, reach=20.0, radius=16.0, slash_arc_degrees=150.0, slash_radius=24.0,
+                         slash_color=(0.7, 0.9, 1.0, 0.95), sound="&swing_heavy"),
+    "durgan_martelada": dict(display_name="Martelada elétrica", damage=30.0, poise_damage=45.0, knockback=220.0, is_heavy=True,
+                             windup_time=0.9, lunge_speed=60.0, lunge_time=0.08, active_time=0.12, recovery_time=0.9,
+                             track_until=0.6, reach=22.0, radius=18.0, slash_arc_degrees=10.0, slash_radius=22.0,
+                             slash_color=(0.75, 0.92, 1.0, 0.95), hitstop=0.1, shake=5.0, sound="&swing_heavy"),
+    "durgan_copia_leve_1": dict(display_name="Seu corte (cópia)", damage=16.0, poise_damage=18.0, knockback=100.0,
+                                windup_time=0.3, lunge_speed=180.0, lunge_time=0.06, active_time=0.08, recovery_time=0.18,
+                                track_until=0.6, reach=14.0, radius=12.0, slash_arc_degrees=140.0, slash_radius=17.0,
+                                slash_color=(0.9, 0.95, 1.0, 0.9)),
+    "durgan_copia_leve_2": dict(display_name="Seu contracorte (cópia)", damage=17.0, poise_damage=18.0, knockback=100.0,
+                                windup_time=0.22, lunge_speed=170.0, lunge_time=0.06, active_time=0.08, recovery_time=0.2,
+                                track_until=0.5, reach=14.0, radius=12.0, slash_arc_degrees=150.0, slash_radius=17.0,
+                                slash_color=(0.9, 0.95, 1.0, 0.9)),
+    "durgan_copia_leve_3": dict(display_name="Sua estocada (cópia)", damage=22.0, poise_damage=28.0, knockback=150.0,
+                                windup_time=0.35, lunge_speed=240.0, lunge_time=0.08, active_time=0.09, recovery_time=0.6,
+                                track_until=0.6, reach=16.0, radius=10.0, slash_arc_degrees=0.0, slash_radius=15.0,
+                                slash_color=(0.9, 0.95, 1.0, 0.95)),
+    "durgan_copia_forte": dict(display_name="Seu golpe forte (cópia)", damage=40.0, poise_damage=55.0, knockback=220.0, is_heavy=True,
+                               windup_time=0.55, lunge_speed=240.0, lunge_time=0.09, active_time=0.1, recovery_time=0.8,
+                               track_until=0.6, reach=16.0, radius=15.0, slash_arc_degrees=170.0, slash_radius=20.0,
+                               slash_color=(0.95, 0.97, 1.0, 0.95), hitstop=0.1, shake=4.0, sound="&swing_heavy"),
+    "durgan_estocada": dict(display_name="Seu dash (cópia)", damage=24.0, poise_damage=26.0, knockback=170.0,
+                            windup_time=0.4, lunge_speed=300.0, lunge_time=0.2, active_time=0.05, recovery_time=0.7,
+                            active_during_lunge=True, track_until=0.6, reach=12.0, radius=11.0,
+                            slash_arc_degrees=0.0, slash_radius=15.0, slash_color=(0.85, 0.92, 1.0, 0.9),
+                            sound="&swing_heavy"),
     "vigia_martelo": dict(display_name="Martelada do Vigia", damage=34.0, poise_damage=55.0, knockback=240.0, is_heavy=True,
                           windup_time=1.05, lunge_speed=40.0, lunge_time=0.1, active_time=0.14,
                           recovery_time=1.0, track_until=0.55, reach=30.0, radius=22.0,
@@ -299,7 +345,7 @@ BOSSES = {
     "durgan": dict(
         id="durgan", display_name="Durgan Vell", title="O Eco de Bronze", sin="Inveja", sin_meaning="Querer ser o outro",
         race="Anão", attribute="Raio", area="Forjas Ocas", scaling="Fé", suggested_order="4ª",
-        memory_reward=1500, unique_mechanic="Copia os ataques que o jogador mais usou (contagem de ações → peso na escolha).",
+        memory_reward=1500, implemented=True, unique_mechanic="Copia os ataques que o jogador mais usou (contagem de ações → peso na escolha).",
         phases=["Fase 1 — O Engenheiro: chave-martelo elétrica, torretas e autômatos; placas acesas no chão indicam onde não pisar.",
                 "Fase 2 — O Reflexo (metade da vida): armadura espelhada; usa os ataques que o jogador mais usou."],
         history="Irmão do Ferreiro do Teatro. Os dois forjaram as Âncoras que prendem as ilhas ao núcleo, mas só o irmão era visto. Nas forjas, Durgan construiu autômatos com o rosto do irmão — depois com o rosto de qualquer um. No fim, não sobrou um rosto que fosse dele.",
@@ -378,6 +424,22 @@ BOSSES = {
         phases=["Rola por cima (linha), engole (círculo: o agarrão) e solta larvas a cada pedaço de vida perdido."],
         history="Restos do que Mabel não terminou de comer, juntos num monte que ainda tem fome.",
         meaning="Testa controle de grupo e o agarrão antes de Mabel."),
+    "prototipo": dict(
+        id="prototipo", display_name="O Protótipo", title="Mini-chefe das Forjas Ocas", sin="Mini-chefe",
+        sin_meaning="Inveja", race="Autômato", attribute="Raio", area="Forjas Ocas", scaling="—",
+        suggested_order="1º mini-chefe das Forjas", memory_reward=650, implemented=True,
+        unique_mechanic="Um autômato com o formato do jogador, inacabado. Usa só o ataque básico do jogador (e o dash para chegar perto).",
+        phases=["Sequências de 1 a 3 cortes leves com o mesmo avanço do herói; dash para encurtar; recuperação depois do combo."],
+        history="O primeiro rosto de alguém que passou pelas forjas. Durgan não terminou: faltavam peças. Faltava alguém dentro.",
+        meaning="O primeiro sinal de que Durgan copia."),
+    "guardiao_ancora": dict(
+        id="guardiao_ancora", display_name="O Guardião da Âncora", title="Mini-chefe das Forjas Ocas", sin="Mini-chefe",
+        sin_meaning="Inveja", race="Máquina", attribute="Raio", area="Forjas Ocas", scaling="—",
+        suggested_order="2º mini-chefe das Forjas", memory_reward=700, implemented=True,
+        unique_mechanic="Máquina enorme presa a uma corrente da ilha. A carcaça segura quase tudo; depois de dois ataques superaquece e expõe o núcleo.",
+        phases=["Corrente (leque enorme), pilão (círculo + raio nas placas em volta), vapor (núcleo exposto)."],
+        history="Os irmãos Vell forjaram as Âncoras que prendem as ilhas ao núcleo. Esta máquina guarda uma delas. Destruí-la faz a ilha tremer.",
+        meaning="Abre o caminho até Durgan."),
     "cavaleiro": dict(
         id="cavaleiro", display_name="O Cavaleiro Desolado", title="Guardião do Núcleo", sin="—", sin_meaning="Proteção que virou prisão",
         race="?", attribute="?", area="O Núcleo", scaling="—", suggested_order="Final", memory_reward=0,
@@ -429,6 +491,8 @@ ITEMS = {
         description="Duas irmãs cuidavam das cápsulas: uma fazia dormir, a outra acordava. Uma delas viu o que cada morte tirava das pessoas e parou de acordar alguém.\nPreguiça não é cansaço do corpo; é desistir de mudar porque mudar dói."),
     "lembranca_mabel": dict(display_name="Lembrança: Gula · Vazio", kind=3, max_stack=1, icon="res://assets/items/lembranca_mabel.png",
         description="Ela alimentava todo mundo. Quando ninguém mais precisou comer, provou a humanidade líquida e sentiu o primeiro beijo de um guarda, o aniversário de uma criança. Não parou mais.\nGula é tentar se encher com a vida dos outros porque a própria ficou vazia."),
+    "lembranca_durgan": dict(display_name="Lembrança: Inveja · Querer ser o outro", kind=3, max_stack=1, icon="res://assets/items/lembranca_durgan.png",
+        description="Dois irmãos forjaram as Âncoras. O nome de um ficou nas placas. O outro fazia igual, às vezes melhor, e ninguém via — então passou a copiar todo mundo.\nInveja é querer ser o outro até não sobrar você."),
     "lembranca_helena": dict(display_name="Lembrança: Luxúria · Apego", kind=3, max_stack=1, icon="res://assets/items/lembranca_helena.png",
         description="Ela e o marido eram os melhores agentes. Na invasão, um deles saiu do posto.\nLuxúria aqui é apego: não aceitar a perda."),
 }
@@ -519,6 +583,20 @@ def main() -> None:
            "walk2": ([9, 10], 3.0), "come": ([11], 1.0)}))
     write("assets/sprites/raiz_veia_frames.tres", sprite_frames("res://assets/sprites/raiz_veia.png", 24, 32, 2,
           {"idle": ([0, 1], 2.0)}))
+    write("assets/sprites/automato_frames.tres", sprite_frames("res://assets/sprites/automato.png", 24, 24, 2,
+          {"idle": ([0], 1.0), "walk": ([0], 1.0), "ergue": ([1], 1.0)}))
+    write("assets/sprites/torreta_frames.tres", sprite_frames("res://assets/sprites/torreta.png", 16, 24, 2,
+          {"idle": ([0], 1.0), "carrega": ([1, 0], 12.0)}))
+    write("assets/sprites/minerador_frames.tres", sprite_frames("res://assets/sprites/minerador.png", 24, 24, 7,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "ergue": ([4], 1.0), "ergue_alto": ([5], 1.0), "golpe": ([6], 1.0)}))
+    write("assets/sprites/imitador_frames.tres", sprite_frames("res://assets/sprites/imitador.png", 24, 24, 4, walk))
+    write("assets/sprites/prototipo_frames.tres", sprite_frames("res://assets/sprites/prototipo.png", 24, 24, 5,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 9.0), "golpe": ([4], 1.0)}))
+    write("assets/sprites/guardiao_ancora_frames.tres", sprite_frames("res://assets/sprites/guardiao_ancora.png", 64, 64, 4,
+          {"idle": ([0], 1.0), "prepara": ([1], 1.0), "golpe": ([2], 1.0), "vapor": ([3], 1.0)}))
+    write("assets/sprites/durgan_frames.tres", sprite_frames("res://assets/sprites/durgan.png", 32, 32, 10,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "idle2": ([4], 5.0), "walk2": ([4, 5, 6, 7], 8.0),
+           "bebe": ([8], 1.0), "guarda": ([9], 1.0)}))
     governess = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "abraco": ([4], 1.0), "grito": ([5], 1.0)}
     write("assets/sprites/governanta_frames.tres", sprite_frames("res://assets/sprites/governanta_body.png", 32, 40, 6, governess))
     write("assets/sprites/governanta_solto_frames.tres", sprite_frames("res://assets/sprites/governanta_solto.png", 32, 40, 6, governess))

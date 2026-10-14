@@ -372,6 +372,29 @@ def main() -> None:
         drips[i:i + len(d)] += d
     save_loop("amb_roots", beat * 0.55 + wind + drips, 0.38)
 
+    # Forjas Ocas (no fim, pelo mesmo motivo): metal, raio e maquinas
+    print("Forjas")
+    t = t_axis(0.35)
+    buzz = np.sign(np.sin(2 * np.pi * 120 * t)) * 0.3 + highpass(noise(0.35), 2500) * 0.7
+    save("zap", mix(buzz * env_exp(0.35, 0.09, 0.002), metallic(0.3, 1800, 0.05) * 0.3), 0.6)
+    save("clank", mix(metallic(0.35, 520, 0.08), impact(0.12, 200, 90, 0.6) * 0.5), 0.55)
+    t = t_axis(0.9)
+    save("hum", (sine(sweep(110, 330, 0.9, 0.6), 0.9) + sine(sweep(220, 660, 0.9, 0.6), 0.9) * 0.4) * env_swell(0.9, 0.85), 0.45)
+    shimmer = mix(*(pad(sine(f, 1.2) * env_exp(1.2, 0.5), d) for f, d in ((1975.5, 0.0), (2489.0, 0.06), (2960.0, 0.12), (3951.0, 0.18))))
+    save("mirror", mix(shimmer, bandpass(noise(1.2), 5000, 9000) * env_swell(1.2, 0.3) * 0.2), 0.4)
+    rumble = lowpass(noise(2.2), sweep(200, 60, 2.2)) * env_swell(2.2, 0.15)
+    save("quake", mix(rumble, metallic(2.0, 60, 0.9) * 0.4, pad(impact(0.5, 70, 30, 0.6), 0.1)), 0.85)
+    s = 12.0
+    t = t_axis(s)
+    drone = (np.sin(2 * np.pi * 55 * t) * 0.5 + np.sin(2 * np.pi * 82.5 * t) * 0.25) * (0.7 + 0.3 * np.sin(2 * np.pi * t / 6))
+    hiss = bandpass(noise(s), 1500, 4000) * 0.06
+    hits = np.zeros_like(t)
+    for k in np.arange(0.4, s - 1.0, 2.3):  # o martelo distante de alguém que nunca para
+        i = int(k * SR)
+        ring = metallic(0.8, 700, 0.18) * 0.25
+        hits[i:i + len(ring)] += ring[: len(hits) - i]
+    save_loop("amb_forge", lowpass(drone, 400) * 0.6 + hiss + hits, 0.38)
+
 
 if __name__ == "__main__":
     main()

@@ -12,8 +12,8 @@ func _ready() -> void:
 	Game.persistence_enabled = false
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do teste
 	Sfx.muted = true
-	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90
-	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes)
+	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90 90
+	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes, Forjas)
 	var args := OS.get_cmdline_user_args()
 	var city_time := float(args[0]) if args.size() > 0 else 90.0
 	var helena_time := float(args[1]) if args.size() > 1 else 150.0
@@ -21,6 +21,7 @@ func _ready() -> void:
 	var prologue_time := float(args[3]) if args.size() > 3 else 120.0
 	var forest_time := float(args[4]) if args.size() > 4 else 90.0
 	var roots_time := float(args[5]) if args.size() > 5 else 90.0
+	var forge_time := float(args[6]) if args.size() > 6 else 90.0
 	if prologue_time > 0.0:
 		await _soak_prologue(prologue_time)
 	if city_time > 0.0:
@@ -33,6 +34,8 @@ func _ready() -> void:
 		await _soak_forest(forest_time)
 	if roots_time > 0.0:
 		await _soak_roots(roots_time)
+	if forge_time > 0.0:
+		await _soak_forge(forge_time)
 	print("SOAK OK")
 	get_tree().quit()
 
@@ -525,3 +528,98 @@ func _soak_mabel(limit: float) -> void:
 			mabel.hurtbox.receive_hit(HitInfo.create(55.0, _level.player.global_position, mabel.global_position))
 	print("Mabel: fases vistas %s, vitória=%s em %.0f s, engolido=%d vezes, raízes (máx)=%d, lacaios (máx)=%d, tamanho=%.2f" % [
 		phases.keys(), won[0], t, swallowed[0], max_roots[0], max_lackeys[0], mabel.growth if is_instance_valid(mabel) else 0.0])
+
+
+
+## Forjas Ocas: placas de raio, torretas, autômatos, o Imitador, os dois
+## mini-chefes e Durgan (o robô alterna golpes, dash e escudo).
+func _soak_forge(duration: float) -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
+	Game.add_item("escudo_remendado")
+	Game.set_shield_equipped(true)
+	await _open("res://scenes/world/forjas.tscn", "porta")
+	var t := 0.0
+	var defeated := [0]
+	var shocks := [0]
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		(node as Enemy).defeated.connect(func(_e): defeated[0] += 1)
+	while t < duration:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		shocks[0] = maxi(shocks[0], get_tree().get_nodes_in_group("plate_charges").size())
+		if fmod(t, 15.0) < 1.0 / 60.0:
+			# O robô não sabe achar caminho: de tempos em tempos, vai até um grupo de inimigos.
+			var alive := get_tree().get_nodes_in_group("respawnable").filter(func(e): return not (e as Enemy).dead)
+			if not alive.is_empty():
+				_level.player.global_position = (alive[int(t / 15.0) % alive.size()] as Node2D).global_position + Vector2(-40, 0)
+		var nearest: Node2D = null
+		var best := INF
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is MiniBoss:
+				continue
+			var d: float = (node as Node2D).global_position.distance_to(_level.player.global_position)
+			if d < best:
+				best = d
+				nearest = node
+		_bot_step(_level.player, t, nearest)
+		if not _level.player.is_grabbed():
+			_level.player._iframes_left = 0.0 if fmod(t, 6.0) < 2.0 else 1.0
+	print("Forjas: %d inimigos derrotados em %.0f s; placas acesas ao mesmo tempo (máx)=%d; placas no mapa=%d" % [
+		defeated[0], duration, shocks[0], _level.plate_cells.size()])
+	for node in get_tree().get_nodes_in_group("minibosses"):
+		var mini := node as MiniBoss
+		if mini == null or mini.dead:
+			continue
+		var won := [false]
+		mini.fight_won.connect(func(_b): won[0] = true)
+		_level.player.global_position = mini.home_position + Vector2(-60, 30)
+		var tt := 0.0
+		while tt < 120.0 and not won[0]:
+			await get_tree().physics_frame
+			tt += 1.0 / 60.0
+			t += 1.0 / 60.0
+			if is_instance_valid(mini) and not mini.dead:
+				_bot_step(_level.player, t, mini)
+				_level.player._iframes_left = 0.0 if fmod(tt, 5.0) < 1.5 else 1.0
+				if fmod(tt, 3.0) < 1.0 / 60.0 and mini.active:
+					mini.stats.take_damage(60.0)
+		print("Mini-chefe %s: vitória=%s em %.0f s" % [mini.display_name() if is_instance_valid(mini) else "?", won[0], tt])
+	var unlocked := false
+	for node in _level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_durgan"):
+			unlocked = true
+	print("Forjas: porta da Forja do Eco aberta sem recarregar=%s" % unlocked)
+	await _soak_durgan(180.0)
+
+
+func _soak_durgan(limit: float) -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "guardiao_ancora"])
+	await _open("res://scenes/world/arena_durgan.tscn", "porta")
+	var durgan := _level.boss_arena.boss as DurganVell
+	var won := [false]
+	var copies := {}
+	var max_helpers := [0]
+	durgan.fight_won.connect(func(_b): won[0] = true)
+	_level.player.global_position = durgan.global_position + Vector2(0, 90)
+	var t := 0.0
+	var phases := {}
+	while t < limit and not won[0]:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		if not is_instance_valid(durgan):
+			break
+		phases[durgan.phase] = true
+		max_helpers[0] = maxi(max_helpers[0], durgan.helpers.size())
+		if durgan.last_copy != &"":
+			copies[durgan.last_copy] = true
+		_bot_step(_level.player, t, durgan)
+		_level.player._iframes_left = 0.0 if fmod(t, 7.0) < 2.0 else 1.0
+		if _level.player.stats.health < 40.0:
+			_level.player.stats.revive()
+		if fmod(t, 2.0) < 1.0 / 60.0 and durgan.active and not durgan.hurtbox.invulnerable:
+			# Dano de "atalho" baixo na fase 1: dá tempo de ele construir torretas e autômatos.
+			var hit := HitInfo.create(18.0 if durgan.phase == 1 else 55.0, _level.player.global_position, durgan.global_position)
+			hit.is_heavy = fmod(t, 4.0) < 1.0
+			durgan.hurtbox.receive_hit(hit)
+	print("Durgan: fases vistas %s, vitória=%s em %.0f s, contagem=%s, copiou=%s, ajudantes (máx)=%d" % [
+		phases.keys(), won[0], t, durgan.counts if is_instance_valid(durgan) else {}, copies.keys(), max_helpers[0]])

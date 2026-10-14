@@ -20,6 +20,7 @@ import cidade as CI  # noqa: E402
 import itens as IT  # noqa: E402
 import bosque as BQ  # noqa: E402
 import raizes as RZ  # noqa: E402
+import forjas as FJ  # noqa: E402
 import props as PR  # noqa: E402
 import tiles as TL  # noqa: E402
 from pixel import canvas, hstrip, paste, upscale, rect, mix  # noqa: E402
@@ -192,6 +193,24 @@ def main() -> None:
     save(hstrip(RZ.ninhada_frames()), "assets/sprites/ninhada.png")
     save(hstrip(RZ.mabel_frames()), "assets/sprites/mabel.png")
     save(IT.icon_lembranca((226, 110, 104), (130, 36, 44)), "assets/items/lembranca_mabel.png")
+
+    print("Forjas Ocas")
+    save(FJ.forge_atlas(), "assets/tiles/forjas_tiles.png")
+    save(FJ.chain_post(), "assets/props/chain_post.png")
+    save(FJ.gear_pile(), "assets/props/gear_pile.png")
+    save(FJ.press(), "assets/props/press.png")
+    save(FJ.bronze_statue(), "assets/props/bronze_statue.png")
+    save(FJ.wrench_hammer(), "assets/sprites/durgan_chave.png")
+    save(hstrip(FJ.automaton_frames()), "assets/sprites/automato.png")
+    save(hstrip(FJ.turret_frames()), "assets/sprites/torreta.png")
+    save(hstrip(FJ.miner_frames()), "assets/sprites/minerador.png")
+    save(hstrip(FJ.imitator_frames()), "assets/sprites/imitador.png")
+    save(FJ.imitator_sword(), "assets/sprites/imitador_espada.png")
+    save(FJ.imitator_shield(), "assets/sprites/imitador_escudo.png")
+    save(hstrip(FJ.prototype_frames()), "assets/sprites/prototipo.png")
+    save(hstrip(FJ.guardian_frames()), "assets/sprites/guardiao_ancora.png")
+    save(hstrip(FJ.durgan_frames()), "assets/sprites/durgan.png")
+    save(IT.icon_lembranca((190, 214, 240), (92, 110, 140)), "assets/items/lembranca_durgan.png")
 
     print("Interface")
     save(PR.icon_attack(), "assets/ui/icon_attack.png")
