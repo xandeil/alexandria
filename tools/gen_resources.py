@@ -202,6 +202,51 @@ ATTACKS = {
                              recovery_time=0.6, track_until=0.4, reach=12.0, radius=11.0,
                              slash_arc_degrees=90.0, slash_radius=14.0, slash_color=(0.85, 0.82, 0.95, 0.8),
                              sound="&swing_small"),
+    # Raízes da Fome -------------------------------------------------------------------
+    "boca_mordida": dict(display_name="Mordida de Raiz", damage=16.0, poise_damage=14.0, knockback=90.0,
+                         windup_time=0.35, lunge_speed=0.0, lunge_time=0.04, active_time=0.1, recovery_time=0.6,
+                         track_until=0.5, reach=12.0, radius=10.0, slash_arc_degrees=90.0, slash_radius=12.0,
+                         slash_color=(0.95, 0.5, 0.45, 0.85), sound="&chomp"),
+    "inchado_tapa": dict(display_name="Tapa inchado", damage=18.0, poise_damage=22.0, knockback=140.0,
+                         windup_time=0.75, lunge_speed=80.0, lunge_time=0.1, active_time=0.1, recovery_time=0.8,
+                         track_until=0.6, reach=13.0, radius=12.0, slash_arc_degrees=120.0, slash_radius=15.0,
+                         slash_color=(0.95, 0.65, 0.6, 0.85), sound="&swing_heavy"),
+    "colhedor_foice": dict(display_name="Foice", damage=22.0, poise_damage=26.0, knockback=150.0,
+                           windup_time=0.7, lunge_speed=120.0, lunge_time=0.08, active_time=0.12, recovery_time=0.75,
+                           track_until=0.6, reach=8.0, radius=26.0, slash_arc_degrees=200.0, slash_radius=28.0,
+                           slash_color=(0.9, 0.92, 0.85, 0.9), sound="&swing_heavy"),
+    "colhedor_giro": dict(display_name="Ceifa em volta", damage=20.0, poise_damage=24.0, knockback=170.0,
+                          windup_time=0.85, lunge_speed=0.0, lunge_time=0.04, active_time=0.18, recovery_time=0.9,
+                          track_until=0.3, reach=0.0, radius=30.0, slash_arc_degrees=340.0, slash_radius=28.0,
+                          slash_color=(0.9, 0.92, 0.85, 0.9), sound="&swing_heavy"),
+    "larva_mordida": dict(display_name="Mordida de Larva", damage=5.0, poise_damage=4.0, knockback=40.0,
+                          windup_time=0.3, lunge_speed=110.0, lunge_time=0.08, active_time=0.08, recovery_time=0.4,
+                          track_until=0.7, reach=7.0, radius=7.0, slash_arc_degrees=60.0, slash_radius=8.0,
+                          slash_color=(0.95, 0.9, 0.75, 0.7), sound="&swing_small"),
+    "banqueteiro_cutelo": dict(display_name="Cutelo", damage=28.0, poise_damage=35.0, knockback=190.0, is_heavy=True,
+                               windup_time=0.75, lunge_speed=120.0, lunge_time=0.1, active_time=0.12, recovery_time=0.8,
+                               track_until=0.6, reach=22.0, radius=17.0, slash_arc_degrees=70.0, slash_radius=22.0,
+                               slash_color=(0.92, 0.93, 0.9, 0.95), hitstop=0.08, shake=4.0, sound="&swing_heavy"),
+    "banqueteiro_concha": dict(display_name="Concha", damage=20.0, poise_damage=24.0, knockback=220.0,
+                               windup_time=0.55, lunge_speed=140.0, lunge_time=0.08, active_time=0.12, recovery_time=0.6,
+                               track_until=0.6, reach=18.0, radius=18.0, slash_arc_degrees=190.0, slash_radius=24.0,
+                               slash_color=(0.85, 0.85, 0.8, 0.9), sound="&swing_heavy"),
+    "ninhada_investida": dict(display_name="Rolar por cima", damage=20.0, poise_damage=24.0, knockback=160.0,
+                              windup_time=0.7, lunge_speed=220.0, lunge_time=0.22, active_time=0.06, recovery_time=0.9,
+                              active_during_lunge=True, track_until=0.6, reach=10.0, radius=16.0,
+                              slash_arc_degrees=0.0, slash_radius=0.0, sound="&splat"),
+    "mabel_tapa": dict(display_name="Tapa da Anfitriã", damage=34.0, poise_damage=50.0, knockback=250.0, is_heavy=True,
+                       windup_time=0.95, lunge_speed=90.0, lunge_time=0.1, active_time=0.12, recovery_time=1.0,
+                       track_until=0.6, reach=30.0, radius=24.0, slash_arc_degrees=120.0, slash_radius=34.0,
+                       slash_color=(0.95, 0.75, 0.68, 0.95), hitstop=0.1, shake=5.0, sound="&swing_heavy"),
+    "mabel_tapa_volta": dict(display_name="Tapa de volta", damage=30.0, poise_damage=45.0, knockback=240.0, is_heavy=True,
+                             windup_time=0.45, lunge_speed=90.0, lunge_time=0.1, active_time=0.12, recovery_time=1.1,
+                             track_until=0.5, reach=30.0, radius=24.0, slash_arc_degrees=120.0, slash_radius=34.0,
+                             slash_color=(0.95, 0.75, 0.68, 0.95), hitstop=0.1, shake=5.0, sound="&swing_heavy"),
+    "mabel_ventre": dict(display_name="Mordida do Ventre", damage=40.0, poise_damage=60.0, knockback=200.0, is_heavy=True,
+                         windup_time=0.7, lunge_speed=150.0, lunge_time=0.12, active_time=0.12, recovery_time=1.0,
+                         track_until=0.6, reach=20.0, radius=20.0, slash_arc_degrees=100.0, slash_radius=24.0,
+                         slash_color=(0.9, 0.3, 0.3, 0.95), hitstop=0.1, shake=5.0, sound="&chomp"),
     "vigia_martelo": dict(display_name="Martelada do Vigia", damage=34.0, poise_damage=55.0, knockback=240.0, is_heavy=True,
                           windup_time=1.05, lunge_speed=40.0, lunge_time=0.1, active_time=0.14,
                           recovery_time=1.0, track_until=0.55, reach=30.0, radius=22.0,
@@ -246,7 +291,7 @@ BOSSES = {
     "mabel": dict(
         id="mabel", display_name="Mabel Vorágine", title="A Fome Que Lembra", sin="Gula", sin_meaning="Vazio",
         race="Giganta", attribute="Sangue", area="Raízes da Fome", scaling="Sorte", suggested_order="3ª",
-        memory_reward=1400, unique_mechanic="Agarra, engole e drena memórias; regenera comendo lacaios. Preso: toque rápido no Ataque para escapar.",
+        memory_reward=1400, implemented=True, unique_mechanic="Agarra, engole e drena memórias; regenera comendo lacaios. Preso: toque rápido no Ataque para escapar.",
         phases=["Fase 1 — A Anfitriã: lenta e enorme; tapas, frutos de carne que explodem e um agarrão que drena memórias.",
                 "Fase 2 — A Vorágine (metade da vida): come lacaios e raízes para se curar; uma boca no ventre é o ponto fraco; cortar as raízes interrompe a cura."],
         history="Mabel cuidava das estufas e alimentava funcionários e cobaias. Com a imortalidade, ninguém mais precisava comer e ela perdeu o motivo de existir. Provou a humanidade líquida e não parou mais: bebeu memórias dos que morriam, depois dos que viviam.",
@@ -317,6 +362,22 @@ BOSSES = {
         phases=["Cipó (linha que trava), chuva de esporos e o florescer: um anel de sono enorme. Faz brotar flores."],
         history="Foi plantada para dar sono às cobaias que não conseguiam dormir. Ainda acha que está ajudando.",
         meaning="Atacar espanta o sono: a luta obriga o jogador a ser agressivo."),
+    "banqueteiro": dict(
+        id="banqueteiro", display_name="O Banqueteiro", title="Mini-chefe das Raízes da Fome", sin="Mini-chefe",
+        sin_meaning="Gula", race="Humano", attribute="Sangue", area="Raízes da Fome", scaling="—",
+        suggested_order="1º mini-chefe das Raízes", memory_reward=600, implemented=True,
+        unique_mechanic="Serve 'pratos' de lacaios; se você demora, ele come os próprios lacaios e se cura. Mate a fonte de cura primeiro.",
+        phases=["Cutelo (arco curto, pesado), concha (arco largo, empurra), servir (abre a cloche: larvas ou um Inchado) e comer um lacaio para se curar."],
+        history="Cozinheiro do projeto. Servia Mabel muito antes de ela parar de comer comida.",
+        meaning="Ensina a matar a fonte de cura primeiro — a lição que Mabel cobra na fase 2."),
+    "ninhada": dict(
+        id="ninhada", display_name="A Ninhada", title="Mini-chefe das Raízes da Fome", sin="Mini-chefe",
+        sin_meaning="Gula", race="Larvas", attribute="Sangue", area="Raízes da Fome", scaling="—",
+        suggested_order="2º mini-chefe das Raízes", memory_reward=650, implemented=True,
+        unique_mechanic="Um amontoado de Larvas que se divide ao levar dano. Engole quem chega perto: toque rápido no Ataque para escapar.",
+        phases=["Rola por cima (linha), engole (círculo: o agarrão) e solta larvas a cada pedaço de vida perdido."],
+        history="Restos do que Mabel não terminou de comer, juntos num monte que ainda tem fome.",
+        meaning="Testa controle de grupo e o agarrão antes de Mabel."),
     "cavaleiro": dict(
         id="cavaleiro", display_name="O Cavaleiro Desolado", title="Guardião do Núcleo", sin="—", sin_meaning="Proteção que virou prisão",
         race="?", attribute="?", area="O Núcleo", scaling="—", suggested_order="Final", memory_reward=0,
@@ -366,6 +427,8 @@ ITEMS = {
         description="Um soldado aposentado que não ouviu a família. Quando entendeu o perigo, a cidade já queimava.\nIra é impotência transformada em violência: não conseguiu proteger ninguém, então decidiu destruir tudo."),
     "lembranca_nyssa": dict(display_name="Lembrança: Preguiça · Desistência", kind=3, max_stack=1, icon="res://assets/items/lembranca_nyssa.png",
         description="Duas irmãs cuidavam das cápsulas: uma fazia dormir, a outra acordava. Uma delas viu o que cada morte tirava das pessoas e parou de acordar alguém.\nPreguiça não é cansaço do corpo; é desistir de mudar porque mudar dói."),
+    "lembranca_mabel": dict(display_name="Lembrança: Gula · Vazio", kind=3, max_stack=1, icon="res://assets/items/lembranca_mabel.png",
+        description="Ela alimentava todo mundo. Quando ninguém mais precisou comer, provou a humanidade líquida e sentiu o primeiro beijo de um guarda, o aniversário de uma criança. Não parou mais.\nGula é tentar se encher com a vida dos outros porque a própria ficou vazia."),
     "lembranca_helena": dict(display_name="Lembrança: Luxúria · Apego", kind=3, max_stack=1, icon="res://assets/items/lembranca_helena.png",
         description="Ela e o marido eram os melhores agentes. Na invasão, um deles saiu do posto.\nLuxúria aqui é apego: não aceitar a perda."),
 }
@@ -437,6 +500,25 @@ def main() -> None:
           {"deitada": ([0, 1], 1.2), "sentada": ([2, 3], 3.0), "conjura": ([4], 1.0)}))
     write("assets/sprites/mae_esporos_frames.tres", sprite_frames("res://assets/sprites/mae_esporos.png", 48, 48, 3,
           {"idle": ([0, 1, 2], 0.0)}))
+    write("assets/sprites/boca_de_raiz_frames.tres", sprite_frames("res://assets/sprites/boca_de_raiz.png", 24, 24, 5,
+          {"idle": ([0], 1.0), "oculta": ([0], 1.0), "inchando": ([1], 1.0), "aberta": ([2], 1.0),
+           "mastiga": ([3, 2], 6.0), "afunda": ([4], 1.0)}))
+    write("assets/sprites/inchado_frames.tres", sprite_frames("res://assets/sprites/inchado.png", 24, 24, 5,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 5.0), "incha": ([4], 1.0)}))
+    write("assets/sprites/colhedor_frames.tres", sprite_frames("res://assets/sprites/colhedor.png", 32, 32, 6,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 6.0), "prepara": ([4], 1.0), "ceifa": ([5], 1.0)}))
+    write("assets/sprites/larva_seiva_frames.tres", sprite_frames("res://assets/sprites/larva_seiva.png", 16, 16, 3,
+          {"idle": ([0, 1], 3.0), "walk": ([0, 1], 9.0), "morde": ([2], 1.0)}))
+    write("assets/sprites/banqueteiro_frames.tres", sprite_frames("res://assets/sprites/banqueteiro.png", 48, 48, 7,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 5.0), "cutelo": ([4], 1.0), "serve": ([5], 1.0), "come": ([6], 1.0)}))
+    write("assets/sprites/ninhada_frames.tres", sprite_frames("res://assets/sprites/ninhada.png", 48, 48, 3,
+          {"idle": ([0, 1], 3.0), "walk": ([0, 1], 5.0), "ergue": ([2], 1.0)}))
+    write("assets/sprites/mabel_frames.tres", sprite_frames("res://assets/sprites/mabel.png", 64, 64, 12,
+          {"idle": ([0, 2], 1.5), "walk": ([1, 0, 3, 2], 4.0), "tapa_prepara": ([4], 1.0), "tapa": ([5], 1.0),
+           "arremesso": ([6], 1.0), "agarrao": ([7], 1.0), "engole": ([8], 1.0), "idle2": ([9], 1.0),
+           "walk2": ([9, 10], 3.0), "come": ([11], 1.0)}))
+    write("assets/sprites/raiz_veia_frames.tres", sprite_frames("res://assets/sprites/raiz_veia.png", 24, 32, 2,
+          {"idle": ([0, 1], 2.0)}))
     governess = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "abraco": ([4], 1.0), "grito": ([5], 1.0)}
     write("assets/sprites/governanta_frames.tres", sprite_frames("res://assets/sprites/governanta_body.png", 32, 40, 6, governess))
     write("assets/sprites/governanta_solto_frames.tres", sprite_frames("res://assets/sprites/governanta_solto.png", 32, 40, 6, governess))

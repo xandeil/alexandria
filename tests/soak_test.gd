@@ -12,14 +12,15 @@ func _ready() -> void:
 	Game.persistence_enabled = false
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do teste
 	Sfx.muted = true
-	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90
-	# (Cidade, Helena, Aldir, Prólogo, Bosque)
+	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90
+	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes)
 	var args := OS.get_cmdline_user_args()
 	var city_time := float(args[0]) if args.size() > 0 else 90.0
 	var helena_time := float(args[1]) if args.size() > 1 else 150.0
 	var aldir_time := float(args[2]) if args.size() > 2 else 150.0
 	var prologue_time := float(args[3]) if args.size() > 3 else 120.0
 	var forest_time := float(args[4]) if args.size() > 4 else 90.0
+	var roots_time := float(args[5]) if args.size() > 5 else 90.0
 	if prologue_time > 0.0:
 		await _soak_prologue(prologue_time)
 	if city_time > 0.0:
@@ -30,6 +31,8 @@ func _ready() -> void:
 		await _soak_aldir(aldir_time)
 	if forest_time > 0.0:
 		await _soak_forest(forest_time)
+	if roots_time > 0.0:
+		await _soak_roots(roots_time)
 	print("SOAK OK")
 	get_tree().quit()
 
@@ -45,6 +48,15 @@ func _open(path: String, spawn: String) -> void:
 
 
 func _bot_step(player: Player, t: float, target: Node2D) -> void:
+	if player.is_grabbed():
+		# Preso: toca o Ataque rápido (aperta/solta a cada 3 quadros).
+		for action in ["move_left", "move_right", "move_up", "move_down", "dash", "block"]:
+			Input.action_release(action)
+		if int(t * 60.0) % 6 < 3:
+			Input.action_press("attack")
+		else:
+			Input.action_release("attack")
+		return
 	# Invencível (o objetivo é exercitar a IA dos inimigos)... exceto quando
 	# está de escudo erguido: aí os golpes CHEGAM, para exercitar a defesa.
 	var blocking := Game.shield_ready() and fmod(t, 5.0) > 2.5 and fmod(t, 5.0) < 3.4
@@ -392,3 +404,124 @@ func _soak_nyssa(limit: float) -> void:
 			nyssa.hurtbox.receive_hit(HitInfo.create(45.0, _level.player.global_position, nyssa.global_position))
 	print("Nyssa: fases vistas %s, vitória=%s em %.0f s, cochilos do robô=%d, ecos ao mesmo tempo (máx)=%d" % [
 		phases.keys(), won[0], t, naps[0], echoes[0]])
+
+
+
+## Raízes da Fome: emboscadas, explosões, larvas que roubam, os dois mini-chefes
+## e Mabel. O robô às vezes fica vulnerável para ser AGARRADO (e escapar).
+func _soak_roots(duration: float) -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	await _open("res://scenes/world/raizes.tscn", "porta")
+	var t := 0.0
+	var defeated := [0]
+	var grabs := [0]
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		(node as Enemy).defeated.connect(func(_e): defeated[0] += 1)
+	_level.player.grab_changed.connect(func(grabbed: bool, _n: int): if grabbed: grabs[0] += 1)
+	Game.memories = 3000
+	while t < duration:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		var nearest: Node2D = null
+		var best := INF
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is MiniBoss:
+				continue
+			var d: float = (node as Node2D).global_position.distance_to(_level.player.global_position)
+			if d < best:
+				best = d
+				nearest = node
+		if nearest == null:  # as bocas enterradas não são alvo: anda até uma
+			for node in get_tree().get_nodes_in_group("respawnable"):
+				if node is BocaDeRaiz and not (node as Enemy).dead:
+					nearest = node
+					break
+		if fmod(t, 18.0) < 1.0 / 60.0:
+			# De tempos em tempos pisa numa Boca de Raiz de propósito e ESPERA (exercita o agarrão).
+			for node in get_tree().get_nodes_in_group("respawnable"):
+				if node is BocaDeRaiz and (node as BocaDeRaiz).ai == BocaDeRaiz.AI.BURIED:
+					_level.player.global_position = (node as Node2D).global_position + Vector2(3, 0)
+					break
+		if fmod(t, 18.0) < 0.8 and not _level.player.is_grabbed():
+			for action in ["move_left", "move_right", "move_up", "move_down", "attack", "dash", "block"]:
+				Input.action_release(action)
+			_level.player._iframes_left = 0.0
+			continue
+		_bot_step(_level.player, t, nearest)
+		if not _level.player.is_grabbed():
+			_level.player._iframes_left = 0.0 if fmod(t, 6.0) < 2.0 else 1.0
+	print("Raízes: %d inimigos derrotados em %.0f s; agarrões=%d; memórias=%d; explosões no chão agora=%d" % [
+		defeated[0], duration, grabs[0], Game.memories, get_tree().get_nodes_in_group("flesh_bursts").size()])
+	for node in get_tree().get_nodes_in_group("minibosses"):
+		var mini := node as MiniBoss
+		if mini == null or mini.dead:
+			continue
+		var won := [false]
+		mini.fight_won.connect(func(_b): won[0] = true)
+		_level.player.global_position = mini.home_position + Vector2(-60, 10)
+		var tt := 0.0
+		while tt < 120.0 and not won[0]:
+			await get_tree().physics_frame
+			tt += 1.0 / 60.0
+			t += 1.0 / 60.0
+			if is_instance_valid(mini) and not mini.dead:
+				_bot_step(_level.player, t, mini)
+				if not _level.player.is_grabbed():
+					_level.player._iframes_left = 0.0 if fmod(tt, 5.0) < 1.5 else 1.0
+				if fmod(tt, 3.0) < 1.0 / 60.0 and mini.active:
+					mini.stats.take_damage(45.0)
+		print("Mini-chefe %s: vitória=%s em %.0f s" % [mini.display_name() if is_instance_valid(mini) else "?", won[0], tt])
+	await _soak_mabel(180.0)
+
+
+## Mabel: tapas, frutos, o engolir (o robô escapa tocando), raízes e lacaios.
+func _soak_mabel(limit: float) -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "banqueteiro"])
+	await _open("res://scenes/world/arena_mabel.tscn", "porta")
+	var mabel := _level.boss_arena.boss as MabelVoragine
+	var won := [false]
+	var swallowed := [0]
+	var max_roots := [0]
+	var max_lackeys := [0]
+	mabel.fight_won.connect(func(_b): won[0] = true)
+	_level.player.grab_changed.connect(func(grabbed: bool, _n: int): if grabbed: swallowed[0] += 1)
+	_level.player.global_position = mabel.global_position + Vector2(0, 90)
+	Game.memories = 3000
+	var t := 0.0
+	var phases := {}
+	while t < limit and not won[0]:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		if not is_instance_valid(mabel):
+			break
+		phases[mabel.phase] = true
+		max_roots[0] = maxi(max_roots[0], mabel.living_roots())
+		max_lackeys[0] = maxi(max_lackeys[0], mabel.lackeys.size())
+		# Fase 2: corta as raízes primeiro (a lição), depois Mabel.
+		var goal: Node2D = mabel
+		for root in mabel.roots:
+			if is_instance_valid(root) and not root.dead:
+				goal = root
+				break
+		if fmod(t, 15.0) < 1.0 / 60.0 and mabel.active and mabel.mode != MabelVoragine.Mode.TRANSITION:
+			# Fica na linha da mão dela de propósito: engolido (e escapa tocando).
+			mabel._runner.cancel()
+			mabel._combo.clear()
+			_level.player.global_position = mabel.clamp_to_arena(mabel.global_position + Vector2(50, 0), 20.0)
+			mabel._start_reach()
+		if mabel.mode == MabelVoragine.Mode.REACH:
+			for action in ["move_left", "move_right", "move_up", "move_down", "attack", "dash", "block"]:
+				Input.action_release(action)
+			_level.player._iframes_left = 0.0
+			continue
+		_bot_step(_level.player, t, goal)
+		if mabel.mode == MabelVoragine.Mode.REACH:
+			_level.player._iframes_left = 0.0  # deixa a mão chegar
+		elif not _level.player.is_grabbed():
+			_level.player._iframes_left = 0.0 if fmod(t, 7.0) < 2.0 else 1.0
+		if _level.player.stats.health < 40.0:
+			_level.player.stats.revive()
+		if fmod(t, 2.0) < 1.0 / 60.0 and mabel.active and not mabel.hurtbox.invulnerable:
+			mabel.hurtbox.receive_hit(HitInfo.create(55.0, _level.player.global_position, mabel.global_position))
+	print("Mabel: fases vistas %s, vitória=%s em %.0f s, engolido=%d vezes, raízes (máx)=%d, lacaios (máx)=%d, tamanho=%.2f" % [
+		phases.keys(), won[0], t, swallowed[0], max_roots[0], max_lackeys[0], mabel.growth if is_instance_valid(mabel) else 0.0])

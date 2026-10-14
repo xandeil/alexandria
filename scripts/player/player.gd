@@ -683,6 +683,7 @@ func grab(by: Node2D, taps_needed: int, offset: Vector2 = Vector2.ZERO, damage_p
 	_grab_tick = 0.0
 	_grab_hidden = hide
 	visual.visible = not hide
+	set_collision_mask_value(3, false)  # preso DENTRO de quem agarra: sem empurra-empurra
 	velocity = Vector2.ZERO
 	Sfx.play(&"grab", -2.0)
 	Fx.shake(3.0, 0.2)
@@ -755,6 +756,7 @@ func _state_grabbed(delta: float) -> void:
 ## Limpeza ao sair do GRABBED (por qualquer caminho: escapou, soltaram, morreu).
 func _end_grab() -> void:
 	visual.visible = true
+	set_collision_mask_value(3, true)
 	visual.position.x = 0.0
 	_grabber = null
 	_grab_hidden = false

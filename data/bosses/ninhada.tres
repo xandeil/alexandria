@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "ninhada"
+display_name = "A Ninhada"
+title = "Mini-chefe das Raízes da Fome"
+sin = "Mini-chefe"
+sin_meaning = "Gula"
+race = "Larvas"
+attribute = "Sangue"
+area = "Raízes da Fome"
+scaling = "—"
+suggested_order = "2º mini-chefe das Raízes"
+memory_reward = 650
+implemented = true
+unique_mechanic = "Um amontoado de Larvas que se divide ao levar dano. Engole quem chega perto: toque rápido no Ataque para escapar."
+phases = Array[String](["Rola por cima (linha), engole (círculo: o agarrão) e solta larvas a cada pedaço de vida perdido."])
+history = "Restos do que Mabel não terminou de comer, juntos num monte que ainda tem fome."
+meaning = "Testa controle de grupo e o agarrão antes de Mabel."

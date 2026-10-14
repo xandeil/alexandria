@@ -39,6 +39,12 @@ const TILESETS := {
 		"solid": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(6, 1),
 			Vector2i(7, 1), Vector2i(0, 2), Vector2i(1, 2)],
 	},
+	"res://assets/tiles/raizes_tileset.tres": {
+		"texture": "res://assets/tiles/raizes_tiles.png", "size": Vector2i(8, 3),
+		# Raízes (topo, faces, vidraça, arco), barreira e as poças de seiva.
+		"solid": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(6, 1),
+			Vector2i(7, 1), Vector2i(0, 2), Vector2i(1, 2)],
+	},
 	"res://assets/tiles/laboratorio_tileset.tres": {
 		"texture": "res://assets/tiles/laboratorio_tiles.png", "size": Vector2i(8, 3),
 		"solid": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(4, 1),

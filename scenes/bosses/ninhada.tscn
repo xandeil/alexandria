@@ -1,0 +1,84 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/ninhada.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/ninhada_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_huge.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/ninhada_investida.tres" id="8_roll"]
+[ext_resource type="Resource" path="res://data/bosses/ninhada.tres" id="9_data"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="10_tel"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 11.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 16.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(34, 22)
+
+[node name="Ninhada" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+roll = ExtResource("8_roll")
+data = ExtResource("9_data")
+wake_distance = 100.0
+memory_reward = 650
+move_speed = 24.0
+acceleration = 300.0
+max_poise = 120.0
+stagger_time = 1.0
+knockback_taken = 0.1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("10_tel")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -21)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -8)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(10.0, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -11)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 460.0
+health_per_vitalidade = 0.0

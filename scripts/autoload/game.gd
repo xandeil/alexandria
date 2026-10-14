@@ -89,6 +89,9 @@ const BOSS_REWARDS := {
 	"vigia": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"mae_esporos": {"fragmento_turvo": 1, "sucata_temperada": 2},
 	"nyssa": {"lembranca_nyssa": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
+	"banqueteiro": {"fragmento_turvo": 1, "sucata_temperada": 3},
+	"ninhada": {"fragmento_turvo": 1, "sucata_temperada": 3},
+	"mabel": {"lembranca_mabel": 1, "fragmento_turvo": 1, "sucata_temperada": 5},
 }
 
 var memories := 0

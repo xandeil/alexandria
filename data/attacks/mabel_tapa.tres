@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Tapa da Anfitriã"
+stamina_cost = 0.0
+damage = 34.0
+poise_damage = 50.0
+knockback = 250.0
+is_heavy = true
+windup_time = 0.95
+lunge_speed = 90.0
+lunge_time = 0.1
+active_time = 0.12
+recovery_time = 1.0
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.6
+reach = 30.0
+radius = 24.0
+hitstop = 0.1
+shake = 5.0
+slash_arc_degrees = 120.0
+slash_radius = 34.0
+slash_color = Color(0.95, 0.75, 0.68, 0.95)
+sound = &"swing_heavy"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

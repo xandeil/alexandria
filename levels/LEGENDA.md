@@ -43,6 +43,14 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `z` `s` `^` `?` | Sonâmbulo, Flor de Pólen, Cervo de Musgo, Fada Murcha (renascem ao descansar) | — |
 | `U` `0` | mini-chefes: o Vigia que Dormiu, a Mãe dos Esporos | — |
 | `/` | Nyssa Lumevel, deitada no ar (`arena_nyssa.txt`) | — |
+| `'` | terceira saída (`exit3_scene`/`exit3_spawn`/`exit3_requires`; quem chega aparece em "oeste") — no Teatro, a porta das Raízes | só trancada |
+| **Raízes da Fome** (os MESMOS caracteres do Bosque, outro significado: `THEME_ENTITIES`/`THEME_PROPS` no `level.gd`) | | |
+| `.` `,` `:` `;` | terra oliva, ladrilho da estufa, xadrez da cozinha, chão de veias | não |
+| `~` | poça de seiva (sólida, com margem) | sim |
+| `(` `)` `[` `]` | raiz retorcida, fruto de carne, canteiro da estufa (2 células), fogão | raiz/canteiro/fogão |
+| `z` `s` `^` `?` | Boca de Raiz, Inchado, Colhedor, Larvas de Seiva (um enxame de 3) | — |
+| `U` `0` | mini-chefes: O Banqueteiro, A Ninhada | — |
+| `/` | Mabel Vorágine (`arena_mabel.txt`) | — |
 | `@` | item no chão; QUAL item vem de `item_points` no nó da fase, na ordem de leitura (`"escudo_remendado"`, `"sucata_temperada:2"`) — pego uma vez, não volta | não |
 | `X` `x` `f` `L` `c` `K` | barricada, entulho, fogo, poste, caixote, carro destruído | variam |
 | `G` | portão do Detentor do Caos: falar com ele leva à arena do Aldir | sim |
@@ -64,6 +72,6 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `1`–`9` | ponto de inspeção: o texto vem de `lore_points` no nó da fase | não |
 
 A arena de cada chefe é o retângulo `arena_rect_tiles` no nó da fase
-(x, y, largura, altura em células): Helena no `Teatro`, Aldir na `ArenaAldir`, Nyssa na `ArenaNyssa`,
+(x, y, largura, altura em células): Helena no `Teatro`, Aldir na `ArenaAldir`, Nyssa na `ArenaNyssa`, Mabel na `ArenaMabel`,
 a Governanta (o refeitório) no `Prologo`.
 Os buracos do martelo não ficam no mapa: abrem durante a luta.

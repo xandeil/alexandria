@@ -1,0 +1,78 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/boca_de_raiz.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/boca_de_raiz_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/boca_mordida.tres" id="8_bite"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 4.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 10.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(14, 16)
+
+[node name="BocaDeRaiz" type="CharacterBody2D"]
+collision_layer = 0
+collision_mask = 0
+motion_mode = 1
+script = ExtResource("1_s")
+bite = ExtResource("8_bite")
+memory_reward = 45
+move_speed = 0.0
+aggro_range = 0.0
+max_poise = 30.0
+stagger_time = 0.9
+knockback_taken = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+disabled = true
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"oculta"
+offset = Vector2(0, -11)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -7)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(10.0, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -9)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 70.0
+health_per_vitalidade = 0.0

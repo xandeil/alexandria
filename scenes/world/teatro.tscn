@@ -18,6 +18,10 @@ exit2_scene = "res://scenes/world/bosque.tscn"
 exit2_spawn = "porta"
 exit2_requires = "aldir"
 exit2_locked_dialogue = "porta_bosque_fechada"
+exit3_scene = "res://scenes/world/raizes.tscn"
+exit3_spawn = "porta"
+exit3_requires = "nyssa"
+exit3_locked_dialogue = "raizes_fechadas"
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

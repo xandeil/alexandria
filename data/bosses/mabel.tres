@@ -15,6 +15,7 @@ area = "Raízes da Fome"
 scaling = "Sorte"
 suggested_order = "3ª"
 memory_reward = 1400
+implemented = true
 unique_mechanic = "Agarra, engole e drena memórias; regenera comendo lacaios. Preso: toque rápido no Ataque para escapar."
 phases = Array[String](["Fase 1 — A Anfitriã: lenta e enorme; tapas, frutos de carne que explodem e um agarrão que drena memórias.", "Fase 2 — A Vorágine (metade da vida): come lacaios e raízes para se curar; uma boca no ventre é o ponto fraco; cortar as raízes interrompe a cura."])
 history = "Mabel cuidava das estufas e alimentava funcionários e cobaias. Com a imortalidade, ninguém mais precisava comer e ela perdeu o motivo de existir. Provou a humanidade líquida e não parou mais: bebeu memórias dos que morriam, depois dos que viviam."

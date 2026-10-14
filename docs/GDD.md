@@ -46,8 +46,8 @@ governo subiram com a ilha e ainda estão nela ✅ (Soldados Remendados).
 |---|---|---|---|---|
 | 6 | Teatro Alexandria (hub) ✅ | Luxúria — Helena Altiva ✅ | ruínas de teatro no centro | última dos Sete |
 | 1 | Cidade Estilhaçada ✅ (entrada) | Ira — Aldir Cornélios ✅ | cidade em ruínas pegando fogo | 1ª |
-| 4 (dir.) | Bosque do Sono Eterno | Preguiça — Nyssa Lumevel | floresta, lagos, cachoeiras | 2ª |
-| 4 (esq.) | Raízes da Fome | Gula — Mabel Vorágine | raízes vermelhas retorcidas | 3ª |
+| 4 (dir.) | Bosque do Sono Eterno ✅ | Preguiça — Nyssa Lumevel ✅ | floresta, lagos, cachoeiras | 2ª |
+| 4 (esq.) | Raízes da Fome ✅ | Gula — Mabel Vorágine ✅ | raízes vermelhas retorcidas | 3ª |
 | 5 | Forjas Ocas | Inveja — Durgan Vell | ruínas de pedra com torres | 4ª |
 | 3 | Montanha Carbonizada | Orgulho — Rachel Azheryon Caelis | vulcão com lava | 5ª |
 | 2 | Domínio Congelado | Ganância — Cassian Virel | cidade de cristais de gelo | 6ª |
@@ -161,7 +161,7 @@ Fichas completas em `data/bosses/*.tres` (uma por chefe).
 | Orgulho | Rachel Azheryon Caelis, O Orgulho do Céu | dragão ígneo | fogo | arena que desmorona aos poucos | Magia |
 | Ganância | Cassian Virel, O Arconte do Zero | humano | gelo | rouba estamina e congela partes da arena | Magia |
 | Inveja | Durgan Vell, O Eco de Bronze | anão | raio | copia os ataques que o jogador mais usou | Fé |
-| Gula | Mabel Vorágine, A Fome Que Lembra | giganta | sangue | agarra, engole e drena memórias; regenera comendo lacaios | Sorte |
+| Gula | Mabel Vorágine, A Fome Que Lembra ✅ | giganta | sangue | agarra, engole e drena memórias; regenera comendo lacaios | Sorte |
 | Preguiça | Nyssa Lumevel, A Que Não Desperta ✅ | fada | sono | Barra de Sonolência: parado/curando = dormir | Fé |
 
 ### Helena Altiva — como foi implementada ✅
@@ -185,9 +185,15 @@ Fichas completas em `data/bosses/*.tres` (uma por chefe).
 - **Fase 2 — O Pesadelo (50%):** a luz da área escurece em lilás; manchas escuras viram buracos (o `ArenaPit` do Aldir com outra textura) e **voltam** depois de 5 s; ecos (`DreamEcho`, com o shader de eco) dos chefes já vencidos, cada um com UM golpe conhecido.
 - Fala de abertura muda com `Game.flags["vigia_evitado"]`. Vencida: cama de flores no lugar dela; a Fada do Teatro ganha o diálogo da irmã (`fada_irma`).
 
+### Mabel Vorágine — como foi implementada ✅
+- **O agarrão** (a dica da Bíblia): estado `GRABBED` do herói — toques em Ataque para escapar (a tela conta), memórias (fração, com mínimo) e um pouco de vida por segundo preso; o dash na hora certa evita; escapar deixa quem agarrou tonto. Mesma regra para a Boca de Raiz e a Ninhada.
+- **Fase 1 — A Anfitriã:** lenta e enorme (64×64). Tapa de palma aberta (leque; às vezes tapa + tapa de volta), frutos de carne arremessados em arco até círculos no chão (`FleshBurst`), e o agarrão: linha da mão até o herói que TRAVA; pegou = engole (o herói some), ela se cura e "prova" uma lembrança alheia; escapou = engasgo (dano dobrado).
+- **Fase 2 — A Vorágine (50%):** boca no ventre (golpes de frente ×1,5; comendo/engasgada ×2), 4 Raízes-Veia ligadas a ela por linhas que pulsam: cada raiz viva cura ~0,6%/s e delas saem lacaios (larvas, às vezes um Inchado). Ela anda até um lacaio e o COME (aviso; golpe forte interrompe): cura 6% e cresce. Todas as raízes cortadas = a cura para ("Não... não tirem a minha mesa..."); uma volta a brotar se sobrarem menos de 2.
+- Falas (provisórias, reescreva!): "Ah, visita! Sente-se, sente-se..." · "Ainda estou com FOME. Por que eu ainda estou com fome?!" · "...Eu só queria... que alguém dissesse que estava bom."
+- Depois da vitória: "MEMÓRIA RECUPERADA — Gula · Vazio"; a mesa posta (pratos limpos) fica onde ela sentava; o Vendedor do Teatro passa a lembrar dela (`vendedor_mabel`).
+
 ### Ideias de implementação da Bíblia (para os próximos)
 - **Durgan:** dicionário `acao → contagem` durante a luta; na fase 2, escolher o golpe com peso proporcional.
-- **Mabel:** estado "preso": tocar rápido no Ataque para escapar; perde memórias a cada segundo preso.
 - **Nyssa:** os ecos da fase 2 reaproveitam animações de chefes que já existem.
 - **Cassian:** `StatsComponent.drain_stamina()` já existe para o roubo de estamina.
 
@@ -207,7 +213,9 @@ Cada ilha: 3–4 inimigos comuns e 2 mini-chefes (o 1º ensina a mecânica, o 2�
 - Sonâmbulo ✅ (cego; acorda com barulho e vai até o SOM; volta a dormir) · Flor de Pólen ✅ (incha → nuvem de sono) · Cervo de Musgo ✅ (congelado no salto; mira que trava; investida que atropela e fica tonta ao bater) · Fada Murcha ✅ (cura os feridos, foge do herói)
 - Mini-chefes ✅: O Vigia que Dormiu (passar em silêncio grava `Game.flags["vigia_evitado"]` para a fala de Nyssa; acordado: martelada, varredura, bocejo = anel de sono) · A Mãe dos Esporos (cipó, chuva de esporos, florescer; brota flores; cipó pesado em quem dorme)
 
-**Raízes da Fome (Gula):** Boca de Raiz · Inchado · Colhedor · Larva de Seiva · mini: O Banqueteiro, A Ninhada.
+**Raízes da Fome (Gula):** estufas de ladrilho e vidro, cozinha de xadrez, ninho de veias, poças de seiva ✅ (cenário; porta oeste do Teatro, abre depois de Nyssa).
+- Boca de Raiz ✅ (enterrada → incha → agarra; exposta depois) · Inchado ✅ (lento; explode ao morrer, ferindo também os inimigos) · Colhedor ✅ (foice de 200° que alcança longe; gira se você cola) · Larva de Seiva ✅ (rouba memórias, brilha e foge; morta, devolve)
+- Mini-chefes ✅: O Banqueteiro (serve lacaios; ferido, COME um para se curar — ensina a matar a fonte de cura; guarda a porta dos fundos) · A Ninhada (solta larvas a cada 20% de vida perdida; engole quem fica no círculo)
 
 **Forjas Ocas (Inveja):** Autômato de Bronze · Torreta de Faísca · Minerador Oco · Imitador · mini: O Protótipo, O Guardião da Âncora.
 

@@ -4,7 +4,7 @@ extends Node
 ##   godot --path . --rendering-driver opengl3 res://tests/screenshot_tour.tscn -- --out=/caminho
 
 var out_dir := "user://screenshots"
-## "--only=bosque" tira só as fotos do Bosque (rápido enquanto se mexe nele).
+## "--only=bosque" (ou "--only=raizes") tira só as fotos daquela área.
 var only := ""
 var _current: Node
 
@@ -18,9 +18,14 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	Game.persistence_enabled = false
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do passeio
+	if only == "raizes":
+		await _tour_roots()
+		Game.quit_game()
+		return
 	if only != "bosque":
 		await _tour()
 	await _tour_forest()
+	await _tour_roots()
 	Game.quit_game()
 
 
@@ -582,3 +587,159 @@ func _tour_nyssa() -> void:
 	nyssa.stats.take_damage(99999.0)
 	await wait(9.0)
 	await shot("n07_cama_de_flores")
+
+
+
+## Raízes da Fome (e a porta oeste do Teatro).
+func _tour_roots() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	Game.pending_spawn = "camara"
+	var teatro := await open("res://scenes/world/teatro.tscn") as Level
+	await wait(1.0)
+	teatro.player.global_position = Vector2(3 * 16, 13 * 16)
+	teatro.camera.snap_to_target()
+	await wait(0.8)
+	await shot("r01_teatro_porta_oeste")
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/raizes.tscn") as Level
+	await wait(2.2)
+	await shot("r02_raizes_chegada")
+	level.player._iframes_left = 9999.0
+	# A Boca de Raiz enterrada no caminho... e o agarrão.
+	var boca := _forest_find(level, "BocaDeRaiz", Vector2(60 * 16, 12 * 16)) as BocaDeRaiz
+	level.player.global_position = boca.global_position + Vector2(-44, 4)
+	level.camera.snap_to_target()
+	await wait(1.0)
+	await shot("r03_boca_enterrada")
+	level.player._iframes_left = 0.0
+	level.player.global_position = boca.global_position + Vector2(3, 0)
+	await wait(1.3)
+	await shot("r04_boca_agarrou")
+	for i in boca.grab_taps:
+		await tap(&"attack")
+		await wait(0.05)
+	level.player._iframes_left = 9999.0
+	await wait(0.4)
+	await shot("r05_boca_exposta")
+	# Colhedor na estufa: o leque da foice.
+	var reaper := _forest_find(level, "Colhedor", Vector2(34 * 16, 5 * 16)) as Colhedor
+	level.player.global_position = reaper.global_position + Vector2(-30, 8)
+	level.camera.snap_to_target()
+	reaper._cooldown = 99.0
+	await wait(0.8)
+	reaper._attack(reaper.sweep)
+	await wait(0.45)
+	await shot("r06_estufa_colhedor_foice")
+	# Larvas de Seiva: o enxame (uma brilhando com o que roubou).
+	var larva := _forest_find(level, "LarvaSeiva", Vector2(62 * 16, 17 * 16)) as LarvaSeiva
+	larva.stolen = 60
+	level.player.global_position = larva.global_position + Vector2(-40, 0)
+	level.camera.snap_to_target()
+	await wait(0.9)
+	await shot("r07_larvas")
+	# O Inchado incha antes de estourar.
+	var bloated := _forest_find(level, "Inchado", Vector2(17 * 16, 22 * 16)) as Inchado
+	level.player.global_position = bloated.global_position + Vector2(-26, -6)
+	level.camera.snap_to_target()
+	await wait(0.6)
+	bloated.stats.take_damage(9999.0)
+	await wait(0.5)
+	await shot("r08_inchado_vai_estourar")
+	# A cozinha: o Banqueteiro serve e come.
+	var cook := _forest_find(level, "Banqueteiro", Vector2(32 * 16, 20 * 16)) as Banqueteiro
+	level.player.global_position = cook.global_position + Vector2(-70, 20)
+	level.camera.snap_to_target()
+	await wait(1.4)
+	cook._set_mode(Banqueteiro.Mode.SERVE)
+	await wait(1.0)
+	await shot("r09_banqueteiro_serve")
+	cook.stats.set_health(cook.stats.max_health * 0.6)
+	cook._eat_timer = 0.0
+	cook._set_mode(Banqueteiro.Mode.CHASE)
+	for i in 60:
+		await wait(0.05)
+		if cook.mode == Banqueteiro.Mode.EAT and cook._eat_started:
+			break
+	await wait(0.4)
+	await shot("r10_banqueteiro_come")
+	cook.reset_fight()
+	# O ninho: a Ninhada vai engolir.
+	var brood := _forest_find(level, "Ninhada", Vector2(14 * 16, 5 * 16)) as Ninhada
+	level.player.global_position = brood.global_position + Vector2(-40, 40)
+	level.camera.snap_to_target()
+	await wait(1.2)
+	brood._start_engulf()
+	await wait(0.6)
+	await shot("r11_ninhada_engolir")
+	brood.reset_fight()
+	# A porta dos fundos (trancada até vencer o Banqueteiro).
+	level.player.global_position = Vector2(4 * 16, 20 * 16 + 8)
+	level.camera.snap_to_target()
+	await wait(1.0)
+	await shot("r12_porta_de_mabel")
+	await _tour_mabel()
+
+
+func _tour_mabel() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "banqueteiro"])
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/arena_mabel.tscn") as Level
+	await wait(1.8)
+	await shot("m01_salao_chegada")
+	var mabel := level.boss_arena.boss as MabelVoragine
+	level.player._iframes_left = 9999.0
+	level.player.global_position = mabel.global_position + Vector2(30, 70)
+	level.camera.snap_to_target()
+	await wait(2.0)
+	await shot("m02_anfitria")
+	mabel._go_decide(99.0)
+	level.player.global_position = mabel.global_position + Vector2(36, 16)
+	mabel.facing = Vector2.RIGHT
+	mabel._queue_combo([mabel.slap])
+	await wait(0.6)
+	await shot("m03_tapa_aviso")
+	await wait(1.6)
+	mabel._go_decide(99.0)
+	level.player.global_position = mabel.global_position + Vector2(0, 90)
+	mabel.throw_fruits()
+	await wait(0.55)
+	await shot("m04_frutos_de_carne")
+	await wait(1.4)
+	level.player.global_position = mabel.global_position + Vector2(60, 10)
+	mabel._start_reach()
+	await wait(0.8)
+	await shot("m05_agarrao_linha")
+	level.player._iframes_left = 0.0
+	await wait(0.4)
+	await wait(0.6)
+	await shot("m06_engolido")
+	for i in mabel.grab_taps:
+		await tap(&"attack")
+		await wait(0.05)
+	level.player._iframes_left = 9999.0
+	await wait(0.3)
+	await shot("m07_engasgo")
+	mabel.stats.take_damage(mabel.stats.max_health * 0.55)
+	await wait(1.0)
+	await shot("m08_voragine_raizes")
+	await wait(1.6)
+	mabel._go_decide(99.0)
+	mabel._lackey_timer = 0.0
+	await wait(0.2)
+	mabel._lackey_timer = 0.0
+	await wait(0.2)
+	level.player.global_position = mabel.global_position + Vector2(-50, 60)
+	await wait(0.6)
+	mabel._eat_timer = 0.0
+	if not mabel.lackeys.is_empty():
+		var meal: Enemy = mabel.lackeys[0]
+		meal.global_position = mabel.global_position + Vector2(20, 10)
+		mabel._go_decide(0.0)
+	await wait(0.9)
+	await shot("m09_come_lacaio")
+	await wait(1.2)
+	mabel.stats.take_damage(99999.0)
+	await wait(6.0)
+	await shot("m10_mesa_posta")

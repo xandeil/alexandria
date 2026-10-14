@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "banqueteiro"
+display_name = "O Banqueteiro"
+title = "Mini-chefe das Raízes da Fome"
+sin = "Mini-chefe"
+sin_meaning = "Gula"
+race = "Humano"
+attribute = "Sangue"
+area = "Raízes da Fome"
+scaling = "—"
+suggested_order = "1º mini-chefe das Raízes"
+memory_reward = 600
+implemented = true
+unique_mechanic = "Serve 'pratos' de lacaios; se você demora, ele come os próprios lacaios e se cura. Mate a fonte de cura primeiro."
+phases = Array[String](["Cutelo (arco curto, pesado), concha (arco largo, empurra), servir (abre a cloche: larvas ou um Inchado) e comer um lacaio para se curar."])
+history = "Cozinheiro do projeto. Servia Mabel muito antes de ela parar de comer comida."
+meaning = "Ensina a matar a fonte de cura primeiro — a lição que Mabel cobra na fase 2."

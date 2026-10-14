@@ -1,0 +1,88 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/mabel.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/mabel_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_huge.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/mabel_tapa.tres" id="8_slap"]
+[ext_resource type="Resource" path="res://data/attacks/mabel_tapa_volta.tres" id="9_slap_back"]
+[ext_resource type="Resource" path="res://data/attacks/mabel_ventre.tres" id="10_belly_bite"]
+[ext_resource type="Resource" path="res://data/bosses/mabel.tres" id="11_data"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="12_tel"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 14.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 24.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(36, 46)
+
+[node name="MabelVoragine" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+slap = ExtResource("8_slap")
+slap_back = ExtResource("9_slap_back")
+belly_bite = ExtResource("10_belly_bite")
+data = ExtResource("11_data")
+wake_distance = 150.0
+memory_reward = 1400
+move_speed = 26.0
+acceleration = 260.0
+max_poise = 260.0
+stagger_time = 1.4
+knockback_taken = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("12_tel")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -31)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -14)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(30.0, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -26)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 1150.0
+health_per_vitalidade = 0.0

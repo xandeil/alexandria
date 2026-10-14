@@ -102,38 +102,38 @@ def greenhouse_tile(img, ox, oy, seed, cracked=False):
 
 
 def kitchen_tile(img, ox, oy, seed, dirty=False):
-    """Cozinha do projeto: xadrez creme e marrom, manchado."""
+    """Cozinha do projeto: xadrez creme e marrom. A versao 'dirty' tem manchas de seiva."""
     rng = random.Random(seed)
     for y in range(oy, oy + T):
         for x in range(ox, ox + T):
             checker = ((x - ox) // 4 + (y - oy) // 4) % 2 == 0
             c = P.KITCHEN_TILE_A if checker else P.KITCHEN_TILE_B
             if rng.random() < 0.12:
-                c = shade(c, 0.9)
+                c = shade(c, 0.92)
             put(img, x, y, c)
-    for _ in range(3 if dirty else 1):  # manchas de seiva
-        cx, cy = ox + rng.randint(3, 12), oy + rng.randint(3, 12)
-        ellipse(img, cx, cy, rng.uniform(1.5, 3.0), rng.uniform(1.0, 2.0), P.SAP_DARK)
-        put(img, int(cx), int(cy), P.SAP)
+    if dirty:
+        for _ in range(2):
+            cx, cy = ox + rng.randint(3, 12), oy + rng.randint(3, 12)
+            ellipse(img, cx, cy, rng.uniform(1.5, 2.6), rng.uniform(1.0, 1.8), P.SAP_DARK)
+            put(img, int(cx), int(cy), P.SAP)
 
 
 def vein_floor(img, ox, oy, seed):
-    """Chao tomado: raizes finas cruzando o solo, com o brilho da veia."""
+    """Chao tomado: terra escura com raizes finas cruzando e um brilho de veia aqui e ali."""
     rng = random.Random(seed)
-    soil_tile(img, ox, oy, seed + 1000)
-    for _ in range(3):
-        x0, y0 = ox + rng.randint(-2, 6), oy + rng.randint(0, 15)
-        x1, y1 = ox + rng.randint(10, 18), oy + rng.randint(0, 15)
-        steps = 20
+    _noise(img, ox, oy, P.SOIL_RED, [P.SOIL_RED_DARK, P.SOIL_RED_LIGHT], 0.25, rng)
+    for _ in range(2):
+        x0, y0 = ox + rng.randint(-2, 6), oy + rng.randint(1, 14)
+        x1, y1 = ox + rng.randint(10, 18), oy + rng.randint(1, 14)
+        steps = 18
         for i in range(steps + 1):
             t = i / steps
             x = int(x0 + (x1 - x0) * t)
-            y = int(y0 + (y1 - y0) * t + math.sin(t * 6 + seed) * 1.5)
+            y = int(y0 + (y1 - y0) * t + math.sin(t * 6 + seed) * 1.2)
             if ox <= x < ox + T and oy <= y < oy + T:
-                put(img, x, y, P.ROOTS_RED)
-                put(img, x, y + 1, P.ROOTS_RED_DARK)
-                if i % 7 == 3:
-                    put(img, x, y, P.VEIN)
+                put(img, x, y, P.ROOTS_RED_DARK if i % 3 else P.ROOTS_RED)
+    if seed % 2 == 0:
+        put(img, ox + 7, oy + 8, P.VEIN)
 
 
 def plank_tile(img, ox, oy, seed):
@@ -188,19 +188,22 @@ def roots_top_tile(img, ox, oy, seed):
 
 
 def roots_face_tile(img, ox, oy, seed):
-    """Face da 'parede': troncos de raiz retorcidos descendo ate o chao."""
+    """Face da 'parede': troncos de raiz retorcidos descendo ate o chao, com vaos escuros."""
     rng = random.Random(seed)
     rect(img, ox, oy, ox + T, oy + T, P.ROOTS_RED_DEEP)
     tile = canvas(T, T)
-    for x in (2 + seed % 3, 8 + seed % 4, 13):
-        _root_strand(tile, rng, x, -2, x + rng.randint(-3, 3), 17, rng.uniform(1.6, 2.4), P.ROOTS_RED, P.ROOTS_RED_DARK,
-                     P.ROOTS_RED_LIGHT, 1.2)
+    xs = sorted(rng.sample(range(1, 15), 3))
+    for x in xs:
+        w = rng.uniform(1.3, 2.3)
+        _root_strand(tile, rng, x, -3, x + rng.randint(-2, 2), 18, w, P.ROOTS_RED, P.ROOTS_RED_DARK, P.ROOTS_RED_LIGHT, 0.9)
+    # um ramo cruzado (quebra a repeticao)
+    y = rng.randint(4, 11)
+    _root_strand(tile, rng, -1, y, 16, y + rng.randint(-3, 3), 0.9, P.ROOTS_RED_DARK, P.ROOTS_RED_DEEP, None, 1.0)
     paste(img, tile, ox, oy)
-    hline(img, ox, ox + T, oy, P.ROOTS_RED_LIGHT)
     hline(img, ox, ox + T, oy + T - 1, P.WALL_SHADOW)
     if seed % 2 == 0:
-        put(img, ox + 6, oy + 7, P.VEIN)
-        put(img, ox + 6, oy + 8, P.VEIN)
+        put(img, ox + xs[1], oy + 7, P.VEIN)
+        put(img, ox + xs[1], oy + 8, P.VEIN)
 
 
 def glass_wall_tile(img, ox, oy, seed):
@@ -278,7 +281,7 @@ def roots_atlas():
     img = canvas(8 * T, 3 * T)
     soil_tile(img, 0 * T, 0, 201, olive=True)
     soil_tile(img, 1 * T, 0, 202, olive=True)
-    soil_tile(img, 2 * T, 0, 203, veins=True)
+    soil_tile(img, 2 * T, 0, 203, veins=True, olive=True)
     greenhouse_tile(img, 3 * T, 0, 204)
     kitchen_tile(img, 4 * T, 0, 205)
     vein_floor(img, 5 * T, 0, 206)

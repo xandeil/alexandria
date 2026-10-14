@@ -376,5 +376,89 @@
 				"acao": ""
 			}
 		]
+	},
+	"raizes_fechadas": {
+		"nome": "Porta oeste",
+		"falas": [
+			"Raízes vermelhas atravessam a porta como veias num pulso. Estão paradas — dormindo.",
+			"Enquanto o bosque dormia, elas também dormiam. Alguma coisa ainda as mantém quietas."
+		]
+	},
+	"porta_cozinha": {
+		"nome": "Porta dos fundos",
+		"falas": [
+			"Uma porta de cozinha, trancada por dentro. Do outro lado, talheres batendo num prato vazio.",
+			"Alguém precisa servir a mesa primeiro. O cozinheiro guarda a chave no avental."
+		]
+	},
+	"raiz_pulsando": {
+		"nome": "Raiz",
+		"falas": [
+			"A raiz pulsa. Por dentro corre algo vermelho e morno.",
+			"Por um instante você ouve uma risada que não é sua. Depois, um aniversário. Depois, nada."
+		]
+	},
+	"placa_estufa": {
+		"nome": "Placa da estufa",
+		"falas": [
+			"ESTUFA 3 — Cultivo de proteína. Responsável: M. Vorágine.",
+			"Embaixo, a giz: “Ninguém sai da minha mesa com fome.”"
+		]
+	},
+	"cardapio": {
+		"nome": "Cardápio",
+		"falas": [
+			"Um quadro-negro com o cardápio do dia. A data é de antes da subida da ilha.",
+			"Os pratos foram apagados e reescritos muitas vezes. A última linha diz só: “MEMÓRIAS — à vontade”."
+		]
+	},
+	"ninho_larvas": {
+		"nome": "Ninho",
+		"falas": [
+			"Larvas do tamanho de um dedo dormem enroladas em sobras que ninguém terminou de comer.",
+			"Cada uma brilha um pouco. Brilham com o que roubaram."
+		]
+	},
+	"porta_mabel_cheiro": {
+		"nome": "Cheiro",
+		"falas": [
+			"Cheiro de pão quente e de ferro. Vem da porta dos fundos.",
+			"Uma voz de mulher cantarola do outro lado, como quem põe a mesa para muita gente."
+		]
+	},
+	"salao_mabel": {
+		"nome": "Salão",
+		"falas": [
+			"Um salão de banquete sem mesa para os convidados. Só uma cadeira enorme, à cabeceira.",
+			"As raízes sobem pelas paredes e entram pelo chão, todas na direção dela."
+		]
+	},
+	"mesa_de_mabel": {
+		"nome": "Mesa posta",
+		"falas": [
+			"Uma mesa posta com pratos limpos. Ninguém jamais comeu neles.",
+			"Ela não tinha fome de comida. Tinha fome de alguém dizendo “estava bom”."
+		]
+	},
+	"vendedor_mabel": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"Mabel? ...Ela comprava de mim, sabia? Frasco atrás de frasco. Dizia que era para as plantas.",
+			"Eu não perguntei. Eu nunca pergunto. Talvez devesse ter perguntado."
+		],
+		"opcoes": [
+			{
+				"texto": "Comprar Frasco de Sanidade (150)",
+				"acao": "comprar_sanidade"
+			},
+			{
+				"texto": "Comprar Sucata Temperada (200)",
+				"acao": "comprar_sucata"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
 	}
 }

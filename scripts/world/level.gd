@@ -157,12 +157,13 @@ const THEMES := {
 		"floor": {
 			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
 			",": [Vector2i(3, 0), Vector2i(3, 0), Vector2i(2, 2)],
-			":": [Vector2i(4, 0), Vector2i(4, 2)], ";": [Vector2i(5, 0), Vector2i(5, 2)],
+			":": [Vector2i(4, 0), Vector2i(4, 0), Vector2i(4, 2)], ";": [Vector2i(5, 0), Vector2i(5, 2)],
 			"=": [Vector2i(6, 0)], "k": [Vector2i(7, 0)], "g": [Vector2i(3, 2)], "_": [Vector2i(6, 0)],
 		},
 		"default_floor": ".",
 		"wall_top": Vector2i(0, 1),
-		"wall_face": [Vector2i(1, 1), Vector2i(1, 1), Vector2i(2, 1)],
+		# Raiz quase sempre; de vez em quando uma vidraça velha de estufa.
+		"wall_face": [Vector2i(1, 1), Vector2i(1, 1), Vector2i(1, 1), Vector2i(1, 1), Vector2i(2, 1)],
 		"arch": Vector2i(3, 1),
 		"cliff": Vector2i(4, 1),
 		"cliff_low": Vector2i(5, 1),
@@ -940,6 +941,10 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Bíblia: "A Fada do Teatro — diálogo novo depois de Nyssa (irmã)".
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
+		"vendedor":
+			# Mabel comprava humanidade líquida dele ("para as plantas").
+			if Game.is_boss_defeated("mabel"):
+				return "vendedor_mabel"
 	return dialogue_id
 
 

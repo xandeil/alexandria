@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Mordida de Raiz"
+stamina_cost = 0.0
+damage = 16.0
+poise_damage = 14.0
+knockback = 90.0
+is_heavy = false
+windup_time = 0.35
+lunge_speed = 0.0
+lunge_time = 0.04
+active_time = 0.1
+recovery_time = 0.6
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.5
+reach = 12.0
+radius = 10.0
+hitstop = 0.0
+shake = 0.0
+slash_arc_degrees = 90.0
+slash_radius = 12.0
+slash_color = Color(0.95, 0.5, 0.45, 0.85)
+sound = &"chomp"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

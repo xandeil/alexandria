@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/raizes_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Raizes" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/raizes.txt"
+area_name = "Raízes da Fome"
+area_subtitle = "As estufas e as cozinhas viraram ninhos. As raízes pulsam como veias."
+theme = "raizes"
+ambience = &"amb_roots"
+darkness = Color(0.86, 0.8, 0.78, 1)
+outdoor = true
+exit_scene = "res://scenes/world/teatro.tscn"
+exit_spawn = "oeste"
+exit2_scene = "res://scenes/world/arena_mabel.tscn"
+exit2_spawn = "porta"
+exit2_requires = "banqueteiro"
+exit2_locked_dialogue = "porta_cozinha"
+lore_points = {"1": "raiz_pulsando", "2": "placa_estufa", "3": "cardapio", "4": "ninho_larvas", "5": "porta_mabel_cheiro"}
+item_points = Array[String](["sucata_temperada:3", "fragmento_turvo", "sucata_temperada:2"])
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

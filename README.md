@@ -55,6 +55,18 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
   - **Fase 1 — O Sonho Leve:** ela flutua deitada e quase não ataca. O bosque luta por ela: sonâmbulos já acordados, bolhas de sono lentas (um golpe estoura) e flores. **Ficar parado ou beber frasco enche a Barra de Sonolência**; atacar esvazia. Colou nela batendo sem parar? Ela vira de lado e solta um anel de sono.
   - **Fase 2 — O Pesadelo (metade da vida):** a clareira escurece. Manchas escuras avisam e o **chão some** (o dash passa por cima; o chão volta depois). Ela chama **ecos dos chefes que você já venceu** — cada um com o golpe que você conhece (a estocada da Helena, a onda do Aldir, o grito da Governanta...).
   - O que ela diz ao começar depende de você ter **passado pelo Vigia em silêncio**. Vencida, fica uma cama de flores onde ela dormia, e **a Fada do Teatro passa a falar da irmã**.
+- **Raízes da Fome (Gula)** — a porta **oeste** do Teatro (a do lado oposto ao Bosque: as duas metades da ilha 4 do mapa) abre depois de vencer Nyssa. "Raízes vermelhas que pulsam como veias. Antigas estufas e cozinhas viraram ninhos."
+  - **O agarrão** (mecânica nova, a dica da Bíblia): algumas coisas te **prendem**. Preso, **toque rápido no Ataque** para se soltar (a tela mostra quantos toques faltam e o botão vira "Solte-se!"); a cada segundo preso você perde **uma parte das memórias** e um pouco de vida. O dash na hora certa evita o agarrão; escapar deixa quem agarrou **tonto**.
+  - **Boca de Raiz:** um montinho de terra com uma fenda vermelha no caminho — dá para ver, se você olhar. Pisou perto, o monte incha (aviso) e ela **agarra**. Errou o bote ou você escapou: fica de pé, exposta, mordendo — é a hora de cortar.
+  - **Inchado:** lento, tapa fácil de ler... e **explode ao morrer** (círculo vermelho enchendo). A explosão fere **os outros inimigos também**: mate-o no meio do grupo.
+  - **Colhedor:** antigo trabalhador da estufa com uma foice longa. O arco (200°) alcança mais longe que a sua espada; entre na guarda dele depois do golpe — mas colado tempo demais, ele gira a foice em volta.
+  - **Larva de Seiva:** enxame pequeno. Cada mordida **rouba memórias**; a larva que roubou **brilha e foge**. Matá-la **devolve tudo**.
+  - **Mini-chefe — O Banqueteiro:** o cozinheiro **serve** lacaios (larvas ou um Inchado) e, ferido, anda até um deles e **o come para se curar** (aviso no chão; golpe forte interrompe). A lição de Mabel antes de Mabel: **mate a fonte de cura primeiro**. Ele guarda a porta dos fundos.
+  - **Mini-chefe — A Ninhada:** um monte de larvas que **solta larvas** a cada pedaço de vida perdido e **engole** quem fica no círculo.
+- **Mabel Vorágine, A Fome Que Lembra (Gula)**, na Mesa de Mabel:
+  - **Fase 1 — A Anfitriã:** lenta e enorme. **Tapas** (leque vermelho), **frutos de carne** arremessados (círculos onde vão cair) e o **agarrão**: uma linha vai da mão até você — travou (pisca), saia. Pegou: ela **engole** você, prova suas lembranças ("Um aniversário... velas... quem era essa criança?") e se cura enquanto drena memórias. Escapou: ela **engasga** — dano dobrado.
+  - **Fase 2 — A Vorágine (metade da vida):** uma **boca se abre no ventre** (de frente, o golpe dói mais). Quatro **Raízes-Veia** brotam e ficam ligadas a ela por linhas que pulsam: **curam Mabel** e delas saem lacaios, que ela **come para se curar e crescer**. Cortar as raízes interrompe a cura.
+  - Vencida, fica **a mesa posta** onde ela sentava — e o **Vendedor** do Teatro passa a lembrar de quem comprava humanidade líquida "para as plantas".
 - **Morte:** "VOCÊ ESQUECEU" — perde metade das memórias, a visão escurece pelas bordas e cabelo/olhos clareiam a cada morte.
 
 | | |
@@ -70,6 +82,10 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
 | ![Pólen e sonolência](docs/screenshots/b04_polen_sonolencia.jpg) | ![O lago e a ponte](docs/screenshots/b06_lago_ponte.jpg) |
 | ![O Vigia que Dormiu](docs/screenshots/b10_vigia_dormindo.jpg) | ![A Mãe dos Esporos](docs/screenshots/b13_mae_florescer.jpg) |
 | ![Nyssa — O Sonho Leve](docs/screenshots/n03_sono_subindo.jpg) | ![Nyssa — O Pesadelo](docs/screenshots/n06_ecos.jpg) |
+| ![Boca de Raiz: preso](docs/screenshots/r04_boca_agarrou.jpg) | ![O Inchado vai estourar](docs/screenshots/r08_inchado_vai_estourar.jpg) |
+| ![O Banqueteiro serve](docs/screenshots/r09_banqueteiro_serve.jpg) | ![A Ninhada vai engolir](docs/screenshots/r11_ninhada_engolir.jpg) |
+| ![Mabel — o tapa](docs/screenshots/m03_tapa_aviso.jpg) | ![Mabel — engolido](docs/screenshots/m06_engolido.jpg) |
+| ![Mabel — as raízes](docs/screenshots/m08_voragine_raizes.jpg) | ![Mabel come um lacaio](docs/screenshots/m09_come_lacaio.jpg) |
 | ![Buracos na praça](docs/screenshots/25_aldir_salto.jpg) | ![Morte](docs/screenshots/15_morte.jpg) |
 
 ## Controles
@@ -241,6 +257,30 @@ O `Fx` guarda uma lista de efeitos de tempo e aplica o MAIS LENTO enquanto ele
 durar. Antes, o golpe final (hitstop de 0,1 s) "travava" a câmera lenta da
 vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 
+### 11. Uma regra, vários usuários (o agarrão das Raízes)
+- **Quem agarra não controla o herói.** A Boca de Raiz, a Ninhada e a Mabel só
+  chamam `player.grab(eu, toques, ...)`. O `Player` ganhou o estado `GRABBED` e
+  cuida de TUDO: ficar preso no lugar, contar os toques, drenar memórias a cada
+  segundo (`Game.drain_memories`), soltar sozinho se quem agarrou morrer ou
+  sumir, e limpar ao sair do estado (por escapar, por um diálogo, por morrer).
+  Quem agarrou só pergunta `player.is_grabbed_by(self)` para saber se você
+  escapou. Uma regra, três inimigos, um teste — e o jogador aprende uma vez.
+- **"Ligações de volta" opcionais:** a Mabel quer saber quando drenou memórias
+  (para se curar e "provar" a lembrança). Em vez de o herói conhecer a Mabel,
+  ele só faz `if grabber.has_method("on_memories_drained")`. Quem não precisa,
+  não implementa (*duck typing*).
+- **O ASCII acabou — e tudo bem.** Os mapas já usavam quase todos os
+  caracteres. Em vez de inventar símbolos ilegíveis, cada ilha pode dar outro
+  significado ao MESMO caractere: `THEME_ENTITIES`/`THEME_PROPS` no `level.gd`.
+  No Bosque, `z` é o Sonâmbulo; nas Raízes, a Boca de Raiz. O mapa continua
+  legível e acrescentar uma ilha não mexe nas outras.
+- **Uma explosão, duas origens:** `FleshBurst` (aviso no chão → estouro → mancha)
+  serve ao Inchado (que fere os outros inimigos também) e aos frutos da Mabel
+  (que chegam voando em arco até o centro do círculo).
+- **Ligadura de fonte:** a Pixelify Sans juntava "fi" num glifo próprio que,
+  em 7 px, parecia um "Ã" ("A AnÃtriã"). A importação das fontes desliga a
+  ligadura `liga` (`opentype_features` no `.import`).
+
 ## Unity → Godot (cola rápida)
 
 | Unity | Godot |
@@ -293,6 +333,10 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 | Governanta: grito (alcance, velocidade), ecos, distância em que ela observa | Inspector da `Governanta` (`scenes/bosses/governanta.tscn`) |
 | Golpes da Governanta e das crianças | `data/attacks/governanta_*.tres`, `crianca_espetada.tres`, `adolescente_golpe.tres` |
 | O que cada ponto "Examinar" diz | `lore_points` no nó `Prologo` + `data/dialogos.json` |
+| Agarrão: invencibilidade e empurrão ao escapar | grupo "Agarrão (preso)" no Inspector do `Player` |
+| Boca de Raiz, Inchado, Colhedor, Larva de Seiva | Inspector de `scenes/enemies/boca_de_raiz.tscn`, `inchado.tscn`, `colhedor.tscn`, `larva_seiva.tscn` (toques para escapar, memórias por segundo, raio da explosão, quanto a larva rouba) |
+| Banqueteiro (servir, comer, cura) e Ninhada (larvas por pedaço de vida, engolir) | Inspector de `scenes/bosses/banqueteiro.tscn` e `ninhada.tscn` |
+| Mabel: frutos, agarrão, raízes (cura por raiz), lacaios, crescimento, ventre | Inspector de `scenes/bosses/mabel.tscn` (grupos "Fase 1", "Agarrão", "Fase 2") |
 
 ## Testes automáticos
 
@@ -300,7 +344,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-59 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+68 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3
@@ -312,7 +356,7 @@ quem fica parado e não acerta quem atravessa com o dash; o abraço avisa; fase
 2 com ecos; o caminho sem violência — ela só observa, a porta abre, o chão some,
 Criança Poupada no Teatro; o caminho da violência — ela levanta, a porta
 tranca, a lembrança, a porta destranca, a cadeira vazia depois), o save v2 com
-migração do v1, o Novo jogo abrindo o prólogo, os inimigos da Cidade (o cão morde e recua; o atirador mira, trava a linha e atira; a bala para na parede e o dash a atravessa; o civil só reage quando provocado), os mini-chefes (o Sargento apita a cada 25% e o pelotão cai junto com ele; o mini-chefe desiste se você foge; a Couraça só sente golpe pelas costas), o inventário e o save v3 (com migração do v2: quem já venceu chefes recebe o que eles deixam), a forja (custo, +24% no golpe, teto antes e depois de Durgan), o Orbe (fragmento vira frasco), itens do chão que não voltam e drops, o escudo (frente × costas × indefensável, quebra de guarda, virar sozinho para a bala) e o menu de inventário, o Bosque (a Barra de Sonolência sobe e desce, dormir e acordar, o dash na nuvem; o barulho de cada ação; o sonâmbulo que vai até o som e volta a dormir; a flor que incha e solta; o cervo que trava a mira e fica tonto na parede; a fada que cura; passar pelo Vigia em silêncio ou acordá-lo; a Mãe dos Esporos e o cipó pesado em quem dorme; a porta do Bosque que abre depois do Aldir), Nyssa (a luta começa ao entrar; sono por ficar parado; bolhas; o anel quando você cola nela; dano enorme não pula o Pesadelo; o chão some e volta; ecos só de chefes vencidos; vitória, lembrança e a cama de flores; outra fala para quem passou pelo Vigia em silêncio; os espinhos que abrem depois da Mãe; a Fada que fala da irmã) e os ecos de cada chefe, os mapas (inclusive que são
+migração do v1, o Novo jogo abrindo o prólogo, os inimigos da Cidade (o cão morde e recua; o atirador mira, trava a linha e atira; a bala para na parede e o dash a atravessa; o civil só reage quando provocado), os mini-chefes (o Sargento apita a cada 25% e o pelotão cai junto com ele; o mini-chefe desiste se você foge; a Couraça só sente golpe pelas costas), o inventário e o save v3 (com migração do v2: quem já venceu chefes recebe o que eles deixam), a forja (custo, +24% no golpe, teto antes e depois de Durgan), o Orbe (fragmento vira frasco), itens do chão que não voltam e drops, o escudo (frente × costas × indefensável, quebra de guarda, virar sozinho para a bala) e o menu de inventário, o Bosque (a Barra de Sonolência sobe e desce, dormir e acordar, o dash na nuvem; o barulho de cada ação; o sonâmbulo que vai até o som e volta a dormir; a flor que incha e solta; o cervo que trava a mira e fica tonto na parede; a fada que cura; passar pelo Vigia em silêncio ou acordá-lo; a Mãe dos Esporos e o cipó pesado em quem dorme; a porta do Bosque que abre depois do Aldir), Nyssa (a luta começa ao entrar; sono por ficar parado; bolhas; o anel quando você cola nela; dano enorme não pula o Pesadelo; o chão some e volta; ecos só de chefes vencidos; vitória, lembrança e a cama de flores; outra fala para quem passou pelo Vigia em silêncio; os espinhos que abrem depois da Mãe; a Fada que fala da irmã) e os ecos de cada chefe, as Raízes da Fome (o agarrão: toques para escapar, memórias por segundo, dash que evita, agarrador que some, diálogo que solta; a Boca de Raiz que sobe, agarra e fica exposta; o Inchado que estoura no herói e nos outros inimigos; a foice que alcança de longe e gira; a larva que rouba, foge e devolve ao morrer; o Banqueteiro que serve, come e é interrompido; a Ninhada que se divide e engole; as portas oeste do Teatro e dos fundos da cozinha), Mabel (frutos, engolir e engasgar, fase 2 sem pular, raízes que curam e cospem lacaios, comer e crescer, ventre de frente, raízes cortadas param a cura, vitória e a mesa posta), os mapas (inclusive que são
 **fechados**) e os controles de toque. E os testes de **regressão** de cada bug já corrigido: save com cópia de
 segurança e save corrompido, minimizar no título, pausa soltando os toques,
 tecla do diálogo ignorada, cura guardada no fim do golpe, porta mantendo
@@ -323,8 +367,8 @@ próprio (`user://teste_automatico_save.json`) — o seu nunca é tocado.
 
 Há também `tests/soak_test.tscn` (um robô joga ~8 minutos de jogo — Prólogo
 pelo caminho da violência até a queda, Cidade (de escudo), os dois mini-chefes, a forja e o Orbe, Helena, Aldir e o
-Bosque com os mini-chefes dele e a Nyssa — procurando erros; aceita durações: `-- 90 150 150 120 90`, 0 pula) e
-`tests/screenshot_tour.tscn` (tira as fotos desta página; `-- --only=bosque` tira só as do Bosque).
+Bosque com os mini-chefes dele e a Nyssa, e as Raízes com o Banqueteiro, a Ninhada e a Mabel (o robô se deixa agarrar e escapa tocando) — procurando erros; aceita durações: `-- 90 150 150 120 90 90`, 0 pula) e
+`tests/screenshot_tour.tscn` (tira as fotos desta página; `-- --only=bosque` ou `-- --only=raizes` tira só as daquela área).
 Para rodar só alguns testes enquanto mexe numa coisa: `... test_runner.tscn -- vigia sono`.
 
 ## Desempenho em celular fraco
@@ -352,7 +396,7 @@ tamanhos de quadro (herói/soldado/crianças 24×24, Helena 32×32, Governanta
 
 ## Próximos passos sugeridos (pela Bíblia)
 
-1. **Raízes da Fome (Gula — Mabel Vorágine)**, a próxima ilha na ordem da Bíblia.
+1. **Forjas Ocas (Inveja — Durgan Vell)**, a próxima ilha na ordem da Bíblia: ele copia os ataques que você mais usa, e vencê-lo libera o Ferreiro até +5.
 2. **A Criança Poupada como aliada de verdade:** segui-lo pelas áreas e reagir a cada Pecado vencido (hoje ela fica no Teatro e dá dicas).
 3. Fazer o mundo lembrar da escolha: falas novas da Fada/Orbe para quem feriu as crianças; levar a memória do Aldir ao Teatro (fala nova da Fada/Orbe) e a ordem dos Pecados da Bíblia (Helena por último).
 4. Arte final e animações (as cenas já separam corpo, arma e peças de armadura).

@@ -28,6 +28,14 @@ const VIGIA_SCENE := preload("res://scenes/bosses/vigia.tscn")
 const MAE_SCENE := preload("res://scenes/bosses/mae_esporos.tscn")
 const BOSQUE := "res://scenes/world/bosque.tscn"
 const ARENA_NYSSA := "res://scenes/world/arena_nyssa.tscn"
+const BOCA_SCENE := preload("res://scenes/enemies/boca_de_raiz.tscn")
+const INCHADO_SCENE := preload("res://scenes/enemies/inchado.tscn")
+const COLHEDOR_SCENE := preload("res://scenes/enemies/colhedor.tscn")
+const LARVA_SCENE := preload("res://scenes/enemies/larva_seiva.tscn")
+const BANQUETEIRO_SCENE := preload("res://scenes/bosses/banqueteiro.tscn")
+const NINHADA_SCENE := preload("res://scenes/bosses/ninhada.tscn")
+const RAIZES := "res://scenes/world/raizes.tscn"
+const ARENA_MABEL := "res://scenes/world/arena_mabel.tscn"
 ## Os testes gravam num arquivo próprio: o seu save de verdade nunca é tocado.
 const TEST_SAVE := "user://teste_automatico_save.json"
 
@@ -105,6 +113,15 @@ func _ready() -> void:
 		"test_nyssa_fight",
 		"test_dream_echoes",
 		"test_nyssa_phase_from_any_damage",
+		"test_grab_and_escape",
+		"test_root_mouth_ambush",
+		"test_bloated_explodes",
+		"test_reaper_scythe",
+		"test_sap_larva_steals_and_returns",
+		"test_banqueteiro_serves_and_eats",
+		"test_ninhada_splits_and_engulfs",
+		"test_roots_gate",
+		"test_mabel_fight",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -2233,6 +2250,10 @@ func test_nyssa_fight() -> void:
 	check(said.size() >= 1 and said[0] == NyssaLumevel.SPEECH_INTRO, "fala de abertura (sem ter passado escondido pelo Vigia)")
 	# Parado = sono.
 	level.player._iframes_left = 999.0
+	# (As quedas nos buracos do sonho custam vida mesmo com i-frames; sem isto,
+	# uma sequência azarada de buracos sob o herói o matava e o teste falhava.)
+	level.player.fall_damage_ratio = 0.0
+	level.player.fall_min_damage = 0.0
 	await seconds(2.0)
 	check(level.player.drowsiness > 15.0, "parado perto dela, a barra sobe (%.0f)" % level.player.drowsiness)
 	check(level.player.velocity.length() < 1.0, "(o herói estava parado)")
@@ -2339,5 +2360,373 @@ func test_nyssa_phase_from_any_damage() -> void:
 	nyssa.stats.take_damage(nyssa.stats.max_health * 0.55)
 	await frames(2)
 	check(nyssa.phase == 2, "metade da vida (sem golpe): o Pesadelo começa")
+	level.queue_free()
+	await frames(2)
+
+
+
+# --- Raízes da Fome ---------------------------------------------------------------------
+
+## Bíblia: "O agarrão é um estado de 'preso': o jogador toca rápido no botão de
+## ataque para escapar e, a cada segundo preso, perde uma parte das memórias."
+func test_grab_and_escape() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var holder := Node2D.new()
+	holder.position = Vector2(230, 200)
+	_world.add_child(holder)
+	var events := []
+	player.grab_changed.connect(func(grabbed: bool, _taps: int): events.append(grabbed))
+	await frames(2)
+	Game.memories = 1000
+	check(player.grab(holder, 4, Vector2.ZERO, 10.0, 0.05, 5), "agarra")
+	check(player.is_grabbed_by(holder) and events == [true], "estado GRABBED + sinal")
+	await seconds(1.1)
+	check(Game.memories == 950, "1 s preso: perde 5%% das memórias (%d)" % Game.memories)
+	check(player.stats.health < player.stats.max_health, "e um pouco de vida")
+	check(player.global_position.distance_to(holder.global_position) < 3.0, "fica preso em quem agarrou")
+	await tap(&"dash")
+	check(player.state == Player.State.GRABBED, "preso: o dash não sai (vira toque de escape)")
+	for i in 3:
+		await tap(&"attack")
+	check(player.state == Player.State.FREE and events == [true, false], "4 toques: escapou")
+	check(player._iframes_left > 0.0, "respiro de invencibilidade ao escapar")
+	check(player.get_collision_mask_value(3), "volta a colidir com inimigos")
+	await seconds(0.8)
+	# Esquivando (i-frames) não dá para agarrar.
+	player._start_dash()
+	await frames(2)
+	check(not player.grab(holder, 4), "no meio do dash o agarrão erra")
+	await seconds(0.5)
+	# Quem agarrou sumiu: solta sozinho.
+	check(player.grab(holder, 99, Vector2.ZERO, 0.0, 0.0, 0, true), "agarra de novo (engolido)")
+	check(not player.visual.visible, "engolido: o herói some")
+	holder.queue_free()
+	await frames(3)
+	check(player.state == Player.State.FREE and player.visual.visible, "o agarrador sumiu: solto e visível")
+	# Diálogo no meio do agarrão também solta (nada fica "preso" escondido).
+	var holder2 := Node2D.new()
+	_world.add_child(holder2)
+	player._iframes_left = 0.0
+	player.grab(holder2, 99)
+	player.lock_input(true)
+	check(player.state == Player.State.LOCKED and player.visual.visible, "travar o controle encerra o agarrão")
+	player.lock_input(false)
+
+
+func test_root_mouth_ambush() -> void:
+	var player := spawn_player(Vector2(120, 200))
+	var boca := spawn_enemy_scene(BOCA_SCENE, Vector2(200, 200)) as BocaDeRaiz
+	await frames(3)
+	check(boca.ai == BocaDeRaiz.AI.BURIED and not boca.is_targetable() and boca.hurtbox.invulnerable, "enterrada: não é alvo e não leva dano")
+	# Pisou em cima: sobe e agarra.
+	player.global_position = boca.global_position + Vector2(4, 0)
+	await seconds(0.7)
+	check(player.is_grabbed_by(boca) and boca.ai == BocaDeRaiz.AI.HOLD, "subiu e agarrou quem estava em cima")
+	for i in boca.grab_taps:
+		await tap(&"attack")
+	await frames(2)
+	check(player.state == Player.State.FREE and boca.ai == BocaDeRaiz.AI.EXPOSED, "escapou: a boca fica exposta (tonta)")
+	check(boca.is_targetable() and not boca.hurtbox.invulnerable, "exposta: dá para cortar")
+	boca.stats.take_damage(9999.0)
+	await frames(2)
+	check(boca.dead, "cortada")
+	# Dash na hora do aviso: ela morde o ar.
+	var boca2 := spawn_enemy_scene(BOCA_SCENE, Vector2(300, 120)) as BocaDeRaiz
+	await frames(3)
+	player.global_position = boca2.global_position + Vector2(-6, 0)
+	await seconds(0.3)
+	check(boca2.ai == BocaDeRaiz.AI.RISING, "o monte incha (aviso)")
+	player.global_position = boca2.global_position + Vector2(-60, 0)
+	await seconds(0.4)
+	check(not player.is_grabbed() and boca2.ai == BocaDeRaiz.AI.EXPOSED, "saiu a tempo: o bote erra")
+	await seconds(boca2.exposed_time + boca2.sink_time + 0.3)
+	check(boca2.ai == BocaDeRaiz.AI.BURIED, "depois de um tempo volta para a terra")
+
+
+func test_bloated_explodes() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var inchado := spawn_enemy_scene(INCHADO_SCENE, Vector2(220, 200)) as Inchado
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(240, 210))
+	await frames(3)
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	var soldier_hp := soldier.stats.health
+	inchado.stats.take_damage(9999.0)
+	await frames(2)
+	check(get_tree().get_nodes_in_group("flesh_bursts").size() == 1, "morreu: começa a inchar (círculo de aviso)")
+	check(player.stats.health == hp, "ainda não estourou")
+	await seconds(inchado.burst_delay + 0.2)
+	check(player.stats.health < hp, "estourou no herói que ficou perto")
+	check(soldier.stats.health < soldier_hp, "e nos inimigos em volta também")
+	check(get_tree().get_nodes_in_group("flesh_bursts").is_empty(), "a explosão acaba")
+	# Saiu do círculo: nada.
+	await seconds(0.6)
+	player.stats.revive()
+	player._iframes_left = 0.0
+	var other := spawn_enemy_scene(INCHADO_SCENE, Vector2(320, 120)) as Inchado
+	await frames(2)
+	hp = player.stats.health
+	other.stats.take_damage(9999.0)
+	await seconds(other.burst_delay + 0.2)
+	check(player.stats.health == hp, "longe do círculo, não sente nada")
+
+
+func test_reaper_scythe() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var reaper := spawn_enemy_scene(COLHEDOR_SCENE, Vector2(232, 200)) as Colhedor
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	await seconds(1.8)
+	check(player.stats.health < hp, "a foice alcança de longe (ponta da foice)")
+	check(reaper.global_position.distance_to(player.global_position) > 18.0, "luta à distância da foice")
+	# Colado nele: ele gira.
+	var spun := [false]
+	reaper._runner.phase_changed.connect(func(_p): if reaper._current_attack == reaper.spin: spun[0] = true)
+	player.stats.revive()
+	for i in 120:
+		player.global_position = reaper.global_position + Vector2(8, 0)
+		player._iframes_left = 999.0
+		await frames(1)
+		if spun[0]:
+			break
+	check(spun[0], "colado tempo demais: gira a foice em volta")
+
+
+func test_sap_larva_steals_and_returns() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var larva := spawn_enemy_scene(LARVA_SCENE, Vector2(214, 200)) as LarvaSeiva
+	Game.memories = 500
+	player._iframes_left = 0.0
+	for i in 150:
+		await frames(1)
+		if larva.stolen > 0:
+			break
+	check(larva.stolen > 0 and Game.memories == 500 - larva.stolen, "mordeu: roubou memórias (%d)" % larva.stolen)
+	await seconds(0.7)
+	check(larva.ai == LarvaSeiva.AI.FLEE, "e foge com elas")
+	var stolen := larva.stolen
+	larva.stats.take_damage(9999.0)
+	await frames(2)
+	check(Game.memories >= 500 - stolen + stolen, "matou: as memórias voltam (%d)" % Game.memories)
+	check(Game.memories == 500 + larva.memory_reward, "(mais a recompensa normal)")
+	# Escudo erguido: mordida no escudo não rouba.
+	Game.add_item("escudo_remendado")
+	Game.set_shield_equipped(true)
+	var larva2 := spawn_enemy_scene(LARVA_SCENE, Vector2(186, 200)) as LarvaSeiva
+	player.facing = Vector2.LEFT
+	Input.action_press(&"block")
+	await seconds(2.0)
+	Input.action_release(&"block")
+	check(larva2.stolen == 0, "mordeu o escudo: nada roubado")
+
+
+func test_banqueteiro_serves_and_eats() -> void:
+	var player := spawn_player(Vector2(140, 200))
+	var cook := spawn_mini(BANQUETEIRO_SCENE, Vector2(220, 200)) as Banqueteiro
+	player._iframes_left = 999.0
+	await frames(3)
+	check(cook.active, "viu o herói: acorda")
+	cook.serve()
+	await frames(2)
+	check(cook.lackeys.size() >= 1, "serve lacaios (%d)" % cook.lackeys.size())
+	for lackey in cook.lackeys:
+		check(lackey.memory_reward == 0, "servido não paga memórias")
+	# Ferido e com comida por perto: come e se cura.
+	cook.stats.set_health(cook.stats.max_health * 0.6)
+	var hp := cook.stats.health
+	var before := cook.lackeys.size()
+	cook._eat_timer = 0.0
+	cook._set_mode(Banqueteiro.Mode.CHASE)
+	for i in 400:
+		await frames(1)
+		if cook.lackeys.size() < before:
+			break
+	check(cook.lackeys.size() == before - 1 and cook.stats.health > hp, "comeu um lacaio e se curou (%.0f → %.0f)" % [hp, cook.stats.health])
+	# Golpe forte no aviso interrompe.
+	cook.serve()
+	await frames(2)
+	cook._eat_timer = 0.0
+	cook._set_mode(Banqueteiro.Mode.CHASE)
+	for i in 300:
+		await frames(1)
+		if cook.mode == Banqueteiro.Mode.EAT and cook._eat_started:
+			break
+	check(cook.mode == Banqueteiro.Mode.EAT and cook._eat_started, "vai comer (aviso)")
+	var heavy := HitInfo.create(10.0, player.global_position, cook.global_position)
+	heavy.is_heavy = true
+	cook.hurtbox.receive_hit(heavy)
+	await frames(1)
+	check(cook.mode != Banqueteiro.Mode.EAT, "golpe forte: o garfo cai")
+	# Vencido: os lacaios somem e a recompensa vem.
+	var lackeys := cook.lackeys.duplicate()
+	cook.stats.take_damage(99999.0)
+	await seconds(0.6)
+	var alive := 0
+	for lackey in lackeys:
+		if is_instance_valid(lackey) and not lackey.dead:
+			alive += 1
+	check(alive == 0, "os lacaios somem com ele")
+	check(Game.is_boss_defeated("banqueteiro") and Game.item_count("fragmento_turvo") == 1, "vencido: registro e fragmento")
+
+
+func test_ninhada_splits_and_engulfs() -> void:
+	var player := spawn_player(Vector2(150, 200))
+	var brood := spawn_mini(NINHADA_SCENE, Vector2(200, 200)) as Ninhada
+	await frames(3)
+	check(brood.active, "acorda")
+	brood.hurtbox.receive_hit(HitInfo.create(brood.stats.max_health * 0.22, player.global_position, brood.global_position))
+	await frames(2)
+	check(brood.larvae.size() == brood.larvae_per_split, "perdeu um pedaço: soltou larvas (%d)" % brood.larvae.size())
+	# Engolir: parado no círculo, preso.
+	for larva in brood.larvae:
+		larva.queue_free()
+	brood.larvae.clear()
+	player._iframes_left = 0.0
+	brood._cooldown = 0.0
+	brood._start_engulf()
+	await seconds(brood.engulf_windup + 0.15)
+	check(player.is_grabbed_by(brood) and brood.mode == Ninhada.Mode.HOLD, "caiu por cima: engolido")
+	for i in brood.grab_taps:
+		await tap(&"attack")
+	await frames(2)
+	check(not player.is_grabbed() and brood.mode == Ninhada.Mode.DAZED, "escapou: ela fica tonta")
+	# Vencida: as larvas dela morrem junto.
+	brood.split()
+	await frames(1)
+	var larvae := brood.larvae.duplicate()
+	brood.stats.take_damage(99999.0)
+	await seconds(0.5)
+	var alive := 0
+	for larva in larvae:
+		if is_instance_valid(larva) and not larva.dead:
+			alive += 1
+	check(alive == 0 and Game.is_boss_defeated("ninhada"), "vencida: as larvas se desfazem")
+
+
+func test_roots_gate() -> void:
+	Game.defeated_bosses.assign(["aldir"])
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	check(find_npc("raizes_fechadas") != null, "antes de Nyssa: raízes fecham a porta oeste")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("nyssa")
+	level = await open_level("res://scenes/world/teatro.tscn", "camara")
+	var exits := 0
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("raizes"):
+			exits += 1
+	check(exits == 2 and level.spawns.has("oeste"), "depois de Nyssa: a porta oeste abre")
+	check(level.spawns["oeste"].x > 16, "quem volta das Raízes aparece para dentro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(RAIZES, "porta")
+	var kinds := {}
+	for node in level.entities.get_children():
+		kinds[node.get_class() if node.get_script() == null else (node.get_script() as Script).get_global_name()] = true
+	for name in ["BocaDeRaiz", "Inchado", "Colhedor", "LarvaSeiva", "Banqueteiro", "Ninhada", "RestChamber"]:
+		check(kinds.has(name), "as Raízes têm %s" % name)
+	check(not kinds.has("Sonambulo"), "o mesmo 'z' do Bosque aqui é outra coisa")
+	check(find_npc("porta_cozinha") != null, "antes do Banqueteiro: a porta dos fundos está trancada")
+	var back := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "oeste":
+			back = true
+	check(back, "volta para a porta oeste do Teatro")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("banqueteiro")
+	level = await open_level(RAIZES, "porta")
+	var to_mabel := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_mabel"):
+			to_mabel = true
+	check(to_mabel and find_npc("porta_cozinha") == null, "vencido o Banqueteiro: a porta de Mabel abre")
+	check(level._dialogue_variant("vendedor") == "vendedor", "o Vendedor só fala dela depois")
+	Game.defeated_bosses.append("mabel")
+	check(level._dialogue_variant("vendedor") == "vendedor_mabel" and not DialogueData.get_entry("vendedor_mabel").get("opcoes", []).is_empty(), "depois de Mabel: o Vendedor lembra dela (e ainda vende)")
+	level.queue_free()
+	await frames(2)
+
+
+func test_mabel_fight() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "banqueteiro"])
+	var level := await open_level(ARENA_MABEL, "porta")
+	var mabel := level.boss_arena.boss as MabelVoragine
+	var said := []
+	mabel.speech.connect(func(text: String): said.append(text))
+	level.player.global_position = mabel.global_position + Vector2(0, 80)
+	await seconds(0.5)
+	check(level.boss_arena.state == BossArena.State.FIGHTING and mabel.active, "chegou perto da mesa: a luta começa")
+	check(not said.is_empty() and said[0] == MabelVoragine.SPEECH_INTRO, "ela convida para a mesa")
+	# Frutos de carne: círculos no chão.
+	mabel.throw_fruits()
+	await frames(2)
+	check(get_tree().get_nodes_in_group("flesh_bursts").size() == mabel.fruit_count, "%d frutos a caminho" % mabel.fruit_count)
+	await seconds(mabel.fruit_flight + 0.5)
+	check(get_tree().get_nodes_in_group("flesh_bursts").is_empty(), "os frutos estouram")
+	# Agarrão: na linha, engolido.
+	level.player.stats.revive()
+	level.player._iframes_left = 0.0
+	level.player.global_position = mabel.global_position + Vector2(50, 0)
+	Game.memories = 1000
+	mabel._go_decide(99.0)
+	mabel._start_reach()
+	await seconds(mabel.reach_windup + 0.1)
+	check(level.player.is_grabbed_by(mabel) and mabel.mode == MabelVoragine.Mode.SWALLOW, "na linha: engolido")
+	check(not level.player.visual.visible, "o herói some dentro dela")
+	var hp := mabel.stats.health
+	mabel.stats.set_health(mabel.stats.max_health * 0.8)
+	hp = mabel.stats.health
+	await seconds(1.1)
+	check(Game.memories < 1000 and mabel.stats.health > hp, "engolido: perde memórias e ela se cura")
+	for i in mabel.grab_taps:
+		await tap(&"attack")
+	await frames(2)
+	check(not level.player.is_grabbed() and mabel.mode == MabelVoragine.Mode.GAG, "escapou: ela engasga")
+	var info := HitInfo.create(10.0, level.player.global_position, mabel.global_position)
+	check(is_equal_approx(mabel._incoming_damage_multiplier(info), mabel.open_belly_multiplier), "engasgada: leva dano dobrado")
+	# Metade da vida (por qualquer caminho): a Vorágine.
+	mabel.stats.take_damage(99999.0)
+	await frames(2)
+	check(mabel.phase == 2 and is_equal_approx(mabel.stats.health_ratio(), 0.5), "não pula a fase 2")
+	check(mabel.hurtbox.invulnerable and mabel.roots.size() == mabel.root_count, "transição: %d raízes brotam" % mabel.roots.size())
+	await seconds(2.4)
+	check(not mabel.hurtbox.invulnerable and mabel.phase_label() == "A Vorágine", "fase 2 começa")
+	# As raízes curam.
+	mabel._go_decide(99.0)
+	hp = mabel.stats.health
+	await seconds(1.0)
+	check(mabel.stats.health > hp, "raízes vivas curam Mabel (%.0f → %.0f)" % [hp, mabel.stats.health])
+	# Lacaios saem das raízes.
+	mabel._lackey_timer = 0.0
+	await frames(2)
+	check(mabel.lackeys.size() == 1, "um lacaio saiu de uma raiz")
+	# Ela come o lacaio: cura e cresce.
+	var meal: Enemy = mabel.lackeys[0]
+	hp = mabel.stats.health
+	mabel.devour(meal)
+	check(mabel.stats.health > hp and mabel.growth > 1.0, "comeu: cura e cresce (%.2f)" % mabel.growth)
+	# Ventre: de frente dói mais; por trás, normal.
+	mabel.facing = Vector2.RIGHT
+	mabel._set_mode(MabelVoragine.Mode.DECIDE)
+	var front := HitInfo.create(10.0, mabel.global_position + Vector2(30, 0), mabel.global_position)
+	var back := HitInfo.create(10.0, mabel.global_position + Vector2(-30, 0), mabel.global_position)
+	check(is_equal_approx(mabel._incoming_damage_multiplier(front), mabel.belly_multiplier), "de frente: o ventre (ponto fraco)")
+	check(is_equal_approx(mabel._incoming_damage_multiplier(back), 1.0), "por trás: dano normal")
+	# Cortar TODAS as raízes para a cura.
+	for root in mabel.roots.duplicate():
+		root.stats.take_damage(9999.0)
+	await frames(3)
+	check(mabel.living_roots() == 0, "raízes cortadas")
+	hp = mabel.stats.health
+	await seconds(1.0)
+	check(is_equal_approx(mabel.stats.health, hp), "sem raízes, a cura para")
+	check(said.has(MabelVoragine.SPEECH_ROOTS_CUT), "ela sente")
+	# Vencida.
+	mabel.stats.take_damage(99999.0)
+	await seconds(4.5)
+	check(Game.is_boss_defeated("mabel") and Game.has_item("lembranca_mabel"), "vencida: registro e lembrança")
+	check(get_tree().get_nodes_in_group("flesh_bursts").is_empty(), "nada fica explodindo depois")
+	check(find_npc("mesa_de_mabel") != null, "fica a mesa posta onde ela sentava")
 	level.queue_free()
 	await frames(2)

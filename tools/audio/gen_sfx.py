@@ -338,6 +338,40 @@ def main() -> None:
         chimes[i:i + len(d)] += d
     save_loop("amb_forest", breeze + water + chimes, 0.35)
 
+    # Raizes da Fome (no fim, pelo mesmo motivo): tudo e molhado, mastigado, pulsando
+    print("Raizes")
+    wet = lowpass(noise(0.45), sweep(2200, 300, 0.45)) * env_exp(0.45, 0.12, 0.01)
+    squeeze = sine(sweep(120, 70, 0.45), 0.45) * env_exp(0.45, 0.2) * 0.7
+    save("grab", mix(wet, squeeze, pad(impact(0.12, 160, 80, 0.2), 0.0)), 0.7)
+    bite = mix(impact(0.1, 260, 110, 0.9), highpass(noise(0.08), 1500) * env_exp(0.08, 0.02) * 0.6)
+    save("chomp", mix(bite, pad(bite * 0.7, 0.16), pad(lowpass(noise(0.3), 700) * env_exp(0.3, 0.1) * 0.6, 0.05)), 0.7)
+    t = t_axis(0.8)
+    gurgle = bandpass(noise(0.8), 200 + 150 * (1 + np.sin(2 * np.pi * 9 * t)), 900) * env_swell(0.8, 0.3)
+    save("slurp", mix(gurgle, sine(sweep(400, 900, 0.8, 0.5), 0.8) * env_swell(0.8, 0.6) * 0.25), 0.55)
+    splat = mix(lowpass(noise(0.5), sweep(3000, 250, 0.5)) * env_exp(0.5, 0.1, 0.003), sine(sweep(140, 45, 0.4), 0.4) * env_exp(0.4, 0.12))
+    save("splat", splat, 0.8)
+    crack = mix(lowpass(noise(0.6), 600) * env_exp(0.6, 0.18, 0.02), impact(0.25, 110, 40, 0.5))
+    snaps = mix(*(pad(highpass(noise(0.03), 2000) * env_exp(0.03, 0.008) * 0.5, d) for d in (0.05, 0.12, 0.2, 0.27)))
+    save("root_burst", mix(crack, snaps), 0.75)
+    t = t_axis(0.7)
+    uh = [(420, 5.0, 1.0), (800, 6.0, 0.4), (2300, 8.0, 0.1)]
+    save("gulp", mix(voice(sweep(130, 70, 0.7), 0.7, uh, 0.4) * env_swell(0.7, 0.4), pad(impact(0.15, 90, 40, 0.1), 0.35)), 0.6)
+    s = 12.0
+    t = t_axis(s)
+    beat = np.zeros_like(t)
+    for k in np.arange(0.0, s, 1.25):  # "raizes que pulsam como veias": um coracao lento
+        for d, g in ((0.0, 1.0), (0.22, 0.7)):
+            i = int((k + d) * SR)
+            thump = sine(sweep(70, 40, 0.25), 0.25) * env_exp(0.25, 0.07)
+            beat[i:i + len(thump)] += thump[: len(beat) - i] * g
+    wind = lowpass(noise(s), 380) * (0.6 + 0.4 * np.sin(2 * np.pi * t / s)) * 0.45
+    drips = np.zeros_like(t)
+    for _ in range(8):
+        i = int(rng.integers(0, len(t) - 8000))
+        d = lowpass(noise(0.2), 900) * env_exp(0.2, 0.04) * rng.uniform(0.3, 0.6)
+        drips[i:i + len(d)] += d
+    save_loop("amb_roots", beat * 0.55 + wind + drips, 0.38)
+
 
 if __name__ == "__main__":
     main()
