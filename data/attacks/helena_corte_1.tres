@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Corte Duplo I"
+stamina_cost = 0.0
+damage = 18.0
+poise_damage = 20.0
+knockback = 110.0
+is_heavy = false
+windup_time = 0.42
+lunge_speed = 170.0
+lunge_time = 0.07
+active_time = 0.09
+recovery_time = 0.22
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.7
+reach = 16.0
+radius = 13.0
+hitstop = 0.0
+shake = 0.0
+slash_arc_degrees = 150.0
+slash_radius = 19.0
+slash_color = Color(1.0, 0.82, 0.84, 0.95)
+sound = &"swing"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

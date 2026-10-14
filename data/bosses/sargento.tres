@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sargento"
+display_name = "Sargento Sem Pelotão"
+title = "Mini-chefe da Cidade Estilhaçada"
+sin = "Mini-chefe"
+sin_meaning = "Ira"
+race = "Humano"
+attribute = "—"
+area = "Cidade Estilhaçada"
+scaling = "—"
+suggested_order = "1º mini-chefe da Cidade"
+memory_reward = 300
+implemented = true
+unique_mechanic = "Apita e chama reforços a cada 25% de vida perdida. Se ele cair, os reforços perdem a ordem e desabam."
+phases = Array[String](["Sabre rápido e estocada de oficial; apita (para tudo e avisa) e chama dois Soldados Remendados."])
+history = "O último oficial de um pelotão que já não existe. Ainda dá ordens — e alguém ainda obedece."
+meaning = "Ensina a eliminar quem comanda antes do grupo."

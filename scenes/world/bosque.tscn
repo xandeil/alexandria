@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/bosque_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Bosque" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/bosque.txt"
+area_name = "Bosque do Sono Eterno"
+area_subtitle = "Tudo dorme. Quase nada ataca se você não fizer barulho."
+theme = "bosque"
+ambience = &"amb_forest"
+darkness = Color(0.82, 0.88, 0.84, 1)
+outdoor = true
+exit_scene = "res://scenes/world/teatro.tscn"
+exit_spawn = "lateral"
+exit2_scene = "res://scenes/world/arena_nyssa.tscn"
+exit2_spawn = "porta"
+exit2_requires = "mae_esporos"
+exit2_locked_dialogue = "espinhos_nyssa"
+lore_points = {"1": "soldado_dormindo", "3": "lago_parado", "4": "cachoeira_lenta"}
+item_points = Array[String](["sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3"])
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

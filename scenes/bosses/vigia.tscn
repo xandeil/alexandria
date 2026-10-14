@@ -1,0 +1,95 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/vigia.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/vigia_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_huge.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/vigia_martelo.tres" id="8_martelo"]
+[ext_resource type="Resource" path="res://data/attacks/vigia_varredura.tres" id="9_varredura"]
+[ext_resource type="Resource" path="res://data/bosses/vigia.tres" id="10_data"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="20_tel"]
+[ext_resource type="Texture2D" path="res://assets/sprites/vigia_clava.png" id="21_weapon"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 11
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 22.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(30, 36)
+
+[node name="VigiaQueDormiu" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+martelo = ExtResource("8_martelo")
+varredura = ExtResource("9_varredura")
+data = ExtResource("10_data")
+wake_distance = 0.0
+memory_reward = 500
+move_speed = 30.0
+acceleration = 300.0
+max_poise = 140.0
+stagger_time = 1.2
+knockback_taken = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("20_tel")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="ClubPivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(14, -20)
+
+[node name="Club" type="Sprite2D" parent="Visual/ClubPivot"]
+texture = ExtResource("21_weapon")
+offset = Vector2(14, 0)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"dormindo"
+offset = Vector2(0, -23)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -7)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(30, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -18)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 520.0
+health_per_vitalidade = 0.0

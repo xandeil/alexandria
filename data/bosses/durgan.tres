@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "durgan"
+display_name = "Durgan Vell"
+title = "O Eco de Bronze"
+sin = "Inveja"
+sin_meaning = "Querer ser o outro"
+race = "Anão"
+attribute = "Raio"
+area = "Forjas Ocas"
+scaling = "Fé"
+suggested_order = "4ª"
+memory_reward = 1500
+unique_mechanic = "Copia os ataques que o jogador mais usou (contagem de ações → peso na escolha)."
+phases = Array[String](["Fase 1 — O Engenheiro: chave-martelo elétrica, torretas e autômatos; placas acesas no chão indicam onde não pisar.", "Fase 2 — O Reflexo (metade da vida): armadura espelhada; usa os ataques que o jogador mais usou."])
+history = "Irmão do Ferreiro do Teatro. Os dois forjaram as Âncoras que prendem as ilhas ao núcleo, mas só o irmão era visto. Nas forjas, Durgan construiu autômatos com o rosto do irmão — depois com o rosto de qualquer um. No fim, não sobrou um rosto que fosse dele."
+meaning = "Inveja é querer ser o outro até não sobrar você."

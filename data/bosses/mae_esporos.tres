@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "mae_esporos"
+display_name = "A Mãe dos Esporos"
+title = "Mini-chefe do Bosque do Sono Eterno"
+sin = "Mini-chefe"
+sin_meaning = "Preguiça"
+race = "Planta"
+attribute = "Sono"
+area = "Bosque do Sono Eterno"
+scaling = "—"
+suggested_order = "2º mini-chefe do Bosque"
+memory_reward = 550
+implemented = true
+unique_mechanic = "Planta enorme cercada de Flores de Pólen. Ensina a Barra de Sonolência antes de Nyssa: quem dorme perto dela leva o cipó pesado."
+phases = Array[String](["Cipó (linha que trava), chuva de esporos e o florescer: um anel de sono enorme. Faz brotar flores."])
+history = "Foi plantada para dar sono às cobaias que não conseguiam dormir. Ainda acha que está ajudando."
+meaning = "Atacar espanta o sono: a luta obriga o jogador a ser agressivo."

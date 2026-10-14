@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "governanta"
+display_name = "A Governanta"
+title = "A Que Conta Presenças"
+sin = "Prólogo"
+sin_meaning = "Um cuidado que virou prisão"
+race = "Humana"
+attribute = "—"
+area = "Complexo das Cápsulas (prólogo)"
+scaling = "—"
+suggested_order = "Prólogo"
+memory_reward = 250
+implemented = true
+unique_mechanic = "Só luta se o jogador feriu alguma criança (Game.criancas_feridas). Sem nenhuma, ela só observa e deixa passar. Grito em anel, abraço que prende e, na fase 2, os ecos das crianças."
+phases = Array[String](["Fase 1 — A Que Ainda Cuida: molho de chaves, abraço em linha reta e o grito em anel.", "Fase 2 — A Conta Que Não Fecha (metade da vida): o coque se desfaz; grito duplo e os ecos das crianças correndo para você."])
+history = "Cuidava das crianças do complexo. O tempo passou sem aviso e ela descobriu que ali ninguém podia morrer: as crianças se matavam repetidamente e regrediam, até restarem só ecos e uma mesa vazia. Ela ainda conta presenças que já não existem."
+meaning = "O grito dela não era de raiva; era de falha."

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "couraca"
+display_name = "A Couraça Andante"
+title = "Mini-chefe da Cidade Estilhaçada"
+sin = "Mini-chefe"
+sin_meaning = "Ira"
+race = "Humano"
+attribute = "—"
+area = "Cidade Estilhaçada"
+scaling = "—"
+suggested_order = "2º mini-chefe da Cidade"
+memory_reward = 450
+implemented = true
+unique_mechanic = "Soldado fundido a uma armadura pesada: só leva dano real pelas costas. Vira devagar; se você ficar atrás dele, gira."
+phases = Array[String](["Clavada lenta e pesada (prepara para o Aldir) e o Giro em 360° contra quem cola nas costas."])
+history = "Um soldado que vestiu a armadura para uma última missão e nunca mais conseguiu tirá-la."
+meaning = "Prepara o jogador para os golpes lentos e pesados de Aldir."

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "cassian"
+display_name = "Cassian Virel"
+title = "O Arconte do Zero"
+sin = "Ganância"
+sin_meaning = "Possessão"
+race = "Humano"
+attribute = "Magia / Gelo"
+area = "Domínio Congelado"
+scaling = "Magia"
+suggested_order = "6ª"
+memory_reward = 2000
+unique_mechanic = "Rouba estamina e congela partes da arena (StatsComponent.drain_stamina já existe)."
+phases = Array[String](["Fase 1 — O Arquimago: magias de gelo e controle de espaço.", "Fase 2 — O Colecionador: congela partes da arena, invoca estátuas congeladas e rouba estamina temporariamente."])
+history = "Arquimago do Projeto Alexandria. Enquanto outros buscavam transcendência, queria preservar o conhecimento. Preservar virou possuir: congelou bibliotecas, memórias raras e pessoas importantes. Queria ser o único dono do futuro."
+meaning = "Ganância é querer tudo, até o tempo."

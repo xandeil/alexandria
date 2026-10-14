@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/fog_wall.gd" id="1_fog"]
+[ext_resource type="Shader" path="res://shaders/fog_wall.gdshader" id="2_shader"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(16, 10)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fog"]
+shader = ExtResource("2_shader")
+
+[node name="FogWall" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_fog")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Mist" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_fog")
+offset_left = -8.0
+offset_top = -26.0
+offset_right = 8.0
+offset_bottom = 8.0
+mouse_filter = 2

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rachel"
+display_name = "Rachel Azheryon Caelis"
+title = "O Orgulho do Céu"
+sin = "Orgulho"
+sin_meaning = "Domínio"
+race = "Dragão ígneo"
+attribute = "Fogo"
+area = "Montanha Carbonizada (Ninho dos Dragões)"
+scaling = "Magia"
+suggested_order = "5ª"
+memory_reward = 1800
+unique_mechanic = "Arena que desmorona aos poucos, encolhendo o espaço seguro; rugidos derrubam estruturas."
+phases = Array[String](["Fase única — Domínio: hálito de fogo massivo, golpes de cauda que quebram o chão, rugidos que desestabilizam, arena desmoronando."])
+history = "No continente de origem, os outros dragões a ignoravam. Ao encontrar Alexandria não viu beleza, viu posse. Queimou cidades, começando pela de Aldir, e fez seu ninho no topo da montanha. Dorme sobre as ruínas do mundo."
+meaning = "Orgulho é domínio sem arrependimento."

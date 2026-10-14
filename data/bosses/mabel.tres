@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "mabel"
+display_name = "Mabel Vorágine"
+title = "A Fome Que Lembra"
+sin = "Gula"
+sin_meaning = "Vazio"
+race = "Giganta"
+attribute = "Sangue"
+area = "Raízes da Fome"
+scaling = "Sorte"
+suggested_order = "3ª"
+memory_reward = 1400
+unique_mechanic = "Agarra, engole e drena memórias; regenera comendo lacaios. Preso: toque rápido no Ataque para escapar."
+phases = Array[String](["Fase 1 — A Anfitriã: lenta e enorme; tapas, frutos de carne que explodem e um agarrão que drena memórias.", "Fase 2 — A Vorágine (metade da vida): come lacaios e raízes para se curar; uma boca no ventre é o ponto fraco; cortar as raízes interrompe a cura."])
+history = "Mabel cuidava das estufas e alimentava funcionários e cobaias. Com a imortalidade, ninguém mais precisava comer e ela perdeu o motivo de existir. Provou a humanidade líquida e não parou mais: bebeu memórias dos que morriam, depois dos que viviam."
+meaning = "Gula é tentar se encher com a vida dos outros porque a própria ficou vazia."

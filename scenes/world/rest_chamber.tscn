@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/rest_chamber.gd" id="1_rest"]
+[ext_resource type="Texture2D" path="res://assets/props/capsule.png" id="2_capsule"]
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="3_interactable"]
+[ext_resource type="Texture2D" path="res://assets/fx/light.png" id="4_light"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(26, 9)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_use"]
+radius = 20.0
+
+[node name="RestChamber" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_rest")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -5)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_capsule")
+offset = Vector2(0, -11)
+
+[node name="Glow" type="PointLight2D" parent="."]
+position = Vector2(0, -9)
+color = Color(0.4, 0.86, 0.53, 1)
+energy = 0.6
+texture = ExtResource("4_light")
+texture_scale = 0.75
+
+[node name="Interactable" type="Area2D" parent="."]
+collision_layer = 32
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_interactable")
+prompt = "Descansar"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactable"]
+position = Vector2(0, -4)
+shape = SubResource("CircleShape2D_use")

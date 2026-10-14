@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "nyssa"
+display_name = "Nyssa Lumevel"
+title = "A Que Não Desperta"
+sin = "Preguiça"
+sin_meaning = "Desistência"
+race = "Fada"
+attribute = "Sono"
+area = "Bosque do Sono Eterno"
+scaling = "Fé"
+suggested_order = "2ª"
+memory_reward = 1300
+implemented = true
+unique_mechanic = "Barra de Sonolência: ficar parado, curar ou ficar perto das flores faz o jogador dormir."
+phases = Array[String](["Fase 1 — O Sonho Leve: flutua deitada e quase não ataca; o bosque luta por ela. A Sonolência enche se o jogador fica parado; atacar esvazia.", "Fase 2 — O Pesadelo (metade da vida): áreas escuras do chão somem; invoca ecos fracos de chefes já derrotados, cada um com um único ataque."])
+history = "Nyssa e a Fada do Teatro eram irmãs, fadas-sentinela das cápsulas: Nyssa fazia as cobaias dormirem; a irmã as acordava. Ao ver o que cada morte tirava, Nyssa decidiu que acordar alguém era crueldade e deixou todos dormindo, inclusive ela mesma."
+meaning = "Preguiça não é cansaço do corpo; é desistir de mudar porque mudar dói."

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "vigia"
+display_name = "O Vigia que Dormiu"
+title = "Mini-chefe do Bosque do Sono Eterno"
+sin = "Mini-chefe"
+sin_meaning = "Preguiça"
+race = "Guardião"
+attribute = "—"
+area = "Bosque do Sono Eterno"
+scaling = "—"
+suggested_order = "1º mini-chefe do Bosque"
+memory_reward = 500
+implemented = true
+unique_mechanic = "Dorme no caminho. Dá para passar escondido (sem barulho) ou acordá-lo e lutar — como na escolha da Governanta."
+phases = Array[String](["Martelada (círculo), varredura (arco) e o bocejo: um anel de sono que só o dash atravessa."])
+history = "Guardava a entrada do bosque. Nyssa lhe disse que podia descansar um pouco. Faz décadas."
+meaning = "Lutar dá recompensa; passar em silêncio dá outra conversa com Nyssa."

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Mordida"
+stamina_cost = 0.0
+damage = 12.0
+poise_damage = 12.0
+knockback = 90.0
+is_heavy = false
+windup_time = 0.32
+lunge_speed = 280.0
+lunge_time = 0.12
+active_time = 0.06
+recovery_time = 0.3
+combo_window = 0.14
+active_during_lunge = true
+track_until = 0.7
+reach = 10.0
+radius = 9.0
+hitstop = 0.0
+shake = 0.0
+slash_arc_degrees = 60.0
+slash_radius = 12.0
+slash_color = Color(1.0, 0.75, 0.7, 0.85)
+sound = &"bark"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

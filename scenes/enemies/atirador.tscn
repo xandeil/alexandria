@@ -1,0 +1,93 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/atirador.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/atirador_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/atirador_coronha.tres" id="8_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/fuzil.png" id="9_rifle"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="10_tel"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 4.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 10.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(12, 16)
+
+[node name="Atirador" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 7
+motion_mode = 1
+script = ExtResource("1_s")
+melee = ExtResource("8_attack")
+memory_reward = 50
+drop_item = "sucata_temperada"
+drop_chance = 0.35
+move_speed = 30.0
+aggro_range = 230.0
+leash_range = 400.0
+max_poise = 40.0
+stagger_time = 0.7
+knockback_taken = 0.3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("10_tel")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="RiflePivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(2, -9)
+
+[node name="Rifle" type="Sprite2D" parent="Visual/RiflePivot"]
+texture = ExtResource("9_rifle")
+offset = Vector2(7, 0)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -11)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -7)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(12, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 60.0
+health_per_vitalidade = 0.0

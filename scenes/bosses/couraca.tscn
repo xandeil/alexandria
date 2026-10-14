@@ -1,0 +1,95 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/couraca.gd" id="1_s"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/couraca_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_big.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/couraca_clava.tres" id="8_clava"]
+[ext_resource type="Resource" path="res://data/attacks/couraca_giro.tres" id="9_giro"]
+[ext_resource type="Resource" path="res://data/bosses/couraca.tres" id="10_data"]
+[ext_resource type="Texture2D" path="res://assets/sprites/couraca_clava.png" id="11_mace"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="12_tel"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 8.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 16.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(22, 26)
+
+[node name="Couraca" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+clava = ExtResource("8_clava")
+giro = ExtResource("9_giro")
+data = ExtResource("10_data")
+wake_distance = 100.0
+memory_reward = 450
+move_speed = 28.0
+acceleration = 300.0
+max_poise = 90.0
+stagger_time = 1.2
+knockback_taken = 0.05
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("12_tel")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="MacePivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(8, -12)
+
+[node name="Mace" type="Sprite2D" parent="Visual/MacePivot"]
+texture = ExtResource("11_mace")
+offset = Vector2(8, 0)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -15)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -10)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(22, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -13)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 420.0
+health_per_vitalidade = 0.0

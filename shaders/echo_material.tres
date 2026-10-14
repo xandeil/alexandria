@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/echo.gdshader" id="1_echo"]
+
+[resource]
+shader = ExtResource("1_echo")
+shader_parameter/whiteness = 0.78
+shader_parameter/echo_color = Color(0.93, 0.97, 1, 1)

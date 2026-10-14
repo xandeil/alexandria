@@ -1,0 +1,15 @@
+# Cache de importação do Godot (é recriado ao abrir o projeto)
+.godot/
+# Saída da exportação
+build/
+*.apk
+*.aab
+*.idsig
+# Chaves de assinatura: NUNCA versione a de PUBLICAÇÃO (release)...
+*.keystore
+*.jks
+# ...a de DEPURAÇÃO do projeto pode (e deve): é pública por natureza (senha
+# "android") e faz todo APK de teste sair com a mesma assinatura. Veja keystore/LEIA-ME.md
+!keystore/debug.keystore
+# Cache do Python (ferramentas de arte/som)
+__pycache__/

@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/prologo.gd" id="1_prologo"]
+[ext_resource type="TileSet" path="res://assets/tiles/laboratorio_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Prologo" type="Node2D"]
+script = ExtResource("1_prologo")
+layout_file = "res://levels/prologo.txt"
+area_name = "Complexo das Cápsulas"
+area_subtitle = "Nada aqui cresceu. Apenas se repetiu."
+theme = "laboratorio"
+ambience = &"amb_lab"
+darkness = Color(0.56, 0.64, 0.64, 1)
+arena_rect_tiles = Rect2i(1, 6, 30, 13)
+lore_points = {
+"1": "terminal",
+"2": "capsula_ocupada",
+"3": "marcas_giz",
+"4": "desenho_parede",
+"5": "camas",
+"6": "brinquedos",
+"7": "pratos"
+}
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

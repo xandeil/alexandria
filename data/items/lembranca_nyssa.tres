@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/lembranca_nyssa.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lembranca_nyssa"
+display_name = "Lembrança: Preguiça · Desistência"
+description = "Duas irmãs cuidavam das cápsulas: uma fazia dormir, a outra acordava. Uma delas viu o que cada morte tirava das pessoas e parou de acordar alguém.
+Preguiça não é cansaço do corpo; é desistir de mudar porque mudar dói."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

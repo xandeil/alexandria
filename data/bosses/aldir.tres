@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "aldir"
+display_name = "Aldir Cornélios"
+title = "O Detentor do Caos"
+sin = "Ira"
+sin_meaning = "Impotência"
+race = "Humano"
+attribute = "Força"
+area = "Cidade Estilhaçada"
+scaling = "Força"
+suggested_order = "1ª"
+memory_reward = 1200
+implemented = true
+unique_mechanic = "Arena destrutível: o martelo abre buracos e derruba coberturas."
+phases = Array[String](["Fase 1 — O Soldado que Ainda Pensa: martelo de guerra gigante, golpes pesados e calculados que quebram o chão, técnica militar e algumas falas.", "Fase 2 — O Caos (metade da vida): a razão some; golpes brutais e imprevisíveis; destrói o cenário, inclusive as coberturas da fase 1."])
+history = "Soldado de alto escalão aposentado aos 35 anos, convencido de que o mundo não precisava mudar. Afastou-se da família e não ouviu. Quando entendeu o perigo, Rachel já tinha queimado a cidade. A cidade foi destruída por Rachel; o que sobrou foi destruído por Aldir. Ele não distingue mais inimigo de aliado."
+meaning = "Ira é impotência transformada em violência: não conseguiu proteger ninguém, então decidiu destruir tudo."

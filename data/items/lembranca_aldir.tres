@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/lembranca_aldir.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lembranca_aldir"
+display_name = "Lembrança: Ira · Impotência"
+description = "Um soldado aposentado que não ouviu a família. Quando entendeu o perigo, a cidade já queimava.
+Ira é impotência transformada em violência: não conseguiu proteger ninguém, então decidiu destruir tudo."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

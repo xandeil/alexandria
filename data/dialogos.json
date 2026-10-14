@@ -1,0 +1,380 @@
+{
+	"_sobre": "Falas do jogo. Edite à vontade: o código só lê este arquivo. 'falas' = lista de linhas; 'opcoes' = botões no fim; 'acao' = o que o jogo faz (veja scripts/world/level.gd > _on_dialogue_action).",
+	"intro": {
+		"falas": [
+			"Não houve dor ao despertar. Nem medo.",
+			"Apenas a sensação incômoda de que algo já havia acontecido… e ainda assim continuava acontecendo.",
+			"A cápsula se abriu com um som baixo, quase respeitoso."
+		]
+	},
+	"queda": {
+		"falas": [
+			"A porta se abriu. E o chão desapareceu.",
+			"A queda não teve fim até que teve.",
+			"O teatro surgiu como um palco esquecido no meio do nada."
+		]
+	},
+	"memoria_governanta": {
+		"falas": [
+			"Crianças brincando.",
+			"O tempo passando sem aviso.",
+			"A descoberta de que a morte havia sido retirada daquele lugar.",
+			"Uma eternidade mal concedida. Um cuidado que virou prisão.",
+			"No fim, restaram apenas ecos…",
+			"…e uma mesa vazia.",
+			"O grito dela não era de raiva. Era de falha."
+		]
+	},
+	"terminal": {
+		"nome": "Terminal",
+		"falas": [
+			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
+			"Os números são altos demais para alguém ainda estar contando.",
+			"O seu nome não está na lista. Ou está, e você não lembra qual é."
+		]
+	},
+	"capsula_ocupada": {
+		"nome": "Cápsula fechada",
+		"falas": [
+			"Alguém dorme lá dentro. O vidro está morno.",
+			"Os olhos dele estão abertos. Brancos."
+		]
+	},
+	"marcas_giz": {
+		"nome": "Riscos na parede",
+		"falas": [
+			"Riscos de giz em grupos de cinco. Milhares.",
+			"Alguém contava os dias... ou as vezes."
+		]
+	},
+	"desenho_parede": {
+		"nome": "Desenho",
+		"falas": [
+			"Uma mulher de jaleco e muitas crianças de mãos dadas.",
+			"Os olhos das crianças estão pintados de branco. Os da mulher, não."
+		]
+	},
+	"camas": {
+		"nome": "Caminhas",
+		"falas": [
+			"Camas pequenas demais até para uma criança.",
+			"Os lençóis estão dobrados com cuidado. Ninguém dorme nelas há muito tempo — ou ninguém acorda."
+		]
+	},
+	"brinquedos": {
+		"nome": "Brinquedos",
+		"falas": [
+			"Espadas de madeira gastas no cabo, de tanto uso.",
+			"Ninguém brinca tanto tempo assim de propósito."
+		]
+	},
+	"pratos": {
+		"nome": "Mesa posta",
+		"falas": [
+			"Pratos postos para muitos. Limpos.",
+			"Faz tempo que ninguém aqui precisa comer."
+		]
+	},
+	"crianca_poupada_1": {
+		"nome": "Criança",
+		"falas": [
+			"Você não bateu na gente.",
+			"Ninguém nunca fez isso. Aí eu vim atrás. Caí também."
+		]
+	},
+	"crianca_poupada_2": {
+		"nome": "Criança",
+		"falas": [
+			"Lá fora tem uns soldados com escudo.",
+			"Eles seguram o escudo na frente... mas esquecem de virar. Pelas costas não tem escudo."
+		]
+	},
+	"crianca_poupada_3": {
+		"nome": "Criança",
+		"falas": [
+			"A moça brilhante troca memória por força.",
+			"Ela é a única daqui que não pede nada pra ela."
+		]
+	},
+	"crianca_poupada_4": {
+		"nome": "Criança",
+		"falas": [
+			"A moça ruiva da plateia fica sem armadura se você esperar.",
+			"Mas aí ela fica mais brava. Tudo aqui fica."
+		]
+	},
+	"crianca_poupada_5": {
+		"nome": "Criança",
+		"falas": [
+			"O homem do martelo quebra o chão.",
+			"Se você correr bem rápido — aquele pulinho — você passa por cima do buraco. Eu vi."
+		]
+	},
+	"crianca_poupada_6": {
+		"nome": "Criança",
+		"falas": [
+			"O frasco branco do vendedor é gente.",
+			"Eu sei porque tem cheiro de casa.",
+			"...A Governanta contava a gente toda noite. Um dia a conta não fechou."
+		]
+	},
+	"fada": {
+		"nome": "Fada",
+		"falas": [
+			"Você acordou. Alguém sempre acorda… mas faz tempo.",
+			"Me dê o que você lembra, e eu te dou força para continuar esquecendo."
+		],
+		"opcoes": [
+			{
+				"texto": "Fortalecer-se",
+				"acao": "subir_nivel"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	},
+	"vendedor": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"Memórias por tralhas, tralhas por memórias. É assim que se vive aqui.",
+			"Este frasco? Humanidade líquida. Não pergunte de quem era. Eu não pergunto."
+		],
+		"opcoes": [
+			{
+				"texto": "Comprar Frasco de Sanidade (150)",
+				"acao": "comprar_sanidade"
+			},
+			{
+				"texto": "Comprar Sucata Temperada (200)",
+				"acao": "comprar_sucata"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"vendedor_extra": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"Lá em cima, na montanha, ainda tem quem durma sobre as cidades.",
+			"Eu servia no ninho dela. Fugi. Não volto."
+		]
+	},
+	"ferreiro": {
+		"nome": "Ferreiro Anão",
+		"falas": [
+			"O mundo está rachado. Eu bato até ele segurar.",
+			"O boneco aí do lado aguenta. Bate nele. Ninguém aqui reclama.",
+			"Tinha alguém que martelava comigo. Fazia igual… às vezes melhor. Não lembro do rosto."
+		],
+		"opcoes": [
+			{
+				"texto": "Melhorar a arma",
+				"acao": "melhorar_arma"
+			},
+			{
+				"texto": "Só olhando",
+				"acao": ""
+			}
+		]
+	},
+	"orbe": {
+		"nome": "Orbe Branco",
+		"falas": [
+			"O orbe zumbe baixinho, indo de um lado a outro sob o palco.",
+			"Seus frascos parecem mais leves quando ele passa. Ele purifica fragmentos — cacos turvos de frasco. Você ainda não tem nenhum."
+		]
+	},
+	"helena": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"…",
+			"Você também acordou. Eles sempre acordam.",
+			"Este teatro guarda o que restou. Não o projeto. A memória.",
+			"Ninguém ocupa o lugar de ninguém."
+		],
+		"opcoes": [
+			{
+				"texto": "Desembainhar",
+				"acao": "desafiar_helena"
+			},
+			{
+				"texto": "Deixá-la em paz",
+				"acao": ""
+			}
+		]
+	},
+	"portao_aldir": {
+		"nome": "Portão do Detentor",
+		"falas": [
+			"O portão está entreaberto. Do outro lado, alguém bate com um martelo. Sem ritmo. Sem pausa.",
+			"Entre as marteladas, uma voz conta passos de marcha. Erra a conta. Começa de novo."
+		],
+		"opcoes": [
+			{
+				"texto": "Atravessar o portão",
+				"acao": "entrar_aldir"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	},
+	"portao_aldir_aberto": {
+		"nome": "Portão do Detentor",
+		"falas": [
+			"O martelo parou. Do outro lado, só o vento e o fogo que não apaga."
+		],
+		"opcoes": [
+			{
+				"texto": "Voltar à praça",
+				"acao": "entrar_aldir"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	},
+	"martelo_aldir": {
+		"nome": "Martelo do Detentor",
+		"falas": [
+			"O cabo está gasto onde as mãos dele seguravam. Na cabeça do martelo, riscado à faca: \"para os meus\".",
+			"Não há nome nenhum. Só o lugar onde um nome deveria estar."
+		]
+	},
+	"borda": {
+		"nome": "Borda da ilha",
+		"falas": [
+			"Não há chão lá embaixo.",
+			"O céu passa por baixo da ilha como um rio silencioso."
+		]
+	},
+	"espada_helena": {
+		"nome": "Espada partida",
+		"falas": [
+			"A espada de Helena, caída no palco. Ainda morna.",
+			"Ela não protegia o projeto. Protegia a memória."
+		]
+	},
+	"descanso": {
+		"falas": [
+			"A cápsula ainda está morna.",
+			"Você já dormiu aqui antes. Muitas vezes.",
+			"O teatro espera. Ninguém lembra exatamente o quê.",
+			"Aos poucos, este quarto parece seu."
+		]
+	},
+	"ferreiro_forja": {
+		"nome": "Ferreiro Anão",
+		"falas": [
+			"Trouxe aço? Aço que já foi consertado é o melhor. Já sabe apanhar."
+		],
+		"opcoes": [
+			{
+				"texto": "Melhorar a arma",
+				"acao": "melhorar_arma"
+			},
+			{
+				"texto": "Só olhando",
+				"acao": ""
+			}
+		]
+	},
+	"orbe_purificar": {
+		"nome": "Orbe Branco",
+		"falas": [
+			"O orbe para diante de você. O caco turvo na sua bolsa esquenta.",
+			"Ele espera."
+		],
+		"opcoes": [
+			{
+				"texto": "Entregar um Fragmento Turvo",
+				"acao": "purificar"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	},
+	"orbe_cheio": {
+		"nome": "Orbe Branco",
+		"falas": [
+			"O orbe gira em volta do caco e se afasta.",
+			"Mais frascos do que isso, nem ele consegue limpar."
+		]
+	},
+	"porta_bosque_fechada": {
+		"nome": "Porta lateral",
+		"falas": [
+			"Uma porta lateral, trancada por fora. Pelas frestas entra cheiro de mato molhado.",
+			"Alguém do outro lado ressona. Ainda não."
+		]
+	},
+	"soldado_dormindo": {
+		"nome": "Soldado dormindo",
+		"falas": [
+			"Um soldado dorme em pé, apoiado no escudo. O musgo já subiu até o elmo.",
+			"Ele não foi derrotado. Só deixou de acordar."
+		]
+	},
+	"espinhos_nyssa": {
+		"nome": "Muro de espinhos",
+		"falas": [
+			"Espinhos entrelaçados fecham a trilha. Eles se mexem devagar, como quem respira dormindo.",
+			"Do outro lado, uma luz lilás. As raízes deles descem até onde a Mãe dos Esporos dorme."
+		]
+	},
+	"lago_parado": {
+		"nome": "Lago parado",
+		"falas": [
+			"A água não se mexe. Nem quando você joga uma pedra: ela afunda sem fazer anel.",
+			"Até o lago dorme aqui."
+		]
+	},
+	"cachoeira_lenta": {
+		"nome": "Cachoeira",
+		"falas": [
+			"A cachoeira cai da borda da ilha devagar demais, como num sonho.",
+			"Lá embaixo, só nuvens. A água nunca chega a lugar nenhum."
+		]
+	},
+	"clareira_nyssa": {
+		"nome": "Clareira",
+		"falas": [
+			"O ar aqui é morno e parado, como debaixo de um cobertor.",
+			"Até o seu coração parece bater mais devagar."
+		]
+	},
+	"cama_de_nyssa": {
+		"nome": "Cama de flores",
+		"falas": [
+			"Onde ela dormia, nasceram flores lilases.",
+			"Pela primeira vez neste bosque, alguma coisa acordou."
+		]
+	},
+	"fada_irma": {
+		"nome": "Fada",
+		"falas": [
+			"...Você esteve com a Nyssa. Dá para sentir o cheiro de flor nas suas roupas.",
+			"Nós cuidávamos das cápsulas juntas. Ela fazia dormir; eu acordava.",
+			"Ela parou. Achou que acordar alguém era crueldade. Eu continuei... e acordei você.",
+			"Me desculpe por isso. E obrigada."
+		],
+		"opcoes": [
+			{
+				"texto": "Fortalecer-se",
+				"acao": "subir_nivel"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	}
+}

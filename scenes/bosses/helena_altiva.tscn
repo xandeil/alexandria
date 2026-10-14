@@ -1,0 +1,130 @@
+[gd_scene load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/helena_altiva.gd" id="1_helena"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/helena_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/helena_cape.png" id="4_cape"]
+[ext_resource type="Texture2D" path="res://assets/sprites/helena_pauldron_back.png" id="5_pb"]
+[ext_resource type="Texture2D" path="res://assets/sprites/helena_breastplate.png" id="6_bp"]
+[ext_resource type="Texture2D" path="res://assets/sprites/helena_pauldron_front.png" id="7_pf"]
+[ext_resource type="Texture2D" path="res://assets/sprites/helena_helmet.png" id="8_helmet"]
+[ext_resource type="Texture2D" path="res://assets/sprites/helena_sword.png" id="9_sword"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_big.png" id="10_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="11_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="12_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="13_hurtbox"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="14_telegraph"]
+[ext_resource type="Resource" path="res://data/bosses/helena.tres" id="15_data"]
+[ext_resource type="Resource" path="res://data/attacks/helena_corte_1.tres" id="16_c1"]
+[ext_resource type="Resource" path="res://data/attacks/helena_corte_2.tres" id="17_c2"]
+[ext_resource type="Resource" path="res://data/attacks/helena_estocada.tres" id="18_est"]
+[ext_resource type="Resource" path="res://data/attacks/helena_furia.tres" id="19_fur"]
+[ext_resource type="Resource" path="res://data/attacks/helena_furia_final.tres" id="20_furf"]
+[ext_resource type="Resource" path="res://data/attacks/helena_sem_armadura.tres" id="21_p3"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 6.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 13.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(16, 24)
+
+[node name="HelenaAltiva" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_helena")
+corte_1 = ExtResource("16_c1")
+corte_2 = ExtResource("17_c2")
+estocada = ExtResource("18_est")
+furia = ExtResource("19_fur")
+furia_final = ExtResource("20_furf")
+golpe_sem_armadura = ExtResource("21_p3")
+phase3_health = 180.0
+data = ExtResource("15_data")
+memory_reward = 2000
+move_speed = 68.0
+acceleration = 700.0
+max_poise = 140.0
+poise_regen_per_second = 30.0
+stagger_time = 0.9
+knockback_taken = 0.15
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("10_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("14_telegraph")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Cape" type="Sprite2D" parent="Visual"]
+z_index = -1
+texture = ExtResource("4_cape")
+offset = Vector2(0, -15)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -15)
+
+[node name="PauldronBack" type="Sprite2D" parent="Visual"]
+texture = ExtResource("5_pb")
+offset = Vector2(0, -15)
+
+[node name="Breastplate" type="Sprite2D" parent="Visual"]
+texture = ExtResource("6_bp")
+offset = Vector2(0, -15)
+
+[node name="PauldronFront" type="Sprite2D" parent="Visual"]
+texture = ExtResource("7_pf")
+offset = Vector2(0, -15)
+
+[node name="Helmet" type="Sprite2D" parent="Visual"]
+texture = ExtResource("8_helmet")
+offset = Vector2(0, -15)
+
+[node name="SwordPivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(5, -11)
+
+[node name="Sword" type="Sprite2D" parent="Visual/SwordPivot"]
+texture = ExtResource("9_sword")
+offset = Vector2(9.5, 0)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -9)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("12_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(16, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("13_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -12)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("11_stats")
+base_health = 420.0
+health_per_vitalidade = 0.0

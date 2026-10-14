@@ -1,0 +1,117 @@
+[gd_scene load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/aldir_cornelios.gd" id="1_aldir"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/aldir_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/aldir_kneel.png" id="4_kneel"]
+[ext_resource type="Texture2D" path="res://assets/sprites/aldir_eyes.png" id="5_eyes"]
+[ext_resource type="Texture2D" path="res://assets/sprites/aldir_hammer.png" id="6_hammer"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_huge.png" id="7_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="8_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="9_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="10_hurtbox"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="11_telegraph"]
+[ext_resource type="Resource" path="res://data/bosses/aldir.tres" id="12_data"]
+[ext_resource type="Resource" path="res://data/attacks/aldir_martelada.tres" id="13_martelada"]
+[ext_resource type="Resource" path="res://data/attacks/aldir_varredura.tres" id="14_varredura"]
+[ext_resource type="Resource" path="res://data/attacks/aldir_empurrao.tres" id="15_empurrao"]
+[ext_resource type="Resource" path="res://data/attacks/aldir_sismico.tres" id="16_sismico"]
+[ext_resource type="Resource" path="res://data/attacks/aldir_caos.tres" id="17_caos"]
+[ext_resource type="Resource" path="res://data/attacks/aldir_caos_final.tres" id="18_caos_final"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 9.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 17.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(22, 30)
+
+[node name="AldirCornelios" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_aldir")
+martelada = ExtResource("13_martelada")
+varredura = ExtResource("14_varredura")
+empurrao = ExtResource("15_empurrao")
+sismico = ExtResource("16_sismico")
+caos = ExtResource("17_caos")
+caos_final = ExtResource("18_caos_final")
+data = ExtResource("12_data")
+wake_distance = 150.0
+memory_reward = 1200
+move_speed = 42.0
+acceleration = 520.0
+max_poise = 220.0
+poise_regen_per_second = 25.0
+stagger_time = 1.2
+knockback_taken = 0.05
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -5)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("7_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("11_telegraph")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Kneel" type="Sprite2D" parent="Visual"]
+texture = ExtResource("4_kneel")
+offset = Vector2(0, -19)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+visible = false
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -19)
+
+[node name="Eyes" type="Sprite2D" parent="Visual"]
+visible = false
+texture = ExtResource("5_eyes")
+offset = Vector2(0, -19)
+
+[node name="HammerPivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(11, -28)
+rotation = 1.5708
+
+[node name="Hammer" type="Sprite2D" parent="Visual/HammerPivot"]
+texture = ExtResource("6_hammer")
+offset = Vector2(13, 0)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -10)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("9_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(24, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("10_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -16)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("8_stats")
+base_health = 560.0
+health_per_vitalidade = 0.0

@@ -1,0 +1,103 @@
+[gd_scene load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/governanta.gd" id="1_gov"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/governanta_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/governanta_sentada.png" id="4_seated"]
+[ext_resource type="Texture2D" path="res://assets/sprites/governanta_chaves.png" id="5_keys"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow_big.png" id="6_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="7_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="8_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="9_hurtbox"]
+[ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="10_telegraph"]
+[ext_resource type="Resource" path="res://data/bosses/governanta.tres" id="11_data"]
+[ext_resource type="Resource" path="res://data/attacks/governanta_chaves.tres" id="12_chaves"]
+[ext_resource type="Resource" path="res://data/attacks/governanta_chaves_volta.tres" id="13_volta"]
+[ext_resource type="Resource" path="res://data/attacks/governanta_abraco.tres" id="14_abraco"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 7.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 14.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(22, 44)
+
+[node name="Governanta" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_gov")
+chaves = ExtResource("12_chaves")
+chaves_volta = ExtResource("13_volta")
+abraco = ExtResource("14_abraco")
+data = ExtResource("11_data")
+memory_reward = 250
+move_speed = 50.0
+acceleration = 620.0
+max_poise = 90.0
+poise_regen_per_second = 25.0
+stagger_time = 0.8
+knockback_taken = 0.2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("6_shadow")
+
+[node name="Telegraph" type="Node2D" parent="."]
+script = ExtResource("10_telegraph")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Seated" type="Sprite2D" parent="Visual"]
+texture = ExtResource("4_seated")
+offset = Vector2(0, -14)
+
+[node name="KeysPivot" type="Node2D" parent="Visual"]
+z_index = 1
+position = Vector2(5, -13)
+
+[node name="Keys" type="Sprite2D" parent="Visual/KeysPivot"]
+texture = ExtResource("5_keys")
+offset = Vector2(6, 0)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+visible = false
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -19)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -14)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("8_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(18, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("9_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -22)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("7_stats")
+base_health = 300.0
+health_per_vitalidade = 0.0

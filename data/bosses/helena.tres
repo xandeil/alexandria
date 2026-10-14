@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "helena"
+display_name = "Helena Altiva"
+title = "A Cavaleira Desolada"
+sin = "Luxúria"
+sin_meaning = "Apego"
+race = "Humana"
+attribute = "Destreza"
+area = "Teatro Alexandria (hub)"
+scaling = "Destreza"
+suggested_order = "Última dos Sete"
+memory_reward = 2000
+implemented = true
+unique_mechanic = "Três fases; a armadura cai com o tempo (e com os golpes) e ela fica mais agressiva; a última fase é sem armadura e com dano altíssimo."
+phases = Array[String](["Fase 1 — A Cavaleira Técnica: confiante, rápida, elegante e precisa.", "Fase 2 — O Desespero (metade da vida): muito mais rápida e agressiva; emoção no lugar da técnica.", "Fase 3 — A Mulher Sem Armadura (depois de derrotada): sem espada e sem armadura. Alcance e velocidade menores, dano altíssimo."])
+history = "Helena fazia parte da agência que protegia o Projeto Alexandria. Ela e o marido eram os melhores agentes. Quando o governo invadiu, os dois foram a linha de defesa. O marido abandonou o posto por um instante e morreu tentando corrigir o erro. Helena nunca superou: passou a acreditar que o problema do mundo era o apego e que ninguém jamais ocuparia o lugar de outro. Permaneceu no Teatro guardando o centro da ilha. Ela não protege o projeto; protege a memória."
+meaning = "Luxúria aqui é apego emocional: não aceitar a perda."

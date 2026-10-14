@@ -1,0 +1,92 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/soldado_remendado.gd" id="1_soldier"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/soldier_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soldier_shield.png" id="4_shield"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soldier_baton.png" id="5_baton"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow.png" id="6_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="7_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="8_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="9_hurtbox"]
+[ext_resource type="Resource" path="res://data/attacks/soldado_golpe.tres" id="10_attack"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 5.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 10.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(12, 16)
+
+[node name="SoldadoRemendado" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 7
+motion_mode = 1
+script = ExtResource("1_soldier")
+attack = ExtResource("10_attack")
+memory_reward = 45
+drop_item = "sucata_temperada"
+drop_chance = 0.25
+move_speed = 42.0
+aggro_range = 115.0
+max_poise = 60.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("6_shadow")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="BatonPivot" type="Node2D" parent="Visual"]
+z_index = -1
+position = Vector2(-3, -8)
+
+[node name="Baton" type="Sprite2D" parent="Visual/BatonPivot"]
+texture = ExtResource("5_baton")
+offset = Vector2(5, 0)
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+offset = Vector2(0, -11)
+
+[node name="Shield" type="Sprite2D" parent="Visual"]
+z_index = 1
+position = Vector2(6, -8)
+texture = ExtResource("4_shield")
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -7)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("8_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(13, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("9_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("7_stats")
+base_health = 80.0
+health_per_vitalidade = 0.0
