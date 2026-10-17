@@ -34,6 +34,10 @@ func _ready() -> void:
 		await _tour_ice()
 		Game.quit_game()
 		return
+	if only == "nucleo":
+		await _tour_core()
+		Game.quit_game()
+		return
 	if only != "bosque":
 		await _tour()
 	await _tour_forest()
@@ -41,6 +45,7 @@ func _ready() -> void:
 	await _tour_forge()
 	await _tour_mountain()
 	await _tour_ice()
+	await _tour_core()
 	Game.quit_game()
 
 
@@ -1104,4 +1109,64 @@ func _tour_cassian() -> void:
 	cassian.stats.take_damage(99999.0)
 	await wait(6.0)
 	await shot("c08_cajado_do_arconte")
+
+
+func _tour_core() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(Game.SEVEN)
+	Game.pending_spawn = "palco"
+	await open("res://scenes/world/teatro.tscn")
+	await wait(1.6)
+	await shot("n00_teatro_escada_de_luz")
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/nucleo.tscn") as Level
+	await wait(2.4)
+	await shot("n01_jardim_chegada")
+	level.player.global_position = Vector2(19 * 16, 18 * 16)
+	level.camera.snap_to_target()
+	await wait(1.2)
+	await shot("n02_estatuas_dos_sete")
+	Game.pending_spawn = "porta"
+	level = await open("res://scenes/world/coracao.tscn") as Level
+	await wait(1.8)
+	await shot("n03_o_coracao")
+	var knight := level.boss_arena.boss as CavaleiroDesolado
+	level.player._iframes_left = 9999.0
+	level.player.global_position = knight.global_position + Vector2(30, 90)
+	level.camera.snap_to_target()
+	await wait(2.2)
+	await shot("n04_o_guardiao")
+	knight._go_decide(99.0)
+	level.player.global_position = knight.global_position + Vector2(0, 150)
+	knight.start_pull()
+	await wait(knight.pull_windup + 0.5)
+	await shot("n05_gravidade")
+	await wait(1.0)
+	knight.stats.take_damage(99999.0)
+	await wait(2.5)
+	knight._go_decide(99.0)
+	knight.rain_stones()
+	await wait(0.7)
+	await shot("n06_a_promessa_pedras")
+	await wait(1.4)
+	var woman := get_tree().get_first_node_in_group(&"nucleo_core") as Node2D
+	knight.global_position = woman.global_position + Vector2(0, 30)
+	level.player.global_position = woman.global_position + Vector2(50, 70)
+	knight.start_kneel()
+	await wait(1.2)
+	await shot("n07_o_elo")
+	knight.stats.take_damage(99999.0)
+	await wait(5.5)
+	await shot("n08_ajoelhado")
+	level._on_npc_talked(woman as NPC)
+	await wait(0.4)
+	for i in 4:
+		await tap(&"interact")
+		await wait(0.7)
+	await shot("n09_a_escolha")
+	for kind in ["proteger", "destruir"]:
+		Game.flags["final"] = kind
+		await open("res://scenes/ui/ending.tscn")
+		await wait(5.5)
+		await shot("n10_final_%s" % kind)
 

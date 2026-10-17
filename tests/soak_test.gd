@@ -12,8 +12,8 @@ func _ready() -> void:
 	Game.persistence_enabled = false
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do teste
 	Sfx.muted = true
-	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90 90 90 90
-	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes, Forjas, Montanha, Domínio)
+	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90 90 90 90 180
+	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes, Forjas, Montanha, Domínio, Núcleo)
 	var args := OS.get_cmdline_user_args()
 	var city_time := float(args[0]) if args.size() > 0 else 90.0
 	var helena_time := float(args[1]) if args.size() > 1 else 150.0
@@ -24,6 +24,7 @@ func _ready() -> void:
 	var forge_time := float(args[6]) if args.size() > 6 else 90.0
 	var mountain_time := float(args[7]) if args.size() > 7 else 90.0
 	var ice_time := float(args[8]) if args.size() > 8 else 90.0
+	var core_time := float(args[9]) if args.size() > 9 else 180.0
 	if prologue_time > 0.0:
 		await _soak_prologue(prologue_time)
 	if city_time > 0.0:
@@ -42,6 +43,8 @@ func _ready() -> void:
 		await _soak_mountain(mountain_time)
 	if ice_time > 0.0:
 		await _soak_ice(ice_time)
+	if core_time > 0.0:
+		await _soak_knight(core_time)
 	print("SOAK OK")
 	get_tree().quit()
 
@@ -760,6 +763,42 @@ func _soak_cassian(limit: float) -> void:
 			cassian.hurtbox.receive_hit(hit)
 	print("Cassian: fases %s, modos vistos %s, estátuas (máx)=%d, vezes preso=%d, vitória=%s em %.0f s, herói vivo=%s" % [
 		phases.keys(), modes.keys(), max_statues[0], trapped[0], won[0], t, not _level.player.is_dead()])
+
+
+func _soak_knight(limit: float) -> void:
+	Game.defeated_bosses.assign(Game.SEVEN)
+	await _open("res://scenes/world/coracao.tscn", "porta")
+	var knight := _level.boss_arena.boss as CavaleiroDesolado
+	var won := [false]
+	var modes := {}
+	var healed := [0.0]
+	var blocked := [0]
+	knight.fight_won.connect(func(_b): won[0] = true)
+	_level.player.global_position = knight.global_position + Vector2(0, 100)
+	var t := 0.0
+	var phases := {}
+	while t < limit and not won[0]:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		if not is_instance_valid(knight):
+			break
+		modes[CavaleiroDesolado.Mode.keys()[knight.mode]] = true
+		phases[knight.phase] = true
+		healed[0] = maxf(healed[0], knight._healed)
+		if knight.is_kneeling() and knight.bond_blocked():
+			blocked[0] += 1
+		_bot_step(_level.player, t, knight)
+		_level.player._iframes_left = 0.0 if fmod(t, 7.0) < 2.0 else 1.0
+		if _level.player.stats.health < 40.0:
+			_level.player.stats.revive()
+		if _level.player.is_dead():
+			break
+		if fmod(t, 2.0) < 1.0 / 60.0 and knight.active and not knight.hurtbox.invulnerable:
+			var hit := HitInfo.create(18.0 if knight.phase == 1 else 40.0, _level.player.global_position, knight.global_position)
+			knight.hurtbox.receive_hit(hit)
+	var choice := _level._dialogue_variant("mulher_do_nucleo")
+	print("Cavaleiro: fases %s, modos vistos %s, cura pelo elo (máx)=%.0f, quadros com o elo cortado=%d, vitória=%s em %.0f s, ajoelhado no fim=%s, escolha disponível=%s" % [
+		phases.keys(), modes.keys(), healed[0], blocked[0], won[0], t, is_instance_valid(knight), choice == "a_escolha"])
 
 
 func _find_npc(dialogue_id: String) -> bool:

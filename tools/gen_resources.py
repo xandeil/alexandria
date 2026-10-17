@@ -364,6 +364,21 @@ ATTACKS = {
                            windup_time=0.5, lunge_speed=150.0, lunge_time=0.1, active_time=0.1, recovery_time=0.6,
                            track_until=0.6, reach=20.0, radius=18.0, slash_arc_degrees=140.0, slash_radius=26.0,
                            slash_color=(0.7, 0.9, 1.0, 0.95), hitstop=0.08, shake=4.0, sound="&swing_heavy"),
+    # O Núcleo -------------------------------------------------------------------------
+    "cavaleiro_corte_1": dict(display_name="Espadão I", damage=24.0, poise_damage=30.0, knockback=150.0,
+                              windup_time=0.55, lunge_speed=150.0, lunge_time=0.12, active_time=0.1, recovery_time=0.25,
+                              combo_window=0.2, track_until=0.6, reach=26.0, radius=22.0, slash_arc_degrees=150.0,
+                              slash_radius=32.0, slash_color=(0.95, 0.9, 0.75, 0.95), hitstop=0.08, shake=4.0,
+                              sound="&swing_heavy"),
+    "cavaleiro_corte_2": dict(display_name="Espadão II", damage=26.0, poise_damage=30.0, knockback=150.0,
+                              windup_time=0.45, lunge_speed=160.0, lunge_time=0.12, active_time=0.1, recovery_time=0.25,
+                              combo_window=0.2, track_until=0.6, reach=26.0, radius=22.0, slash_arc_degrees=150.0,
+                              slash_radius=32.0, slash_color=(0.95, 0.9, 0.75, 0.95), hitstop=0.08, shake=4.0,
+                              sound="&swing_heavy"),
+    "cavaleiro_corte_3": dict(display_name="A Promessa", damage=38.0, poise_damage=60.0, knockback=250.0, is_heavy=True,
+                              windup_time=0.85, lunge_speed=220.0, lunge_time=0.16, active_time=0.12, recovery_time=1.0,
+                              track_until=0.5, reach=30.0, radius=26.0, slash_arc_degrees=200.0, slash_radius=40.0,
+                              slash_color=(1.0, 0.92, 0.6, 0.95), hitstop=0.12, shake=6.0, sound="&swing_heavy"),
 }
 
 # --- Os Sete Pecados (da Bíblia) ------------------------------------------------------------
@@ -536,9 +551,11 @@ BOSSES = {
         meaning="Guarda a porta de Cassian e a verdade do Projeto."),
     "cavaleiro": dict(
         id="cavaleiro", display_name="O Cavaleiro Desolado", title="Guardião do Núcleo", sin="—", sin_meaning="Proteção que virou prisão",
-        race="?", attribute="?", area="O Núcleo", scaling="—", suggested_order="Final", memory_reward=0,
-        unique_mechanic="Chefe final. Ao vencê-lo, a escolha: Proteger (Continuidade) ou Destruir (Ruptura).",
-        phases=["Leitura sugerida pela Bíblia: o cavaleiro é o que restou do Cientista da Gravidade, e a criatura é a mulher que ele protege."],
+        race="O que restou do Cientista da Gravidade", attribute="Gravidade", area="O Núcleo", scaling="—",
+        suggested_order="Final", memory_reward=0, implemented=True,
+        unique_mechanic="Fica sempre entre você e a mulher do núcleo. Gravidade: puxa, empurra e faz chover pedra. Ao vencê-lo, a escolha: Proteger (Continuidade) ou Destruir (Ruptura).",
+        phases=["Fase 1 — O Guardião: espadão em três tempos, guarda que apara de frente e a gravidade que puxa você para perto.",
+                "Fase 2 — A Promessa (metade da vida): pedras caem do alto, um anel que empurra e, ajoelhado, ele renova o elo com ela — fique no caminho da luz para cortar a cura."],
         history="Não é um vilão clássico. Parece frustrado por não ter cumprido seu objetivo, mas o objetivo nunca foi conquista: foi proteção. Enquanto a mulher ligada ao núcleo existir, a ilha flutua e o ciclo continua.",
         meaning="Algumas coisas sobrevivem, mas nunca vivem. / Libertar algo pode ser o mesmo que destruí-lo."),
 }
@@ -724,6 +741,9 @@ def main() -> None:
     write("assets/sprites/cassian_frames.tres", sprite_frames("res://assets/sprites/cassian.png", 32, 32, 7,
           {"idle": ([0], 5.0), "walk": ([0, 1, 0, 2], 6.0), "conjura": ([3], 1.0), "ergue": ([4], 1.0),
            "cajado": ([5], 1.0), "idle2": ([6], 5.0)}))
+    write("assets/sprites/cavaleiro_frames.tres", sprite_frames("res://assets/sprites/cavaleiro.png", 40, 40, 8,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 0, 2], 5.0), "ergue": ([3], 1.0), "corte": ([4], 1.0),
+           "guarda": ([5], 1.0), "atrai": ([6], 1.0), "ajoelha": ([7], 1.0)}))
     governess = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "abraco": ([4], 1.0), "grito": ([5], 1.0)}
     write("assets/sprites/governanta_frames.tres", sprite_frames("res://assets/sprites/governanta_body.png", 32, 40, 6, governess))
     write("assets/sprites/governanta_solto_frames.tres", sprite_frames("res://assets/sprites/governanta_solto.png", 32, 40, 6, governess))

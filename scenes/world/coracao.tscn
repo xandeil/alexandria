@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/nucleo_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Coracao" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/coracao.txt"
+area_name = "O Coração"
+area_subtitle = "Ela respira devagar. Ele não sai da frente dela."
+theme = "nucleo"
+ambience = &"amb_core"
+darkness = Color(0.96, 0.92, 0.88, 1)
+outdoor = true
+arena_rect_tiles = Rect2i(6, 3, 26, 19)
+exit_scene = "res://scenes/world/nucleo.tscn"
+exit_spawn = "lateral"
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

@@ -78,6 +78,14 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `U` `0` | mini-chefes: A Curadora de Vitrines, O Golem do Arquivo (deixa o livro) | — |
 | `/` | Cassian Virel (`arena_cassian.txt`) | — |
 | `!` | o Estudioso (congelado até a Curadora cair) | sim |
+| **O Núcleo** (tema "nucleo") | | |
+| `.` `,` `g` `;` | mármore, grama, flores, musgo | não |
+| `k` `=` | veio dourado, caminho de luz | não |
+| `~` | espelho d'água (sólido) | sim |
+| `(` `)` `[` `]` | coluna partida, arbusto, arco partido (2 células), estátua de um dos Sete | coluna/arco/estátua |
+| `/` | o Cavaleiro Desolado (`coracao.txt`) | — |
+| `U` | a mulher ligada ao núcleo (a escolha final) | sim |
+| `` ` `` | quarta saída (`exit4_*`; quem chega aparece em "palco") — no Teatro, a escada de luz até o Núcleo (`"sete"`) | só trancada |
 | `@` | item no chão; QUAL item vem de `item_points` no nó da fase, na ordem de leitura (`"escudo_remendado"`, `"sucata_temperada:2"`) — pego uma vez, não volta | não |
 | `X` `x` `f` `L` `c` `K` | barricada, entulho, fogo, poste, caixote, carro destruído | variam |
 | `G` | portão do Detentor do Caos: falar com ele leva à arena do Aldir | sim |

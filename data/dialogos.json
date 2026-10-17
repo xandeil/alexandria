@@ -733,5 +733,91 @@
 			"Ele queria ser o único dono do futuro. Agora o futuro não tem dono. É assustador. É bom.",
 			"Vou levar alguns livros para o Teatro. Alguém precisa lembrar — não guardar. Lembrar."
 		]
+	},
+	"escada_de_luz": {
+		"nome": "Palco",
+		"falas": [
+			"No alto do palco, onde a cortina deveria estar, há um vão no teto. A luz que passa por ele não chega ao chão.",
+			"Sete marcas no assoalho, em semicírculo. Algumas brilham fraco, quando você chega perto com as lembranças certas.",
+			"Quando as sete memórias se unirem, o caminho se abre."
+		]
+	},
+	"estatua_ira": {
+		"nome": "Estátua — Ira",
+		"falas": [
+			"Um homem com um martelo, de cabeça baixa. Na base: “O DETENTOR DO CAOS”.",
+			"A memória de Aldir responde: ele defendeu uma cidade que já tinha caído. A fúria era o que sobrava do dever."
+		]
+	},
+	"estatua_preguica": {
+		"nome": "Estátua — Preguiça",
+		"falas": [
+			"Uma fada adormecida sobre uma cama de flores de pedra.",
+			"A memória de Nyssa responde: na subida, quem dormia não sentia o medo. Ela fez o mundo dormir para que ninguém visse a queda para cima."
+		]
+	},
+	"estatua_gula": {
+		"nome": "Estátua — Gula",
+		"falas": [
+			"Uma mulher enorme diante de uma mesa vazia.",
+			"A memória de Mabel responde: a humanidade líquida ficou guardada nas estufas. Alguém tinha de alimentar o mundo novo."
+		]
+	},
+	"estatua_inveja": {
+		"nome": "Estátua — Inveja",
+		"falas": [
+			"Dois anões de costas um para o outro, segurando a mesma corrente.",
+			"A memória de Durgan responde: as Âncoras prendem as ilhas ao núcleo. Sem elas, cada pedaço do mundo subiria sozinho até sumir."
+		]
+	},
+	"estatua_orgulho": {
+		"nome": "Estátua — Orgulho",
+		"falas": [
+			"Uma asa de dragão, só a asa. O resto da estátua foi arrancado.",
+			"A memória de Rachel responde: ela chegou depois, quando a ilha já subia. Não fez parte de pacto nenhum. Só tomou o que viu."
+		]
+	},
+	"estatua_ganancia": {
+		"nome": "Estátua — Ganância",
+		"falas": [
+			"Um homem segurando um livro fechado contra o peito.",
+			"A memória de Cassian responde: ele guardou tudo o que o Projeto aprendeu, para que ninguém pudesse repetir — e ninguém pudesse desfazer."
+		]
+	},
+	"estatua_luxuria": {
+		"nome": "Estátua — Luxúria",
+		"falas": [
+			"Uma cavaleira de costas para um posto vazio.",
+			"A memória de Helena responde: alguém deixou o posto por um instante. Foi o instante em que o mundo se partiu — e o Cientista subiu com o pedaço que pôde salvar."
+		]
+	},
+	"mulher_do_nucleo": {
+		"nome": "A mulher do núcleo",
+		"falas": [
+			"Ela respira devagar, suspensa sobre o chão. Fios de luz descem dela até as pedras da ilha.",
+			"Os olhos estão fechados. Ninguém sabe há quanto tempo."
+		]
+	},
+	"a_escolha": {
+		"nome": "A mulher do núcleo",
+		"falas": [
+			"Atrás de você, o cavaleiro continua ajoelhado. Ele não se levanta mais. A promessa ficou sem ninguém para cumprir.",
+			"Enquanto ela existir, a ilha flutua. Enquanto for protegida, nada seguirá adiante.",
+			"Alguém precisa sustentar o mundo. Ou alguém precisa deixá-lo cair."
+		],
+		"opcoes": [
+			{
+				"texto": "Proteger — assumir o lugar do cavaleiro",
+				"acao": "final_proteger"
+			},
+			{
+				"texto": "Destruir — romper o elo",
+				"acao": "final_destruir"
+			},
+			{
+				"texto": "Ainda não",
+				"acao": ""
+			}
+		]
 	}
 }

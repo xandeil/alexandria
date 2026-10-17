@@ -11,6 +11,7 @@ extends Node2D
 
 const FRUIT := preload("res://assets/fx/flesh_fruit.png")
 const SPLAT := preload("res://assets/fx/sap_splat.png")
+const STONE := preload("res://assets/fx/pedra_caindo.png")
 ## Inimigos levam mais (o Inchado no meio do grupo é uma bomba de verdade).
 const ENEMY_DAMAGE_MULTIPLIER := 1.6
 
@@ -22,7 +23,8 @@ var hurt_enemies := false
 var fruit_from := Vector2.INF
 ## Altura do arco do fruto (px).
 var arc_height := 46.0
-## "carne" (vermelho, mancha de seiva) ou "fogo" (laranja; deixa chamas no chão).
+## "carne" (vermelho, mancha de seiva), "fogo" (laranja; deixa chamas no chão) ou
+## "pedra" (cinza; a pedra que cai do alto no Núcleo, sem deixar nada).
 var style := "carne"
 
 var _time := 0.0
@@ -31,8 +33,10 @@ var _fruit: Sprite2D
 
 
 static func spawn(parent: Node, at: Vector2, burst_radius: float, warning: float, burst_damage: float,
-		owner_node: Node2D = null, enemies_too: bool = false, thrown_from: Vector2 = Vector2.INF) -> FleshBurst:
+		owner_node: Node2D = null, enemies_too: bool = false, thrown_from: Vector2 = Vector2.INF,
+		burst_style: String = "carne") -> FleshBurst:
 	var burst := FleshBurst.new()
+	burst.style = burst_style  # antes do add_child: o _ready já precisa saber o estilo
 	burst.radius = burst_radius
 	burst.delay = warning
 	burst.damage = burst_damage
@@ -50,7 +54,7 @@ func _ready() -> void:
 	material = Fx.unshaded
 	if fruit_from != Vector2.INF:
 		_fruit = Sprite2D.new()
-		_fruit.texture = FRUIT
+		_fruit.texture = STONE if style == "pedra" else FRUIT
 		_fruit.z_as_relative = false
 		_fruit.z_index = 7
 		add_child(_fruit)
@@ -87,6 +91,9 @@ func explode() -> void:
 	if style == "fogo":
 		Sfx.play(&"fireball", -2.0, 0.1)
 		Fx.splash(global_position + Vector2(0, -6), Color(1.0, 0.55, 0.15), 18)
+	elif style == "pedra":
+		Sfx.play(&"slam", -4.0, 0.1)
+		Fx.dust(global_position, 10)
 	else:
 		Sfx.play(&"splat", -2.0, 0.1)
 		Fx.splash(global_position + Vector2(0, -6), Color(0.62, 0.1, 0.16), 18)
@@ -132,6 +139,8 @@ func _leave_stain() -> void:
 	if style == "fogo":
 		FirePatch.spawn(get_parent(), global_position, radius * 0.6, 2.5, 8.0, source)
 		return
+	if style == "pedra":
+		return  # a pedra se desfaz em poeira
 	var stain := Sprite2D.new()
 	stain.texture = SPLAT
 	stain.z_index = -9  # logo acima do piso
@@ -148,6 +157,6 @@ func _draw() -> void:
 	if _done:
 		return
 	var t := clampf(_time / delay, 0.0, 1.0)
-	var fill := Color(1.0, 0.45, 0.1, 0.32) if style == "fogo" else Color(0.85, 0.12, 0.15, 0.32)
+	var fill: Color = {"fogo": Color(1.0, 0.45, 0.1, 0.32), "pedra": Color(0.7, 0.66, 0.6, 0.32)}.get(style, Color(0.85, 0.12, 0.15, 0.32))
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(1.0, 0.3, 0.25, 0.85), 1.5)
 	draw_circle(Vector2.ZERO, radius * t, fill)

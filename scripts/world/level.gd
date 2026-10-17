@@ -33,6 +33,7 @@ extends Node2D
 ##           ^ Cervo de Musgo  ? Fada Murcha   U Vigia que Dormiu  0 Mãe dos Esporos
 ##           /  Nyssa Lumevel, deitada no ar (Clareira de Nyssa)
 ##   '  terceira saída (exit3_scene / exit3_spawn) — no Teatro, a porta das Raízes
+##   `  quarta saída (exit4_*) — no Teatro, a escada de luz até o Núcleo ("sete" memórias)
 ##   Raízes da Fome (MESMOS caracteres do Bosque, outro significado — veja
 ##   THEME_ENTITIES/THEME_PROPS): ~ poça de seiva  ( raiz retorcida  ) fruto de carne
 ##           [ canteiro da estufa  ] fogão   z Boca de Raiz  s Inchado  ^ Colhedor
@@ -46,6 +47,9 @@ extends Node2D
 ##           z Dragonoide Atirador  s Dragão Bestial  ^ Dragão Alado  ? Brasas Vivas (2)
 ##           U O Capitão Dragonoide  0 A Matriarca Bestial  / Rachel (no ninho)
 ##           Q pilar de rocha (cobertura destrutível)
+##   O Núcleo: , grama  g flores  ; musgo  k veio dourado  = caminho de luz  ~ espelho d'água
+##           ( coluna partida  ) arbusto  [ arco partido  ] estátua de um dos Sete
+##           / o Cavaleiro Desolado  U a mulher ligada ao núcleo
 ##   Domínio Congelado: = GELO (escorrega)  , taco da biblioteca  : páginas  ~ lago (buraco, sólido)
 ##           ( cristais  ) leitor preso no gelo  [ estante congelada  ] vitrine
 ##           z Bibliotecário de Gelo  s Estátua Viva  ^ Ácaros de Cristal (3)  ? Aprendiz Arcano
@@ -113,6 +117,13 @@ const THEME_ENTITIES := {
 		"!": {"npc": {"dialogue": "estudioso", "name": "Estudioso", "texture": "res://assets/sprites/estudioso_congelado.png",
 			"freed_by": "curadora", "freed_texture": "res://assets/sprites/estudioso.png"}},
 	},
+	"nucleo": {
+		"/": {"boss": preload("res://scenes/bosses/cavaleiro.tscn")},
+		# A mulher ligada ao núcleo: o Cavaleiro a acha pelo grupo "nucleo_core".
+		"U": {"npc": {"dialogue": "mulher_do_nucleo", "name": "A mulher do núcleo",
+			"texture": "res://assets/sprites/mulher_nucleo.png", "frames": 2, "group": "nucleo_core",
+			"prompt": "Aproximar"}},
+	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
@@ -144,6 +155,13 @@ const THEME_PROPS := {
 		"[": {"tex": "res://assets/props/frozen_bookshelf.png", "box": Vector2(28, 8), "dx": 8},
 		"]": {"tex": "res://assets/props/display_case.png", "box": Vector2(14, 6)},
 	},
+	"nucleo": {
+		"(": {"tex": "res://assets/props/ruin_column.png", "box": Vector2(10, 6)},
+		")": {"tex": "res://assets/props/flower_bush.png"},
+		"[": {"tex": "res://assets/props/broken_arch.png", "box": Vector2(28, 6), "dx": 8},
+		"]": {"tex": "res://assets/props/sin_statue.png", "box": Vector2(14, 6),
+			"light": [Color(1.0, 0.9, 0.6), 0.3, 0.3, Vector2(0, -14)]},
+	},
 }
 ## Mini-chefes do mapa: caractere → [id na ficha BossData, cena].
 const MINIBOSSES := {
@@ -166,7 +184,7 @@ const LIGHT_TEXTURE := preload("res://assets/fx/light.png")
 
 const FLOOR_CHARS := ".,{}=-_:k~;g<"
 ## Personagens/objetos ficam por cima do piso "vizinho mais comum".
-const ENTITY_CHARS := "rRtTICDPHYMFVAOBWSXxfLcKGeZQaoqlbupim%&$j*+NEJ!123456789dyvhw@>()[]zs^?U0/'"
+const ENTITY_CHARS := "rRtTICDPHYMFVAOBWSXxfLcKGeZQaoqlbupim%&$j*+NEJ!123456789dyvhw@>()[]zs^?U0/'`"
 ## Falas da Criança Poupada, uma por conversa (dicas para quem não feriu ninguém).
 const SPARED_CHILD_TALKS := "crianca_poupada_1,crianca_poupada_2,crianca_poupada_3,crianca_poupada_4,crianca_poupada_5,crianca_poupada_6"
 
@@ -307,6 +325,24 @@ const THEMES := {
 		"cliff_under_walls": true,
 		"cover": "res://assets/props/ice_pillar.png",
 	},
+	"nucleo": {
+		"floor": {
+			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(2, 2)],
+			",": [Vector2i(3, 0), Vector2i(3, 2)], "g": [Vector2i(4, 0), Vector2i(3, 0)], ";": [Vector2i(5, 0)],
+			"k": [Vector2i(6, 0)], "=": [Vector2i(7, 0)], "_": [Vector2i(7, 0)],
+		},
+		"default_floor": ".",
+		"wall_top": Vector2i(0, 1),
+		"wall_face": [Vector2i(1, 1), Vector2i(1, 1), Vector2i(2, 1)],
+		"arch": Vector2i(3, 1),
+		"cliff": Vector2i(4, 1),
+		"cliff_low": Vector2i(5, 1),
+		"barrier": Vector2i(6, 1),
+		# Espelhos d'água que refletem o céu (sólidos).
+		"solid": {"~": [Vector2i(7, 1), Vector2i(7, 1), Vector2i(0, 2)]},
+		"shore": Vector2i(1, 2),
+		"cliff_under_walls": true,
+	},
 	"laboratorio": {
 		"floor": {
 			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(0, 0), Vector2i(1, 0)],
@@ -361,7 +397,7 @@ const PROPS := {
 @export_file("*.txt") var layout_file := ""
 @export var area_name := ""
 @export var area_subtitle := ""
-@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas", "montanha", "gelo") var theme := "teatro"
+@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas", "montanha", "gelo", "nucleo") var theme := "teatro"
 @export var ambience: StringName = &"amb_theater"
 ## Cor geral da área (CanvasModulate). Mais escuro = as tochas brilham mais.
 @export var darkness := Color(1, 1, 1)
@@ -382,6 +418,12 @@ const PROPS := {
 @export var exit3_spawn := ""
 @export var exit3_requires := ""
 @export var exit3_locked_dialogue := ""
+## Quarta saída (caractere "`"). Quem chega aparece em "palco". No Teatro, a
+## escada de luz até o Núcleo — exige "sete" (as sete memórias).
+@export_file("*.tscn") var exit4_scene := ""
+@export var exit4_spawn := ""
+@export var exit4_requires := ""
+@export var exit4_locked_dialogue := ""
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -752,6 +794,11 @@ func _build_entity(x: int, y: int, c: String) -> void:
 		"'":
 			# A porta das Raízes (Teatro, parede esquerda) abre depois de Nyssa.
 			_add_side_exit(x, y, exit3_scene, exit3_spawn, exit3_requires, exit3_locked_dialogue, "oeste")
+		"`":
+			# A escada de luz do Teatro até o Núcleo (as sete memórias).
+			_add_side_exit(x, y, exit4_scene, exit4_spawn, exit4_requires, exit4_locked_dialogue, "palco")
+			if not Engine.is_editor_hint() and Game.requirement_met(exit4_requires):
+				_add_light_stair(_cell_feet(x, y))
 		"H":
 			_boss_npc = _make_npc("helena", "Mulher na plateia", "res://assets/sprites/helena_seated.png", 1, feet)
 			_boss = HELENA_SCENE.instantiate()
@@ -861,7 +908,7 @@ func _build_entity(x: int, y: int, c: String) -> void:
 
 ## Saída extra: trancada (vira um ponto "Examinar") até vencer o chefe pedido.
 func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: String, locked_dialogue: String, arrival: String) -> void:
-	if not requires.is_empty() and not Engine.is_editor_hint() and not Game.is_boss_defeated(requires):
+	if not Engine.is_editor_hint() and not Game.requirement_met(requires):
 		var lock := _make_npc(locked_dialogue, "", "", 1, _cell_feet(x, y), "Examinar")
 		_locked_exits.append({"npc": lock, "x": x, "y": y, "scene": scene, "spawn": spawn, "requires": requires,
 			"arrival": arrival})
@@ -872,6 +919,27 @@ func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: Stri
 	side_exit.target_spawn = spawn
 	entities.add_child(side_exit)
 	spawns[arrival] = _inward_of(x, y)
+
+
+## A escada de luz aberta: uma coluna dourada que sobe do palco (só desenho).
+func _add_light_stair(feet: Vector2) -> void:
+	var beam := Polygon2D.new()
+	beam.polygon = PackedVector2Array([Vector2(-10, 8), Vector2(10, 8), Vector2(5, -60), Vector2(-5, -60)])
+	beam.color = Color(1.0, 0.9, 0.55, 0.4)
+	beam.material = Fx.unshaded
+	beam.position = feet
+	beam.z_index = 2
+	entities.add_child(beam)
+	var glow := Sprite2D.new()
+	glow.texture = LIGHT_TEXTURE
+	glow.modulate = Color(1.0, 0.88, 0.5, 0.8)
+	glow.scale = Vector2.ONE * 1.6
+	glow.material = Fx.unshaded
+	glow.position = feet
+	entities.add_child(glow)
+	var pulse := glow.create_tween().set_loops()
+	pulse.tween_property(glow, "modulate:a", 0.45, 1.4).set_trans(Tween.TRANS_SINE)
+	pulse.tween_property(glow, "modulate:a", 0.85, 1.4).set_trans(Tween.TRANS_SINE)
 
 
 ## Inimigo, mini-chefe ou chefe que só existe nesta ilha (THEME_ENTITIES).
@@ -1163,6 +1231,10 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Bíblia: "A Fada do Teatro — diálogo novo depois de Nyssa (irmã)".
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
+		"mulher_do_nucleo":
+			# Vencido o Cavaleiro, aproximar-se dela é a escolha (Bíblia: os dois finais).
+			if Game.is_boss_defeated("cavaleiro"):
+				return "a_escolha"
 		"estudioso":
 			# Bíblia: "Libertado do gelo, vende magias e lê livros de lore".
 			if Game.is_boss_defeated("cassian"):
@@ -1269,11 +1341,49 @@ func _on_dialogue_action(action: String) -> void:
 		"desafiar_helena":
 			if boss_arena:
 				boss_arena.arm()
+		"final_proteger":
+			_play_ending("proteger")
+		"final_destruir":
+			_play_ending("destruir")
 		"entrar_aldir":
 			_leaving = true
 			Game.carry(player.stats.health, player.health_flasks)
 			Sfx.play(&"door")
 			Game.travel(ALDIR_ARENA, "porta")
+
+
+## Os dois finais (Bíblia): Proteger — assumir o lugar do cavaleiro; Destruir —
+## romper o elo e deixar a ilha cair. Uma cena curta aqui; o texto vem na tela final.
+func _play_ending(kind: String) -> void:
+	_leaving = true
+	# A escolha vem de um diálogo, e o diálogo PAUSA o mundo. A cena final é
+	# feita de coisas que se mexem: primeiro sai do modal, depois vira cutscene.
+	_end_modal()
+	begin_cutscene()
+	var woman := get_tree().get_first_node_in_group(&"nucleo_core") as Node2D
+	var at := woman.global_position if woman else player.global_position
+	var walk := create_tween()
+	walk.tween_property(player, "global_position", at + Vector2(0, 22), 1.6).set_trans(Tween.TRANS_SINE)
+	await walk.finished
+	if kind == "proteger":
+		Sfx.play(&"bell", 0.0)
+		player.facing = Vector2.UP
+		Fx.splash(at + Vector2(0, -20), Color(1.0, 0.92, 0.6), 24)
+		var glow := create_tween()
+		glow.tween_property(player.visual, "modulate", Color(1.6, 1.5, 1.2), 2.0)
+		await _wait(2.2)
+	else:
+		Sfx.play(&"hit_heavy", 0.0)
+		Sfx.play(&"shatter", -2.0)
+		Fx.flash(player.body_sprite, 0.2)
+		if woman:
+			var fade := create_tween()
+			fade.tween_property(woman, "modulate", Color(2.0, 2.0, 2.0, 0.0), 1.2)
+		await _wait(1.0)
+		Sfx.play(&"quake", 2.0)
+		Fx.shake(9.0, 2.5)
+		await _wait(2.4)
+	Game.show_ending(kind)
 
 
 # --- Descanso, morte, chefe ----------------------------------------------------------------
@@ -1379,7 +1489,7 @@ func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
 func unlock_exits() -> void:
 	for i in range(_locked_exits.size() - 1, -1, -1):
 		var lock: Dictionary = _locked_exits[i]
-		if not Game.is_boss_defeated(lock["requires"]):
+		if not Game.requirement_met(lock["requires"]):
 			continue
 		_locked_exits.remove_at(i)
 		if is_instance_valid(lock["npc"]):
@@ -1411,7 +1521,9 @@ func _place_memorial() -> void:
 ## Um objeto deixado por um chefe (espada, martelo, livro...): um NPC parado
 ## que se "examina". Serve aos chefes e aos mini-chefes com "memorial".
 func _place_object(def: Dictionary, at: Vector2) -> NPC:
-	var memorial := _make_npc(def["dialogue"], def["name"], def["texture"], 1, at, def.get("prompt", "Falar"))
+	var memorial := _make_npc(def["dialogue"], def["name"], def["texture"], def.get("frames", 1), at, def.get("prompt", "Falar"))
+	if def.has("group"):
+		memorial.add_to_group(StringName(def["group"]))  # para quem precisa achá-lo (o Cavaleiro acha a mulher)
 	var sprite := memorial.get_node("Sprite") as AnimatedSprite2D
 	if def.get("planted", false):
 		# Cabeça do martelo no chão, cabo para cima (a empunhadura fica no alto).

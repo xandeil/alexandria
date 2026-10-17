@@ -51,7 +51,7 @@ governo subiram com a ilha e ainda estão nela ✅ (Soldados Remendados).
 | 5 | Forjas Ocas ✅ | Inveja — Durgan Vell ✅ | ruínas de pedra com torres | 4ª |
 | 3 | Montanha Carbonizada ✅ | Orgulho — Rachel Azheryon Caelis ✅ | vulcão com lava | 5ª |
 | 2 | Domínio Congelado ✅ | Ganância — Cassian Virel ✅ | cidade de cristais de gelo | 6ª |
-| 7 | O Núcleo | Chefe final — o Cavaleiro Desolado | ilha mais alta, jardim com ruínas | final |
+| 7 | O Núcleo ✅ | Chefe final — o Cavaleiro Desolado ✅ | ilha mais alta, jardim com ruínas | final |
 
 Conexão entre ilhas: elevadores e túneis longos (escondem o carregamento).
 Nesta versão: transição com fade (`AreaExit` + `Fader`) ✅.
@@ -276,3 +276,12 @@ protege quem está ligada ao núcleo: enquanto ela existir, a ilha flutua.
 - Cidade: asfalto escuro, concreto, rachaduras em brasa, fogo, céu e nuvens sob a borda da ilha (mapa do mundo).
 - Aldir: casaco de oficial no verde do exército do governo (o mesmo dos Soldados Remendados), dragonas douradas, peitoral riscado, faixa vermelha (Ira), cabelo e barba grisalhos, cicatriz no olho; martelo de ferro com rachaduras em brasa.
 - Fontes: Cinzel (títulos, "VOCÊ ESQUECEU"), Pixelify Sans (textos), Tiny5 (números). Todas OFL.
+
+## O Núcleo e os finais ✅
+
+- **Acesso:** coluna de luz no palco do Teatro (`` ` `` no mapa, `exit4`), exige `"sete"` (`Game.requirement_met`: as sete memórias de `Game.SEVEN`).
+- **O Jardim** (`nucleo.txt`): sem inimigos; sete estátuas (`]`) com um ponto de inspeção cada — o papel de cada Pecado no pacto (as pontas soltas da Bíblia ficam em aberto: Rachel "não fez parte de pacto nenhum").
+- **O Coração** (`coracao.txt`): a mulher ligada ao núcleo (`U` no tema "nucleo": um NPC no grupo `nucleo_core`) e o Cavaleiro (`/`).
+- **O Cavaleiro Desolado** ✅ — fase 1 (fica no `guard_point` entre o herói e ela; espadão em 2–3 tempos; guarda depois de 3 golpes, contragolpe em quem bate na guarda; gravidade que puxa quem está longe) · fase 2 sem pular (pedras do alto via `FleshBurst` estilo "pedra"; anel de gravidade; ajoelhado, renova o elo e se cura — cortado por quem fica no caminho da luz). Vencido, fica ajoelhado.
+- **A escolha** ✅: falar com ela (`a_escolha`) → Proteger (`final_proteger`) ou Destruir (`final_destruir`). Cena curta no Coração e a tela final (`scenes/ui/ending.tscn`): frases da Bíblia, "FIM", créditos. `Game.flags["final"]` e `Game.flags["finais_vistos"]` ficam no save.
+

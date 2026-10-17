@@ -54,8 +54,7 @@ func _ignite() -> void:
 	_ai_time = 0.0
 	Sfx.play(&"hum", -10.0, 0.2)
 	# O aviso e o estouro são os mesmos da explosão de carne, em versão fogo.
-	var burst := FleshBurst.spawn(get_parent(), global_position, burst_radius, ignite_time, burst_damage, self)
-	burst.style = "fogo"
+	FleshBurst.spawn(get_parent(), global_position, burst_radius, ignite_time, burst_damage, self, false, Vector2.INF, "fogo")
 
 
 ## Estourou sozinha: some (a explosão já está no chão).

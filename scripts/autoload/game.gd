@@ -50,6 +50,7 @@ const START_SPAWN := "camara"
 const HUB_SCENE := "res://scenes/world/teatro.tscn"
 const HUB_SPAWN := "camara"
 const TITLE_SCENE := "res://scenes/ui/title_screen.tscn"
+const ENDING_SCENE := "res://scenes/ui/ending.tscn"
 
 # --- Balanceamento (mexa à vontade) ---------------------------------------------
 ## Fração das memórias perdidas ao morrer.
@@ -345,6 +346,23 @@ func _grant_boss_rewards(boss_id: String, announce: bool) -> void:
 
 func is_boss_defeated(boss_id: String) -> bool:
 	return defeated_bosses.has(boss_id)
+
+
+## Os Sete Pecados (Bíblia): as sete memórias abrem o caminho até o Núcleo.
+const SEVEN := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian", "helena"]
+
+
+func seven_memories() -> int:
+	return SEVEN.filter(func(id): return defeated_bosses.has(id)).size()
+
+
+## Uma condição de porta: o id de um chefe, ou "sete" (as sete memórias juntas).
+func requirement_met(requires: String) -> bool:
+	if requires.is_empty():
+		return true
+	if requires == "sete":
+		return seven_memories() == SEVEN.size()
+	return is_boss_defeated(requires)
 
 
 func set_rest_point(scene_path: String, spawn_id: String) -> void:
@@ -723,6 +741,18 @@ func respawn() -> void:
 	clear_carry()
 	pending_spawn = rest_spawn
 	_change_scene(rest_scene, 0.9)
+
+
+## A escolha no Núcleo: grava qual final (e quais já foram vistos) e mostra o final.
+func show_ending(kind: String) -> void:
+	flags["final"] = kind
+	var seen: Array = flags.get("finais_vistos", [])
+	if not seen.has(kind):
+		seen.append(kind)
+	flags["finais_vistos"] = seen
+	save_game()
+	clear_carry()
+	_change_scene(ENDING_SCENE, 1.2)
 
 
 func go_to_title() -> void:

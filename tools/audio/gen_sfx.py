@@ -438,6 +438,23 @@ def main() -> None:
         tones[i:i + len(ring)] += ring[: len(tones) - i]
     save_loop("amb_ice", lowpass(wind, 1200) + tones, 0.4)
 
+    # O Nucleo (no fim, pelo mesmo motivo): gravidade, sino e o coracao da ilha
+    print("Nucleo")
+    t = t_axis(1.2)
+    save("gravity", mix(sine(sweep(50, 140, 1.2, 0.7), 1.2) * env_swell(1.2, 0.8), lowpass(noise(1.2), sweep(200, 900, 1.2)) * env_swell(1.2, 0.8) * 0.5), 0.7)
+    bell = mix(*(sine(f, 3.0) * env_exp(3.0, d) * a for f, d, a in ((392.0, 1.4, 1.0), (784.0, 0.9, 0.5), (1176.0, 0.6, 0.3), (987.8, 0.7, 0.25))))
+    save("bell", bell, 0.55)
+    s = 12.0
+    t = t_axis(s)
+    beat = np.zeros_like(t)
+    for k in np.arange(0.3, s - 0.6, 1.5):  # um coracao lento, de muito longe
+        for d, a in ((0.0, 1.0), (0.22, 0.6)):
+            i = int((k + d) * SR)
+            thump = sine(48.0, 0.25) * env_exp(0.25, 0.08) * a * 0.5
+            beat[i:i + len(thump)] += thump[: len(beat) - i]
+    pad_tone = (np.sin(2 * np.pi * 220 * t) + 0.5 * np.sin(2 * np.pi * 277.2 * t) + 0.4 * np.sin(2 * np.pi * 329.6 * t)) * 0.05 * (0.6 + 0.4 * np.sin(2 * np.pi * t / 6))
+    save_loop("amb_core", beat + pad_tone + bandpass(noise(s), 500, 2500) * 0.02, 0.4)
+
 
 if __name__ == "__main__":
     main()

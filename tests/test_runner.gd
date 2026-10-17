@@ -54,6 +54,10 @@ const BRASA_SCENE := preload("res://scenes/enemies/brasa_viva.tscn")
 const CAPITAO_SCENE := preload("res://scenes/bosses/capitao_dragonoide.tscn")
 const MATRIARCA_SCENE := preload("res://scenes/bosses/matriarca_bestial.tscn")
 const DOMINIO := "res://scenes/world/dominio.tscn"
+const TEATRO := "res://scenes/world/teatro.tscn"
+const NUCLEO := "res://scenes/world/nucleo.tscn"
+const CORACAO := "res://scenes/world/coracao.tscn"
+const ENDING_SCENE := preload("res://scenes/ui/ending.tscn")
 const ARENA_CASSIAN := "res://scenes/world/arena_cassian.tscn"
 const BIBLIOTECARIO_SCENE := preload("res://scenes/enemies/bibliotecario_gelo.tscn")
 const ESTATUA_SCENE := preload("res://scenes/enemies/estatua_viva.tscn")
@@ -179,6 +183,10 @@ func _ready() -> void:
 		"test_archive_golem",
 		"test_frozen_domain_gate",
 		"test_cassian_fight",
+		"test_seven_memories_gate",
+		"test_core_garden",
+		"test_knight_fight",
+		"test_endings",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -2823,7 +2831,9 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN]:
+	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
+		if path == NUCLEO:
+			Game.defeated_bosses.assign(Game.SEVEN)
 		if path == MONTANHA:
 			Game.defeated_bosses.append("durgan")
 		if path == DOMINIO:
@@ -2858,6 +2868,9 @@ func test_new_areas_build() -> void:
 			for name in ["BibliotecarioGelo", "EstatuaViva", "AcaroCristal", "AprendizArcano", "CuradoraVitrines", "GolemArquivo", "RestChamber"]:
 				check(kinds_ice.has(name), "Domínio: tem %s" % name)
 			check(find_npc("estudioso") != null, "Domínio: o Estudioso congelado")
+		if path == CORACAO:
+			check(level.boss_arena != null and level.boss_arena.boss is CavaleiroDesolado, "O Coração: o Cavaleiro")
+			check(get_tree().get_first_node_in_group(&"nucleo_core") != null, "O Coração: a mulher ligada ao núcleo")
 		if path == ARENA_CASSIAN:
 			check(level.boss_arena != null and level.boss_arena.boss is CassianVirel, "Sala do Arconte: Cassian")
 		if path == ARENA_RACHEL:
@@ -3719,4 +3732,138 @@ func test_cassian_fight() -> void:
 	check(cassian.statues.all(func(st): return not is_instance_valid(st) or st.dead), "a coleção se desfaz com ele")
 	level.queue_free()
 	await frames(2)
+
+
+# --- O Núcleo -------------------------------------------------------------------------
+
+func test_seven_memories_gate() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"])
+	check(Game.seven_memories() == 6 and not Game.requirement_met("sete"), "seis memórias: ainda não")
+	var level := await open_level(TEATRO, "porta")
+	check(find_npc("escada_de_luz") != null, "o vão no palco ainda não leva a lugar nenhum")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("helena")
+	check(Game.seven_memories() == 7 and Game.requirement_met("sete"), "as sete memórias")
+	level = await open_level(TEATRO, "porta")
+	var to_core := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("nucleo"):
+			to_core = true
+	check(to_core and level.spawns.has("palco"), "a escada de luz se abre")
+	level.queue_free()
+	await frames(2)
+
+
+func test_core_garden() -> void:
+	Game.defeated_bosses.assign(Game.SEVEN)
+	var level := await open_level(NUCLEO, "porta")
+	for id in ["estatua_ira", "estatua_preguica", "estatua_gula", "estatua_inveja", "estatua_orgulho", "estatua_ganancia", "estatua_luxuria"]:
+		check(find_npc(id) != null, "a estátua: %s" % id)
+	check(get_tree().get_nodes_in_group("enemies").is_empty(), "o jardim é silencioso: nenhum inimigo")
+	var back := false
+	var forward := false
+	for node in level.entities.get_children():
+		if node is AreaExit:
+			back = back or ((node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "palco")
+			forward = forward or (node as AreaExit).target_scene.contains("coracao")
+	check(back and forward, "volta ao palco do Teatro; segue para o Coração")
+	level.queue_free()
+	await frames(2)
+
+
+func test_knight_fight() -> void:
+	Game.defeated_bosses.assign(Game.SEVEN)
+	var level := await open_level(CORACAO, "porta")
+	var knight := level.boss_arena.boss as CavaleiroDesolado
+	var woman := get_tree().get_first_node_in_group(&"nucleo_core") as Node2D
+	var said := []
+	knight.speech.connect(func(text: String): said.append(text))
+	level.player.global_position = knight.global_position + Vector2(40, 100)
+	level.player._iframes_left = 999.0
+	await seconds(0.5)
+	check(knight.active and not said.is_empty() and said[0] == CavaleiroDesolado.SPEECH_INTRO, "ele se levanta")
+	check(knight.woman == woman, "sabe quem protege")
+	var point := knight.guard_point()
+	var her_to_you := (level.player.global_position - woman.global_position).normalized()
+	check(her_to_you.dot((point - woman.global_position).normalized()) > 0.99, "o lugar dele: entre você e ela")
+	# Três golpes seguidos: a guarda (de frente quase nada entra).
+	knight._go_decide(99.0)
+	for i in 3:
+		var hit := HitInfo.create(5.0, knight.global_position + knight.facing * 20.0, knight.global_position)
+		knight.hurtbox.receive_hit(hit)
+	check(knight.mode == CavaleiroDesolado.Mode.GUARD, "apanhou três vezes: ergue a guarda")
+	var front := HitInfo.create(10.0, knight.global_position + knight.facing * 20.0, knight.global_position)
+	check(is_equal_approx(knight._incoming_damage_multiplier(front), knight.guard_ratio), "a guarda segura de frente")
+	# A gravidade puxa quem está longe.
+	knight._go_decide(99.0)
+	level.player._iframes_left = 0.0
+	level.player.global_position = knight.global_position + Vector2(0, 140)
+	var far := level.player.global_position.distance_to(knight.global_position)
+	knight.start_pull()
+	await seconds(knight.pull_windup + 0.8)
+	check(level.player.global_position.distance_to(knight.global_position) < far - 20.0, "a gravidade puxa você para perto")
+	# Metade da vida: a Promessa (sem pular).
+	level.player._iframes_left = 999.0
+	knight.stats.take_damage(99999.0)
+	await frames(2)
+	check(knight.phase == 2 and is_equal_approx(knight.stats.health_ratio(), 0.5), "não pula a Promessa")
+	await seconds(2.3)
+	check(knight.mode != CavaleiroDesolado.Mode.TRANSITION and knight.phase_label() == "A Promessa", "fase 2 começa")
+	knight._go_decide(99.0)
+	knight.rain_stones()
+	var stones := get_tree().get_nodes_in_group("flesh_bursts")
+	# (>=: ele pode já ter chamado uma chuva sozinho logo depois da transição)
+	check(stones.size() >= knight.stone_count and stones.all(func(b): return (b as FleshBurst).style == "pedra"), "pedras caem do alto")
+	await seconds(1.8)
+	# O elo: ajoelhado, ele se cura — a não ser que você fique no caminho da luz.
+	knight.global_position = woman.global_position + Vector2(0, 30)
+	knight.stats.set_health(knight.stats.max_health * 0.3)
+	level.player.global_position = woman.global_position + Vector2(60, 60)
+	knight.start_kneel()
+	await seconds(1.4)
+	var healed := knight.stats.health_ratio()
+	check(healed > 0.3 and knight.is_kneeling(), "ajoelhado diante dela: a luz o cura")
+	level.player.global_position = woman.global_position + Vector2(0, 15)
+	await frames(2)
+	check(knight.bond_blocked(), "você no caminho da luz")
+	var before := knight.stats.health
+	await seconds(0.8)
+	check(knight.stats.health == before, "no caminho: a cura para")
+	knight.stats.take_damage(99999.0)
+	await seconds(1.0)
+	check(Game.is_boss_defeated("cavaleiro") and is_instance_valid(knight), "vencido — e ele fica, ajoelhado")
+	var choice := level._dialogue_variant("mulher_do_nucleo")
+	check(choice == "a_escolha" and DialogueData.get_entry(choice).get("opcoes", []).size() == 3, "a escolha: proteger, destruir, ainda não")
+	level.queue_free()
+	await frames(2)
+
+
+func test_endings() -> void:
+	Game.defeated_bosses.assign(Game.SEVEN + ["cavaleiro"])
+	var level := await open_level(CORACAO, "porta")
+	# Como no jogo: a escolha chega com o diálogo aberto (mundo pausado).
+	level._begin_modal()
+	check(get_tree().paused, "o diálogo pausa o mundo")
+	level._on_dialogue_action("final_destruir")
+	await seconds(6.0)
+	check(not get_tree().paused, "a cena final não fica congelada pela pausa do diálogo")
+	check(Game.last_scene_request == Game.ENDING_SCENE and Game.flags.get("final") == "destruir", "romper o elo: o final Ruptura")
+	check(Game.flags.get("finais_vistos", []).has("destruir"), "o save lembra quais finais você viu")
+	level.queue_free()
+	await frames(2)
+	for kind in ["proteger", "destruir"]:
+		Game.flags["final"] = kind
+		var ending := ENDING_SCENE.instantiate()
+		add_child(ending)
+		await frames(2)
+		check(ending.kind == kind and ending.LINES[kind].size() >= 5, "a tela final: %s" % kind)
+		for i in 900:
+			ending._skip = true
+			await frames(1)
+			if ending._done:
+				break
+		check(ending._done, "tocando na tela, chega aos créditos (%s)" % kind)
+		ending.queue_free()
+		await frames(2)
 

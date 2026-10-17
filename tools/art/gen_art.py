@@ -23,6 +23,7 @@ import raizes as RZ  # noqa: E402
 import forjas as FJ  # noqa: E402
 import montanha as MT  # noqa: E402
 import gelo as GL  # noqa: E402
+import nucleo as NC  # noqa: E402
 import props as PR  # noqa: E402
 import tiles as TL  # noqa: E402
 from pixel import canvas, hstrip, paste, upscale, rect, mix  # noqa: E402
@@ -254,6 +255,16 @@ def main() -> None:
     save(GL.scholar(frozen=True), "assets/sprites/estudioso_congelado.png")
     save(GL.scholar(), "assets/sprites/estudioso.png")
     save(IT.icon_lembranca((190, 230, 255), (60, 110, 170)), "assets/items/lembranca_cassian.png")
+
+    print("O Nucleo")
+    save(NC.core_atlas(), "assets/tiles/nucleo_tiles.png")
+    save(NC.ruin_column(), "assets/props/ruin_column.png")
+    save(NC.flower_bush(), "assets/props/flower_bush.png")
+    save(NC.broken_arch(), "assets/props/broken_arch.png")
+    save(NC.sin_statue(), "assets/props/sin_statue.png")
+    save(hstrip(NC.knight_frames()), "assets/sprites/cavaleiro.png")
+    save(hstrip(NC.woman_frames()), "assets/sprites/mulher_nucleo.png")
+    save(NC.falling_stone(), "assets/fx/pedra_caindo.png")
 
     print("Interface")
     save(PR.icon_attack(), "assets/ui/icon_attack.png")

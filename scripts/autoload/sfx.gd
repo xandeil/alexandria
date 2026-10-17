@@ -80,6 +80,9 @@ const LIBRARY := {
 	&"shatter": "res://assets/sfx/shatter.wav",
 	&"crystal": "res://assets/sfx/crystal.wav",
 	&"amb_ice": "res://assets/sfx/amb_ice.wav",
+	&"gravity": "res://assets/sfx/gravity.wav",
+	&"bell": "res://assets/sfx/bell.wav",
+	&"amb_core": "res://assets/sfx/amb_core.wav",
 }
 const POOL_SIZE := 12
 
