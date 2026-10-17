@@ -19,6 +19,13 @@ enum LeapStage { TELEGRAPH, AIR, LAND }
 const SPEECH_PHASE_2 := "Não. Não de novo."
 const SPEECH_PHASE_3 := "...Eu ainda estou no posto."
 const SPEECH_DEFEAT := "Ninguém ocupa o lugar de ninguém... Fique com ela. Eu não consigo mais segurar."
+## Bíblia: "Na fase 3, sem armadura, Helena reconhece o anel dele com o jogador.
+## É o golpe emocional da luta."
+const SPEECH_RING := "Esse anel... Onde você... Ele esteve aqui? Todo esse tempo... e eu não..."
+const SPEECH_DEFEAT_RING := "Ele voltou para o posto. E eu nem olhei... Fique com o anel. Eu não consigo mais segurar."
+## Quanto tempo ela fica parada ao reconhecer o anel (e quanto o golpe dói nesse tempo).
+const RING_HESITATION := 3.0
+const RING_DAMAGE_MULTIPLIER := 1.5
 
 @export_group("Golpes")
 @export var corte_1: AttackData
@@ -71,6 +78,8 @@ var _swing_from := 0.0
 var _swing_to := 0.0
 var _base_speed := 0.0
 var _transition_token := 0
+var _clock := 0.0
+var _hesitate_until := -1.0
 ## Um único tween para a "pose" (giro/escala do corpo): começar um novo mata o
 ## anterior. Dois tweens mexendo no mesmo corpo = pose errada (ex.: o cambaleio
 ## desfazendo a queda da fase 3).
@@ -134,6 +143,7 @@ func armor_ratio() -> float:
 # --- Loop ---------------------------------------------------------------------------------
 
 func _physics_process(delta: float) -> void:
+	_clock += delta
 	_mode_time += delta
 	target = find_target()
 	if active:
@@ -166,6 +176,11 @@ func _physics_process(delta: float) -> void:
 		update_body_animation(delta)
 	_update_sword(delta)
 	_update_telegraph()
+
+
+## Parada, olhando o anel (fase 3, se você carrega o anel do Guarda).
+func is_hesitating() -> bool:
+	return phase >= 3 and _clock < _hesitate_until
 
 
 func _set_mode(new_mode: Mode) -> void:
@@ -442,7 +457,7 @@ func _drop_piece(piece: Sprite2D) -> void:
 
 func _incoming_damage_multiplier(_info: HitInfo) -> float:
 	if phase >= 3:
-		return 1.0
+		return RING_DAMAGE_MULTIPLIER if is_hesitating() else 1.0
 	return 1.0 - armor * max_damage_reduction
 
 
@@ -559,11 +574,18 @@ func _enter_phase_3() -> void:
 		return
 	title_changed.emit("Helena", "")  # sem título: só ela
 	phase_changed.emit("Fase 3 — A Mulher Sem Armadura")
-	speech.emit(SPEECH_PHASE_3)
 	Sfx.play(&"boss_phase", -6.0)
 	Sfx.play_ambience(&"amb_boss", -16.0)
 	hurtbox.invulnerable = false
-	_go_decide(0.9)
+	if Game.has_item("anel_do_guarda"):
+		# Ela vê o anel na sua mão e para. A janela é longa — e dói.
+		speech.emit(SPEECH_RING)
+		Sfx.play(&"bell", -6.0)
+		_hesitate_until = _clock + RING_HESITATION
+		_go_decide(RING_HESITATION)
+	else:
+		speech.emit(SPEECH_PHASE_3)
+		_go_decide(0.9)
 
 
 func _on_died() -> void:
@@ -585,7 +607,7 @@ func _on_died() -> void:
 	remove_from_group("enemies")
 	hurtbox.set_deferred("monitorable", false)
 	set_deferred("collision_layer", 0)
-	speech.emit(SPEECH_DEFEAT)
+	speech.emit(SPEECH_DEFEAT_RING if Game.has_item("anel_do_guarda") else SPEECH_DEFEAT)
 	var reward := data.memory_reward if data else 1500
 	Game.add_memories(reward)
 	if target:

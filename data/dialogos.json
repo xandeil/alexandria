@@ -819,5 +819,123 @@
 				"acao": ""
 			}
 		]
+	},
+	"guarda_cidade": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"Para trás. Estes aqui não lutam mais, mas ainda andam. Alguém precisa ficar com eles.",
+			"Meu nome? ...Não sei. Acordei de cabelo branco no meio de uma rua em chamas, com este uniforme e um anel no dedo.",
+			"Só lembro de uma coisa: deixei um posto uma vez. E alguém pagou por isso.",
+			"Se você for para o teatro, eu vou depois. Aquele lugar me chama. Não sei por quê."
+		]
+	},
+	"guarda_1": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"Este palco... eu já estive aqui. Antes de tudo.",
+			"Tenho um anel no dedo. Não sei de quem é a outra metade. Às vezes ele esquenta, quando passo perto da plateia."
+		],
+		"opcoes": [
+			{
+				"texto": "Venha comigo",
+				"acao": "chamar_guarda"
+			},
+			{
+				"texto": "Fique aqui",
+				"acao": "dispensar_guarda"
+			}
+		]
+	},
+	"guarda_2": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"Sonhei com uma voz de mulher. Dizia “volte para o posto”. Ou “não volte”. Acordei sem saber qual das duas.",
+			"Se precisar de alguém do seu lado nas ilhas, é só chamar."
+		],
+		"opcoes": [
+			{
+				"texto": "Venha comigo",
+				"acao": "chamar_guarda"
+			},
+			{
+				"texto": "Fique aqui",
+				"acao": "dispensar_guarda"
+			}
+		]
+	},
+	"guarda_3": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"Toda noite vejo um posto vazio e alguém correndo para ele. Nunca chego a tempo.",
+			"Talvez seja por isso que eu não consigo ficar parado."
+		],
+		"opcoes": [
+			{
+				"texto": "Venha comigo",
+				"acao": "chamar_guarda"
+			},
+			{
+				"texto": "Fique aqui",
+				"acao": "dispensar_guarda"
+			}
+		]
+	},
+	"guarda_4": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"Os soldados da Cidade me olham como se me conhecessem. Talvez eu tenha dado ordens a eles. Talvez tenha desobedecido.",
+			"Ninguém aqui morre de verdade. Então todos nós devemos alguma coisa a alguém."
+		],
+		"opcoes": [
+			{
+				"texto": "Venha comigo",
+				"acao": "chamar_guarda"
+			},
+			{
+				"texto": "Fique aqui",
+				"acao": "dispensar_guarda"
+			}
+		]
+	},
+	"guarda_5": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"A mulher da plateia não olha para mim. E eu não consigo parar de olhar para ela.",
+			"Ela segura a espada como quem segura um posto. Eu sei como é."
+		],
+		"opcoes": [
+			{
+				"texto": "Venha comigo",
+				"acao": "chamar_guarda"
+			},
+			{
+				"texto": "Fique aqui",
+				"acao": "dispensar_guarda"
+			}
+		]
+	},
+	"guarda_6": {
+		"nome": "Guarda de cabelo branco",
+		"falas": [
+			"Se um dia você subir naquele palco para lutar com ela... eu vou junto.",
+			"Não me pergunte por quê. Eu também não sei. Só sei que, desta vez, eu não saio do lugar."
+		],
+		"opcoes": [
+			{
+				"texto": "Venha comigo",
+				"acao": "chamar_guarda"
+			},
+			{
+				"texto": "Fique aqui",
+				"acao": "dispensar_guarda"
+			}
+		]
+	},
+	"posto_vazio": {
+		"nome": "Posto vazio",
+		"falas": [
+			"Um elmo amassado e uma espada cravada no assoalho, de pé.",
+			"Desta vez, ele não saiu do lugar."
+		]
 	}
 }

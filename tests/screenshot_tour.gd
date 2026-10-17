@@ -49,6 +49,10 @@ func _ready() -> void:
 		await shot("loja_titulo")
 		Game.quit_game()
 		return
+	if only == "guarda":
+		await _tour_guard()
+		Game.quit_game()
+		return
 	if only == "opcoes":
 		await _tour_options()
 		Game.quit_game()
@@ -1205,4 +1209,44 @@ func _tour_options() -> void:
 	Settings.button_size = "Médios"
 	Settings.apply()
 	level.queue_free()
+
+
+func _tour_guard() -> void:
+	Game.reset_progress()
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/cidade.tscn") as Level
+	await wait(0.5)
+	var npc: Node2D = null
+	for node in get_tree().get_nodes_in_group("npcs"):
+		if (node as NPC).dialogue_id == "guarda_cidade":
+			npc = node
+	level.player.global_position = npc.global_position + Vector2(-30, 10)
+	level.camera.snap_to_target()
+	await wait(3.0)
+	await shot("q01_guarda_na_cidade")
+	Game.flags["guarda_conhecido"] = true
+	Game.flags["guarda_acompanha"] = true
+	Game.pending_spawn = "porta"
+	level = await open("res://scenes/world/cidade.tscn") as Level
+	await wait(3.2)
+	level.player._iframes_left = 9999.0
+	var soldier: Node2D = null
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if soldier == null or (node as Node2D).global_position.distance_to(level.player.global_position) < soldier.global_position.distance_to(level.player.global_position):
+			soldier = node
+	level.player.global_position = soldier.global_position + Vector2(-50, 0)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	await shot("q02_guarda_lutando")
+	Game.flags["guarda_acompanha"] = false
+	Game.pending_spawn = "camara"
+	level = await open("res://scenes/world/teatro.tscn") as Level
+	await wait(3.0)
+	level.player._iframes_left = 9999.0
+	level._begin_modal()
+	level._on_dialogue_action("desafiar_helena")
+	await wait(2.6)
+	await shot("q03_o_sacrificio")
+	await wait(4.5)
+	await shot("q04_posto_vazio")
 

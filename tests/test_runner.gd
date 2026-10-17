@@ -193,6 +193,10 @@ func _ready() -> void:
 		"test_tutorial_hints",
 		"test_release_secrets_stay_out",
 		"test_version_consistency",
+		"test_guard_meeting_and_fragments",
+		"test_guard_companion",
+		"test_guard_sacrifice",
+		"test_helena_recognizes_ring",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -4003,4 +4007,104 @@ func test_version_consistency() -> void:
 			codes.append(int(line.get_slice("=", 1)))
 	check(names.size() == 2 and names.all(func(n): return n == version), "versão igual no projeto e nos presets (%s / %s)" % [version, names])
 	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == int(version.get_slice(".", 1)), "versionCode acompanha a versão (%s)" % [codes])
+
+
+# --- O Guarda Sem Posto (o marido de Helena) --------------------------------------------
+
+func test_guard_meeting_and_fragments() -> void:
+	var level := await open_level(CIDADE, "porta")
+	check(find_npc("guarda_cidade") != null, "na Cidade, entre os Civis Cinzentos")
+	level._after_talk("guarda_cidade")
+	check(Game.flags.get("guarda_conhecido", false), "conversou: ele vai para o Teatro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "porta")
+	check(find_npc("guarda_cidade") == null, "não está mais na Cidade")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("guarda") != null, "está no Teatro")
+	check(level._dialogue_variant("guarda") == "guarda_1", "primeiro fragmento: o anel")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
+	check(level._dialogue_variant("guarda") == "guarda_3", "um fragmento por ilha")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"])
+	check(level._dialogue_variant("guarda") == "guarda_6", "o último: ele vai junto no palco")
+	var actions := (DialogueData.get_entry("guarda_6").get("opcoes", []) as Array).map(func(o): return o["acao"])
+	check(actions.has("chamar_guarda") and actions.has("dispensar_guarda"), "dá para chamá-lo ou deixá-lo")
+	level.queue_free()
+	await frames(2)
+
+
+func test_guard_companion() -> void:
+	Game.flags["guarda_conhecido"] = true
+	Game.flags["guarda_acompanha"] = true
+	var level := await open_level(CIDADE, "porta")
+	var allies := get_tree().get_nodes_in_group(&"allies")
+	check(allies.size() == 1 and allies[0] is GuardaAliado, "chamado: ele vem junto para a ilha")
+	var guard := allies[0] as GuardaAliado
+	level.player._iframes_left = 999.0
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, level.player.global_position + Vector2(40, 0))
+	soldier.reparent(level.entities)
+	var hp := soldier.stats.health
+	await seconds(3.0)
+	check(not is_instance_valid(soldier) or soldier.stats.health < hp, "ele corta o inimigo perto de você")
+	var big := HitInfo.create(999.0, guard.global_position + Vector2(10, 0), guard.global_position)
+	guard._hurtbox.receive_hit(big)
+	check(guard.fallen and not Game.flags.get("guarda_acompanha", true), "caiu de joelhos: volta para o Teatro")
+	level.queue_free()
+	await frames(2)
+	Game.flags["guarda_acompanha"] = true
+	level = await open_level(TEATRO, "camara")
+	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "no Teatro ele é só conversa")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.assign([])
+	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
+	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "nas arenas dos Pecados a luta é sua")
+	level.queue_free()
+	await frames(2)
+
+
+func test_guard_sacrifice() -> void:
+	Game.flags["guarda_conhecido"] = true
+	Game.flags["guarda_acompanha"] = true
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("guarda") != null, "ele está no Teatro")
+	# Como no jogo: a escolha vem do diálogo da mulher na plateia (mundo pausado).
+	level._begin_modal()
+	level._on_dialogue_action("desafiar_helena")
+	await seconds(7.0)
+	check(not get_tree().paused, "a cena não fica congelada")
+	check(Game.flags.get("guarda_sacrificado", false) and Game.has_item("anel_do_guarda"), "ele entra na frente do golpe e deixa o anel")
+	check(find_npc("guarda") == null and find_npc("posto_vazio") != null, "no lugar dele, o posto vazio")
+	check(not Game.flags.get("guarda_acompanha", true), "não acompanha mais ninguém")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("guarda") == null and find_npc("posto_vazio") != null, "o posto vazio continua lá")
+	level.queue_free()
+	await frames(2)
+
+
+func test_helena_recognizes_ring() -> void:
+	Game.add_item("anel_do_guarda")
+	var player := spawn_player(Vector2(200, 300))
+	var helena := HELENA_SCENE.instantiate() as HelenaAltiva
+	helena.position = Vector2(200, 200)
+	_world.add_child(helena)
+	await frames(2)
+	var said := []
+	helena.speech.connect(func(text: String): said.append(text))
+	helena.visible = true
+	helena.start_fight()
+	player.hurtbox.invulnerable = true
+	player.set_physics_process(false)
+	helena.stats.take_damage(9999.0)
+	await seconds(1.6)
+	helena.stats.take_damage(9999.0)
+	await seconds(3.8)
+	check(helena.phase == 3 and said.has(HelenaAltiva.SPEECH_RING), "fase 3: ela vê o anel")
+	check(helena.is_hesitating() and is_equal_approx(helena._incoming_damage_multiplier(HitInfo.new()), HelenaAltiva.RING_DAMAGE_MULTIPLIER), "e para — o golpe dói mais")
+	await seconds(HelenaAltiva.RING_HESITATION + 0.2)
+	check(not helena.is_hesitating(), "depois ela volta a lutar")
 

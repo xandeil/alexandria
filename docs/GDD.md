@@ -285,3 +285,15 @@ protege quem está ligada ao núcleo: enquanto ela existir, a ilha flutua.
 - **O Cavaleiro Desolado** ✅ — fase 1 (fica no `guard_point` entre o herói e ela; espadão em 2–3 tempos; guarda depois de 3 golpes, contragolpe em quem bate na guarda; gravidade que puxa quem está longe) · fase 2 sem pular (pedras do alto via `FleshBurst` estilo "pedra"; anel de gravidade; ajoelhado, renova o elo e se cura — cortado por quem fica no caminho da luz). Vencido, fica ajoelhado.
 - **A escolha** ✅: falar com ela (`a_escolha`) → Proteger (`final_proteger`) ou Destruir (`final_destruir`). Cena curta no Coração e a tela final (`scenes/ui/ending.tscn`): frases da Bíblia, "FIM", créditos. `Game.flags["final"]` e `Game.flags["finais_vistos"]` ficam no save.
 
+## O Guarda Sem Posto (o marido de Helena) ✅
+
+Bíblia, "Aliados e NPCs marcantes": o arco de 5 passos está implementado.
+
+1. Cidade (`!` no tema "cidade"): protegendo os Civis Cinzentos. Conversar marca `flags["guarda_conhecido"]`.
+2. Teatro (`!` no tema "teatro", com `if_flag`/`unless_flag`/`instead`): diálogo `guarda_1..6`, um fragmento por ilha vencida.
+3. Aliado (`GuardaAliado`): "Venha comigo" → `flags["guarda_acompanha"]`; aparece nas ilhas (não no Teatro, no Laboratório nem em fases com chefe principal); cai de joelhos e volta.
+4. Sacrifício ao desafiar Helena: entra na frente do golpe; `flags["guarda_sacrificado"]`, item `anel_do_guarda`, objeto `posto_vazio`.
+5. Helena, fase 3: com o anel, `SPEECH_RING`, hesita 3 s (dano ×1,5) e fala outra coisa ao cair.
+
+O nome dele continua "a definir" (Bíblia): no jogo, só "Guarda de cabelo branco".
+

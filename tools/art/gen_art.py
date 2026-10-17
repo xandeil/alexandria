@@ -24,6 +24,7 @@ import forjas as FJ  # noqa: E402
 import montanha as MT  # noqa: E402
 import gelo as GL  # noqa: E402
 import nucleo as NC  # noqa: E402
+import aliados as AL2  # noqa: E402
 import props as PR  # noqa: E402
 import tiles as TL  # noqa: E402
 from pixel import canvas, hstrip, paste, upscale, rect, mix  # noqa: E402
@@ -293,6 +294,12 @@ def main() -> None:
     for y in range(432):
         rect(bg, 0, y, 432, y + 1, mix(P.SKY_TOP, P.SKY_BOTTOM, y / 432))
     save(bg, "assets/icon/icon_background.png")
+
+    print("Aliados")
+    save(hstrip(AL2.guard_frames()), "assets/sprites/guarda.png")
+    save(AL2.guard_frames()[0], "assets/sprites/guarda_npc.png")  # parado (o NPC de conversa)
+    save(AL2.empty_post(), "assets/props/posto_vazio.png")
+    save(AL2.ring_icon(), "assets/items/anel_do_guarda.png")
 
     print("Loja (Play Store)")
     os.makedirs(os.path.join(ROOT, "docs/loja"), exist_ok=True)

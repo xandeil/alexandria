@@ -111,7 +111,13 @@ func _bot_step(player: Player, t: float, target: Node2D) -> void:
 
 
 func _soak_city(duration: float) -> void:
+	# O Guarda Sem Posto vai junto: exercita o aliado no meio da briga.
+	Game.flags["guarda_conhecido"] = true
+	Game.flags["guarda_acompanha"] = true
 	await _open("res://scenes/world/cidade.tscn", "porta")
+	var guard_hits := [0]
+	for ally in get_tree().get_nodes_in_group(&"allies"):
+		(ally as GuardaAliado)._hurtbox.hit_received.connect(func(_i): guard_hits[0] += 1)
 	# Primeiro, o Escudo Remendado perto da entrada (para exercitar a defesa).
 	for node in _level.entities.get_children():
 		if node is ItemPickup and (node as ItemPickup).item_id == "escudo_remendado":
@@ -138,6 +144,7 @@ func _soak_city(duration: float) -> void:
 		_bot_step(_level.player, t, nearest)
 	print("Cidade: %d inimigos derrotados em %.0f s; memórias=%d; escudo=%s, golpes segurados=%d, guardas quebradas=%d; sucata=%d" % [
 		defeated[0], duration, Game.memories, Game.shield_ready(), blocks[0], blocks[1], Game.item_count("sucata_temperada")])
+	print("Guarda: golpes levados=%d, ainda acompanha=%s" % [guard_hits[0], Game.flags.get("guarda_acompanha", false)])
 	# Os mini-chefes, um de cada vez, até o fim.
 	for node in get_tree().get_nodes_in_group("minibosses"):
 		var mini := node as MiniBoss

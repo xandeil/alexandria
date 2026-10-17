@@ -124,6 +124,20 @@ const THEME_ENTITIES := {
 			"texture": "res://assets/sprites/mulher_nucleo.png", "frames": 2, "group": "nucleo_core",
 			"prompt": "Aproximar"}},
 	},
+	"cidade": {
+		# O marido de Helena, sem memória (Bíblia: "O jogador o encontra na Cidade
+		# Estilhaçada, tentando proteger os Civis Cinzentos").
+		"!": {"npc": {"dialogue": "guarda_cidade", "name": "Guarda de cabelo branco",
+			"texture": "res://assets/sprites/guarda_npc.png", "unless_flag": "guarda_conhecido"}},
+	},
+	"teatro": {
+		# Depois de conhecê-lo, ele aparece no Teatro (e conta um pedaço por ilha).
+		"!": {"npc": {"dialogue": "guarda", "name": "Guarda de cabelo branco",
+			"texture": "res://assets/sprites/guarda_npc.png", "if_flag": "guarda_conhecido",
+			"unless_flag": "guarda_sacrificado", "group": "guarda_npc",
+			"instead": {"dialogue": "posto_vazio", "name": "Posto vazio", "texture": "res://assets/props/posto_vazio.png",
+				"prompt": "Examinar"}}},
+	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
@@ -965,6 +979,14 @@ func _build_theme_entity(spec: Dictionary, x: int, y: int, feet: Vector2) -> voi
 		if Engine.is_editor_hint():
 			return
 		var npc_def: Dictionary = (spec["npc"] as Dictionary).duplicate()
+		# Regras de presença por flag do save: "if_flag" (só aparece se...) e
+		# "unless_flag" (some se...; no lugar, o "instead", se houver).
+		if npc_def.has("if_flag") and not Game.flags.get(npc_def["if_flag"], false):
+			return
+		if npc_def.has("unless_flag") and Game.flags.get(npc_def["unless_flag"], false):
+			if npc_def.has("instead"):
+				_place_object(npc_def["instead"], feet)
+			return
 		if Game.is_boss_defeated(npc_def.get("freed_by", "")):
 			npc_def["texture"] = npc_def["freed_texture"]
 		_place_object(npc_def, feet)
@@ -1131,6 +1153,7 @@ func _start_runtime() -> void:
 	camera.target = player
 	camera.snap_to_target()
 	hud.bind_player(player)
+	_spawn_companion()
 	if not area_name.is_empty():
 		hud.show_area_title(area_name, area_subtitle)
 	_connect_world()
@@ -1140,6 +1163,55 @@ func _start_runtime() -> void:
 		Game.wake_from_capsule = false
 		if spawn_id == "camara" and rest_chamber:
 			_play_wake_up()
+
+
+## O Guarda, se você o chamou, aparece ao seu lado nas ilhas — mas não no Teatro
+## (lá ele é a pessoa de conversa) nem nas arenas dos Pecados (essas lutas são suas).
+func _spawn_companion() -> void:
+	if not Game.flags.get("guarda_acompanha", false) or Game.flags.get("guarda_sacrificado", false):
+		return
+	if theme == "teatro" or theme == "laboratorio" or _boss != null:
+		return
+	GuardaAliado.spawn(entities, player)
+
+
+## Antes da luta de Helena, ele se põe na frente do golpe (Bíblia: "ele se
+## sacrifica para abrir o caminho ou proteger o jogador, sem nunca ter lembrado dela").
+func _guard_sacrifice(guard: NPC) -> void:
+	_end_modal()  # a escolha veio de um diálogo (mundo pausado): a cena precisa andar
+	begin_cutscene()
+	var front := player.global_position + Vector2(0, -20)
+	var walk := create_tween()
+	walk.tween_property(guard, "global_position", front, 0.6).set_trans(Tween.TRANS_SINE)
+	await walk.finished
+	hud.toast("“Fique atrás de mim. Já deixei um posto uma vez.”")
+	await _wait(1.6)
+	var from := _boss_npc.global_position + Vector2(0, -12) if _boss_npc else front + Vector2(0, -80)
+	var streak := Line2D.new()
+	streak.width = 3.0
+	streak.default_color = Color(1, 1, 1, 0.9)
+	streak.points = PackedVector2Array([from, front + Vector2(0, -10)])
+	streak.z_index = 20
+	entities.add_child(streak)
+	Sfx.play(&"hit_heavy", 0.0)
+	Fx.shake(5.0, 0.3)
+	Fx.flash(guard.get_node("Sprite") as CanvasItem, 0.2)
+	var fade := streak.create_tween()
+	fade.tween_property(streak, "modulate:a", 0.0, 0.5)
+	fade.tween_callback(streak.queue_free)
+	var fall := create_tween()
+	fall.tween_property(guard.get_node("Sprite"), "rotation", PI * 0.5, 0.5).set_trans(Tween.TRANS_BACK)
+	await _wait(1.2)
+	hud.toast("“...Eu não lembro de você. Mas lembro deste lugar.”")
+	await _wait(2.2)
+	Game.flags["guarda_sacrificado"] = true
+	Game.flags["guarda_acompanha"] = false
+	Game.add_item("anel_do_guarda")
+	_place_object({"dialogue": "posto_vazio", "name": "Posto vazio", "texture": "res://assets/props/posto_vazio.png",
+		"prompt": "Examinar"}, guard.global_position)
+	guard.queue_free()
+	await _wait(0.6)
+	end_cutscene()
 
 
 ## Cria o herói no ponto pedido pelo Game e devolve o id do ponto usado.
@@ -1215,9 +1287,16 @@ func _on_npc_talked(npc: NPC) -> void:
 	if entry.is_empty():
 		entry = DialogueData.get_entry(ids[0].strip_edges())
 	var action: String = await hud.dialogue.run(entry, npc.display_name)
+	_after_talk(npc.dialogue_id)
 	await _on_dialogue_action(action)
 	if not _leaving:  # trocando de área: fica travado até a tela escurecer
 		_end_modal()
+
+
+## Conversas que mudam o mundo (marcam uma flag no save).
+func _after_talk(dialogue_id: String) -> void:
+	if dialogue_id == "guarda_cidade":
+		Game.flags["guarda_conhecido"] = true  # da próxima vez, ele está no Teatro
 
 
 ## Algumas falas dependem do estado do jogo. Um ponto só decide qual versão
@@ -1231,6 +1310,11 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Bíblia: "A Fada do Teatro — diálogo novo depois de Nyssa (irmã)".
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
+		"guarda":
+			# Bíblia: "A cada ilha conta um fragmento: um anel, uma voz de mulher, um posto vazio."
+			var islands := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"].filter(
+				func(id): return Game.is_boss_defeated(id)).size()
+			return "guarda_%d" % clampi(islands, 1, 6)
 		"mulher_do_nucleo":
 			# Vencido o Cavaleiro, aproximar-se dela é a escolha (Bíblia: os dois finais).
 			if Game.is_boss_defeated("cavaleiro"):
@@ -1340,7 +1424,16 @@ func _on_dialogue_action(action: String) -> void:
 				hud.toast("Memórias insuficientes.")
 		"desafiar_helena":
 			if boss_arena:
+				var guard := get_tree().get_first_node_in_group(&"guarda_npc") as NPC
+				if guard and Game.flags.get("guarda_conhecido", false):
+					await _guard_sacrifice(guard)
 				boss_arena.arm()
+		"chamar_guarda":
+			Game.flags["guarda_acompanha"] = true
+			hud.toast("O Guarda vai com você pelas ilhas (não nas arenas dos Pecados).")
+		"dispensar_guarda":
+			Game.flags["guarda_acompanha"] = false
+			hud.toast("O Guarda fica no Teatro.")
 		"final_proteger":
 			_play_ending("proteger")
 		"final_destruir":

@@ -608,6 +608,8 @@ ITEMS = {
         description="No continente de onde veio, os outros dragões não olhavam para ela. Aqui, todo mundo olhou: de baixo, enquanto a cidade queimava.\nOrgulho é domínio sem arrependimento."),
     "lembranca_cassian": dict(display_name="Lembrança: Ganância · Possessão", kind=3, max_stack=1, icon="res://assets/items/lembranca_cassian.png",
         description="Ele guardava tudo para que nada se perdesse: livros, vozes, rostos. Um dia percebeu que só ele podia abrir as vitrines — e gostou.\nGanância é querer tudo, até o tempo."),
+    "anel_do_guarda": dict(display_name="Anel do Guarda", kind=3, max_stack=1, icon="res://assets/items/anel_do_guarda.png",
+        description="Ele usou até o fim sem saber de quem era a outra metade. Por dentro, gravado quase apagado: “no posto”.\nAlguém, em algum lugar deste teatro, tem a outra."),
     "lembranca_helena": dict(display_name="Lembrança: Luxúria · Apego", kind=3, max_stack=1, icon="res://assets/items/lembranca_helena.png",
         description="Ela e o marido eram os melhores agentes. Na invasão, um deles saiu do posto.\nLuxúria aqui é apego: não aceitar a perda."),
 }
@@ -744,6 +746,8 @@ def main() -> None:
     write("assets/sprites/cavaleiro_frames.tres", sprite_frames("res://assets/sprites/cavaleiro.png", 40, 40, 8,
           {"idle": ([0], 5.0), "walk": ([0, 1, 0, 2], 5.0), "ergue": ([3], 1.0), "corte": ([4], 1.0),
            "guarda": ([5], 1.0), "atrai": ([6], 1.0), "ajoelha": ([7], 1.0)}))
+    write("assets/sprites/guarda_frames.tres", sprite_frames("res://assets/sprites/guarda.png", 24, 24, 6,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 8.0), "golpe": ([4], 1.0), "caido": ([5], 1.0)}))
     governess = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "abraco": ([4], 1.0), "grito": ([5], 1.0)}
     write("assets/sprites/governanta_frames.tres", sprite_frames("res://assets/sprites/governanta_body.png", 32, 40, 6, governess))
     write("assets/sprites/governanta_solto_frames.tres", sprite_frames("res://assets/sprites/governanta_solto.png", 32, 40, 6, governess))
