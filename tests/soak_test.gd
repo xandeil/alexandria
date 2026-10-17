@@ -10,6 +10,7 @@ var _time := 0.0
 
 func _ready() -> void:
 	Game.persistence_enabled = false
+	Settings.persistence_enabled = false  # nunca grava opções no aparelho de quem roda os testes
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do teste
 	Sfx.muted = true
 	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90 90 90 90 180

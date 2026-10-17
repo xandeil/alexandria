@@ -83,6 +83,7 @@ const LIBRARY := {
 	&"gravity": "res://assets/sfx/gravity.wav",
 	&"bell": "res://assets/sfx/bell.wav",
 	&"amb_core": "res://assets/sfx/amb_core.wav",
+	&"tema_alexandria": "res://assets/sfx/tema_alexandria.wav",
 }
 const POOL_SIZE := 12
 
@@ -99,9 +100,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer.new()
+		player.bus = Settings.SFX_BUS  # o volume de cada grupo vem das Opções
 		add_child(player)
 		_pool.append(player)
 	_ambience = AudioStreamPlayer.new()
+	_ambience.bus = Settings.AMBIENCE_BUS
 	add_child(_ambience)
 
 

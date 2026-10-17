@@ -77,6 +77,7 @@ var _world: Node2D
 func _ready() -> void:
 	Fx.enabled = false
 	Game.persistence_enabled = false
+	Settings.persistence_enabled = false  # nunca grava opções no aparelho de quem roda os testes
 	Game.save_path = TEST_SAVE
 	Game.scene_changes_enabled = false  # Game.travel() & cia. só anotam o pedido
 	Game.delete_save()
@@ -187,6 +188,9 @@ func _ready() -> void:
 		"test_core_garden",
 		"test_knight_fight",
 		"test_endings",
+		"test_settings",
+		"test_options_menu",
+		"test_tutorial_hints",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -3866,4 +3870,90 @@ func test_endings() -> void:
 		check(ending._done, "tocando na tela, chega aos créditos (%s)" % kind)
 		ending.queue_free()
 		await frames(2)
+
+
+# --- Polimento: opções e dicas ------------------------------------------------------------
+
+func test_settings() -> void:
+	var saved := [Settings.sfx_volume, Settings.ambience_volume, Settings.vibration, Settings.button_size, Settings.hints]
+	var bus := AudioServer.get_bus_index(Settings.SFX_BUS)
+	check(bus != -1 and AudioServer.get_bus_index(Settings.AMBIENCE_BUS) != -1, "barramentos Efeitos e Ambiente existem")
+	Settings.sfx_volume = 0.5
+	Settings.step_sfx(0.1)
+	check(is_equal_approx(Settings.sfx_volume, 0.6) and is_equal_approx(AudioServer.get_bus_volume_db(bus), linear_to_db(0.6)), "volume dos efeitos sobe 10% e vale no barramento")
+	for i in 10:
+		Settings.step_sfx(-0.1)
+	check(Settings.sfx_volume == 0.0 and AudioServer.is_bus_mute(bus), "zero = mudo")
+	Settings.step_sfx(5.0)
+	check(Settings.sfx_volume == 1.0, "não passa de 100%")
+	Settings.button_size = "Médios"
+	Settings.cycle_button_size()
+	check(Settings.button_size == "Grandes" and is_equal_approx(Settings.button_scale(), 1.2), "botões grandes")
+	var vib := Settings.vibration
+	Settings.toggle_vibration()
+	check(Settings.vibration != vib, "vibração liga e desliga")
+	Settings.sfx_volume = saved[0]
+	Settings.ambience_volume = saved[1]
+	Settings.vibration = saved[2]
+	Settings.button_size = saved[3]
+	Settings.hints = saved[4]
+	Settings.apply()
+
+
+func test_options_menu() -> void:
+	var saved_size := Settings.button_size
+	var level := await open_level(TEATRO, "camara")
+	var hud := level.hud
+	var touch := hud.touch
+	var base := float(touch.attack_button.get_meta(&"base_radius"))
+	Settings.button_size = "Grandes"
+	Settings.apply()
+	await frames(2)
+	check(is_equal_approx(touch.attack_button.radius, base * 1.2), "Opções → os botões de toque crescem")
+	Settings.button_size = saved_size
+	Settings.apply()
+	hud.pause_menu.open()
+	await frames(2)
+	var labels := []
+	for node in hud.pause_menu.find_children("*", "Button", true, false):
+		labels.append((node as Button).text)
+	check(labels.has("Opções"), "a pausa tem Opções (%s)" % [labels])
+	hud.pause_menu._open_options()
+	await frames(2)
+	var options := hud.pause_menu._options as OptionsMenu
+	check(options.is_open() and not hud.pause_menu.visible, "as opções abrem por cima da pausa")
+	check((options._rows["efeitos"] as Label).text.ends_with("%"), "mostra o volume em %")
+	options.close()
+	await frames(2)
+	check(hud.pause_menu.visible and get_tree().paused, "fechou: volta para a pausa")
+	hud.pause_menu.close()
+	level.queue_free()
+	await frames(2)
+
+
+func test_tutorial_hints() -> void:
+	var saved := Settings.hints
+	Settings.hints = true
+	var level := await open_level(CIDADE, "porta")
+	var hints := level.hud.hints
+	await seconds(2.0)
+	check(hints.seen("andar"), "primeira dica: andar")
+	var enemy := spawn_enemy_scene(SOLDIER_SCENE, level.player.global_position + Vector2(60, 0))
+	await seconds(6.0)
+	check(hints.seen("atacar"), "inimigo perto: como atacar")
+	enemy.queue_free()
+	level.player.hurt.emit(5.0)
+	await seconds(6.0)
+	check(hints.seen("esquivar"), "levou um golpe: como esquivar")
+	var count: int = (Game.flags.get("dicas", []) as Array).size()
+	hints.want("andar")
+	await seconds(6.0)
+	check((Game.flags.get("dicas", []) as Array).size() == count, "cada dica aparece uma vez só")
+	Settings.hints = false
+	level.player.stats.set_health(level.player.stats.max_health * 0.3)
+	await seconds(6.0)
+	check(not hints.seen("curar"), "dicas desligadas nas Opções: nenhuma")
+	Settings.hints = saved
+	level.queue_free()
+	await frames(2)
 

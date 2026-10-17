@@ -9,13 +9,14 @@ var _menu: VBoxContainer
 var _new_game_button: Button
 var _continue_button: Button
 var _notice: Label
+var _options: OptionsMenu
 var _confirm_new := false
 var _time := 0.0
 
 
 func _ready() -> void:
 	_build()
-	Sfx.play_ambience(&"amb_theater", -16.0)
+	Sfx.play_ambience(&"tema_alexandria", -8.0)
 
 
 func _build() -> void:
@@ -79,7 +80,13 @@ func _build() -> void:
 	_new_game_button = UIStyle.button("Novo jogo", 11)
 	_new_game_button.pressed.connect(_on_new_game)
 	_menu.add_child(_new_game_button)
+	var options_button := UIStyle.button("Opções", 11)
+	options_button.pressed.connect(_open_options)
+	_menu.add_child(options_button)
 	UIStyle.focus_first(_menu.get_children())
+	_options = OptionsMenu.new()
+	add_child(_options)
+	_options.closed.connect(func(): options_button.grab_focus())
 
 	_notice = UIStyle.label("", 8, Color(0.95, 0.6, 0.55))
 	_notice.set_anchors_preset(Control.PRESET_CENTER)
@@ -91,7 +98,7 @@ func _build() -> void:
 	_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_notice)
 
-	var footer := UIStyle.label("Protótipo jogável · Godot 4.7 · Complexo das Cápsulas · Teatro Alexandria · Cidade Estilhaçada · Praça do Detentor", 7, UIStyle.TEXT_DIM)
+	var footer := UIStyle.label(_footer_text(), 7, UIStyle.TEXT_DIM)
 	footer.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	footer.offset_left = -240
 	footer.offset_right = 240
@@ -99,6 +106,20 @@ func _build() -> void:
 	footer.offset_bottom = -4
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(footer)
+
+
+func _open_options() -> void:
+	_options.open()
+
+
+## Versão do jogo e, para quem já terminou, quais finais viu (lidos do save).
+func _footer_text() -> String:
+	var text := "Alexandria %s · Godot 4" % str(ProjectSettings.get_setting("application/config/version", ""))
+	var seen: Array = Game.endings_seen()
+	if not seen.is_empty():
+		var names := seen.map(func(k): return {"proteger": "Proteger", "destruir": "Destruir"}.get(k, k))
+		text += " · Finais vistos: %s" % ", ".join(names)
+	return text
 
 
 func _process(delta: float) -> void:

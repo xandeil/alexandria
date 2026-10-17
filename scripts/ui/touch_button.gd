@@ -27,6 +27,8 @@ func _ready() -> void:
 
 ## Posiciona pelo CENTRO (mais intuitivo para círculos).
 func place_at(center: Vector2) -> void:
+	custom_minimum_size = Vector2.ONE * radius * 2.0  # o raio pode mudar (Opções)
+	size = custom_minimum_size
 	position = center - Vector2.ONE * radius
 
 

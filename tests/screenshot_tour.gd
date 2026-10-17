@@ -17,6 +17,7 @@ func _ready() -> void:
 			only = arg.substr(7)
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	Game.persistence_enabled = false
+	Settings.persistence_enabled = false  # nunca grava opções no aparelho de quem roda os testes
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do passeio
 	if only == "raizes":
 		await _tour_roots()
@@ -36,6 +37,10 @@ func _ready() -> void:
 		return
 	if only == "nucleo":
 		await _tour_core()
+		Game.quit_game()
+		return
+	if only == "opcoes":
+		await _tour_options()
 		Game.quit_game()
 		return
 	if only != "bosque":
@@ -1169,4 +1174,25 @@ func _tour_core() -> void:
 		await open("res://scenes/ui/ending.tscn")
 		await wait(5.5)
 		await shot("n10_final_%s" % kind)
+
+
+func _tour_options() -> void:
+	var title := await open("res://scenes/ui/title_screen.tscn")
+	await wait(1.0)
+	await shot("o01_titulo")
+	title._open_options()
+	await wait(0.4)
+	await shot("o02_opcoes")
+	Game.reset_progress()
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/cidade.tscn") as Level
+	await wait(3.5)
+	await shot("o03_dica_andar")
+	Settings.button_size = "Grandes"
+	Settings.apply()
+	await wait(0.3)
+	await shot("o04_botoes_grandes")
+	Settings.button_size = "Médios"
+	Settings.apply()
+	level.queue_free()
 

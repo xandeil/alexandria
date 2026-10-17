@@ -40,6 +40,7 @@ func _ready() -> void:
 	sanity_button = _make_button(&"sanity", ICON_SANITY, 13.0, "", Color(0.9, 0.95, 1.0))
 	block_button = _make_button(&"block", ICON_BLOCK, 17.0, "", Color(0.75, 0.8, 0.95))
 	get_viewport().size_changed.connect(_layout)
+	Settings.changed.connect(_layout)  # Opções: botões pequenos, médios ou grandes
 	Game.sanity_flasks_changed.connect(func(_c: int): _refresh_sanity())
 	Game.vision_changed.connect(func(_v: int): _refresh_sanity())
 	Game.items_changed.connect(_refresh_block)
@@ -81,6 +82,7 @@ func _make_button(action: StringName, icon: Texture2D, radius: float, label: Str
 	button.action = action
 	button.icon = icon
 	button.radius = radius
+	button.set_meta(&"base_radius", radius)
 	button.label_text = label
 	button.accent = accent
 	_root.add_child(button)
@@ -88,16 +90,22 @@ func _make_button(action: StringName, icon: Texture2D, radius: float, label: Str
 
 
 ## Posições relativas ao canto inferior direito + área segura (entalhe/notch).
+## O tamanho escolhido nas Opções escala raio E distâncias (o desenho não muda).
 func _layout() -> void:
 	var view := get_viewport().get_visible_rect().size
 	var safe := _safe_margins(view)
 	var corner := Vector2(view.x - safe.y, view.y)
-	attack_button.place_at(corner + Vector2(-40, -44))
-	dash_button.place_at(corner + Vector2(-90, -28))
-	heal_button.place_at(corner + Vector2(-82, -84))
-	sanity_button.place_at(corner + Vector2(-36, -100))
-	block_button.place_at(corner + Vector2(-132, -62))
-	joystick.rest_position = Vector2(safe.x + 52, view.y - 52)
+	var k := Settings.button_scale()
+	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button]:
+		button.radius = float(button.get_meta(&"base_radius", button.radius)) * k
+		button.queue_redraw()
+	attack_button.place_at(corner + Vector2(-40, -44) * k)
+	dash_button.place_at(corner + Vector2(-90, -28) * k)
+	heal_button.place_at(corner + Vector2(-82, -84) * k)
+	sanity_button.place_at(corner + Vector2(-36, -100) * k)
+	block_button.place_at(corner + Vector2(-132, -62) * k)
+	joystick.max_radius = 28.0 * k
+	joystick.rest_position = Vector2(safe.x + 52 * k, view.y - 52 * k)
 	joystick._reset()
 
 

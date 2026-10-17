@@ -20,6 +20,7 @@ var inventory_menu: InventoryMenu
 var touch: TouchControls
 ## Cena curta rodando (acordar, lembrança, queda): sem pausa por cima dela.
 var cutscene := false
+var hints: TutorialHints
 
 var _player: Player
 var _bars: StatusBars
@@ -98,6 +99,10 @@ func bind_player(player: Player) -> void:
 	player.grab_progress.connect(_on_grab_progress)
 	touch.bind_player(player)
 	pause_menu.player = player
+	hints = TutorialHints.new()
+	hints.show_hint = _toast_after_title
+	add_child(hints)
+	hints.bind(player)
 
 
 func _process(delta: float) -> void:

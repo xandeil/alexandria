@@ -1,12 +1,13 @@
 class_name PauseMenu
 extends CanvasLayer
-## Menu de pausa: continuar, inventário, vibração, voltar ao título.
+## Menu de pausa: continuar, inventário, opções, voltar ao título.
 
 ## O HUD entrega o inventário e o herói (a pausa não cria nem procura nada).
 var inventory_menu: InventoryMenu
 var player: Player
 
-var _vibration_button: Button
+var _options_button: Button
+var _options: OptionsMenu
 var _resume_button: Button
 var _inventory_button: Button
 
@@ -35,12 +36,9 @@ func _ready() -> void:
 	_inventory_button = UIStyle.button("Inventário")
 	_inventory_button.pressed.connect(_open_inventory)
 	box.add_child(_inventory_button)
-	_vibration_button = UIStyle.button("")
-	_vibration_button.pressed.connect(func():
-		Game.vibration_enabled = not Game.vibration_enabled
-		Game.save_game()
-		_refresh())
-	box.add_child(_vibration_button)
+	_options_button = UIStyle.button("Opções")
+	_options_button.pressed.connect(_open_options)
+	box.add_child(_options_button)
 	var title_button := UIStyle.button("Voltar ao título")
 	title_button.pressed.connect(func():
 		close()
@@ -50,7 +48,6 @@ func _ready() -> void:
 
 
 func open() -> void:
-	_refresh()
 	visible = true
 	get_tree().paused = true
 	_resume_button.grab_focus()  # teclado/controle: Enter já continua
@@ -76,11 +73,21 @@ func _open_inventory() -> void:
 		_inventory_button.grab_focus()
 
 
-func _refresh() -> void:
-	_vibration_button.text = "Vibração: %s" % ("ligada" if Game.vibration_enabled else "desligada")
+## As opções abrem por cima da pausa; fechando, volta para cá.
+## (Criadas na primeira vez, ao lado da pausa — não DENTRO dela: esconder a
+## pausa não pode esconder as opções.)
+func _open_options() -> void:
+	if _options == null:
+		_options = OptionsMenu.new()
+		get_parent().add_child(_options)
+	visible = false
+	_options.open()
+	await _options.closed
+	visible = true
+	_options_button.grab_focus()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed(&"pause"):
+	if visible and not (_options and _options.is_open()) and event.is_action_pressed(&"pause"):
 		close()
 		get_viewport().set_input_as_handled()

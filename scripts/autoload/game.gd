@@ -113,7 +113,6 @@ var attributes := {}
 var defeated_bosses: Array[String] = []
 var rest_scene := START_SCENE
 var rest_spawn := START_SPAWN
-var vibration_enabled := true
 ## Inventário: id do item → quantidade. Os frascos NÃO moram aqui (têm regras
 ## próprias acima); o menu os mostra "de mentira", lendo os contadores.
 var inventory := {}
@@ -634,7 +633,6 @@ func _to_dict() -> Dictionary:
 		"defeated_bosses": defeated_bosses.duplicate(),
 		"rest_scene": rest_scene,
 		"rest_spawn": rest_spawn,
-		"vibration": vibration_enabled,
 		"criancas_feridas": criancas_feridas,
 		"prologue_done": prologue_done,
 		"spared_child": spared_child,
@@ -664,7 +662,8 @@ func _from_dict(data: Dictionary) -> void:
 			defeated_bosses.append(str(boss))
 	rest_scene = str(data.get("rest_scene", START_SCENE))
 	rest_spawn = str(data.get("rest_spawn", START_SPAWN))
-	vibration_enabled = bool(data.get("vibration", true))
+	if data.has("vibration"):  # saves antigos: a vibração agora mora nas Opções do aparelho
+		Settings.import_legacy_vibration(bool(data["vibration"]))
 	criancas_feridas = maxi(int(data.get("criancas_feridas", 0)), 0)
 	# MIGRAÇÃO: um save da versão 1 é de antes do Prólogo existir — aquele jogo
 	# já começou no Teatro, então o prólogo conta como feito.
@@ -741,6 +740,15 @@ func respawn() -> void:
 	clear_carry()
 	pending_spawn = rest_spawn
 	_change_scene(rest_scene, 0.9)
+
+
+## Os finais já vistos (lidos do save no disco; o título mostra antes de carregar).
+func endings_seen() -> Array:
+	if session_active:
+		return flags.get("finais_vistos", [])
+	var data := _read_save(save_path)
+	var saved_flags: Variant = data.get("flags", {})
+	return (saved_flags as Dictionary).get("finais_vistos", []) if saved_flags is Dictionary else []
 
 
 ## A escolha no Núcleo: grava qual final (e quais já foram vistos) e mostra o final.

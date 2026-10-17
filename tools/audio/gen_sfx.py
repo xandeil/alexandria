@@ -455,6 +455,44 @@ def main() -> None:
     pad_tone = (np.sin(2 * np.pi * 220 * t) + 0.5 * np.sin(2 * np.pi * 277.2 * t) + 0.4 * np.sin(2 * np.pi * 329.6 * t)) * 0.05 * (0.6 + 0.4 * np.sin(2 * np.pi * t / 6))
     save_loop("amb_core", beat + pad_tone + bandpass(noise(s), 500, 2500) * 0.02, 0.4)
 
+    # Tema do titulo (no fim, pelo mesmo motivo): Am - F - C - G, arpejo lento de harpa,
+    # uma melodia de sino por cima e um pad baixo. 32 s, em loop.
+    print("Tema")
+    def pluck(freq, seconds, decay):
+        t = t_axis(seconds)
+        tone = np.sin(2 * np.pi * freq * t) + 0.35 * np.sin(4 * np.pi * freq * t) + 0.12 * np.sin(6 * np.pi * freq * t)
+        return tone * env_exp(seconds, decay, 0.004)
+    def note(name):
+        names = {"A": -12, "B": -10, "C": -9, "D": -7, "E": -5, "F": -4, "G": -2}
+        base = names[name[0]] + 12 * (int(name[-1]) - 4)
+        return 440.0 * 2 ** (base / 12)
+    chords = [["A2", "E3", "A3", "C4", "E4", "C4", "A3", "E3"],
+              ["F2", "C3", "F3", "A3", "C4", "A3", "F3", "C3"],
+              ["C3", "G3", "C4", "E4", "G4", "E4", "C4", "G3"],
+              ["G2", "D3", "G3", "B3", "D4", "B3", "G3", "D3"]] * 2
+    melody = {0: "E5", 3: "D5", 4: "C5", 7: "A4", 8: "G4", 11: "C5", 12: "E5", 14: "D5",
+              16: "E5", 19: "G5", 20: "F5", 22: "E5", 24: "E5", 27: "D5", 28: "D5", 30: "B4"}
+    total = 32.0
+    song = np.zeros(int(SR * total))
+    beat = 0.5
+    for c, chord in enumerate(chords):
+        for i, n in enumerate(chord):
+            start = int((c * 4.0 + i * beat) * SR)
+            tone = pluck(note(n), 2.2, 0.55) * 0.18
+            end = min(len(song), start + len(tone))
+            song[start:end] += tone[: end - start]
+        root = note(chord[0])
+        pad_t = t_axis(4.0)
+        pad_tone = (np.sin(2 * np.pi * root * pad_t) + 0.5 * np.sin(2 * np.pi * root * 1.5 * pad_t)) * env_swell(4.0, 0.5) * 0.07
+        start = int(c * 4.0 * SR)
+        song[start:start + len(pad_tone)] += pad_tone[: len(song) - start]
+    for step, n in melody.items():
+        start = int(step * 1.0 * SR)
+        bell_tone = (pluck(note(n), 2.5, 0.8) + 0.3 * pluck(note(n) * 2.01, 2.5, 0.4)) * 0.13
+        end = min(len(song), start + len(bell_tone))
+        song[start:end] += bell_tone[: end - start]
+    save_loop("tema_alexandria", lowpass(song, 5000), 0.6)
+
 
 if __name__ == "__main__":
     main()
