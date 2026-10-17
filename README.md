@@ -388,7 +388,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-79 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+88 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3
