@@ -191,6 +191,8 @@ func _ready() -> void:
 		"test_settings",
 		"test_options_menu",
 		"test_tutorial_hints",
+		"test_release_secrets_stay_out",
+		"test_version_consistency",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -3956,4 +3958,49 @@ func test_tutorial_hints() -> void:
 	Settings.hints = saved
 	level.queue_free()
 	await frames(2)
+
+
+# --- Publicação ------------------------------------------------------------------------
+
+## A chave de PUBLICAÇÃO e a senha dela nunca podem morar no projeto (nem no
+## Git, nem no zip). Só a chave de depuração do projeto (pública) pode.
+func test_release_secrets_stay_out() -> void:
+	var keys: Array[String] = []
+	_collect_keys("res://", keys)
+	check(keys == ["res://keystore/debug.keystore"], "só a chave de depuração está no projeto (%s)" % [keys])
+	var presets := FileAccess.get_file_as_string("res://export_presets.cfg")
+	for line in presets.split("\n"):
+		var clean := line.strip_edges()
+		if clean.begins_with("keystore/release") and not clean.ends_with("=\"\""):
+			check(false, "export_presets.cfg guarda a chave/senha de publicação: %s" % clean.get_slice("=", 0))
+	check(presets.contains("name=\"Android AAB\"") and presets.contains("gradle_build/export_format=1"), "existe o preset do AAB (Play Store)")
+
+
+func _collect_keys(path: String, out: Array[String]) -> void:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return
+	dir.include_hidden = false
+	for sub in dir.get_directories():
+		if sub in [".godot", ".git", "build", "android"]:
+			continue
+		_collect_keys(path.path_join(sub), out)
+	for file in dir.get_files():
+		if file.ends_with(".keystore") or file.ends_with(".jks"):
+			out.append(path.path_join(file).replace("res:///", "res://"))
+
+
+## A versão do jogo aparece em três lugares; os três têm de concordar.
+func test_version_consistency() -> void:
+	var version := str(ProjectSettings.get_setting("application/config/version"))
+	var presets := FileAccess.get_file_as_string("res://export_presets.cfg")
+	var names := []
+	var codes := []
+	for line in presets.split("\n"):
+		if line.begins_with("version/name="):
+			names.append(line.get_slice("=", 1).trim_prefix("\"").trim_suffix("\""))
+		if line.begins_with("version/code="):
+			codes.append(int(line.get_slice("=", 1)))
+	check(names.size() == 2 and names.all(func(n): return n == version), "versão igual no projeto e nos presets (%s / %s)" % [version, names])
+	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == int(version.get_slice(".", 1)), "versionCode acompanha a versão (%s)" % [codes])
 

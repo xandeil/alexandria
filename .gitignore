@@ -13,3 +13,5 @@ build/
 !keystore/debug.keystore
 # Cache do Python (ferramentas de arte/som)
 __pycache__/
+# Modelo de build Android (Gradle) instalado pelo build_release (--aab): é gerado
+android/

@@ -188,17 +188,46 @@ desenvolvedor → Depuração USB*. Então:
 
 ## Versão "release" (para publicar)
 
-O APK de depuração serve para testar. Para a Play Store você vai precisar de
-uma chave sua (guarde-a muito bem — sem ela não dá para atualizar o app):
+O APK de depuração serve para testar. Para a Play Store você precisa de uma
+**chave de publicação sua** — e ela tem regras:
+
+- **Fica FORA da pasta do projeto.** Nunca no Git, nunca no zip do projeto. (O
+  teste `test_release_secrets_stay_out` falha se aparecer qualquer chave que não seja
+  `keystore/debug.keystore` dentro do projeto.)
+- **A senha não fica escrita em lugar nenhum** — nem no comando, nem em arquivo.
+  Os scripts perguntam na hora e apagam do ambiente ao terminar.
+- **Sem ela você não publica atualizações.** Faça 2 cópias de segurança (pendrive +
+  nuvem pessoal criptografada) e guarde a senha num gerenciador de senhas.
+
+### 1) Criar a chave (uma vez na vida do app)
 
 ```powershell
-& "$env:JAVA_HOME\bin\keytool.exe" -genkeypair -v -keystore alexandria-release.keystore -alias alexandria -keyalg RSA -keysize 2048 -validity 10000
-$env:GODOT_ANDROID_KEYSTORE_RELEASE_PATH = "C:\gamedev\alexandria-release.keystore"
-$env:GODOT_ANDROID_KEYSTORE_RELEASE_USER = "alexandria"
-$env:GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD = "sua-senha"
-& $GODOT --headless --path . --export-release "Android" build\alexandria-release.apk
+powershell -ExecutionPolicy Bypass -File .\tools\criar_chave_release.ps1
+# cria em %USERPROFILE%\chaves-android\alexandria-release.keystore (o script recusa dentro do projeto)
 ```
+Linux/macOS: `bash tools/criar_chave_release.sh`
 
-A Play Store exige **AAB** em vez de APK: isso pede o "Gradle build" do Godot
-(Projeto → Instalar modelo de build Android + NDK). Fica para quando o jogo
-estiver perto de publicar.
+### 2) Compilar o APK e o AAB de publicação
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build_release.ps1 -Chave "$env:USERPROFILE\chaves-android\alexandria-release.keystore" -Aab
+```
+Linux/macOS: `CHAVE=~/chaves-android/alexandria-release.keystore bash build_release.sh --aab`
+
+- `build/alexandria-release.apk`: instale no celular e jogue antes de enviar.
+- `build/alexandria.aab`: é o que vai para a Play Console.
+- O AAB usa o **Gradle build** do Godot. Na primeira vez o script instala o modelo
+  de build Android na pasta `android/` (fica fora do Git) — isso exige o Android SDK
+  completo (com `build-tools` e `platforms`) e baixa o Gradle, então leva alguns
+  minutos. Se der erro de SDK, abra o projeto no editor do Godot uma vez
+  (Projeto → Instalar modelo de build Android) e rode de novo.
+
+### 3) Loja
+
+Textos, ícone 512, imagem de destaque, capturas, classificação indicativa e a
+política de privacidade estão em `docs/loja/` (leia o `LEIA-ME.md` de lá — tem um
+checklist final).
+
+> **Play App Signing:** na primeira publicação, a Play Console oferece guardar a
+> chave de assinatura final no Google. Aceite: a sua chave vira a "chave de upload"
+> e, se um dia você a perder, dá para pedir uma nova ao suporte.

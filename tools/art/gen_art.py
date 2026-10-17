@@ -294,6 +294,12 @@ def main() -> None:
         rect(bg, 0, y, 432, y + 1, mix(P.SKY_TOP, P.SKY_BOTTOM, y / 432))
     save(bg, "assets/icon/icon_background.png")
 
+    print("Loja (Play Store)")
+    os.makedirs(os.path.join(ROOT, "docs/loja"), exist_ok=True)
+    store_icon = canvas(32, 32)
+    paste(store_icon, PR.app_icon_island(32), 0, 0)
+    save(upscale(store_icon, 16), "docs/loja/icone_512.png")  # 512x512, exigido pela Play Console
+
     print("Paleta (docs)")
     swatches = [getattr(P, n) for n in dir(P) if n.isupper() and isinstance(getattr(P, n), tuple)]
     sheet = canvas(16 * 12, 16 * ((len(swatches) + 11) // 12))

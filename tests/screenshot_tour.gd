@@ -39,6 +39,16 @@ func _ready() -> void:
 		await _tour_core()
 		Game.quit_game()
 		return
+	if only == "loja":
+		var title := await open("res://scenes/ui/title_screen.tscn")
+		title._menu.visible = false
+		for child in title.get_children():
+			if child is Label and (child as Label).text.begins_with("Alexandria "):
+				child.visible = false  # o rodapé com a versão não vai para a loja
+		await wait(1.5)
+		await shot("loja_titulo")
+		Game.quit_game()
+		return
 	if only == "opcoes":
 		await _tour_options()
 		Game.quit_game()
