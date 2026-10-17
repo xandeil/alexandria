@@ -59,6 +59,15 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `z` `s` `^` `?` | Autômato de Bronze, Torreta de Faísca, Minerador Oco, Imitador | — |
 | `U` `0` | mini-chefes: O Protótipo, O Guardião da Âncora | — |
 | `/` | Durgan Vell (`arena_durgan.txt`) | — |
+| **Montanha Carbonizada** (tema "montanha") | | |
+| `.` `,` `g` `;` | cinza, basalto, mato queimado, entulho | não |
+| `k` `:` | rachadura em brasa, ossos (decoração) | não |
+| `~` | lava (sólida, com margem) | sim |
+| `(` `)` `[` `]` | árvore queimada, costelas, crânio de dragão (2 células), espinho de obsidiana | árvore/crânio/espinho |
+| `z` `s` `^` `?` | Dragonoide Atirador, Dragão Bestial, Dragão Alado, Brasas Vivas (2) | — |
+| `U` `0` | mini-chefes: O Capitão Dragonoide, A Matriarca Bestial | — |
+| `/` | Rachel, dormindo no Ninho (`arena_rachel.txt`) | — |
+| `Q` | aqui é um **pilar de rocha** (segura o hálito; o rugido derruba) | sim, até quebrar |
 | `@` | item no chão; QUAL item vem de `item_points` no nó da fase, na ordem de leitura (`"escudo_remendado"`, `"sucata_temperada:2"`) — pego uma vez, não volta | não |
 | `X` `x` `f` `L` `c` `K` | barricada, entulho, fogo, poste, caixote, carro destruído | variam |
 | `G` | portão do Detentor do Caos: falar com ele leva à arena do Aldir | sim |

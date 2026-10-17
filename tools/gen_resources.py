@@ -303,6 +303,45 @@ ATTACKS = {
                             recovery_time=0.8, track_until=0.6, reach=16.0, radius=28.0,
                             slash_arc_degrees=200.0, slash_radius=34.0, slash_color=(0.8, 0.85, 0.7, 0.9),
                             hitstop=0.08, shake=3.0, sound="&swing_heavy"),
+    # Montanha Carbonizada --------------------------------------------------------------
+    "atirador_baioneta": dict(display_name="Coronha de fogo", damage=14.0, poise_damage=16.0, knockback=140.0,
+                              windup_time=0.4, lunge_speed=110.0, lunge_time=0.08, active_time=0.08, recovery_time=0.5,
+                              track_until=0.6, reach=13.0, radius=11.0, slash_arc_degrees=110.0, slash_radius=16.0,
+                              slash_color=(1.0, 0.7, 0.4, 0.9), sound="&swing"),
+    "bestial_investida": dict(display_name="Investida", damage=22.0, poise_damage=34.0, knockback=220.0, is_heavy=True,
+                              windup_time=0.05, lunge_speed=330.0, lunge_time=0.42, active_time=0.06, recovery_time=0.5,
+                              active_during_lunge=True, track_until=0.0, reach=14.0, radius=13.0,
+                              slash_arc_degrees=0.0, slash_radius=16.0, slash_color=(1.0, 0.8, 0.6, 0.9),
+                              sound="&hooves"),
+    "bestial_mordida": dict(display_name="Mordida", damage=16.0, poise_damage=18.0, knockback=110.0,
+                            windup_time=0.45, lunge_speed=160.0, lunge_time=0.1, active_time=0.08, recovery_time=0.55,
+                            track_until=0.6, reach=16.0, radius=13.0, slash_arc_degrees=70.0, slash_radius=18.0,
+                            slash_color=(1.0, 0.75, 0.7, 0.9), sound="&chomp"),
+    "matriarca_investida": dict(display_name="Investida da Matriarca", damage=32.0, poise_damage=50.0, knockback=260.0,
+                                is_heavy=True, windup_time=0.05, lunge_speed=360.0, lunge_time=0.5, active_time=0.06,
+                                recovery_time=0.6, active_during_lunge=True, track_until=0.0, reach=22.0, radius=22.0,
+                                slash_arc_degrees=0.0, slash_radius=26.0, slash_color=(1.0, 0.8, 0.6, 0.9),
+                                hitstop=0.08, shake=5.0, sound="&hooves"),
+    "matriarca_mordida": dict(display_name="Mordida da Matriarca", damage=26.0, poise_damage=34.0, knockback=170.0,
+                              is_heavy=True, windup_time=0.6, lunge_speed=150.0, lunge_time=0.12, active_time=0.1,
+                              recovery_time=0.8, track_until=0.6, reach=26.0, radius=20.0, slash_arc_degrees=80.0,
+                              slash_radius=28.0, slash_color=(1.0, 0.75, 0.7, 0.95), hitstop=0.08, shake=4.0,
+                              sound="&chomp"),
+    "capitao_escudada": dict(display_name="Escudada", damage=18.0, poise_damage=40.0, knockback=230.0, is_heavy=True,
+                             windup_time=0.55, lunge_speed=200.0, lunge_time=0.14, active_time=0.08, recovery_time=0.7,
+                             active_during_lunge=True, track_until=0.6, reach=16.0, radius=15.0,
+                             slash_arc_degrees=90.0, slash_radius=20.0, slash_color=(0.9, 0.8, 0.6, 0.9),
+                             hitstop=0.07, shake=3.0, sound="&clang"),
+    "rachel_garra": dict(display_name="Garra", damage=30.0, poise_damage=40.0, knockback=210.0, is_heavy=True,
+                         windup_time=0.65, lunge_speed=120.0, lunge_time=0.12, active_time=0.1, recovery_time=0.55,
+                         combo_window=0.2, track_until=0.6, reach=34.0, radius=30.0, slash_arc_degrees=130.0,
+                         slash_radius=40.0, slash_color=(1.0, 0.6, 0.35, 0.95), hitstop=0.09, shake=5.0,
+                         sound="&swing_heavy"),
+    "rachel_mordida": dict(display_name="Mordida do Dragão", damage=38.0, poise_damage=55.0, knockback=240.0,
+                           is_heavy=True, windup_time=0.5, lunge_speed=200.0, lunge_time=0.14, active_time=0.1,
+                           recovery_time=1.0, track_until=0.5, reach=36.0, radius=24.0, slash_arc_degrees=70.0,
+                           slash_radius=36.0, slash_color=(1.0, 0.5, 0.3, 0.95), hitstop=0.1, shake=6.0,
+                           sound="&chomp"),
 }
 
 # --- Os Sete Pecados (da Bíblia) ------------------------------------------------------------
@@ -353,7 +392,7 @@ BOSSES = {
     "rachel": dict(
         id="rachel", display_name="Rachel Azheryon Caelis", title="O Orgulho do Céu", sin="Orgulho", sin_meaning="Domínio",
         race="Dragão ígneo", attribute="Fogo", area="Montanha Carbonizada (Ninho dos Dragões)", scaling="Magia",
-        suggested_order="5ª", memory_reward=1800,
+        suggested_order="5ª", memory_reward=1800, implemented=True,
         unique_mechanic="Arena que desmorona aos poucos, encolhendo o espaço seguro; rugidos derrubam estruturas.",
         phases=["Fase única — Domínio: hálito de fogo massivo, golpes de cauda que quebram o chão, rugidos que desestabilizam, arena desmoronando."],
         history="No continente de origem, os outros dragões a ignoravam. Ao encontrar Alexandria não viu beleza, viu posse. Queimou cidades, começando pela de Aldir, e fez seu ninho no topo da montanha. Dorme sobre as ruínas do mundo.",
@@ -440,6 +479,22 @@ BOSSES = {
         phases=["Corrente (leque enorme), pilão (círculo + raio nas placas em volta), vapor (núcleo exposto)."],
         history="Os irmãos Vell forjaram as Âncoras que prendem as ilhas ao núcleo. Esta máquina guarda uma delas. Destruí-la faz a ilha tremer.",
         meaning="Abre o caminho até Durgan."),
+    "capitao": dict(
+        id="capitao", display_name="O Capitão Dragonoide", title="Mini-chefe da Montanha Carbonizada", sin="Mini-chefe",
+        sin_meaning="Orgulho", race="Dragonoide", attribute="Fogo", area="Montanha Carbonizada", scaling="—",
+        suggested_order="1º mini-chefe da Montanha", memory_reward=750, implemented=True,
+        unique_mechanic="Alterna escudo enorme (quase nada passa pela frente) e lança-chamas (sem escudo, mas o chão pega fogo).",
+        phases=["Escudo: anda devagar e dá escudadas; ataque pelas costas.", "Troca: um instante sem nada nas mãos — a janela.", "Chamas: varre um cone de fogo que deixa o chão queimando."],
+        history="Os servos de Rachel eram lagartos das cavernas até ela os tocar. O Capitão foi o primeiro a se ajoelhar e o último a sair da porta do ninho.",
+        meaning="Ensina a ler a troca de postura antes da Rachel."),
+    "matriarca": dict(
+        id="matriarca", display_name="A Matriarca Bestial", title="Mini-chefe da Montanha Carbonizada", sin="Mini-chefe",
+        sin_meaning="Orgulho", race="Dragão bestial", attribute="Fogo", area="Montanha Carbonizada", scaling="—",
+        suggested_order="2º mini-chefe da Montanha", memory_reward=800, implemented=True,
+        unique_mechanic="Investidas em linha reta e pisoteios que abrem buracos no chão; quem bate na parede fica tonta.",
+        phases=["Investida (linha no chão), mordida de perto, pisoteio (círculo) que abre buracos — a arena vai ficando menor."],
+        history="Os dragões menores nunca voaram. Rachel os deixou viver no sopé para lembrar a si mesma o que ela não é.",
+        meaning="Antecipa a arena que encolhe."),
     "cavaleiro": dict(
         id="cavaleiro", display_name="O Cavaleiro Desolado", title="Guardião do Núcleo", sin="—", sin_meaning="Proteção que virou prisão",
         race="?", attribute="?", area="O Núcleo", scaling="—", suggested_order="Final", memory_reward=0,
@@ -493,6 +548,8 @@ ITEMS = {
         description="Ela alimentava todo mundo. Quando ninguém mais precisou comer, provou a humanidade líquida e sentiu o primeiro beijo de um guarda, o aniversário de uma criança. Não parou mais.\nGula é tentar se encher com a vida dos outros porque a própria ficou vazia."),
     "lembranca_durgan": dict(display_name="Lembrança: Inveja · Querer ser o outro", kind=3, max_stack=1, icon="res://assets/items/lembranca_durgan.png",
         description="Dois irmãos forjaram as Âncoras. O nome de um ficou nas placas. O outro fazia igual, às vezes melhor, e ninguém via — então passou a copiar todo mundo.\nInveja é querer ser o outro até não sobrar você."),
+    "lembranca_rachel": dict(display_name="Lembrança: Orgulho · Domínio", kind=3, max_stack=1, icon="res://assets/items/lembranca_rachel.png",
+        description="No continente de onde veio, os outros dragões não olhavam para ela. Aqui, todo mundo olhou: de baixo, enquanto a cidade queimava.\nOrgulho é domínio sem arrependimento."),
     "lembranca_helena": dict(display_name="Lembrança: Luxúria · Apego", kind=3, max_stack=1, icon="res://assets/items/lembranca_helena.png",
         description="Ela e o marido eram os melhores agentes. Na invasão, um deles saiu do posto.\nLuxúria aqui é apego: não aceitar a perda."),
 }
@@ -597,6 +654,21 @@ def main() -> None:
     write("assets/sprites/durgan_frames.tres", sprite_frames("res://assets/sprites/durgan.png", 32, 32, 10,
           {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "idle2": ([4], 5.0), "walk2": ([4, 5, 6, 7], 8.0),
            "bebe": ([8], 1.0), "guarda": ([9], 1.0)}))
+    write("assets/sprites/dragonoide_atirador_frames.tres", sprite_frames("res://assets/sprites/dragonoide_atirador.png", 24, 24, 4,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 8.0)}))
+    write("assets/sprites/dragao_bestial_frames.tres", sprite_frames("res://assets/sprites/dragao_bestial.png", 32, 24, 6,
+          {"idle": ([0, 2], 2.0), "walk": ([0, 1, 2, 3], 8.0), "investida": ([4], 1.0), "morde": ([5], 1.0)}))
+    write("assets/sprites/dragao_alado_frames.tres", sprite_frames("res://assets/sprites/dragao_alado.png", 32, 24, 4,
+          {"voa": ([0, 1], 8.0), "mergulho": ([2], 1.0), "chao": ([3], 1.0)}))
+    write("assets/sprites/brasa_viva_frames.tres", sprite_frames("res://assets/sprites/brasa_viva.png", 16, 16, 3,
+          {"idle": ([0, 1, 2], 8.0), "walk": ([0, 1, 2], 12.0)}))
+    write("assets/sprites/capitao_dragonoide_frames.tres", sprite_frames("res://assets/sprites/capitao_dragonoide.png", 32, 32, 5,
+          {"escudo": ([0], 1.0), "escudo_anda": ([1, 0, 2, 0], 6.0), "troca": ([3], 1.0), "chamas": ([4], 1.0)}))
+    write("assets/sprites/matriarca_bestial_frames.tres", sprite_frames("res://assets/sprites/matriarca_bestial.png", 64, 48, 5,
+          {"idle": ([0], 1.0), "walk": ([0, 1], 4.0), "ergue": ([2], 1.0), "investida": ([3], 1.0), "morde": ([4], 1.0)}))
+    write("assets/sprites/rachel_frames.tres", sprite_frames("res://assets/sprites/rachel.png", 96, 72, 8,
+          {"dorme": ([0], 1.0), "idle": ([1], 1.0), "walk": ([1, 2], 3.0), "prepara": ([3], 1.0), "fogo": ([4], 1.0),
+           "cauda": ([5], 1.0), "ruge": ([6], 1.0), "garra": ([7], 1.0)}))
     governess = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "abraco": ([4], 1.0), "grito": ([5], 1.0)}
     write("assets/sprites/governanta_frames.tres", sprite_frames("res://assets/sprites/governanta_body.png", 32, 40, 6, governess))
     write("assets/sprites/governanta_solto_frames.tres", sprite_frames("res://assets/sprites/governanta_solto.png", 32, 40, 6, governess))

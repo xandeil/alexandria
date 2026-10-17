@@ -49,7 +49,7 @@ governo subiram com a ilha e ainda estão nela ✅ (Soldados Remendados).
 | 4 (dir.) | Bosque do Sono Eterno ✅ | Preguiça — Nyssa Lumevel ✅ | floresta, lagos, cachoeiras | 2ª |
 | 4 (esq.) | Raízes da Fome ✅ | Gula — Mabel Vorágine ✅ | raízes vermelhas retorcidas | 3ª |
 | 5 | Forjas Ocas ✅ | Inveja — Durgan Vell ✅ | ruínas de pedra com torres | 4ª |
-| 3 | Montanha Carbonizada | Orgulho — Rachel Azheryon Caelis | vulcão com lava | 5ª |
+| 3 | Montanha Carbonizada ✅ | Orgulho — Rachel Azheryon Caelis ✅ | vulcão com lava | 5ª |
 | 2 | Domínio Congelado | Ganância — Cassian Virel | cidade de cristais de gelo | 6ª |
 | 7 | O Núcleo | Chefe final — o Cavaleiro Desolado | ilha mais alta, jardim com ruínas | final |
 
@@ -158,7 +158,7 @@ Fichas completas em `data/bosses/*.tres` (uma por chefe).
 |---|---|---|---|---|---|
 | Luxúria | Helena Altiva, A Cavaleira Desolada ✅ | humana | destreza | três fases; última sem armadura, dano altíssimo | Destreza |
 | Ira | Aldir Cornélios, O Detentor do Caos ✅ | humano | força | arena destrutível: martelo abre buracos e derruba coberturas | Força |
-| Orgulho | Rachel Azheryon Caelis, O Orgulho do Céu | dragão ígneo | fogo | arena que desmorona aos poucos | Magia |
+| Orgulho | Rachel Azheryon Caelis, O Orgulho do Céu ✅ | dragão ígneo | fogo | arena que desmorona aos poucos | Magia |
 | Ganância | Cassian Virel, O Arconte do Zero | humano | gelo | rouba estamina e congela partes da arena | Magia |
 | Inveja | Durgan Vell, O Eco de Bronze ✅ | anão | raio | copia os ataques que o jogador mais usou | Fé |
 | Gula | Mabel Vorágine, A Fome Que Lembra ✅ | giganta | sangue | agarra, engole e drena memórias; regenera comendo lacaios | Sorte |
@@ -228,7 +228,11 @@ Cada ilha: 3–4 inimigos comuns e 2 mini-chefes (o 1º ensina a mecânica, o 2�
 - Autômato de Bronze ✅ (rosto do Ferreiro; corte leve a 70%, golpe forte inteiro; às vezes dois golpes) · Torreta de Faísca ✅ (acende a trilha de placas até o herói e em volta dele) · Minerador Oco ✅ (três picaretadas, a terceira pesada) · Imitador ✅ (o seu equipamento; copia golpe, dash, escudo e frasco)
 - Mini-chefes ✅: O Protótipo (o seu corte leve em sequências de 1–3 e o seu dash) · O Guardião da Âncora (carcaça 30%; depois de dois ataques, núcleo exposto 180%; corrente em leque e pilão que acende as placas; vencido, a ilha treme e a porta abre na hora)
 
-**Montanha Carbonizada (Orgulho):** Dragonoide Atirador · Dragão Bestial · Dragão Alado Menor · Brasa Viva · mini: O Capitão Dragonoide, A Matriarca Bestial.
+**Montanha Carbonizada (Orgulho):** sopé de floresta queimada, ossário de dragões, rio de lava com pontes de basalto, acampamento do Capitão e a caldeira da Matriarca ✅ (cenário; ponte levadiça no alto da Cidade, desce depois de Durgan). O Ninho: arena oval com seis pilares de rocha.
+- Sistema da área ✅: **fogo no chão** (`FirePatch`: queima um pouco a cada 0,5 s, sem cambalear; o dash passa). Bolas de fogo (`Projectile` com `fire`), o lança-chamas, o hálito e a Brasa deixam chamas.
+- Dragonoide Atirador ✅ (guarda distância; rajada de 3 bolas de fogo; coronhada de perto) · Dragão Bestial ✅ (investida em linha que trava; tonto na parede; mordida) · Dragão Alado Menor ✅ (intocável no ar; mergulho anunciado; cospe fogo e fica no chão um instante) · Brasa Viva ✅ (persegue, incha e estoura; apagada a tempo, cancela)
+- Mini-chefes ✅: O Capitão Dragonoide (escudo de frente 10% × costas 100%; lança-chamas em cone que incendeia; a troca de postura é a única hora em que cambaleia) · A Matriarca Bestial (investida que deixa tonta na parede; pisoteio que abre buracos — a arena encolhe; guarda a trilha do Ninho)
+- Rachel ✅: hálito em varredura (relógio próprio; para na pedra), rugido (anel que o dash atravessa; derruba os pilares), cauda em quem fica atrás (quebra o chão), a borda desaba em 75/50/25% da vida. Vencida: escama, Lembrança "Orgulho · Domínio", falas novas do Vendedor Dragonoide.
 
 **Domínio Congelado (Ganância):** Bibliotecário de Gelo · Estátua Viva · Ácaro de Cristal · Aprendiz Arcano · mini: A Curadora de Vitrines, O Golem do Arquivo.
 

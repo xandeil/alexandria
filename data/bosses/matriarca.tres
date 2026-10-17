@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "matriarca"
+display_name = "A Matriarca Bestial"
+title = "Mini-chefe da Montanha Carbonizada"
+sin = "Mini-chefe"
+sin_meaning = "Orgulho"
+race = "Dragão bestial"
+attribute = "Fogo"
+area = "Montanha Carbonizada"
+scaling = "—"
+suggested_order = "2º mini-chefe da Montanha"
+memory_reward = 800
+implemented = true
+unique_mechanic = "Investidas em linha reta e pisoteios que abrem buracos no chão; quem bate na parede fica tonta."
+phases = Array[String](["Investida (linha no chão), mordida de perto, pisoteio (círculo) que abre buracos — a arena vai ficando menor."])
+history = "Os dragões menores nunca voaram. Rachel os deixou viver no sopé para lembrar a si mesma o que ela não é."
+meaning = "Antecipa a arena que encolhe."

@@ -534,5 +534,105 @@
 				"acao": ""
 			}
 		]
+	},
+	"ponte_levadica": {
+		"nome": "Ponte levadiça",
+		"falas": [
+			"Uma ponte levadiça de ferro, erguida, presa por correntes de bronze.",
+			"O mecanismo é coisa de anão: engrenagens finas, um selo com duas iniciais. Enquanto a forja lá de cima não esfriar, a trava não cede.",
+			"Do outro lado, uma montanha solta fumaça. O vento traz cinza e cheiro de osso queimado."
+		]
+	},
+	"porta_ninho": {
+		"nome": "Trilha do Ninho",
+		"falas": [
+			"Uma trilha estreita sobe para o topo, entre paredes de rocha derretida.",
+			"Algo enorme está deitado atravessado no caminho, respirando fumaça: a Matriarca guarda a subida."
+		]
+	},
+	"sope_queimado": {
+		"nome": "Árvore queimada",
+		"falas": [
+			"A floresta inteira virou carvão de uma vez. As árvores ainda estão de pé, na posição em que o fogo as pegou.",
+			"Na casca de uma delas, alguém escreveu com a unha: “ela veio do céu e ninguém olhou para cima a tempo”."
+		]
+	},
+	"ossario": {
+		"nome": "Ossário",
+		"falas": [
+			"Crânios de dragão, dezenas. Nenhum tem marca de luta.",
+			"Os servos dizem que eram os que olharam para ela de igual para igual. Rachel não gosta de iguais."
+		]
+	},
+	"acampamento_capitao": {
+		"nome": "Estandarte queimado",
+		"falas": [
+			"Um estandarte com uma escama vermelha pintada. Embaixo, uma lista de nomes riscados, todos em letra de dragonoide.",
+			"No fim, sem riscar: “Capitão. Fica na porta. Não deixa ninguém subir.”"
+		]
+	},
+	"trilha_ninho": {
+		"nome": "Marca de garra",
+		"falas": [
+			"Marcas de garra fundas na rocha, uma em cima da outra, como quem conta os dias.",
+			"Ela desce até aqui só para lembrar a montanha de quem ela é."
+		]
+	},
+	"o_ninho": {
+		"nome": "O Ninho",
+		"falas": [
+			"O topo da montanha. O chão é feito do que sobrou das cidades: telhas, sinos, portões, um brinquedo derretido.",
+			"Pilares de rocha seguram o que resta. O resto da borda já está cedendo."
+		]
+	},
+	"escama_de_rachel": {
+		"nome": "Escama do Orgulho",
+		"falas": [
+			"Uma escama do tamanho de um escudo, ainda quente. Por baixo, a pele era mais clara, quase de filhote.",
+			"No continente de onde veio, ninguém olhava para ela. Aqui, todo mundo olhou — de baixo, enquanto a cidade queimava."
+		]
+	},
+	"vendedor_capitao": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"O Capitão caiu? ...Eu servia na tropa dele, antes de ter uma loja.",
+			"Ele me deixou ir embora. Disse que alguém precisava vender coisas que não pegassem fogo."
+		],
+		"opcoes": [
+			{
+				"texto": "Comprar Frasco de Sanidade (150)",
+				"acao": "comprar_sanidade"
+			},
+			{
+				"texto": "Comprar Sucata Temperada (200)",
+				"acao": "comprar_sucata"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"vendedor_rachel": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"Ela não está mais lá em cima. Dá para sentir: o ar ficou mais leve.",
+			"Ela nos fez com um toque, sabia? De lagartos de caverna. Eu nunca soube se devia agradecer.",
+			"...Acho que vou começar a vender mais barato. Só um pouco."
+		],
+		"opcoes": [
+			{
+				"texto": "Comprar Frasco de Sanidade (150)",
+				"acao": "comprar_sanidade"
+			},
+			{
+				"texto": "Comprar Sucata Temperada (200)",
+				"acao": "comprar_sucata"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
 	}
 }

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Mordida do Dragão"
+stamina_cost = 0.0
+damage = 38.0
+poise_damage = 55.0
+knockback = 240.0
+is_heavy = true
+windup_time = 0.5
+lunge_speed = 200.0
+lunge_time = 0.14
+active_time = 0.1
+recovery_time = 1.0
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.5
+reach = 36.0
+radius = 24.0
+hitstop = 0.1
+shake = 6.0
+slash_arc_degrees = 70.0
+slash_radius = 36.0
+slash_color = Color(1.0, 0.5, 0.3, 0.95)
+sound = &"chomp"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

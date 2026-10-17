@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Mordida da Matriarca"
+stamina_cost = 0.0
+damage = 26.0
+poise_damage = 34.0
+knockback = 170.0
+is_heavy = true
+windup_time = 0.6
+lunge_speed = 150.0
+lunge_time = 0.12
+active_time = 0.1
+recovery_time = 0.8
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.6
+reach = 26.0
+radius = 20.0
+hitstop = 0.08
+shake = 4.0
+slash_arc_degrees = 80.0
+slash_radius = 28.0
+slash_color = Color(1.0, 0.75, 0.7, 0.95)
+sound = &"chomp"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

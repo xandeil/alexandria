@@ -151,6 +151,8 @@ def cidade() -> str:
     return g.text()
 
 
+# AVISO: teatro.txt e cidade.txt foram editados à mão depois (portas ' e >).
+# Rodar este script de novo desfaz essas portas — edite os .txt direto.
 def main() -> None:
     os.makedirs(os.path.join(ROOT, "levels"), exist_ok=True)
     for name, text in (("teatro", teatro()), ("cidade", cidade())):

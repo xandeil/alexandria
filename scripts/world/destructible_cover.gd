@@ -15,6 +15,9 @@ signal destroyed(cover: DestructibleCover)
 const TEXTURE := preload("res://assets/props/cover.png")
 
 @export var max_health := 70.0
+## Aparência própria de cada ilha (3 quadros: inteira, rachada, quebrada).
+## Vazio = o concreto da Cidade. Na Montanha, são rochas.
+@export var texture_override: Texture2D
 
 var health := 70.0
 var broken := false
@@ -36,7 +39,7 @@ func _ready() -> void:
 	_shape.position = Vector2(0, -5)
 	add_child(_shape)
 	_sprite = Sprite2D.new()
-	_sprite.texture = TEXTURE
+	_sprite.texture = texture_override if texture_override else TEXTURE
 	_sprite.hframes = 3
 	_sprite.offset = Vector2(0, -11)
 	add_child(_sprite)

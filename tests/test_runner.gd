@@ -44,6 +44,15 @@ const MINERADOR_SCENE := preload("res://scenes/enemies/minerador_oco.tscn")
 const IMITADOR_SCENE := preload("res://scenes/enemies/imitador.tscn")
 const PROTOTIPO_SCENE := preload("res://scenes/bosses/prototipo.tscn")
 const GUARDIAO_SCENE := preload("res://scenes/bosses/guardiao_ancora.tscn")
+const CIDADE := "res://scenes/world/cidade.tscn"
+const MONTANHA := "res://scenes/world/montanha.tscn"
+const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
+const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
+const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
+const ALADO_SCENE := preload("res://scenes/enemies/dragao_alado.tscn")
+const BRASA_SCENE := preload("res://scenes/enemies/brasa_viva.tscn")
+const CAPITAO_SCENE := preload("res://scenes/bosses/capitao_dragonoide.tscn")
+const MATRIARCA_SCENE := preload("res://scenes/bosses/matriarca_bestial.tscn")
 ## Os testes gravam num arquivo próprio: o seu save de verdade nunca é tocado.
 const TEST_SAVE := "user://teste_automatico_save.json"
 
@@ -141,6 +150,15 @@ func _ready() -> void:
 		"test_anchor_guardian",
 		"test_forge_gate_and_smith",
 		"test_durgan_fight",
+		"test_fire_patch_and_ember_shot",
+		"test_dragonoid_shooter",
+		"test_beast_charge_and_daze",
+		"test_wyvern_dive",
+		"test_living_ember",
+		"test_dragonoid_captain",
+		"test_beast_matriarch",
+		"test_mountain_gate",
+		"test_rachel_fight",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -2785,7 +2803,9 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN]:
+	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL]:
+		if path == MONTANHA:
+			Game.defeated_bosses.append("durgan")
 		var level := await open_level(path, "porta")
 		check(level.player != null and level.spawns.has("porta"), "%s: herói chega pela porta" % path)
 		var leaks := _find_open_edges(level)
@@ -2800,6 +2820,16 @@ func test_new_areas_build() -> void:
 					kinds[(node.get_script() as Script).get_global_name()] = true
 			for name in ["AutomatoBronze", "TorretaFaisca", "MineradorOco", "Imitador", "Prototipo", "GuardiaoAncora", "RestChamber"]:
 				check(kinds.has(name), "Forjas: tem %s" % name)
+		if path == MONTANHA:
+			var found := {}
+			for node in level.entities.get_children():
+				if node.get_script():
+					found[(node.get_script() as Script).get_global_name()] = true
+			for name in ["DragonoideAtirador", "DragaoBestial", "DragaoAlado", "BrasaViva", "CapitaoDragonoide", "MatriarcaBestial", "RestChamber"]:
+				check(found.has(name), "Montanha: tem %s" % name)
+		if path == ARENA_RACHEL:
+			check(level.boss_arena != null and level.boss_arena.boss is RachelCaelis, "O Ninho: Rachel")
+			check(get_tree().get_nodes_in_group("covers").size() == 6, "O Ninho: seis pilares de rocha")
 		if path == ARENA_DURGAN:
 			check(level.boss_arena != null and level.boss_arena.boss is DurganVell, "Forja do Eco: Durgan")
 			check(not level.boss_arena.arena_rect.has_point(level.player.global_position), "Forja do Eco: chega no corredor")
@@ -3045,7 +3075,8 @@ func test_durgan_fight() -> void:
 	await seconds(0.3)
 	check(not is_instance_valid(automaton) or automaton.dead, "os rostos de bronze caem")
 	await seconds(2.2)
-	check(not durgan.hurtbox.invulnerable and durgan.phase_label() == "O Reflexo", "fase 2 começa")
+	# (Não olha a invulnerabilidade: ele pode já estar no meio de um dash, com i-frames.)
+	check(durgan.mode != DurganVell.Mode.TRANSITION and durgan.phase_label() == "O Reflexo", "fase 2 começa")
 	# Peso = contagem + 1: quem só dá golpe forte, apanha de golpe forte.
 	durgan.counts = {&"leve": 0, &"forte": 40, &"dash": 0, &"escudo": 0, &"cura": 0}
 	var heavy := 0
@@ -3082,3 +3113,260 @@ func test_durgan_fight() -> void:
 	check(find_npc("chave_de_durgan") != null, "a chave-martelo fica onde ele caiu")
 	level.queue_free()
 	await frames(2)
+
+
+# --- Montanha Carbonizada ------------------------------------------------------------
+
+## Fogo no chão: queima aos poucos quem fica em cima; o dash (i-frames) passa ileso.
+func test_fire_patch_and_ember_shot() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	var patch := FirePatch.spawn(_world, player.global_position, 14.0, 1.2, 10.0)
+	await seconds(0.6)
+	check(player.stats.health < hp and player.state != Player.State.STAGGER, "em cima do fogo: queima (sem cambalear)")
+	player.global_position += Vector2(80, 0)
+	hp = player.stats.health
+	await seconds(0.6)
+	check(player.stats.health == hp, "fora do fogo: nada")
+	await seconds(0.3)
+	check(not is_instance_valid(patch), "a chama apaga sozinha")
+	# A bola de fogo deixa chamas onde bate.
+	var shot := Projectile.launch(_world, Vector2(100, 200), Vector2.RIGHT, null, 10.0, 200.0, 60.0, true)
+	check(shot.ember, "bola de fogo (brasa)")
+	await seconds(0.5)
+	check(not get_tree().get_nodes_in_group("fire_patches").is_empty(), "onde a bola de fogo para, o chão pega fogo")
+
+
+func test_dragonoid_shooter() -> void:
+	var player := spawn_player(Vector2(300, 200))
+	var shooter := spawn_enemy_scene(ATIRADOR_DRAGAO_SCENE, Vector2(190, 200)) as DragonoideAtirador
+	player._iframes_left = 999.0
+	await seconds(0.3)
+	check(shooter.ai == DragonoideAtirador.AI.AIM, "viu: mira (linha)")
+	var embers := [0]
+	for i in 90:
+		await frames(1)
+		for node in get_tree().get_nodes_in_group("projectiles"):
+			if (node as Projectile).ember:
+				embers[0] = maxi(embers[0], get_tree().get_nodes_in_group("projectiles").size())
+	check(embers[0] >= 2, "rajada de bolas de fogo (%d no ar)" % embers[0])
+	# Colado nele: coronhada e pulo para trás.
+	player.global_position = shooter.global_position + Vector2(14, 0)
+	shooter._cooldown = 0.0
+	shooter._set_ai(DragonoideAtirador.AI.KEEP)
+	await frames(3)
+	check(shooter.ai == DragonoideAtirador.AI.MELEE, "colado: coronhada")
+
+
+func test_beast_charge_and_daze() -> void:
+	var player := spawn_player(Vector2(260, 200))
+	add_wall(Rect2(300, 120, 16, 160))
+	var beast := spawn_enemy_scene(BESTIAL_SCENE, Vector2(160, 200)) as DragaoBestial
+	await seconds(0.3)
+	check(beast.ai == DragaoBestial.AI.AIM, "abaixa a cabeça: linha de investida")
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	var deadline := 3.0
+	while beast.ai != DragaoBestial.AI.DAZED and deadline > 0.0:
+		await frames(2)
+		deadline -= 2.0 / 60.0
+	check(player.stats.health < hp, "a investida atropela quem fica na linha")
+	check(beast.ai == DragaoBestial.AI.DAZED, "bateu na parede: tonto")
+	check(beast.get_collision_mask_value(2), "depois da investida volta a colidir com o herói")
+
+
+func test_wyvern_dive() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var wyvern := spawn_enemy_scene(ALADO_SCENE, Vector2(240, 180)) as DragaoAlado
+	player._iframes_left = 999.0
+	await seconds(0.3)
+	check(wyvern.ai == DragaoAlado.AI.CIRCLE and not wyvern.is_targetable() and wyvern.hurtbox.invulnerable, "no ar: intocável")
+	wyvern._ai_time = 99.0
+	await frames(2)
+	check(wyvern.ai == DragaoAlado.AI.DIVE and wyvern.telegraph.circle_visible, "mergulho anunciado (círculo)")
+	await seconds(wyvern.dive_warning + 0.05)
+	check(wyvern.ai == DragaoAlado.AI.GROUND and wyvern.is_targetable(), "pousou: a janela para cortar")
+	await seconds(wyvern.ground_time * 0.5)
+	check(not get_tree().get_nodes_in_group("fire_patches").is_empty(), "cospe fogo à frente")
+	await seconds(wyvern.ground_time)
+	check(wyvern.ai == DragaoAlado.AI.TAKEOFF or wyvern.ai == DragaoAlado.AI.CIRCLE, "levanta voo")
+
+
+func test_living_ember() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var ember := spawn_enemy_scene(BRASA_SCENE, Vector2(260, 200)) as BrasaViva
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	var deadline := 3.0
+	while ember.ai != BrasaViva.AI.IGNITE and deadline > 0.0:
+		await frames(1)
+		deadline -= 1.0 / 60.0
+	check(ember.ai == BrasaViva.AI.IGNITE, "chegou perto: incha")
+	var bursts := get_tree().get_nodes_in_group("flesh_bursts")
+	check(bursts.size() == 1 and (bursts[0] as FleshBurst).style == "fogo", "círculo de aviso (versão fogo)")
+	await seconds(ember.ignite_time + 0.1)
+	check(player.stats.health < hp and not is_instance_valid(ember), "estourou e sumiu")
+	check(not get_tree().get_nodes_in_group("fire_patches").is_empty(), "deixou fogo no chão")
+	# Apagada antes de estourar: sem explosão.
+	for node in get_tree().get_nodes_in_group("fire_patches"):
+		node.queue_free()
+	player.stats.revive()
+	var second := spawn_enemy_scene(BRASA_SCENE, Vector2(260, 200)) as BrasaViva
+	deadline = 3.0
+	while second.ai != BrasaViva.AI.IGNITE and deadline > 0.0:
+		await frames(1)
+		deadline -= 1.0 / 60.0
+	second.stats.take_damage(999.0)
+	await frames(3)
+	check(get_tree().get_nodes_in_group("flesh_bursts").is_empty(), "apagada a golpe: a explosão é cancelada")
+
+
+func test_dragonoid_captain() -> void:
+	var player := spawn_player(Vector2(140, 200))
+	var captain := spawn_mini(CAPITAO_SCENE, Vector2(220, 200)) as CapitaoDragonoide
+	player._iframes_left = 999.0
+	await seconds(0.3)
+	check(captain.active and captain.mode == CapitaoDragonoide.Mode.SHIELD, "acorda de escudo")
+	captain.facing = Vector2.LEFT
+	var front := HitInfo.create(20.0, captain.global_position + Vector2(-20, 0), captain.global_position)
+	var back := HitInfo.create(20.0, captain.global_position + Vector2(20, 0), captain.global_position)
+	check(is_equal_approx(captain._incoming_damage_multiplier(front), captain.shield_ratio), "de frente: o escudo segura")
+	check(is_equal_approx(captain._incoming_damage_multiplier(back), 1.0), "pelas costas: entra inteiro")
+	captain._mode_time = captain.shield_time
+	await frames(2)
+	check(captain.mode == CapitaoDragonoide.Mode.SWAP and captain._can_be_staggered(), "a troca de postura: a janela")
+	await seconds(captain.swap_time + 0.05)
+	check(captain.mode == CapitaoDragonoide.Mode.FLAME, "lança-chamas")
+	player.global_position = captain.global_position + Vector2(-50, 0)
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	await seconds(0.8)
+	check(captain.in_flame(player.global_position) and player.stats.health < hp, "no cone de fogo: queima")
+	check(not get_tree().get_nodes_in_group("fire_patches").is_empty(), "o chão pega fogo")
+	captain.stats.take_damage(99999.0)
+	await seconds(0.5)
+	check(Game.is_boss_defeated("capitao"), "vencido")
+
+
+func test_beast_matriarch() -> void:
+	var player := spawn_player(Vector2(176, 200))
+	var mother := spawn_mini(MATRIARCA_SCENE, Vector2(200, 200)) as MatriarcaBestial
+	player._iframes_left = 0.0
+	await seconds(0.2)
+	check(mother.active, "acorda")
+	var hp := player.stats.health
+	mother.stomp()
+	await frames(2)
+	check(player.stats.health < hp, "pisoteio: quem está perto apanha")
+	check(mother.pits.size() == mother.pits_per_stomp, "o chão cede (%d buracos)" % mother.pits.size())
+	# Investida contra a parede: tonta.
+	player.stats.revive()
+	player._iframes_left = 999.0
+	add_wall(Rect2(330, 100, 16, 200))
+	mother.global_position = Vector2(150, 200)
+	player.global_position = Vector2(270, 200)
+	mother._aim = Vector2.RIGHT
+	mother._set_mode(MatriarcaBestial.Mode.AIM)
+	var deadline := 3.0
+	while mother.mode != MatriarcaBestial.Mode.DAZED and deadline > 0.0:
+		await frames(2)
+		deadline -= 2.0 / 60.0
+	check(mother.mode == MatriarcaBestial.Mode.DAZED and mother._can_be_staggered(), "bateu na parede: tonta")
+	mother.stats.take_damage(99999.0)
+	await seconds(0.5)
+	check(Game.is_boss_defeated("matriarca") and mother.pits.is_empty(), "vencida: os buracos fecham")
+
+
+func test_mountain_gate() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
+	var level := await open_level(CIDADE, "porta")
+	check(find_npc("ponte_levadica") != null, "antes de Durgan: a ponte levadiça está erguida")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("durgan")
+	level = await open_level(CIDADE, "porta")
+	var to_mountain := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha"):
+			to_mountain = true
+	check(to_mountain and level.spawns.has("lateral"), "depois de Durgan: a ponte baixa")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(MONTANHA, "porta")
+	var back := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("cidade") and (node as AreaExit).target_spawn == "lateral":
+			back = true
+	check(back, "a Montanha leva de volta à ponte da Cidade")
+	check(find_npc("porta_ninho") != null, "antes da Matriarca: a trilha do Ninho está fechada")
+	check(level._dialogue_variant("vendedor") == "vendedor_mabel", "o Vendedor ainda fala de Mabel")
+	Game.defeated_bosses.append("capitao")
+	check(level._dialogue_variant("vendedor") == "vendedor_capitao", "depois do Capitão: o Vendedor lembra da tropa")
+	Game.defeated_bosses.append("rachel")
+	check(level._dialogue_variant("vendedor") == "vendedor_rachel" and not DialogueData.get_entry("vendedor_rachel").get("opcoes", []).is_empty(), "depois de Rachel: fala dela (e ainda vende)")
+	level.queue_free()
+	await frames(2)
+
+
+func test_rachel_fight() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "matriarca"])
+	var level := await open_level(ARENA_RACHEL, "porta")
+	var rachel := level.boss_arena.boss as RachelCaelis
+	check(rachel.mode == RachelCaelis.Mode.SLEEP, "ela dorme no ninho")
+	var said := []
+	rachel.speech.connect(func(text: String): said.append(text))
+	level.player.global_position = rachel.global_position + Vector2(0, 110)
+	level.player._iframes_left = 999.0
+	await seconds(0.5)
+	check(rachel.active and not said.is_empty() and said[0] == RachelCaelis.SPEECH_WAKE, "acordou")
+	# O hálito para na pedra: atrás do pilar, seguro.
+	var cover: DestructibleCover = null
+	for node in get_tree().get_nodes_in_group("covers"):
+		if cover == null or (node as Node2D).global_position.distance_to(rachel.global_position) < cover.global_position.distance_to(rachel.global_position):
+			cover = node
+	var dir := (cover.global_position - rachel._mouth()).normalized()
+	var stop := rachel.breath_hit_point(dir)
+	check(stop.distance_to(rachel._mouth()) < cover.global_position.distance_to(rachel._mouth()) + 8.0, "o fogo para na pedra")
+	# Hálito em quem está na frente.
+	level.player.global_position = rachel.global_position + Vector2(0, 70)
+	level.player._iframes_left = 0.0
+	var hp := level.player.stats.health
+	rachel._go_decide(99.0)
+	rachel.start_breath()
+	rachel._breath_from = (level.player.global_position - rachel._mouth()).angle()
+	rachel._breath_to = rachel._breath_from
+	await seconds(rachel.breath_windup + 0.5)
+	check(level.player.stats.health < hp, "o hálito queima")
+	level.player.global_position = rachel.global_position + Vector2(-110, 90)  # sai da linha (senão morre)
+	await seconds(rachel.breath_time)
+	check(not get_tree().get_nodes_in_group("fire_patches").is_empty(), "o chão fica em chamas")
+	# Rugido: as pedras caem.
+	level.player.stats.revive()
+	level.player._iframes_left = 999.0
+	rachel._go_decide(99.0)
+	var pillars := get_tree().get_nodes_in_group("covers")
+	rachel.roar()
+	await frames(3)
+	var broken := 0
+	for node in pillars:
+		if (node as DestructibleCover).broken:
+			broken += 1
+	check(broken >= 1, "o rugido derruba pilares (%d)" % broken)
+	# A cada quarto de vida, a borda desaba.
+	rachel.stats.set_health(rachel.stats.max_health * 0.7)
+	await frames(3)
+	check(rachel.crumbled == 1 and not rachel.edge_pits.is_empty(), "a borda cede (%d buracos)" % rachel.edge_pits.size())
+	# Cauda: quem está atrás.
+	rachel.facing = Vector2.UP
+	level.player.global_position = rachel.global_position + Vector2(0, 30)
+	rachel._go_decide(0.0)
+	await frames(2)
+	check(rachel.mode == RachelCaelis.Mode.TAIL, "atrás dela: a cauda")
+	rachel.stats.take_damage(99999.0)
+	await seconds(1.0)
+	check(Game.is_boss_defeated("rachel") and Game.has_item("lembranca_rachel"), "vencida: a Lembrança do Orgulho")
+	level.queue_free()
+	await frames(2)
+

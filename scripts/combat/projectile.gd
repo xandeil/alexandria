@@ -10,6 +10,7 @@ extends Node2D
 ## por dentro dele.
 
 const BULLET := preload("res://assets/fx/bala.png")
+const EMBER := preload("res://assets/fx/bola_de_fogo.png")
 
 var direction := Vector2.RIGHT
 var speed := 150.0
@@ -19,6 +20,8 @@ var max_distance := 320.0
 ## Raio em que o tiro acerta o herói.
 var hit_radius := 7.0
 var source: Node2D
+## Bola de fogo (dragonoides): outra textura e, onde bate, um pouco de fogo no chão.
+var ember := false
 
 var _traveled := 0.0
 var _done := false
@@ -26,8 +29,9 @@ var _sprite: Sprite2D
 
 
 static func launch(parent: Node, from: Vector2, dir: Vector2, owner_node: Node2D, shot_damage: float,
-		shot_speed: float, distance: float) -> Projectile:
+		shot_speed: float, distance: float, fire: bool = false) -> Projectile:
 	var shot := Projectile.new()
+	shot.ember = fire
 	shot.direction = dir.normalized() if dir != Vector2.ZERO else Vector2.RIGHT
 	shot.source = owner_node
 	shot.damage = shot_damage
@@ -42,7 +46,7 @@ func _ready() -> void:
 	add_to_group("projectiles")  # o escudo do herói se vira para balas chegando
 	z_index = 6
 	_sprite = Sprite2D.new()
-	_sprite.texture = BULLET
+	_sprite.texture = EMBER if ember else BULLET
 	_sprite.material = Fx.unshaded  # brasa: brilha no escuro
 	_sprite.position = Vector2(0, -8)  # na altura do peito, não no chão
 	add_child(_sprite)
@@ -82,7 +86,7 @@ func _try_hit_player() -> void:
 	var info := HitInfo.create(damage, global_position - direction * 6.0, player.global_position)
 	info.knockback = knockback
 	info.source = source
-	info.attack_name = "Tiro"
+	info.attack_name = "Bola de fogo" if ember else "Tiro"
 	if player.hurtbox.receive_hit(info):  # i-frames do dash: o tiro passa direto
 		_impact(true)
 
@@ -91,6 +95,8 @@ func _impact(spark: bool) -> void:
 	_done = true
 	if spark:
 		Fx.sparks(global_position + Vector2(0, -8), -direction, Color(1.0, 0.75, 0.4), 6)
+	if ember:
+		FirePatch.spawn(get_parent(), global_position, 10.0, 1.6, 8.0, source)
 	queue_free()
 
 

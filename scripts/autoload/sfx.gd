@@ -71,6 +71,10 @@ const LIBRARY := {
 	&"mirror": "res://assets/sfx/mirror.wav",
 	&"quake": "res://assets/sfx/quake.wav",
 	&"amb_forge": "res://assets/sfx/amb_forge.wav",
+	&"fireball": "res://assets/sfx/fireball.wav",
+	&"fire_breath": "res://assets/sfx/fire_breath.wav",
+	&"wing": "res://assets/sfx/wing.wav",
+	&"amb_volcano": "res://assets/sfx/amb_volcano.wav",
 }
 const POOL_SIZE := 12
 

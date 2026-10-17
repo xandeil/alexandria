@@ -393,3 +393,31 @@ DURGAN_BEARD = (150, 120, 84)
 DURGAN_BEARD_DARK = (104, 80, 56)
 MINER_SKIN = (150, 144, 134)
 MINER_SKIN_DARK = (112, 106, 98)
+
+# --- Montanha Carbonizada (Orgulho — Rachel) ------------------------------------------
+# Mapa do mundo, ilha 3: vulcao, lava escorrendo, rocha escura. Biblia: "Florestas
+# queimadas, ossos de dragoes, cavernas fundas e cinza no ar."
+ASH = (96, 90, 86)
+ASH_DARK = (70, 66, 64)
+ASH_LIGHT = (128, 120, 112)
+CHAR = (44, 38, 36)
+BASALT = (66, 58, 60)
+BASALT_DARK = (44, 38, 42)
+BASALT_LIGHT = (92, 82, 84)
+# EMBER / EMBER_DARK: os mesmos da Cidade (definidos la em cima).
+BONE = (222, 212, 190)
+BONE_DARK = (166, 154, 132)
+SCALE_ARMOR = (54, 44, 46)
+SCALE_ARMOR_LIGHT = (96, 76, 72)
+SERVANT = (150, 70, 52)  # dragonoides de Rachel: escamas cor de ferrugem
+SERVANT_DARK = (106, 46, 38)
+SERVANT_LIGHT = (196, 108, 76)
+BEAST = (118, 92, 70)
+BEAST_DARK = (84, 64, 50)
+BEAST_LIGHT = (156, 124, 94)
+RACHEL = (152, 34, 30)
+RACHEL_DARK = (92, 18, 22)
+RACHEL_LIGHT = (214, 82, 50)
+RACHEL_BELLY = (232, 176, 96)
+RACHEL_HORN = (46, 34, 34)
+RACHEL_WING = (110, 26, 30)

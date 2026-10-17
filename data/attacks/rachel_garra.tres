@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Garra"
+stamina_cost = 0.0
+damage = 30.0
+poise_damage = 40.0
+knockback = 210.0
+is_heavy = true
+windup_time = 0.65
+lunge_speed = 120.0
+lunge_time = 0.12
+active_time = 0.1
+recovery_time = 0.55
+combo_window = 0.2
+active_during_lunge = false
+track_until = 0.6
+reach = 34.0
+radius = 30.0
+hitstop = 0.09
+shake = 5.0
+slash_arc_degrees = 130.0
+slash_radius = 40.0
+slash_color = Color(1.0, 0.6, 0.35, 0.95)
+sound = &"swing_heavy"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

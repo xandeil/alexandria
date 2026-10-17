@@ -15,6 +15,7 @@ area = "Montanha Carbonizada (Ninho dos Dragões)"
 scaling = "Magia"
 suggested_order = "5ª"
 memory_reward = 1800
+implemented = true
 unique_mechanic = "Arena que desmorona aos poucos, encolhendo o espaço seguro; rugidos derrubam estruturas."
 phases = Array[String](["Fase única — Domínio: hálito de fogo massivo, golpes de cauda que quebram o chão, rugidos que desestabilizam, arena desmoronando."])
 history = "No continente de origem, os outros dragões a ignoravam. Ao encontrar Alexandria não viu beleza, viu posse. Queimou cidades, começando pela de Aldir, e fez seu ninho no topo da montanha. Dorme sobre as ruínas do mundo."

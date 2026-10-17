@@ -15,6 +15,10 @@ darkness = Color(0.86, 0.8, 0.82, 1)
 outdoor = true
 exit_scene = "res://scenes/world/teatro.tscn"
 exit_spawn = "porta"
+exit2_scene = "res://scenes/world/montanha.tscn"
+exit2_spawn = "porta"
+exit2_requires = "durgan"
+exit2_locked_dialogue = "ponte_levadica"
 item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]

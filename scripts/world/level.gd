@@ -41,6 +41,11 @@ extends Node2D
 ##           ) engrenagens  [ prensa  ] estátua de bronze   z Autômato de Bronze
 ##           s Torreta de Faísca  ^ Minerador Oco  ? Imitador  U O Protótipo
 ##           0 O Guardião da Âncora  / Durgan Vell
+##   Montanha Carbonizada: ~ lava  , basalto  g mato queimado  k rachadura em brasa  : ossos
+##           ( árvore queimada  ) costelas  [ crânio de dragão  ] espinho de obsidiana
+##           z Dragonoide Atirador  s Dragão Bestial  ^ Dragão Alado  ? Brasas Vivas (2)
+##           U O Capitão Dragonoide  0 A Matriarca Bestial  / Rachel (no ninho)
+##           Q pilar de rocha (cobertura destrutível)
 
 const TILE := 16
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
@@ -79,6 +84,16 @@ const THEME_ENTITIES := {
 			"name": "Chave-martelo", "texture": "res://assets/sprites/durgan_chave.png", "rotation": -0.5,
 			"at_death": true}},
 	},
+	"montanha": {
+		"z": {"enemy": preload("res://scenes/enemies/dragonoide_atirador.tscn")},
+		"s": {"enemy": preload("res://scenes/enemies/dragao_bestial.tscn")},
+		"^": {"enemy": preload("res://scenes/enemies/dragao_alado.tscn")},
+		"?": {"enemy": preload("res://scenes/enemies/brasa_viva.tscn"), "swarm": 2},
+		"U": {"miniboss": "capitao", "scene": preload("res://scenes/bosses/capitao_dragonoide.tscn")},
+		"0": {"miniboss": "matriarca", "scene": preload("res://scenes/bosses/matriarca_bestial.tscn")},
+		"/": {"boss": preload("res://scenes/bosses/rachel.tscn"), "memorial": {"dialogue": "escama_de_rachel",
+			"name": "Escama do Orgulho", "texture": "res://assets/props/scale_memorial.png", "at_death": true}},
+	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
@@ -95,6 +110,13 @@ const THEME_PROPS := {
 		"[": {"tex": "res://assets/props/press.png", "box": Vector2(28, 9), "dx": 8,
 			"light": [Color(1.0, 0.55, 0.25), 0.5, 0.5, Vector2(0, -6)]},
 		"]": {"tex": "res://assets/props/bronze_statue.png", "box": Vector2(14, 6)},
+	},
+	"montanha": {
+		"(": {"tex": "res://assets/props/burnt_tree.png", "box": Vector2(8, 6)},
+		")": {"tex": "res://assets/props/ribcage.png"},
+		"[": {"tex": "res://assets/props/dragon_skull.png", "box": Vector2(22, 8), "dx": 8},
+		"]": {"tex": "res://assets/props/obsidian_spike.png", "box": Vector2(10, 6),
+			"light": [Color(1.0, 0.45, 0.2), 0.4, 0.4, Vector2(0, -2)]},
 	},
 }
 ## Mini-chefes do mapa: caractere → [id na ficha BossData, cena].
@@ -216,6 +238,27 @@ const THEMES := {
 		"shore": Vector2i(1, 2),
 		"cliff_under_walls": true,
 	},
+	"montanha": {
+		"floor": {
+			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
+			",": [Vector2i(3, 0), Vector2i(3, 0), Vector2i(2, 2)], "g": [Vector2i(4, 0), Vector2i(3, 2)],
+			";": [Vector2i(5, 0)], "k": [Vector2i(6, 0)], ":": [Vector2i(7, 0)],
+			"_": [Vector2i(3, 0)],
+		},
+		"default_floor": ".",
+		"wall_top": Vector2i(0, 1),
+		"wall_face": [Vector2i(1, 1), Vector2i(1, 1), Vector2i(1, 1), Vector2i(2, 1)],
+		"arch": Vector2i(3, 1),
+		"cliff": Vector2i(4, 1),
+		"cliff_low": Vector2i(5, 1),
+		"barrier": Vector2i(6, 1),
+		# Rios de lava: sólidos (e brilham). Quem cair... não cai: não dá para entrar.
+		"solid": {"~": [Vector2i(7, 1), Vector2i(7, 1), Vector2i(0, 2)]},
+		"shore": Vector2i(1, 2),
+		"cliff_under_walls": true,
+		# Coberturas destrutíveis (Q) aqui são pilares de rocha.
+		"cover": "res://assets/props/rock_cover.png",
+	},
 	"laboratorio": {
 		"floor": {
 			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(0, 0), Vector2i(1, 0)],
@@ -270,7 +313,7 @@ const PROPS := {
 @export_file("*.txt") var layout_file := ""
 @export var area_name := ""
 @export var area_subtitle := ""
-@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas") var theme := "teatro"
+@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas", "montanha") var theme := "teatro"
 @export var ambience: StringName = &"amb_theater"
 ## Cor geral da área (CanvasModulate). Mais escuro = as tochas brilham mais.
 @export var darkness := Color(1, 1, 1)
@@ -678,6 +721,8 @@ func _build_entity(x: int, y: int, c: String) -> void:
 		"Q":
 			var cover := DestructibleCover.new()
 			cover.position = feet
+			if THEMES[theme].has("cover"):
+				cover.texture_override = load(THEMES[theme]["cover"])
 			entities.add_child(cover)
 		"Y":
 			_landing = feet
@@ -1048,6 +1093,11 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
 		"vendedor":
+			# Rachel queimou a cidade dele; o Capitão vendia escamas no mercado.
+			if Game.is_boss_defeated("rachel"):
+				return "vendedor_rachel"
+			if Game.is_boss_defeated("capitao"):
+				return "vendedor_capitao"
 			# Mabel comprava humanidade líquida dele ("para as plantas").
 			if Game.is_boss_defeated("mabel"):
 				return "vendedor_mabel"

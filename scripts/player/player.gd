@@ -997,6 +997,17 @@ func _on_hit_received(info: HitInfo) -> void:
 	_stagger_duration = stagger_time
 
 
+## Queimadura (fogo no chão): dano pequeno e contínuo, SEM cambalear e sem
+## i-frames (senão o fogo "protegeria" você dos golpes). O dash por cima não queima.
+func apply_burn(amount: float) -> void:
+	if state == State.DEAD or _is_invulnerable() or amount <= 0.0:
+		return
+	var applied := stats.take_damage(amount)
+	Fx.flash(body_sprite, 0.08, Color(1.0, 0.6, 0.3))
+	Fx.sparks(global_position + Vector2(0, -6), Vector2.UP, Color(1.0, 0.6, 0.2), 4, 50.0)
+	hurt.emit(applied)
+
+
 func _state_stagger(delta: float) -> void:
 	velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 	if _state_time >= _stagger_duration:

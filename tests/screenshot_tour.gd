@@ -26,11 +26,16 @@ func _ready() -> void:
 		await _tour_forge()
 		Game.quit_game()
 		return
+	if only == "montanha":
+		await _tour_mountain()
+		Game.quit_game()
+		return
 	if only != "bosque":
 		await _tour()
 	await _tour_forest()
 	await _tour_roots()
 	await _tour_forge()
+	await _tour_mountain()
 	Game.quit_game()
 
 
@@ -857,3 +862,122 @@ func _tour_durgan() -> void:
 	durgan.stats.take_damage(99999.0)
 	await wait(6.0)
 	await shot("d07_chave_martelo")
+
+
+func _tour_mountain() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan"])
+	Game.add_item("escudo_remendado")
+	Game.set_shield_equipped(true)
+	Game.pending_spawn = "lateral"
+	await open("res://scenes/world/cidade.tscn")
+	await wait(1.6)
+	await shot("m00_cidade_ponte_baixada")
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/montanha.tscn") as Level
+	await wait(2.2)
+	await shot("m01_montanha_chegada")
+	level.player._iframes_left = 9999.0
+	# O sopé: Atiradores guardando distância e uma Brasa Viva.
+	var shooter := _forest_find(level, "DragonoideAtirador", Vector2(27 * 16, 23 * 16)) as DragonoideAtirador
+	level.player.global_position = shooter.global_position + Vector2(70, 10)
+	level.camera.snap_to_target()
+	for i in 40:
+		await wait(0.05)
+		if shooter.ai == DragonoideAtirador.AI.FIRE:
+			break
+	await wait(0.15)
+	await shot("m02_atirador_bolas_de_fogo")
+	var ember := _forest_find(level, "BrasaViva", Vector2(35 * 16, 25 * 16)) as BrasaViva
+	if ember:
+		level.player.global_position = ember.global_position + Vector2(30, 0)
+		level.camera.snap_to_target()
+		for i in 40:
+			await wait(0.05)
+			if not is_instance_valid(ember) or ember.ai == BrasaViva.AI.IGNITE:
+				break
+		await wait(0.2)
+		await shot("m03_brasa_viva")
+	# O ossário: Dragão Bestial mirando a investida.
+	var beast := _forest_find(level, "DragaoBestial", Vector2(10 * 16, 19 * 16)) as DragaoBestial
+	level.player.global_position = beast.global_position + Vector2(90, 10)
+	level.camera.snap_to_target()
+	for i in 40:
+		await wait(0.05)
+		if beast.ai == DragaoBestial.AI.AIM:
+			break
+	await wait(0.4)
+	await shot("m04_ossario_bestial")
+	# A encosta: o Dragão Alado mergulha.
+	var wyvern := _forest_find(level, "DragaoAlado", Vector2(53 * 16, 23 * 16)) as DragaoAlado
+	level.player.global_position = wyvern.global_position + Vector2(20, 20)
+	level.camera.snap_to_target()
+	await wait(1.2)
+	if wyvern.ai == DragaoAlado.AI.CIRCLE:
+		wyvern._ai_time = 99.0
+	await wait(0.5)
+	await shot("m05_alado_mergulho")
+	await wait(1.2)
+	await shot("m06_alado_no_chao")
+	# O acampamento: o Capitão de escudo, depois o lança-chamas.
+	var captain := _forest_find(level, "CapitaoDragonoide", Vector2(35 * 16, 8 * 16)) as CapitaoDragonoide
+	level.player.global_position = captain.global_position + Vector2(-60, 30)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	await shot("m07_capitao_escudo")
+	captain._set_mode(CapitaoDragonoide.Mode.SWAP)
+	captain._next = CapitaoDragonoide.Mode.FLAME
+	await wait(captain.swap_time + 1.2)
+	await shot("m08_capitao_lanca_chamas")
+	captain.reset_fight()
+	# A caldeira: a Matriarca pisoteia e o chão cede.
+	var mother := _forest_find(level, "MatriarcaBestial", Vector2(65 * 16, 9 * 16)) as MatriarcaBestial
+	level.player.global_position = mother.global_position + Vector2(-70, 30)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	mother._set_mode(MatriarcaBestial.Mode.STOMP)
+	await wait(mother.stomp_windup * 0.7)
+	await shot("m09_matriarca_ergue")
+	await wait(0.9)
+	await shot("m10_matriarca_buracos")
+	await _tour_rachel()
+
+
+func _tour_rachel() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "matriarca"])
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/arena_rachel.tscn") as Level
+	await wait(1.8)
+	await shot("r01_o_ninho")
+	var rachel := level.boss_arena.boss as RachelCaelis
+	level.player._iframes_left = 9999.0
+	level.player.global_position = rachel.global_position + Vector2(-20, 110)
+	level.camera.snap_to_target()
+	await wait(2.4)
+	await shot("r02_rachel_acorda")
+	rachel._go_decide(99.0)
+	rachel.start_breath()
+	await wait(rachel.breath_windup * 0.6)
+	await shot("r03_halito_aviso")
+	await wait(rachel.breath_windup * 0.4 + rachel.breath_time * 0.5)
+	await shot("r04_halito_de_fogo")
+	await wait(rachel.breath_time * 0.6 + 0.3)
+	rachel._go_decide(99.0)
+	rachel._set_mode(RachelCaelis.Mode.ROAR)
+	await wait(rachel.roar_windup + 0.25)
+	await shot("r05_rugido_pedras")
+	await wait(1.0)
+	rachel.stats.set_health(rachel.stats.max_health * 0.45)
+	await wait(1.6)
+	await shot("r06_arena_desaba")
+	rachel.facing = Vector2.UP
+	level.player.global_position = rachel.global_position + Vector2(10, 34)
+	rachel._go_decide(0.0)
+	await wait(rachel.tail_windup * 0.8)
+	await shot("r07_cauda")
+	await wait(1.0)
+	rachel.stats.take_damage(99999.0)
+	await wait(6.0)
+	await shot("r08_escama_do_orgulho")
+

@@ -395,6 +395,25 @@ def main() -> None:
         hits[i:i + len(ring)] += ring[: len(hits) - i]
     save_loop("amb_forge", lowpass(drone, 400) * 0.6 + hiss + hits, 0.38)
 
+    # Montanha Carbonizada (no fim, pelo mesmo motivo): fogo, asas e o vulcao
+    print("Montanha")
+    roar_f = lowpass(noise(0.7), sweep(3000, 500, 0.7)) * env_exp(0.7, 0.25, 0.01)
+    save("fireball", mix(roar_f, pad(impact(0.25, 120, 50, 0.5) * 0.6, 0.35)), 0.6)
+    t = t_axis(1.4)
+    flame = bandpass(noise(1.4), 300, 2600) * (0.75 + 0.25 * np.sin(2 * np.pi * 13 * t)) * env_swell(1.4, 0.2)
+    save("fire_breath", mix(flame, lowpass(noise(1.4), 180) * env_swell(1.4, 0.3) * 0.6), 0.7)
+    flap = mix(*(pad(lowpass(noise(0.18), 700) * env_exp(0.18, 0.06, 0.02), d) for d in (0.0, 0.28)))
+    save("wing", flap, 0.55)
+    s = 12.0
+    t = t_axis(s)
+    rumble = lowpass(noise(s), 120) * (0.6 + 0.4 * np.sin(2 * np.pi * t / 4))
+    crackle = np.zeros_like(t)
+    for _ in range(90):  # brasas estalando no ar
+        i = int(rng.integers(0, len(t) - 600))
+        c = highpass(noise(0.01), 2000) * env_exp(0.01, 0.003) * rng.uniform(0.1, 0.35)
+        crackle[i:i + len(c)] += c
+    save_loop("amb_volcano", rumble * 1.4 + crackle + bandpass(noise(s), 400, 1200) * 0.04, 0.4)
+
 
 if __name__ == "__main__":
     main()

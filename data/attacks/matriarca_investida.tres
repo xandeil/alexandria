@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Investida da Matriarca"
+stamina_cost = 0.0
+damage = 32.0
+poise_damage = 50.0
+knockback = 260.0
+is_heavy = true
+windup_time = 0.05
+lunge_speed = 360.0
+lunge_time = 0.5
+active_time = 0.06
+recovery_time = 0.6
+combo_window = 0.14
+active_during_lunge = true
+track_until = 0.0
+reach = 22.0
+radius = 22.0
+hitstop = 0.08
+shake = 5.0
+slash_arc_degrees = 0.0
+slash_radius = 26.0
+slash_color = Color(1.0, 0.8, 0.6, 0.9)
+sound = &"hooves"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

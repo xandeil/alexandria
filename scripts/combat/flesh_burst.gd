@@ -22,6 +22,8 @@ var hurt_enemies := false
 var fruit_from := Vector2.INF
 ## Altura do arco do fruto (px).
 var arc_height := 46.0
+## "carne" (vermelho, mancha de seiva) ou "fogo" (laranja; deixa chamas no chão).
+var style := "carne"
 
 var _time := 0.0
 var _done := false
@@ -82,8 +84,12 @@ func explode() -> void:
 	queue_redraw()
 	if _fruit:
 		_fruit.queue_free()
-	Sfx.play(&"splat", -2.0, 0.1)
-	Fx.splash(global_position + Vector2(0, -6), Color(0.62, 0.1, 0.16), 18)
+	if style == "fogo":
+		Sfx.play(&"fireball", -2.0, 0.1)
+		Fx.splash(global_position + Vector2(0, -6), Color(1.0, 0.55, 0.15), 18)
+	else:
+		Sfx.play(&"splat", -2.0, 0.1)
+		Fx.splash(global_position + Vector2(0, -6), Color(0.62, 0.1, 0.16), 18)
 	Fx.shake(3.0, 0.2)
 	_hit_player()
 	if hurt_enemies:
@@ -102,7 +108,7 @@ func _hit_player() -> void:
 	info.knockback = 170.0
 	info.poise_damage = 25.0
 	info.unblockable = true  # explosão no chão: o escudo não segura — só sair do círculo
-	info.attack_name = "Explosão de carne"
+	info.attack_name = "Explosão"
 	info.source = source
 	player.hurtbox.receive_hit(info)
 
@@ -123,6 +129,9 @@ func _hit_enemies() -> void:
 
 ## A mancha vermelha fica no chão por um tempo (e some devagar).
 func _leave_stain() -> void:
+	if style == "fogo":
+		FirePatch.spawn(get_parent(), global_position, radius * 0.6, 2.5, 8.0, source)
+		return
 	var stain := Sprite2D.new()
 	stain.texture = SPLAT
 	stain.z_index = -9  # logo acima do piso
@@ -139,5 +148,6 @@ func _draw() -> void:
 	if _done:
 		return
 	var t := clampf(_time / delay, 0.0, 1.0)
+	var fill := Color(1.0, 0.45, 0.1, 0.32) if style == "fogo" else Color(0.85, 0.12, 0.15, 0.32)
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(1.0, 0.3, 0.25, 0.85), 1.5)
-	draw_circle(Vector2.ZERO, radius * t, Color(0.85, 0.12, 0.15, 0.32))
+	draw_circle(Vector2.ZERO, radius * t, fill)

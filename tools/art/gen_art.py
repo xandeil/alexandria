@@ -21,6 +21,7 @@ import itens as IT  # noqa: E402
 import bosque as BQ  # noqa: E402
 import raizes as RZ  # noqa: E402
 import forjas as FJ  # noqa: E402
+import montanha as MT  # noqa: E402
 import props as PR  # noqa: E402
 import tiles as TL  # noqa: E402
 from pixel import canvas, hstrip, paste, upscale, rect, mix  # noqa: E402
@@ -211,6 +212,24 @@ def main() -> None:
     save(hstrip(FJ.guardian_frames()), "assets/sprites/guardiao_ancora.png")
     save(hstrip(FJ.durgan_frames()), "assets/sprites/durgan.png")
     save(IT.icon_lembranca((190, 214, 240), (92, 110, 140)), "assets/items/lembranca_durgan.png")
+
+    print("Montanha Carbonizada")
+    save(MT.mountain_atlas(), "assets/tiles/montanha_tiles.png")
+    save(MT.burnt_tree(), "assets/props/burnt_tree.png")
+    save(MT.ribcage(), "assets/props/ribcage.png")
+    save(MT.dragon_skull(), "assets/props/dragon_skull.png")
+    save(MT.obsidian_spike(), "assets/props/obsidian_spike.png")
+    save(MT.rock_cover_frames(), "assets/props/rock_cover.png")
+    save(MT.scale_memorial(), "assets/props/scale_memorial.png")
+    save(MT.fireball(), "assets/fx/bola_de_fogo.png")
+    save(hstrip(MT.servant_frames()), "assets/sprites/dragonoide_atirador.png")
+    save(hstrip(MT.beast_frames()), "assets/sprites/dragao_bestial.png")
+    save(hstrip(MT.wyvern_frames()), "assets/sprites/dragao_alado.png")
+    save(hstrip(MT.ember_frames()), "assets/sprites/brasa_viva.png")
+    save(hstrip(MT.captain_frames()), "assets/sprites/capitao_dragonoide.png")
+    save(hstrip(MT.matriarch_frames()), "assets/sprites/matriarca_bestial.png")
+    save(hstrip(MT.rachel_frames()), "assets/sprites/rachel.png")
+    save(IT.icon_lembranca((255, 170, 90), (150, 50, 30)), "assets/items/lembranca_rachel.png")
 
     print("Interface")
     save(PR.icon_attack(), "assets/ui/icon_attack.png")

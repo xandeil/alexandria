@@ -51,6 +51,12 @@ const TILESETS := {
 		"solid": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(6, 1),
 			Vector2i(7, 1), Vector2i(0, 2), Vector2i(1, 2)],
 	},
+	"res://assets/tiles/montanha_tileset.tres": {
+		"texture": "res://assets/tiles/montanha_tiles.png", "size": Vector2i(8, 3),
+		# Rocha (topo, faces, arco), barreira e a LAVA (e a margem dela).
+		"solid": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(6, 1),
+			Vector2i(7, 1), Vector2i(0, 2), Vector2i(1, 2)],
+	},
 	"res://assets/tiles/laboratorio_tileset.tres": {
 		"texture": "res://assets/tiles/laboratorio_tiles.png", "size": Vector2i(8, 3),
 		"solid": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(4, 1),
