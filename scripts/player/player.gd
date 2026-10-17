@@ -134,6 +134,14 @@ const IDLE_SWORD_ANGLE := 1.15
 ## Depois de acordar, um respiro antes de o sono poder subir de novo.
 @export var sleep_grace := 1.5
 
+@export_group("Gelo (Domínio Congelado)")
+## No gelo o corpo responde pior: aceleração e freio viram uma fração do normal
+## (Bíblia: "O chão é escorregadio"). O dash continua igual — e escorrega no fim.
+@export_range(0.05, 1.0) var ice_grip := 0.25
+@export_range(0.01, 1.0) var ice_brake := 0.07
+## Gelado (estilhaço, névoa): anda a esta fração da velocidade.
+@export_range(0.1, 1.0) var chill_speed_multiplier := 0.55
+
 @export_group("Barulho (furtividade)")
 ## Raio do barulho de cada ação. Sonâmbulos e o Vigia "ouvem" quem está dentro.
 @export var noise_dash := 72.0
@@ -228,6 +236,9 @@ var _grab_drain_ratio := 0.0
 var _grab_drain_min := 0
 var _grab_tick := 0.0
 var _grab_hidden := false
+## Pisando em gelo agora? (atualizado a cada quadro pela regra do Ice)
+var on_ice := false
+var _chill_left := 0.0
 
 
 func _ready() -> void:
@@ -301,6 +312,8 @@ func is_dead() -> bool:
 func _physics_process(delta: float) -> void:
 	_state_time += delta
 	_anim_time += delta
+	_chill_left = maxf(_chill_left - delta, 0.0)
+	on_ice = Ice.is_slippery(self)
 	_combo_grace = maxf(_combo_grace - delta, 0.0)
 	_iframes_left = maxf(_iframes_left - delta, 0.0)
 	_update_drowsiness(delta)
@@ -482,11 +495,13 @@ func _state_free(delta: float) -> void:
 	var input := _move_input()
 	var speed := move_speed * (exhausted_speed_multiplier if stats.is_exhausted else 1.0)
 	speed *= lerpf(1.0, drowsy_speed_multiplier, drowsiness / drowsiness_max)
+	if is_chilled():
+		speed *= chill_speed_multiplier
 	if input != Vector2.ZERO:
 		facing = input.normalized()
-		velocity = velocity.move_toward(input * speed, acceleration * delta)
+		velocity = velocity.move_toward(input * speed, _grip() * delta)
 	else:
-		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
+		velocity = velocity.move_toward(Vector2.ZERO, _brake() * delta)
 	if velocity.length() > move_speed * noise_run_threshold:
 		make_noise(noise_run)  # passos apressados
 	_consume_buffer()
@@ -516,7 +531,7 @@ func _state_block(delta: float) -> void:
 		_set_state(State.FREE)
 		return
 	var input := _move_input()
-	velocity = velocity.move_toward(input * move_speed * block_move_multiplier, acceleration * delta)
+	velocity = velocity.move_toward(input * move_speed * block_move_multiplier, _grip() * delta)
 	var goal := _block_direction(input)
 	facing = Vector2.from_angle(lerp_angle(facing.angle(), goal.angle(), minf(block_turn_speed * delta, 1.0)))
 	# Golpe, dash ou cura saem direto do escudo (abaixá-lo é instantâneo).
@@ -937,7 +952,7 @@ func _start_heal() -> bool:
 func _state_heal(delta: float) -> void:
 	# Dá para andar devagar enquanto bebe. Levar golpe antes de heal_apply_at
 	# desperdiça o frasco — risco e recompensa.
-	velocity = velocity.move_toward(_move_input() * move_speed * heal_move_multiplier, acceleration * delta)
+	velocity = velocity.move_toward(_move_input() * move_speed * heal_move_multiplier, _grip() * delta)
 	if not _effect_applied and _state_time >= heal_time * heal_apply_at:
 		_effect_applied = true
 		stats.heal(heal_amount)
@@ -1008,8 +1023,28 @@ func apply_burn(amount: float) -> void:
 	hurt.emit(applied)
 
 
+## Gelo: o corpo fica lento por alguns segundos (não empilha: vale o maior).
+func apply_chill(seconds: float) -> void:
+	if state == State.DEAD or seconds <= 0.0:
+		return
+	_chill_left = maxf(_chill_left, seconds)
+
+
+func is_chilled() -> bool:
+	return _chill_left > 0.0
+
+
+## Aceleração e freio do chão onde o herói está (gelo = escorrega).
+func _grip() -> float:
+	return acceleration * (ice_grip if on_ice else 1.0)
+
+
+func _brake() -> float:
+	return friction * (ice_brake if on_ice else 1.0)
+
+
 func _state_stagger(delta: float) -> void:
-	velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
+	velocity = velocity.move_toward(Vector2.ZERO, _brake() * delta)
 	if _state_time >= _stagger_duration:
 		_set_state(State.FREE)
 
@@ -1170,6 +1205,8 @@ func _update_visuals(delta: float) -> void:
 	visual.rotation = lerpf(visual.rotation, tilt, 10.0 * delta)
 	if state == State.GRABBED:
 		body_sprite.modulate = Color(1.0, 0.72, 0.72)
+	elif is_chilled():
+		body_sprite.modulate = Color(0.7, 0.88, 1.15)  # gelado: azul claro
 	else:
 		body_sprite.modulate = Color(0.78, 0.84, 1.0) if stats.is_exhausted else Color.WHITE
 	_update_weapon(side, delta)

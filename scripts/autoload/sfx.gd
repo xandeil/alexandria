@@ -75,6 +75,11 @@ const LIBRARY := {
 	&"fire_breath": "res://assets/sfx/fire_breath.wav",
 	&"wing": "res://assets/sfx/wing.wav",
 	&"amb_volcano": "res://assets/sfx/amb_volcano.wav",
+	&"ice_shot": "res://assets/sfx/ice_shot.wav",
+	&"freeze": "res://assets/sfx/freeze.wav",
+	&"shatter": "res://assets/sfx/shatter.wav",
+	&"crystal": "res://assets/sfx/crystal.wav",
+	&"amb_ice": "res://assets/sfx/amb_ice.wav",
 }
 const POOL_SIZE := 12
 

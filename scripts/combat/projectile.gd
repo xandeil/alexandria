@@ -11,6 +11,17 @@ extends Node2D
 
 const BULLET := preload("res://assets/fx/bala.png")
 const EMBER := preload("res://assets/fx/bola_de_fogo.png")
+const SHARD := preload("res://assets/fx/estilhaco_gelo.png")
+const BOOK := preload("res://assets/fx/livro_voando.png")
+## Elementos: o MESMO tiro, com textura e efeito diferentes. Um StringName em
+## vez de vários booleanos (fire, frost, ...): uma opção só, sem combinações
+## impossíveis ("fogo E gelo ao mesmo tempo").
+const PLAIN := &""
+const FIRE := &"fogo"  # bola de fogo (dragonoides): onde bate, fogo no chão
+const FROST := &"gelo"  # estilhaço de gelo (Domínio Congelado): quem leva fica lento
+const TOME := &"livro"  # livro congelado arremessado (o Golem do Arquivo): só pesa
+## Quanto tempo o estilhaço de gelo deixa o herói lento.
+const FROST_CHILL := 1.6
 
 var direction := Vector2.RIGHT
 var speed := 150.0
@@ -20,8 +31,7 @@ var max_distance := 320.0
 ## Raio em que o tiro acerta o herói.
 var hit_radius := 7.0
 var source: Node2D
-## Bola de fogo (dragonoides): outra textura e, onde bate, um pouco de fogo no chão.
-var ember := false
+var element := PLAIN
 
 var _traveled := 0.0
 var _done := false
@@ -29,9 +39,9 @@ var _sprite: Sprite2D
 
 
 static func launch(parent: Node, from: Vector2, dir: Vector2, owner_node: Node2D, shot_damage: float,
-		shot_speed: float, distance: float, fire: bool = false) -> Projectile:
+		shot_speed: float, distance: float, shot_element: StringName = PLAIN) -> Projectile:
 	var shot := Projectile.new()
-	shot.ember = fire
+	shot.element = shot_element
 	shot.direction = dir.normalized() if dir != Vector2.ZERO else Vector2.RIGHT
 	shot.source = owner_node
 	shot.damage = shot_damage
@@ -46,8 +56,17 @@ func _ready() -> void:
 	add_to_group("projectiles")  # o escudo do herói se vira para balas chegando
 	z_index = 6
 	_sprite = Sprite2D.new()
-	_sprite.texture = EMBER if ember else BULLET
-	_sprite.material = Fx.unshaded  # brasa: brilha no escuro
+	match element:
+		FIRE:
+			_sprite.texture = EMBER
+		FROST:
+			_sprite.texture = SHARD
+			_sprite.rotation = direction.angle()
+		TOME:
+			_sprite.texture = BOOK
+		_:
+			_sprite.texture = BULLET
+	_sprite.material = Fx.unshaded  # brasa e gelo: brilham no escuro
 	_sprite.position = Vector2(0, -8)  # na altura do peito, não no chão
 	add_child(_sprite)
 
@@ -72,6 +91,8 @@ func _physics_process(delta: float) -> void:
 		return
 	global_position = from + step
 	_traveled += step.length()
+	if element == TOME:
+		_sprite.rotation += delta * 12.0  # livro girando no ar
 	_try_hit_player()
 	if _traveled >= max_distance:
 		_impact(false)
@@ -86,17 +107,22 @@ func _try_hit_player() -> void:
 	var info := HitInfo.create(damage, global_position - direction * 6.0, player.global_position)
 	info.knockback = knockback
 	info.source = source
-	info.attack_name = "Bola de fogo" if ember else "Tiro"
+	info.attack_name = {FIRE: "Bola de fogo", FROST: "Estilhaço de gelo", TOME: "Livro congelado"}.get(element, "Tiro")
 	if player.hurtbox.receive_hit(info):  # i-frames do dash: o tiro passa direto
+		if element == FROST:
+			player.apply_chill(FROST_CHILL)
 		_impact(true)
 
 
 func _impact(spark: bool) -> void:
 	_done = true
 	if spark:
-		Fx.sparks(global_position + Vector2(0, -8), -direction, Color(1.0, 0.75, 0.4), 6)
-	if ember:
-		FirePatch.spawn(get_parent(), global_position, 10.0, 1.6, 8.0, source)
+		var color := Color(0.75, 0.92, 1.0) if element == FROST else Color(1.0, 0.75, 0.4)
+		Fx.sparks(global_position + Vector2(0, -8), -direction, color, 6)
+	if element == FIRE:
+		# Quem atirou pode ter morrido com a bola ainda no ar: não passe um nó liberado.
+		var owner_node := source if is_instance_valid(source) else null
+		FirePatch.spawn(get_parent(), global_position, 10.0, 1.6, 8.0, owner_node)
 	queue_free()
 
 

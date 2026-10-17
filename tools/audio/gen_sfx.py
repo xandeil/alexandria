@@ -414,6 +414,30 @@ def main() -> None:
         crackle[i:i + len(c)] += c
     save_loop("amb_volcano", rumble * 1.4 + crackle + bandpass(noise(s), 400, 1200) * 0.04, 0.4)
 
+    # Dominio Congelado (no fim, pelo mesmo motivo): gelo, cristal e vento
+    print("Dominio")
+    t = t_axis(0.3)
+    save("ice_shot", mix(highpass(noise(0.3), 3500) * env_exp(0.3, 0.07), sine(sweep(2400, 900, 0.3), 0.3) * env_exp(0.3, 0.1) * 0.4), 0.5)
+    crackle = np.zeros(int(SR * 0.9))
+    for _ in range(40):  # o gelo estalando ao se formar
+        i = int(rng.integers(0, len(crackle) - 400))
+        c = highpass(noise(0.008), 3000) * env_exp(0.008, 0.002) * rng.uniform(0.3, 0.9)
+        crackle[i:i + len(c)] += c
+    save("freeze", mix(crackle, bandpass(noise(0.9), 2000, 7000) * env_swell(0.9, 0.2) * 0.3), 0.6)
+    shards = mix(*(pad(metallic(0.4, f, 0.08) * 0.3, d) for f, d in ((2600, 0.0), (3300, 0.03), (4100, 0.06))))
+    save("shatter", mix(shards, highpass(noise(0.4), 2500) * env_exp(0.4, 0.08) * 0.8), 0.6)
+    chime = mix(*(pad(sine(f, 0.8) * env_exp(0.8, 0.3), d) for f, d in ((1568.0, 0.0), (2093.0, 0.05), (2637.0, 0.1))))
+    save("crystal", chime, 0.4)
+    s = 12.0
+    t = t_axis(s)
+    wind = bandpass(noise(s), 300, 1400) * (0.5 + 0.5 * np.sin(2 * np.pi * t / 5.5)) * 0.5
+    tones = np.zeros_like(t)
+    for k in np.arange(0.7, s - 1.2, 2.9):  # cristais tilintando longe
+        i = int(k * SR)
+        ring = sine(2093.0 * float(rng.choice([1.0, 1.25, 1.5])), 1.0) * env_exp(1.0, 0.4) * 0.08
+        tones[i:i + len(ring)] += ring[: len(tones) - i]
+    save_loop("amb_ice", lowpass(wind, 1200) + tones, 0.4)
+
 
 if __name__ == "__main__":
     main()

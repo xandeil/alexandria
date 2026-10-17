@@ -30,12 +30,17 @@ func _ready() -> void:
 		await _tour_mountain()
 		Game.quit_game()
 		return
+	if only == "dominio":
+		await _tour_ice()
+		Game.quit_game()
+		return
 	if only != "bosque":
 		await _tour()
 	await _tour_forest()
 	await _tour_roots()
 	await _tour_forge()
 	await _tour_mountain()
+	await _tour_ice()
 	Game.quit_game()
 
 
@@ -980,4 +985,123 @@ func _tour_rachel() -> void:
 	rachel.stats.take_damage(99999.0)
 	await wait(6.0)
 	await shot("r08_escama_do_orgulho")
+
+
+func _tour_ice() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel"])
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/dominio.tscn") as Level
+	await wait(2.2)
+	await shot("g01_dominio_chegada")
+	level.player._iframes_left = 9999.0
+	# O lago: gelo, buracos e um Bibliotecário mirando.
+	var librarian := _forest_find(level, "BibliotecarioGelo", Vector2(24 * 16, 17 * 16)) as BibliotecarioGelo
+	level.player.global_position = librarian.global_position + Vector2(80, 50)
+	level.camera.snap_to_target()
+	for i in 40:
+		await wait(0.05)
+		if librarian.ai == BibliotecarioGelo.AI.CAST:
+			break
+	await wait(0.2)
+	await shot("g02_lago_bibliotecario")
+	# Ácaros grudados.
+	var mite := _forest_find(level, "AcaroCristal", Vector2(47 * 16, 21 * 16)) as AcaroCristal
+	level.player.global_position = mite.global_position + Vector2(30, 0)
+	level.player._iframes_left = 0.0
+	level.camera.snap_to_target()
+	await wait(1.4)
+	level.player._iframes_left = 9999.0
+	await shot("g03_acaros_grudados")
+	# A galeria: Estátuas Vivas (de costas para elas, andam).
+	var statue := _forest_find(level, "EstatuaViva", Vector2(30 * 16, 10 * 16)) as EstatuaViva
+	level.player.global_position = statue.global_position + Vector2(40, 0)
+	level.player.facing = Vector2.RIGHT
+	level.camera.snap_to_target()
+	await wait(0.8)
+	await shot("g04_estatua_de_costas")
+	# A Curadora: vitrine em volta do herói, depois o bloco.
+	var curator := _forest_find(level, "CuradoraVitrines", Vector2(33 * 16, 7 * 16)) as CuradoraVitrines
+	level.player.global_position = curator.global_position + Vector2(-50, 30)
+	level.camera.snap_to_target()
+	await wait(1.4)
+	curator._go_decide(99.0)
+	curator.open_case()
+	await wait(0.6)
+	await shot("g05_curadora_vitrine")
+	level.player._iframes_left = 0.0
+	await wait(0.6)
+	await shot("g06_preso_no_gelo")
+	level.player.release_grab(false)
+	level.player._iframes_left = 9999.0
+	curator.reset_fight()
+	# O Aprendiz com a bolha.
+	var apprentice := _forest_find(level, "AprendizArcano", Vector2(70 * 16, 19 * 16)) as AprendizArcano
+	level.player.global_position = apprentice.global_position + Vector2(-40, 10)
+	level.camera.snap_to_target()
+	await wait(1.4)
+	await shot("g07_aprendiz_bolha")
+	# O Golem do Arquivo.
+	var golem := _forest_find(level, "GolemArquivo", Vector2(66 * 16, 7 * 16)) as GolemArquivo
+	level.player.global_position = golem.global_position + Vector2(-60, 30)
+	level.camera.snap_to_target()
+	await wait(1.6)
+	golem._go_decide(99.0)
+	golem._set_mode(GolemArquivo.Mode.SLAM)
+	await wait(golem.slam_windup * 0.7)
+	await shot("g08_golem_pilao")
+	await wait(0.8)
+	golem._aim = (level.player.global_position - golem.global_position).normalized()
+	golem.throw_books()
+	await wait(0.25)
+	await shot("g09_golem_livros")
+	golem.stats.take_damage(99999.0)
+	await wait(3.0)
+	await shot("g10_livro_do_arquivo")
+	await _tour_cassian()
+
+
+func _tour_cassian() -> void:
+	Game.reset_progress()
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "golem_arquivo"])
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/arena_cassian.tscn") as Level
+	await wait(1.8)
+	await shot("c01_sala_do_arconte")
+	var cassian := level.boss_arena.boss as CassianVirel
+	level.player._iframes_left = 9999.0
+	level.player.global_position = cassian.global_position + Vector2(-20, 100)
+	level.camera.snap_to_target()
+	await wait(2.2)
+	await shot("c02_arquimago")
+	cassian._go_decide(99.0)
+	cassian._aim = (level.player.global_position - cassian.global_position).normalized()
+	cassian._set_mode(CassianVirel.Mode.LANCES)
+	await wait(cassian.lance_aim + 0.15)
+	await shot("c03_lancas_de_gelo")
+	await wait(0.6)
+	cassian._go_decide(99.0)
+	cassian.frost()
+	cassian.raise_walls()
+	await wait(0.6)
+	await shot("c04_geada_e_pilares")
+	await wait(1.5)
+	cassian.stats.take_damage(99999.0)
+	await wait(2.6)
+	await shot("c05_colecionador")
+	cassian._go_decide(99.0)
+	cassian.freeze_half()
+	cassian.summon()
+	await wait(cassian.freeze_warning * 0.7)
+	await shot("c06_metade_congela")
+	await wait(1.4)
+	cassian._go_decide(99.0)
+	level.player.release_grab(false)
+	cassian.start_steal()
+	await wait(cassian.steal_aim + 0.08)
+	await shot("c07_roubo_de_estamina")
+	await wait(1.0)
+	cassian.stats.take_damage(99999.0)
+	await wait(6.0)
+	await shot("c08_cajado_do_arconte")
 

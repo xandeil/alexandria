@@ -342,6 +342,28 @@ ATTACKS = {
                            recovery_time=1.0, track_until=0.5, reach=36.0, radius=24.0, slash_arc_degrees=70.0,
                            slash_radius=36.0, slash_color=(1.0, 0.5, 0.3, 0.95), hitstop=0.1, shake=6.0,
                            sound="&chomp"),
+    # Domínio Congelado ------------------------------------------------------------------
+    "estatua_golpe": dict(display_name="Livro de pedra", damage=22.0, poise_damage=30.0, knockback=170.0, is_heavy=True,
+                          windup_time=0.3, lunge_speed=140.0, lunge_time=0.1, active_time=0.08, recovery_time=0.7,
+                          track_until=0.5, reach=15.0, radius=13.0, slash_arc_degrees=110.0, slash_radius=18.0,
+                          slash_color=(0.9, 0.94, 1.0, 0.95), hitstop=0.07, shake=3.0, sound="&swing_heavy"),
+    "curadora_bengala": dict(display_name="Bengala", damage=16.0, poise_damage=18.0, knockback=120.0,
+                             windup_time=0.45, lunge_speed=170.0, lunge_time=0.1, active_time=0.08, recovery_time=0.5,
+                             track_until=0.6, reach=20.0, radius=12.0, slash_arc_degrees=40.0, slash_radius=22.0,
+                             slash_color=(1.0, 0.9, 0.6, 0.9), sound="&swing"),
+    "curadora_catalogo": dict(display_name="Catalogar", damage=34.0, poise_damage=50.0, knockback=220.0, is_heavy=True,
+                              unblockable=True, windup_time=0.7, lunge_speed=60.0, lunge_time=0.08, active_time=0.1,
+                              recovery_time=0.9, track_until=0.6, reach=18.0, radius=16.0, slash_arc_degrees=120.0,
+                              slash_radius=24.0, slash_color=(0.85, 0.95, 1.0, 0.95), hitstop=0.1, shake=5.0,
+                              sound="&swing_heavy"),
+    "golem_varredura": dict(display_name="Braço-estante", damage=28.0, poise_damage=45.0, knockback=230.0, is_heavy=True,
+                            windup_time=0.9, lunge_speed=50.0, lunge_time=0.1, active_time=0.14, recovery_time=1.0,
+                            track_until=0.6, reach=26.0, radius=30.0, slash_arc_degrees=180.0, slash_radius=40.0,
+                            slash_color=(0.8, 0.7, 0.6, 0.95), hitstop=0.09, shake=5.0, sound="&swing_heavy"),
+    "cassian_cajado": dict(display_name="Cajado do Arconte", damage=22.0, poise_damage=28.0, knockback=180.0,
+                           windup_time=0.5, lunge_speed=150.0, lunge_time=0.1, active_time=0.1, recovery_time=0.6,
+                           track_until=0.6, reach=20.0, radius=18.0, slash_arc_degrees=140.0, slash_radius=26.0,
+                           slash_color=(0.7, 0.9, 1.0, 0.95), hitstop=0.08, shake=4.0, sound="&swing_heavy"),
 }
 
 # --- Os Sete Pecados (da Bíblia) ------------------------------------------------------------
@@ -400,9 +422,10 @@ BOSSES = {
     "cassian": dict(
         id="cassian", display_name="Cassian Virel", title="O Arconte do Zero", sin="Ganância", sin_meaning="Possessão",
         race="Humano", attribute="Magia / Gelo", area="Domínio Congelado", scaling="Magia", suggested_order="6ª",
-        memory_reward=2000, unique_mechanic="Rouba estamina e congela partes da arena (StatsComponent.drain_stamina já existe).",
+        memory_reward=2000, implemented=True,
+        unique_mechanic="Rouba estamina e congela partes da arena; o chão do Domínio escorrega.",
         phases=["Fase 1 — O Arquimago: magias de gelo e controle de espaço.",
-                "Fase 2 — O Colecionador: congela partes da arena, invoca estátuas congeladas e rouba estamina temporariamente."],
+                "Fase 2 — O Colecionador (metade da vida): congela metade da arena (quem fica vira bloco de gelo), invoca Estátuas Vivas e rouba estamina com um raio."],
         history="Arquimago do Projeto Alexandria. Enquanto outros buscavam transcendência, queria preservar o conhecimento. Preservar virou possuir: congelou bibliotecas, memórias raras e pessoas importantes. Queria ser o único dono do futuro.",
         meaning="Ganância é querer tudo, até o tempo."),
     "governanta": dict(
@@ -495,6 +518,22 @@ BOSSES = {
         phases=["Investida (linha no chão), mordida de perto, pisoteio (círculo) que abre buracos — a arena vai ficando menor."],
         history="Os dragões menores nunca voaram. Rachel os deixou viver no sopé para lembrar a si mesma o que ela não é.",
         meaning="Antecipa a arena que encolhe."),
+    "curadora": dict(
+        id="curadora", display_name="A Curadora de Vitrines", title="Mini-chefe do Domínio Congelado", sin="Mini-chefe",
+        sin_meaning="Ganância", race="Humana", attribute="Gelo", area="Domínio Congelado", scaling="—",
+        suggested_order="1º mini-chefe do Domínio", memory_reward=850, implemented=True,
+        unique_mechanic="Prende o jogador em blocos de gelo (vitrines); quebrar o bloco exige toques rápidos. Preso, ela vem catalogar.",
+        phases=["Vitrine (retângulo que congela), leque de estilhaços, bengala; a pancada pesada em quem ficou preso."],
+        history="Cuidava do acervo do Projeto. Cassian pediu que guardasse as peças mais raras — e depois as pessoas mais raras.",
+        meaning="Ensina a reagir ao controle de espaço."),
+    "golem_arquivo": dict(
+        id="golem_arquivo", display_name="O Golem do Arquivo", title="Mini-chefe do Domínio Congelado", sin="Mini-chefe",
+        sin_meaning="Ganância", race="Construto", attribute="Gelo", area="Domínio Congelado", scaling="—",
+        suggested_order="2º mini-chefe do Domínio", memory_reward=900, implemented=True,
+        unique_mechanic="Feito de estantes congeladas; não cambaleia. Ao morrer, deixa um livro de lore sobre o Projeto Alexandria.",
+        phases=["Pilão (círculo; o chão em volta congela), braço-estante em leque, leque de livros arremessados."],
+        history="As estantes do Arquivo Central, congeladas de pé. Alguém lhes deu ordem de proteger os livros de todo mundo.",
+        meaning="Guarda a porta de Cassian e a verdade do Projeto."),
     "cavaleiro": dict(
         id="cavaleiro", display_name="O Cavaleiro Desolado", title="Guardião do Núcleo", sin="—", sin_meaning="Proteção que virou prisão",
         race="?", attribute="?", area="O Núcleo", scaling="—", suggested_order="Final", memory_reward=0,
@@ -550,6 +589,8 @@ ITEMS = {
         description="Dois irmãos forjaram as Âncoras. O nome de um ficou nas placas. O outro fazia igual, às vezes melhor, e ninguém via — então passou a copiar todo mundo.\nInveja é querer ser o outro até não sobrar você."),
     "lembranca_rachel": dict(display_name="Lembrança: Orgulho · Domínio", kind=3, max_stack=1, icon="res://assets/items/lembranca_rachel.png",
         description="No continente de onde veio, os outros dragões não olhavam para ela. Aqui, todo mundo olhou: de baixo, enquanto a cidade queimava.\nOrgulho é domínio sem arrependimento."),
+    "lembranca_cassian": dict(display_name="Lembrança: Ganância · Possessão", kind=3, max_stack=1, icon="res://assets/items/lembranca_cassian.png",
+        description="Ele guardava tudo para que nada se perdesse: livros, vozes, rostos. Um dia percebeu que só ele podia abrir as vitrines — e gostou.\nGanância é querer tudo, até o tempo."),
     "lembranca_helena": dict(display_name="Lembrança: Luxúria · Apego", kind=3, max_stack=1, icon="res://assets/items/lembranca_helena.png",
         description="Ela e o marido eram os melhores agentes. Na invasão, um deles saiu do posto.\nLuxúria aqui é apego: não aceitar a perda."),
 }
@@ -669,6 +710,20 @@ def main() -> None:
     write("assets/sprites/rachel_frames.tres", sprite_frames("res://assets/sprites/rachel.png", 96, 72, 8,
           {"dorme": ([0], 1.0), "idle": ([1], 1.0), "walk": ([1, 2], 3.0), "prepara": ([3], 1.0), "fogo": ([4], 1.0),
            "cauda": ([5], 1.0), "ruge": ([6], 1.0), "garra": ([7], 1.0)}))
+    robe = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0)}
+    write("assets/sprites/bibliotecario_gelo_frames.tres", sprite_frames("res://assets/sprites/bibliotecario_gelo.png", 24, 24, 4, robe))
+    write("assets/sprites/aprendiz_arcano_frames.tres", sprite_frames("res://assets/sprites/aprendiz_arcano.png", 24, 24, 4, robe))
+    write("assets/sprites/estatua_viva_frames.tres", sprite_frames("res://assets/sprites/estatua_viva.png", 24, 26, 4,
+          {"idle": ([0], 1.0), "walk": ([1, 0, 2, 0], 8.0), "golpe": ([3], 1.0)}))
+    write("assets/sprites/acaro_cristal_frames.tres", sprite_frames("res://assets/sprites/acaro_cristal.png", 12, 10, 3,
+          {"idle": ([0, 1], 4.0), "walk": ([0, 1, 2], 14.0)}))
+    write("assets/sprites/curadora_vitrines_frames.tres", sprite_frames("res://assets/sprites/curadora_vitrines.png", 32, 32, 5,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 0, 2], 6.0), "conjura": ([3], 1.0), "bengala": ([4], 1.0)}))
+    write("assets/sprites/golem_arquivo_frames.tres", sprite_frames("res://assets/sprites/golem_arquivo.png", 48, 48, 5,
+          {"idle": ([0], 1.0), "walk": ([0, 1], 3.0), "ergue": ([2], 1.0), "esmaga": ([3], 1.0), "varre": ([4], 1.0)}))
+    write("assets/sprites/cassian_frames.tres", sprite_frames("res://assets/sprites/cassian.png", 32, 32, 7,
+          {"idle": ([0], 5.0), "walk": ([0, 1, 0, 2], 6.0), "conjura": ([3], 1.0), "ergue": ([4], 1.0),
+           "cajado": ([5], 1.0), "idle2": ([6], 5.0)}))
     governess = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 7.0), "abraco": ([4], 1.0), "grito": ([5], 1.0)}
     write("assets/sprites/governanta_frames.tres", sprite_frames("res://assets/sprites/governanta_body.png", 32, 40, 6, governess))
     write("assets/sprites/governanta_solto_frames.tres", sprite_frames("res://assets/sprites/governanta_solto.png", 32, 40, 6, governess))

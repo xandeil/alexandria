@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "curadora"
+display_name = "A Curadora de Vitrines"
+title = "Mini-chefe do Domínio Congelado"
+sin = "Mini-chefe"
+sin_meaning = "Ganância"
+race = "Humana"
+attribute = "Gelo"
+area = "Domínio Congelado"
+scaling = "—"
+suggested_order = "1º mini-chefe do Domínio"
+memory_reward = 850
+implemented = true
+unique_mechanic = "Prende o jogador em blocos de gelo (vitrines); quebrar o bloco exige toques rápidos. Preso, ela vem catalogar."
+phases = Array[String](["Vitrine (retângulo que congela), leque de estilhaços, bengala; a pancada pesada em quem ficou preso."])
+history = "Cuidava do acervo do Projeto. Cassian pediu que guardasse as peças mais raras — e depois as pessoas mais raras."
+meaning = "Ensina a reagir ao controle de espaço."

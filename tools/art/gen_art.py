@@ -22,6 +22,7 @@ import bosque as BQ  # noqa: E402
 import raizes as RZ  # noqa: E402
 import forjas as FJ  # noqa: E402
 import montanha as MT  # noqa: E402
+import gelo as GL  # noqa: E402
 import props as PR  # noqa: E402
 import tiles as TL  # noqa: E402
 from pixel import canvas, hstrip, paste, upscale, rect, mix  # noqa: E402
@@ -230,6 +231,29 @@ def main() -> None:
     save(hstrip(MT.matriarch_frames()), "assets/sprites/matriarca_bestial.png")
     save(hstrip(MT.rachel_frames()), "assets/sprites/rachel.png")
     save(IT.icon_lembranca((255, 170, 90), (150, 50, 30)), "assets/items/lembranca_rachel.png")
+
+    print("Dominio Congelado")
+    save(GL.frost_atlas(), "assets/tiles/gelo_tiles.png")
+    save(GL.crystal_cluster(), "assets/props/crystal_cluster.png")
+    save(GL.frozen_reader(), "assets/props/frozen_reader.png")
+    save(GL.frozen_bookshelf(), "assets/props/frozen_bookshelf.png")
+    save(GL.display_case(), "assets/props/display_case.png")
+    save(GL.ice_pillar_frames(), "assets/props/ice_pillar.png")
+    save(GL.lore_book(), "assets/props/lore_book.png")
+    save(GL.arconte_staff(), "assets/props/arconte_staff.png")
+    save(GL.ice_shard(), "assets/fx/estilhaco_gelo.png")
+    save(GL.flying_book(), "assets/fx/livro_voando.png")
+    save(GL.ice_block(), "assets/fx/bloco_de_gelo.png")
+    save(hstrip(GL.librarian_frames()), "assets/sprites/bibliotecario_gelo.png")
+    save(hstrip(GL.statue_frames()), "assets/sprites/estatua_viva.png")
+    save(hstrip(GL.mite_frames()), "assets/sprites/acaro_cristal.png")
+    save(hstrip(GL.apprentice_frames()), "assets/sprites/aprendiz_arcano.png")
+    save(hstrip(GL.curator_frames()), "assets/sprites/curadora_vitrines.png")
+    save(hstrip(GL.golem_frames()), "assets/sprites/golem_arquivo.png")
+    save(hstrip(GL.cassian_frames()), "assets/sprites/cassian.png")
+    save(GL.scholar(frozen=True), "assets/sprites/estudioso_congelado.png")
+    save(GL.scholar(), "assets/sprites/estudioso.png")
+    save(IT.icon_lembranca((190, 230, 255), (60, 110, 170)), "assets/items/lembranca_cassian.png")
 
     print("Interface")
     save(PR.icon_attack(), "assets/ui/icon_attack.png")

@@ -53,6 +53,14 @@ const ALADO_SCENE := preload("res://scenes/enemies/dragao_alado.tscn")
 const BRASA_SCENE := preload("res://scenes/enemies/brasa_viva.tscn")
 const CAPITAO_SCENE := preload("res://scenes/bosses/capitao_dragonoide.tscn")
 const MATRIARCA_SCENE := preload("res://scenes/bosses/matriarca_bestial.tscn")
+const DOMINIO := "res://scenes/world/dominio.tscn"
+const ARENA_CASSIAN := "res://scenes/world/arena_cassian.tscn"
+const BIBLIOTECARIO_SCENE := preload("res://scenes/enemies/bibliotecario_gelo.tscn")
+const ESTATUA_SCENE := preload("res://scenes/enemies/estatua_viva.tscn")
+const ACARO_SCENE := preload("res://scenes/enemies/acaro_cristal.tscn")
+const APRENDIZ_SCENE := preload("res://scenes/enemies/aprendiz_arcano.tscn")
+const CURADORA_SCENE := preload("res://scenes/bosses/curadora_vitrines.tscn")
+const GOLEM_SCENE := preload("res://scenes/bosses/golem_arquivo.tscn")
 ## Os testes gravam num arquivo próprio: o seu save de verdade nunca é tocado.
 const TEST_SAVE := "user://teste_automatico_save.json"
 
@@ -159,6 +167,18 @@ func _ready() -> void:
 		"test_beast_matriarch",
 		"test_mountain_gate",
 		"test_rachel_fight",
+		"test_ice_slides",
+		"test_frost_shard_chills",
+		"test_ice_block_taps",
+		"test_frost_zone_traps",
+		"test_ice_librarian",
+		"test_living_statue",
+		"test_crystal_mite",
+		"test_arcane_apprentice",
+		"test_curator",
+		"test_archive_golem",
+		"test_frozen_domain_gate",
+		"test_cassian_fight",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -2803,9 +2823,11 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL]:
+	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN]:
 		if path == MONTANHA:
 			Game.defeated_bosses.append("durgan")
+		if path == DOMINIO:
+			Game.defeated_bosses.append("rachel")
 		var level := await open_level(path, "porta")
 		check(level.player != null and level.spawns.has("porta"), "%s: herói chega pela porta" % path)
 		var leaks := _find_open_edges(level)
@@ -2827,6 +2849,17 @@ func test_new_areas_build() -> void:
 					found[(node.get_script() as Script).get_global_name()] = true
 			for name in ["DragonoideAtirador", "DragaoBestial", "DragaoAlado", "BrasaViva", "CapitaoDragonoide", "MatriarcaBestial", "RestChamber"]:
 				check(found.has(name), "Montanha: tem %s" % name)
+		if path == DOMINIO:
+			check(level.ice_cells.size() > 300, "Domínio: gelo registrado (%d)" % level.ice_cells.size())
+			var kinds_ice := {}
+			for node in level.entities.get_children():
+				if node.get_script():
+					kinds_ice[(node.get_script() as Script).get_global_name()] = true
+			for name in ["BibliotecarioGelo", "EstatuaViva", "AcaroCristal", "AprendizArcano", "CuradoraVitrines", "GolemArquivo", "RestChamber"]:
+				check(kinds_ice.has(name), "Domínio: tem %s" % name)
+			check(find_npc("estudioso") != null, "Domínio: o Estudioso congelado")
+		if path == ARENA_CASSIAN:
+			check(level.boss_arena != null and level.boss_arena.boss is CassianVirel, "Sala do Arconte: Cassian")
 		if path == ARENA_RACHEL:
 			check(level.boss_arena != null and level.boss_arena.boss is RachelCaelis, "O Ninho: Rachel")
 			check(get_tree().get_nodes_in_group("covers").size() == 6, "O Ninho: seis pilares de rocha")
@@ -3133,10 +3166,18 @@ func test_fire_patch_and_ember_shot() -> void:
 	await seconds(0.3)
 	check(not is_instance_valid(patch), "a chama apaga sozinha")
 	# A bola de fogo deixa chamas onde bate.
-	var shot := Projectile.launch(_world, Vector2(100, 200), Vector2.RIGHT, null, 10.0, 200.0, 60.0, true)
-	check(shot.ember, "bola de fogo (brasa)")
+	var shot := Projectile.launch(_world, Vector2(100, 200), Vector2.RIGHT, null, 10.0, 200.0, 60.0, Projectile.FIRE)
+	check(shot.element == Projectile.FIRE, "bola de fogo (brasa)")
 	await seconds(0.5)
 	check(not get_tree().get_nodes_in_group("fire_patches").is_empty(), "onde a bola de fogo para, o chão pega fogo")
+	# Quem atirou morreu com a bola no ar (o soak achou este erro): ela cai e queima normalmente.
+	var shooter := spawn_enemy_scene(ATIRADOR_DRAGAO_SCENE, Vector2(100, 300))
+	await frames(2)
+	var orphan := Projectile.launch(_world, Vector2(100, 300), Vector2.RIGHT, shooter, 10.0, 200.0, 60.0, Projectile.FIRE)
+	shooter.free()
+	var patches := get_tree().get_nodes_in_group("fire_patches").size()
+	await seconds(0.5)
+	check(not is_instance_valid(orphan) and get_tree().get_nodes_in_group("fire_patches").size() >= patches, "atirador morto: a bola cai sem erro")
 
 
 func test_dragonoid_shooter() -> void:
@@ -3149,7 +3190,7 @@ func test_dragonoid_shooter() -> void:
 	for i in 90:
 		await frames(1)
 		for node in get_tree().get_nodes_in_group("projectiles"):
-			if (node as Projectile).ember:
+			if (node as Projectile).element == Projectile.FIRE:
 				embers[0] = maxi(embers[0], get_tree().get_nodes_in_group("projectiles").size())
 	check(embers[0] >= 2, "rajada de bolas de fogo (%d no ar)" % embers[0])
 	# Colado nele: coronhada e pulo para trás.
@@ -3367,6 +3408,315 @@ func test_rachel_fight() -> void:
 	rachel.stats.take_damage(99999.0)
 	await seconds(1.0)
 	check(Game.is_boss_defeated("rachel") and Game.has_item("lembranca_rachel"), "vencida: a Lembrança do Orgulho")
+	level.queue_free()
+	await frames(2)
+
+
+# --- Domínio Congelado -------------------------------------------------------------
+
+## O chão escorrega: no gelo, quem para de andar continua deslizando.
+func test_ice_slides() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player.velocity = Vector2(80, 0)
+	await seconds(0.2)
+	check(not player.on_ice and player.velocity.length() < 5.0, "no chão normal: para na hora")
+	FrostZone.spawn(_world, Rect2(Vector2(100, 150), Vector2(300, 100)), 0.01, 5.0, 0)
+	await frames(3)
+	check(player.on_ice, "em cima da geada: gelo")
+	player.velocity = Vector2(80, 0)
+	await seconds(0.2)
+	check(player.velocity.length() > 40.0, "no gelo: continua deslizando (%.0f)" % player.velocity.length())
+
+
+func test_frost_shard_chills() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player._iframes_left = 0.0
+	Projectile.launch(_world, Vector2(150, 200), Vector2.RIGHT, null, 10.0, 300.0, 200.0, Projectile.FROST)
+	await seconds(0.3)
+	check(player.is_chilled(), "o estilhaço de gelo deixa lento")
+	await seconds(Projectile.FROST_CHILL + 0.1)
+	check(not player.is_chilled(), "e passa")
+
+
+func test_ice_block_taps() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	var block := IceBlock.trap(player, 4)
+	check(block != null and player.is_grabbed_by(block), "preso no bloco de gelo")
+	for i in 4:
+		await tap(&"attack")
+	await frames(3)
+	check(not player.is_grabbed() and not is_instance_valid(block), "toques rápidos: o bloco quebra")
+	# Sem tocar nada, derrete sozinho.
+	await seconds(1.0)
+	block = IceBlock.trap(player, 99, 0.6)
+	await seconds(0.8)
+	check(not player.is_grabbed(), "derrete sozinho")
+	# O dash na hora certa escapa.
+	player._iframes_left = 1.0
+	check(IceBlock.trap(player, 4) == null, "de dash (i-frames): não prende")
+
+
+func test_frost_zone_traps() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	var zone := FrostZone.spawn(_world, Rect2(Vector2(180, 180), Vector2(40, 40)), 0.4, 2.0, 5)
+	zone.damage = 10.0
+	await seconds(0.2)
+	check(not zone.is_frozen() and not player.is_grabbed(), "ainda é aviso")
+	await seconds(0.3)
+	check(zone.is_frozen() and player.is_grabbed() and player.stats.health < hp, "congelou com você dentro: preso (e dói)")
+	player.release_grab(false)
+	await seconds(1.0)
+	var outside := FrostZone.spawn(_world, Rect2(Vector2(300, 300), Vector2(40, 40)), 0.2, 1.0, 5)
+	await seconds(0.4)
+	check(outside.is_frozen() and not player.is_grabbed(), "fora da área: nada")
+
+
+func test_ice_librarian() -> void:
+	var player := spawn_player(Vector2(300, 200))
+	var librarian := spawn_enemy_scene(BIBLIOTECARIO_SCENE, Vector2(190, 200)) as BibliotecarioGelo
+	player._iframes_left = 999.0
+	await seconds(0.3)
+	check(librarian.ai == BibliotecarioGelo.AI.AIM, "mira (linha)")
+	var shards := [0]
+	for i in 80:
+		await frames(1)
+		for node in get_tree().get_nodes_in_group("projectiles"):
+			if (node as Projectile).element == Projectile.FROST:
+				shards[0] += 1
+	check(shards[0] > 0, "lança estilhaços de gelo")
+	librarian._set_ai(BibliotecarioGelo.AI.KEEP)
+	player.global_position = librarian.global_position + Vector2(20, 0)
+	var start := librarian.global_position.distance_to(player.global_position)
+	await seconds(0.6)
+	check(librarian.global_position.distance_to(player.global_position) > start + 15.0, "chegou perto: ele foge")
+
+
+func test_living_statue() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var statue := spawn_enemy_scene(ESTATUA_SCENE, Vector2(280, 200)) as EstatuaViva
+	player._iframes_left = 999.0
+	player.facing = Vector2.RIGHT  # olhando para ela
+	await seconds(0.5)
+	check(statue.is_stone() and statue.global_position.x > 279.0, "olhando: é pedra, não se mexe")
+	var info := HitInfo.create(20.0, player.global_position, statue.global_position)
+	check(is_equal_approx(statue._incoming_damage_multiplier(info), statue.stone_damage_ratio), "pedra: o golpe quase não entra")
+	player.facing = Vector2.LEFT  # de costas
+	await seconds(0.4)
+	check(not statue.is_stone() and statue.global_position.x < 270.0, "de costas: ela anda")
+	check(is_equal_approx(statue._incoming_damage_multiplier(info), 1.0), "andando: o golpe entra inteiro")
+	player.facing = Vector2.RIGHT
+	await frames(3)
+	check(statue.is_stone(), "virou de novo: congela no meio do passo")
+	player.facing = Vector2.LEFT
+	player._iframes_left = 0.0
+	var hp := player.stats.health
+	await seconds(1.5)
+	check(player.stats.health < hp, "de costas por tempo demais: o golpe chega")
+
+
+func test_crystal_mite() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var mite := spawn_enemy_scene(ACARO_SCENE, Vector2(260, 200)) as AcaroCristal
+	player._iframes_left = 0.0
+	var deadline := 3.0
+	while not mite.is_clinging() and deadline > 0.0:
+		await frames(1)
+		deadline -= 1.0 / 60.0
+	check(mite.is_clinging(), "pulou e grudou")
+	var stamina := player.stats.stamina
+	var hp := player.stats.health
+	await seconds(0.8)
+	check(player.stats.stamina < stamina - 5.0 and player.stats.health == hp, "grudado: bebe estamina (não vida)")
+	player._start_dash()
+	await frames(2)
+	check(not mite.is_clinging() and mite.ai == AcaroCristal.AI.FALLEN, "o dash sacode: cai tonto")
+
+
+func test_arcane_apprentice() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var apprentice := spawn_enemy_scene(APRENDIZ_SCENE, Vector2(240, 200)) as AprendizArcano
+	player._iframes_left = 999.0
+	await frames(3)
+	var hp := apprentice.stats.health
+	var light := HitInfo.create(10.0, player.global_position, apprentice.global_position)
+	apprentice._on_hit_received(light)
+	check(apprentice.stats.health == hp and apprentice.has_shield(), "a bolha segura o corte leve")
+	var heavy := HitInfo.create(20.0, player.global_position, apprentice.global_position)
+	heavy.is_heavy = true
+	apprentice._on_hit_received(heavy)
+	check(not apprentice.has_shield() and apprentice.ai == AprendizArcano.AI.DAZED, "golpe forte: a bolha parte e ele fica atordoado")
+	apprentice._on_hit_received(light)
+	check(apprentice.stats.health < hp, "sem a bolha: o golpe entra")
+	# O anel de gelo: perto, dano e lentidão.
+	apprentice._set_ai(AprendizArcano.AI.APPROACH)
+	apprentice._cooldown = 0.0
+	player.global_position = apprentice.global_position + Vector2(-16, 0)
+	player._iframes_left = 0.0
+	var php := player.stats.health
+	await seconds(apprentice.nova_windup + 0.3)
+	check(player.stats.health < php and player.is_chilled(), "o anel de gelo acerta e gela")
+
+
+func test_curator() -> void:
+	var player := spawn_player(Vector2(160, 200))
+	var curator := spawn_mini(CURADORA_SCENE, Vector2(230, 200)) as CuradoraVitrines
+	await seconds(0.3)
+	check(curator.active, "acorda")
+	player._iframes_left = 0.0
+	curator._go_decide(99.0)
+	var case := curator.open_case()
+	check(case.covers(player.global_position), "a vitrine em volta do herói")
+	await seconds(curator.case_warning + 0.1)
+	check(player.is_grabbed() and curator.mode == CuradoraVitrines.Mode.CATALOG, "ficou dentro: preso — ela vem catalogar")
+	for i in curator.case_taps:
+		await tap(&"attack")
+	await frames(3)
+	check(not player.is_grabbed(), "quebrou o bloco")
+	await frames(3)
+	check(curator.mode != CuradoraVitrines.Mode.CATALOG, "saiu antes da pancada: ela desiste")
+	curator.stats.take_damage(99999.0)
+	await seconds(0.5)
+	check(Game.is_boss_defeated("curadora"), "vencida")
+
+
+func test_archive_golem() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "curadora"])
+	var level := await open_level(DOMINIO, "porta")
+	var golem: GolemArquivo = null
+	for node in level.entities.get_children():
+		if node is GolemArquivo:
+			golem = node
+	level.player.global_position = golem.global_position + Vector2(-30, 10)
+	level.player._iframes_left = 0.0
+	await seconds(0.4)
+	check(golem.active, "acorda")
+	var hp := level.player.stats.health
+	golem._go_decide(99.0)
+	golem.slam()
+	await frames(3)
+	check(level.player.stats.health < hp, "o pilão acerta quem está perto")
+	check(not get_tree().get_nodes_in_group("frost_zones").is_empty(), "e o chão em volta congela")
+	golem._aim = Vector2.LEFT
+	golem.throw_books()
+	var books := 0
+	for node in get_tree().get_nodes_in_group("projectiles"):
+		if (node as Projectile).element == Projectile.TOME:
+			books += 1
+	check(books == golem.book_count, "leque de livros (%d)" % books)
+	golem.stats.take_damage(99999.0)
+	await seconds(0.6)
+	check(Game.is_boss_defeated("golem_arquivo") and find_npc("livro_do_arquivo") != null, "vencido: o livro do Arquivo fica no chão")
+	var opened := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_cassian"):
+			opened = true
+	check(opened, "a porta do Arconte abre na hora")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("livro_do_arquivo") != null, "o livro continua lá depois de voltar")
+	level.queue_free()
+	await frames(2)
+
+
+func test_frozen_domain_gate() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan"])
+	var level := await open_level(MONTANHA, "porta")
+	check(find_npc("tunel_de_gelo") != null, "antes de Rachel: o túnel de gelo está fechado")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("rachel")
+	level = await open_level(MONTANHA, "porta")
+	var to_ice := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("dominio"):
+			to_ice = true
+	check(to_ice and level.spawns.has("oeste"), "depois de Rachel: o túnel abre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DOMINIO, "porta")
+	var back := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha") and (node as AreaExit).target_spawn == "oeste":
+			back = true
+	check(back, "o Domínio leva de volta ao túnel da Montanha")
+	check(find_npc("porta_arconte") != null, "antes do Golem: a porta do Arconte está fechada")
+	check(level._dialogue_variant("estudioso") == "estudioso", "o Estudioso ainda está congelado")
+	Game.defeated_bosses.append("curadora")
+	check(level._dialogue_variant("estudioso") == "estudioso_livre", "a Curadora caiu: ele está livre")
+	Game.defeated_bosses.append("golem_arquivo")
+	check(level._dialogue_variant("estudioso") == "estudioso_livro", "depois do Golem: lê o relatório")
+	Game.defeated_bosses.append("cassian")
+	check(level._dialogue_variant("estudioso") == "estudioso_cassian", "depois de Cassian: o gelo pinga")
+	level.queue_free()
+	await frames(2)
+
+
+func test_cassian_fight() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "golem_arquivo"])
+	var level := await open_level(ARENA_CASSIAN, "porta")
+	var cassian := level.boss_arena.boss as CassianVirel
+	var said := []
+	cassian.speech.connect(func(text: String): said.append(text))
+	level.player.global_position = cassian.global_position + Vector2(0, 100)
+	level.player._iframes_left = 999.0
+	await seconds(0.5)
+	check(cassian.active and not said.is_empty() and said[0] == CassianVirel.SPEECH_INTRO, "a luta começa")
+	check(level.ice_cells.size() > 40, "a sala tem faixas de gelo")
+	# Geada em volta do herói.
+	cassian._go_decide(99.0)
+	cassian.frost()
+	check(get_tree().get_nodes_in_group("frost_zones").size() >= cassian.frost_count, "geada: retângulos no chão")
+	# Pilares de gelo que derretem sozinhos.
+	var pillars := cassian.raise_walls()
+	check(pillars.size() == cassian.wall_count and not pillars[0].broken, "pilares de gelo entre os dois")
+	await seconds(cassian.wall_life + 0.3)
+	check(pillars.all(func(p): return not is_instance_valid(p) or p.broken), "derretem sozinhos")
+	# Colou nele: some e reaparece longe.
+	cassian.global_position = level.player.global_position + Vector2(0, -20)
+	var before := cassian.global_position
+	cassian.blink()
+	check(cassian.global_position.distance_to(level.player.global_position) > 60.0 and cassian.global_position != before, "piscou para longe")
+	# Fase 2 sem pular.
+	cassian.stats.take_damage(99999.0)
+	await frames(2)
+	check(cassian.phase == 2 and is_equal_approx(cassian.stats.health_ratio(), 0.5), "não pula o Colecionador")
+	await seconds(2.3)
+	check(cassian.mode != CassianVirel.Mode.TRANSITION and cassian.phase_label() == "O Colecionador", "fase 2 começa")
+	# Congela metade da arena com o herói dentro.
+	level.player._iframes_left = 0.0
+	cassian._go_decide(99.0)
+	var zone := cassian.freeze_half()
+	check(zone.covers(level.player.global_position), "a metade congelada é a sua")
+	await seconds(cassian.freeze_warning + 0.1)
+	check(level.player.is_grabbed(), "ficou: vira peça da coleção")
+	level.player.release_grab(false)
+	await frames(2)
+	# Estátuas da coleção (sem pagar memórias).
+	cassian.summon()
+	await frames(2)
+	check(cassian.statues.size() == cassian.max_statues and cassian.statues[0].memory_reward == 0, "invoca as estátuas")
+	# Roubo de estamina (sem as estátuas por perto: um golpe delas daria i-frames).
+	for statue in cassian.statues:
+		statue.stats.take_damage(99999.0)
+	await seconds(1.0)
+	level.player._iframes_left = 0.0
+	cassian._go_decide(99.0)
+	cassian.start_steal()
+	await seconds(cassian.steal_aim + 0.1)
+	check(level.player.stats.stamina < 1.0, "o raio rouba a estamina")
+	await seconds(1.5)
+	check(level.player.stats.stamina < 1.0, "e ela demora a voltar")
+	cassian.stats.take_damage(99999.0)
+	await seconds(1.0)
+	check(Game.is_boss_defeated("cassian") and Game.has_item("lembranca_cassian"), "vencido: a Lembrança da Ganância")
+	check(cassian.statues.all(func(st): return not is_instance_valid(st) or st.dead), "a coleção se desfaz com ele")
 	level.queue_free()
 	await frames(2)
 

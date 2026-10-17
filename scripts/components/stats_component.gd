@@ -145,6 +145,12 @@ func drain_stamina(amount: float) -> void:
 		_consume_stamina(amount)
 
 
+## Segura a recuperação de estamina por um tempo (Cassian "rouba estamina
+## temporariamente": esvazia a barra e ela demora a voltar).
+func suppress_regen(seconds: float) -> void:
+	_regen_delay_left = maxf(_regen_delay_left, seconds)
+
+
 func stamina_ratio() -> float:
 	return stamina / max_stamina if max_stamina > 0.0 else 0.0
 

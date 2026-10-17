@@ -634,5 +634,104 @@
 				"acao": ""
 			}
 		]
+	},
+	"tunel_de_gelo": {
+		"nome": "Túnel de gelo",
+		"falas": [
+			"Um túnel desce pela encosta da montanha, e o ar que sai dele é frio demais para um vulcão.",
+			"Uma parede de gelo tapa a passagem. Ela treme quando a montanha ruge.",
+			"Enquanto a dona da montanha estiver acordada lá em cima, o gelo não cede."
+		]
+	},
+	"porta_arconte": {
+		"nome": "Porta do Arconte",
+		"falas": [
+			"Uma porta de cristal com uma fechadura do tamanho de uma estante.",
+			"Do outro lado, alguém vira páginas. Devagar. Sem pressa nenhuma.",
+			"O Golem do Arquivo guarda a chave dentro do peito."
+		]
+	},
+	"praca_congelada": {
+		"nome": "Placa congelada",
+		"falas": [
+			"“DOMÍNIO DO ARCONTE — ACERVO PERMANENTE. Não toque. Não leve. Não envelheça.”",
+			"Embaixo, alguém riscou com a unha: “não saia”."
+		]
+	},
+	"lago_congelado": {
+		"nome": "Lago congelado",
+		"falas": [
+			"O lago congelou com tudo o que estava em cima: um barco, uma bicicleta, uma mesa posta para o chá.",
+			"O gelo é liso como vidro. Quem corre aqui não para quando quer."
+		]
+	},
+	"galeria_vitrines": {
+		"nome": "Vitrine",
+		"falas": [
+			"Dentro da vitrine, uma etiqueta: “Primeira risada de uma criança. Peça rara. Não exibir.”",
+			"A vitrine está vazia. Ou o que está dentro não se vê."
+		]
+	},
+	"porta_do_arconte": {
+		"nome": "Inscrição",
+		"falas": [
+			"Letras finas, gravadas no gelo à altura dos olhos:",
+			"“Tudo o que é guardado é salvo. Tudo o que é salvo é meu.” — C. V."
+		]
+	},
+	"sala_do_arconte": {
+		"nome": "A Sala do Arconte",
+		"falas": [
+			"Estantes até o teto, todas em ordem. Nos cantos, leitores congelados no meio de uma frase.",
+			"No centro, uma escrivaninha. Alguém está lendo há tanto tempo que a vela virou gelo."
+		]
+	},
+	"livro_do_arquivo": {
+		"nome": "Livro do Arquivo",
+		"falas": [
+			"“PROJETO ALEXANDRIA — Relatório interno. Acesso: Arconte.”",
+			"“As cobaias mortas retornam. Retornam incompletas. A cada retorno: menos memórias, cabelos e olhos mais brancos, o corpo mais jovem, a mente menos firme.”",
+			"“Descoberta: a humanidade pode ser extraída como um líquido e absorvida por outro corpo. Devolvida, restaura parte de quem eram. O custo envolve sempre uma morte.”",
+			"“Nota à margem, letra diferente: o Cientista da Gravidade não quer viver para sempre. Quer ir embora. E quer levar o mundo junto.”",
+			"A última página foi arrancada. Ficou só a marca de um dedo, congelado no papel."
+		]
+	},
+	"cajado_de_cassian": {
+		"nome": "Cajado do Arconte",
+		"falas": [
+			"O cristal na ponta do cajado ainda guarda alguma coisa: uma voz que lê em voz alta, para ninguém.",
+			"Ele guardou tudo para que nada se perdesse. No fim, era ele que tinha se perdido."
+		]
+	},
+	"estudioso": {
+		"nome": "Estudioso",
+		"falas": [
+			"Um homem de óculos, congelado no meio de uma página. Os olhos ainda se mexem atrás do gelo.",
+			"...“A... Curadora...” — a voz sai abafada, de muito longe. — “...ela tem... a chave das vitrines...”"
+		]
+	},
+	"estudioso_livre": {
+		"nome": "Estudioso Descongelado",
+		"falas": [
+			"Livre! Ha... os dedos ainda não obedecem. Quanto tempo? Não responda. Eu não quero saber.",
+			"Eu era uma das “pessoas importantes” dele. Ele dizia que estava me salvando do tempo.",
+			"O Arquivo Central guarda os relatórios do Projeto. O Golem não deixa ninguém ler. Se você o vencer, traga o livro. Eu leio para você."
+		]
+	},
+	"estudioso_livro": {
+		"nome": "Estudioso Descongelado",
+		"falas": [
+			"Você leu o relatório? Então sabe o que custava cada volta.",
+			"Cassian assinou todos. Ele não fez as mortes — guardou. Catalogou. Colocou em ordem. Achava que guardar era a mesma coisa que cuidar.",
+			"A porta dele está aberta agora. Ele vai tentar guardar você também."
+		]
+	},
+	"estudioso_cassian": {
+		"nome": "Estudioso Descongelado",
+		"falas": [
+			"O gelo está pingando. Pela primeira vez, ouço o lago se mexer.",
+			"Ele queria ser o único dono do futuro. Agora o futuro não tem dono. É assustador. É bom.",
+			"Vou levar alguns livros para o Teatro. Alguém precisa lembrar — não guardar. Lembrar."
+		]
 	}
 }

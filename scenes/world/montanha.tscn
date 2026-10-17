@@ -19,6 +19,10 @@ exit2_scene = "res://scenes/world/arena_rachel.tscn"
 exit2_spawn = "porta"
 exit2_requires = "matriarca"
 exit2_locked_dialogue = "porta_ninho"
+exit3_scene = "res://scenes/world/dominio.tscn"
+exit3_spawn = "porta"
+exit3_requires = "rachel"
+exit3_locked_dialogue = "tunel_de_gelo"
 lore_points = {"1": "sope_queimado", "2": "ossario", "3": "acampamento_capitao", "4": "trilha_ninho"}
 item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:3"])
 

@@ -18,6 +18,8 @@ const TEXTURE := preload("res://assets/props/cover.png")
 ## Aparência própria de cada ilha (3 quadros: inteira, rachada, quebrada).
 ## Vazio = o concreto da Cidade. Na Montanha, são rochas.
 @export var texture_override: Texture2D
+## > 0: derrete/desaba sozinha depois deste tempo (os pilares de gelo do Cassian).
+@export var lifetime := 0.0
 
 var health := 70.0
 var broken := false
@@ -57,6 +59,8 @@ func _ready() -> void:
 	_hurtbox.add_child(hurt_shape)
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hit_received)
+	if lifetime > 0.0:
+		get_tree().create_timer(lifetime, false).timeout.connect(smash)
 
 
 func _on_hit_received(info: HitInfo) -> void:

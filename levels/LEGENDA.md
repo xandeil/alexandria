@@ -68,6 +68,16 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `U` `0` | mini-chefes: O Capitão Dragonoide, A Matriarca Bestial | — |
 | `/` | Rachel, dormindo no Ninho (`arena_rachel.txt`) | — |
 | `Q` | aqui é um **pilar de rocha** (segura o hálito; o rugido derruba) | sim, até quebrar |
+| **Domínio Congelado** (tema "gelo") | | |
+| `.` `,` `g` `;` | laje com neve, taco da biblioteca, neve, entulho | não |
+| `=` | **GELO**: o herói escorrega (`Level.ice_cells`) | não |
+| `k` `:` | veio de cristal, páginas soltas (decoração) | não |
+| `~` | buraco no lago congelado (água escura, sólida) | sim |
+| `(` `)` `[` `]` | cristais, leitor preso no gelo, estante congelada (2 células), vitrine | todos |
+| `z` `s` `^` `?` | Bibliotecário de Gelo, Estátua Viva, Ácaros de Cristal (3), Aprendiz Arcano | — |
+| `U` `0` | mini-chefes: A Curadora de Vitrines, O Golem do Arquivo (deixa o livro) | — |
+| `/` | Cassian Virel (`arena_cassian.txt`) | — |
+| `!` | o Estudioso (congelado até a Curadora cair) | sim |
 | `@` | item no chão; QUAL item vem de `item_points` no nó da fase, na ordem de leitura (`"escudo_remendado"`, `"sucata_temperada:2"`) — pego uma vez, não volta | não |
 | `X` `x` `f` `L` `c` `K` | barricada, entulho, fogo, poste, caixote, carro destruído | variam |
 | `G` | portão do Detentor do Caos: falar com ele leva à arena do Aldir | sim |

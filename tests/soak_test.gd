@@ -12,8 +12,8 @@ func _ready() -> void:
 	Game.persistence_enabled = false
 	Game.scene_changes_enabled = false  # a queda do Prólogo não pode trocar a cena do teste
 	Sfx.muted = true
-	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90 90 90
-	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes, Forjas, Montanha)
+	# Durações opcionais (segundos de jogo; 0 pula):  ... soak_test.tscn -- 90 150 150 120 90 90 90 90 90
+	# (Cidade, Helena, Aldir, Prólogo, Bosque, Raízes, Forjas, Montanha, Domínio)
 	var args := OS.get_cmdline_user_args()
 	var city_time := float(args[0]) if args.size() > 0 else 90.0
 	var helena_time := float(args[1]) if args.size() > 1 else 150.0
@@ -23,6 +23,7 @@ func _ready() -> void:
 	var roots_time := float(args[5]) if args.size() > 5 else 90.0
 	var forge_time := float(args[6]) if args.size() > 6 else 90.0
 	var mountain_time := float(args[7]) if args.size() > 7 else 90.0
+	var ice_time := float(args[8]) if args.size() > 8 else 90.0
 	if prologue_time > 0.0:
 		await _soak_prologue(prologue_time)
 	if city_time > 0.0:
@@ -39,6 +40,8 @@ func _ready() -> void:
 		await _soak_forge(forge_time)
 	if mountain_time > 0.0:
 		await _soak_mountain(mountain_time)
+	if ice_time > 0.0:
+		await _soak_ice(ice_time)
 	print("SOAK OK")
 	get_tree().quit()
 
@@ -652,6 +655,118 @@ func _soak_mountain(duration: float) -> void:
 			unlocked = true
 	print("Montanha: trilha do Ninho aberta sem recarregar=%s" % unlocked)
 	await _soak_rachel(180.0)
+
+
+func _soak_ice(duration: float) -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel"])
+	Game.add_item("escudo_remendado")
+	Game.set_shield_equipped(true)
+	await _open("res://scenes/world/dominio.tscn", "porta")
+	var t := 0.0
+	var defeated := [0]
+	var slides := [0]
+	var trapped := [0]
+	var was_grabbed := [false]
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		(node as Enemy).defeated.connect(func(_e): defeated[0] += 1)
+	while t < duration:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		if _level.player.on_ice:
+			slides[0] += 1
+		var grabbed := _level.player.is_grabbed()
+		if grabbed and not was_grabbed[0]:
+			trapped[0] += 1
+		was_grabbed[0] = grabbed
+		if fmod(t, 15.0) < 1.0 / 60.0:
+			# O robô não sabe achar caminho: de tempos em tempos, vai até um grupo de inimigos.
+			var alive := get_tree().get_nodes_in_group("respawnable").filter(func(e): return not (e as Enemy).dead)
+			if not alive.is_empty():
+				_level.player.global_position = (alive[int(t / 15.0) % alive.size()] as Node2D).global_position + Vector2(-40, 0)
+		var nearest: Node2D = null
+		var best := INF
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is MiniBoss:
+				continue
+			var d: float = (node as Node2D).global_position.distance_to(_level.player.global_position)
+			if d < best:
+				best = d
+				nearest = node
+		_bot_step(_level.player, t, nearest)
+		if not _level.player.is_grabbed():
+			_level.player._iframes_left = 0.0 if fmod(t, 6.0) < 2.0 else 1.0
+	print("Domínio: %d inimigos derrotados em %.0f s; quadros no gelo=%d; vezes preso=%d; vida do herói=%.0f" % [
+		defeated[0], duration, slides[0], trapped[0], _level.player.stats.health])
+	for node in get_tree().get_nodes_in_group("minibosses"):
+		var mini := node as MiniBoss
+		if mini == null or mini.dead:
+			continue
+		var won := [false]
+		mini.fight_won.connect(func(_b): won[0] = true)
+		_level.player.global_position = mini.home_position + Vector2(-60, 30)
+		var tt := 0.0
+		while tt < 120.0 and not won[0]:
+			await get_tree().physics_frame
+			tt += 1.0 / 60.0
+			t += 1.0 / 60.0
+			if is_instance_valid(mini) and not mini.dead:
+				_bot_step(_level.player, t, mini)
+				_level.player._iframes_left = 0.0 if fmod(tt, 5.0) < 1.5 else 1.0
+				if fmod(tt, 3.0) < 1.0 / 60.0 and mini.active:
+					mini.stats.take_damage(60.0)
+		print("Mini-chefe %s: vitória=%s em %.0f s" % [mini.display_name() if is_instance_valid(mini) else "?", won[0], tt])
+	var unlocked := false
+	for node in _level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_cassian"):
+			unlocked = true
+	print("Domínio: porta do Arconte aberta sem recarregar=%s; livro do Arquivo no chão=%s" % [unlocked, _find_npc("livro_do_arquivo")])
+	await _soak_cassian(180.0)
+
+
+func _soak_cassian(limit: float) -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "golem_arquivo"])
+	await _open("res://scenes/world/arena_cassian.tscn", "porta")
+	var cassian := _level.boss_arena.boss as CassianVirel
+	var won := [false]
+	var modes := {}
+	var max_statues := [0]
+	var trapped := [0]
+	var was_grabbed := [false]
+	cassian.fight_won.connect(func(_b): won[0] = true)
+	_level.player.global_position = cassian.global_position + Vector2(0, 100)
+	var t := 0.0
+	var phases := {}
+	while t < limit and not won[0]:
+		await get_tree().physics_frame
+		t += 1.0 / 60.0
+		if not is_instance_valid(cassian):
+			break
+		modes[CassianVirel.Mode.keys()[cassian.mode]] = true
+		phases[cassian.phase] = true
+		max_statues[0] = maxi(max_statues[0], cassian.statues.size())
+		var grabbed := _level.player.is_grabbed()
+		if grabbed and not was_grabbed[0]:
+			trapped[0] += 1
+		was_grabbed[0] = grabbed
+		_bot_step(_level.player, t, cassian)
+		if not grabbed:
+			_level.player._iframes_left = 0.0 if fmod(t, 7.0) < 2.0 else 1.0
+		if _level.player.stats.health < 40.0:
+			_level.player.stats.revive()
+		if _level.player.is_dead():
+			break
+		if fmod(t, 2.0) < 1.0 / 60.0 and cassian.active and not cassian.hurtbox.invulnerable:
+			var hit := HitInfo.create(18.0 if cassian.phase == 1 else 45.0, _level.player.global_position, cassian.global_position)
+			cassian.hurtbox.receive_hit(hit)
+	print("Cassian: fases %s, modos vistos %s, estátuas (máx)=%d, vezes preso=%d, vitória=%s em %.0f s, herói vivo=%s" % [
+		phases.keys(), modes.keys(), max_statues[0], trapped[0], won[0], t, not _level.player.is_dead()])
+
+
+func _find_npc(dialogue_id: String) -> bool:
+	for node in get_tree().get_nodes_in_group("npcs"):
+		if (node as NPC).dialogue_id == dialogue_id:
+			return true
+	return false
 
 
 func _soak_rachel(limit: float) -> void:

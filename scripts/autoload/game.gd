@@ -98,6 +98,9 @@ const BOSS_REWARDS := {
 	"capitao": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"matriarca": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"rachel": {"lembranca_rachel": 1, "fragmento_turvo": 2, "sucata_temperada": 10},
+	"curadora": {"fragmento_turvo": 1, "sucata_temperada": 4},
+	"golem_arquivo": {"fragmento_turvo": 1, "sucata_temperada": 5},
+	"cassian": {"lembranca_cassian": 1, "fragmento_turvo": 2, "sucata_temperada": 12},
 }
 
 var memories := 0

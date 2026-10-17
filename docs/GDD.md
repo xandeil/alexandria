@@ -50,7 +50,7 @@ governo subiram com a ilha e ainda estão nela ✅ (Soldados Remendados).
 | 4 (esq.) | Raízes da Fome ✅ | Gula — Mabel Vorágine ✅ | raízes vermelhas retorcidas | 3ª |
 | 5 | Forjas Ocas ✅ | Inveja — Durgan Vell ✅ | ruínas de pedra com torres | 4ª |
 | 3 | Montanha Carbonizada ✅ | Orgulho — Rachel Azheryon Caelis ✅ | vulcão com lava | 5ª |
-| 2 | Domínio Congelado | Ganância — Cassian Virel | cidade de cristais de gelo | 6ª |
+| 2 | Domínio Congelado ✅ | Ganância — Cassian Virel ✅ | cidade de cristais de gelo | 6ª |
 | 7 | O Núcleo | Chefe final — o Cavaleiro Desolado | ilha mais alta, jardim com ruínas | final |
 
 Conexão entre ilhas: elevadores e túneis longos (escondem o carregamento).
@@ -159,7 +159,7 @@ Fichas completas em `data/bosses/*.tres` (uma por chefe).
 | Luxúria | Helena Altiva, A Cavaleira Desolada ✅ | humana | destreza | três fases; última sem armadura, dano altíssimo | Destreza |
 | Ira | Aldir Cornélios, O Detentor do Caos ✅ | humano | força | arena destrutível: martelo abre buracos e derruba coberturas | Força |
 | Orgulho | Rachel Azheryon Caelis, O Orgulho do Céu ✅ | dragão ígneo | fogo | arena que desmorona aos poucos | Magia |
-| Ganância | Cassian Virel, O Arconte do Zero | humano | gelo | rouba estamina e congela partes da arena | Magia |
+| Ganância | Cassian Virel, O Arconte do Zero ✅ | humano | gelo | rouba estamina e congela partes da arena | Magia |
 | Inveja | Durgan Vell, O Eco de Bronze ✅ | anão | raio | copia os ataques que o jogador mais usou | Fé |
 | Gula | Mabel Vorágine, A Fome Que Lembra ✅ | giganta | sangue | agarra, engole e drena memórias; regenera comendo lacaios | Sorte |
 | Preguiça | Nyssa Lumevel, A Que Não Desperta ✅ | fada | sono | Barra de Sonolência: parado/curando = dormir | Fé |
@@ -234,7 +234,11 @@ Cada ilha: 3–4 inimigos comuns e 2 mini-chefes (o 1º ensina a mecânica, o 2�
 - Mini-chefes ✅: O Capitão Dragonoide (escudo de frente 10% × costas 100%; lança-chamas em cone que incendeia; a troca de postura é a única hora em que cambaleia) · A Matriarca Bestial (investida que deixa tonta na parede; pisoteio que abre buracos — a arena encolhe; guarda a trilha do Ninho)
 - Rachel ✅: hálito em varredura (relógio próprio; para na pedra), rugido (anel que o dash atravessa; derruba os pilares), cauda em quem fica atrás (quebra o chão), a borda desaba em 75/50/25% da vida. Vencida: escama, Lembrança "Orgulho · Domínio", falas novas do Vendedor Dragonoide.
 
-**Domínio Congelado (Ganância):** Bibliotecário de Gelo · Estátua Viva · Ácaro de Cristal · Aprendiz Arcano · mini: A Curadora de Vitrines, O Golem do Arquivo.
+**Domínio Congelado (Ganância):** praça de chegada com o Estudioso congelado, lago congelado com buracos, Galeria das Vitrines, salas de leitura e o Arquivo Central ✅ (cenário; túnel de gelo na parede oeste da Montanha, abre depois de Rachel). A Sala do Arconte: biblioteca oval com faixas de gelo e leitores congelados nos cantos.
+- Sistema da área ✅: **gelo que escorrega** (`=` → `Level.ice_cells` + `FrostZone`; regra única em `Ice.is_slippery`; o herói usa `ice_grip`/`ice_brake`), **frio** (`player.apply_chill`: anda mais devagar) e **bloco de gelo** (`IceBlock` = o agarrão com toques).
+- Bibliotecário de Gelo ✅ (mira, dois estilhaços que gelam; foge de perto) · Estátua Viva ✅ (só anda com o herói de costas; pedra = 15% de dano) · Ácaro de Cristal ✅ (enxame de 3; gruda e bebe estamina; o dash sacode) · Aprendiz Arcano ✅ (bolha que o golpe forte parte; anel de gelo de perto)
+- Mini-chefes ✅: A Curadora de Vitrines (vitrine que prende em bloco de gelo; preso, ela "cataloga" com a bengala pesada; leque de estilhaços) · O Golem do Arquivo (não cambaleia; pilão que congela o chão, braço-estante, leque de livros; deixa o Livro do Arquivo — lore do Projeto — e abre a porta do Arconte)
+- Cassian ✅: fase 1 (lanças, geada, pilares que derretem, piscar quando o herói cola) · fase 2 sem pular (congela metade da arena, Estátuas Vivas, roubo de estamina com regen suspensa). Vencido: cajado, Lembrança "Ganância · Possessão", o Estudioso descongelado comenta.
 
 ## 9. O Núcleo e os finais
 

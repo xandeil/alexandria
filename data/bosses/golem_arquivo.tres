@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "golem_arquivo"
+display_name = "O Golem do Arquivo"
+title = "Mini-chefe do Domínio Congelado"
+sin = "Mini-chefe"
+sin_meaning = "Ganância"
+race = "Construto"
+attribute = "Gelo"
+area = "Domínio Congelado"
+scaling = "—"
+suggested_order = "2º mini-chefe do Domínio"
+memory_reward = 900
+implemented = true
+unique_mechanic = "Feito de estantes congeladas; não cambaleia. Ao morrer, deixa um livro de lore sobre o Projeto Alexandria."
+phases = Array[String](["Pilão (círculo; o chão em volta congela), braço-estante em leque, leque de livros arremessados."])
+history = "As estantes do Arquivo Central, congeladas de pé. Alguém lhes deu ordem de proteger os livros de todo mundo."
+meaning = "Guarda a porta de Cassian e a verdade do Projeto."

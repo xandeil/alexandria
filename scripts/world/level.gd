@@ -46,6 +46,10 @@ extends Node2D
 ##           z Dragonoide Atirador  s Dragão Bestial  ^ Dragão Alado  ? Brasas Vivas (2)
 ##           U O Capitão Dragonoide  0 A Matriarca Bestial  / Rachel (no ninho)
 ##           Q pilar de rocha (cobertura destrutível)
+##   Domínio Congelado: = GELO (escorrega)  , taco da biblioteca  : páginas  ~ lago (buraco, sólido)
+##           ( cristais  ) leitor preso no gelo  [ estante congelada  ] vitrine
+##           z Bibliotecário de Gelo  s Estátua Viva  ^ Ácaros de Cristal (3)  ? Aprendiz Arcano
+##           U A Curadora de Vitrines  0 O Golem do Arquivo (deixa o livro)  / Cassian  ! o Estudioso
 
 const TILE := 16
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
@@ -94,6 +98,21 @@ const THEME_ENTITIES := {
 		"/": {"boss": preload("res://scenes/bosses/rachel.tscn"), "memorial": {"dialogue": "escama_de_rachel",
 			"name": "Escama do Orgulho", "texture": "res://assets/props/scale_memorial.png", "at_death": true}},
 	},
+	"gelo": {
+		"z": {"enemy": preload("res://scenes/enemies/bibliotecario_gelo.tscn")},
+		"s": {"enemy": preload("res://scenes/enemies/estatua_viva.tscn")},
+		"^": {"enemy": preload("res://scenes/enemies/acaro_cristal.tscn"), "swarm": 3},
+		"?": {"enemy": preload("res://scenes/enemies/aprendiz_arcano.tscn")},
+		"U": {"miniboss": "curadora", "scene": preload("res://scenes/bosses/curadora_vitrines.tscn")},
+		"0": {"miniboss": "golem_arquivo", "scene": preload("res://scenes/bosses/golem_arquivo.tscn"),
+			"memorial": {"dialogue": "livro_do_arquivo", "name": "Livro do Arquivo",
+			"texture": "res://assets/props/lore_book.png", "prompt": "Ler"}},
+		"/": {"boss": preload("res://scenes/bosses/cassian.tscn"), "memorial": {"dialogue": "cajado_de_cassian",
+			"name": "Cajado do Arconte", "texture": "res://assets/props/arconte_staff.png", "at_death": true}},
+		# O Estudioso: preso no gelo até a Curadora cair (aí, a mesma pessoa, livre).
+		"!": {"npc": {"dialogue": "estudioso", "name": "Estudioso", "texture": "res://assets/sprites/estudioso_congelado.png",
+			"freed_by": "curadora", "freed_texture": "res://assets/sprites/estudioso.png"}},
+	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
@@ -117,6 +136,13 @@ const THEME_PROPS := {
 		"[": {"tex": "res://assets/props/dragon_skull.png", "box": Vector2(22, 8), "dx": 8},
 		"]": {"tex": "res://assets/props/obsidian_spike.png", "box": Vector2(10, 6),
 			"light": [Color(1.0, 0.45, 0.2), 0.4, 0.4, Vector2(0, -2)]},
+	},
+	"gelo": {
+		"(": {"tex": "res://assets/props/crystal_cluster.png", "box": Vector2(12, 6),
+			"light": [Color(0.6, 0.85, 1.0), 0.35, 0.35, Vector2(0, -6)]},
+		")": {"tex": "res://assets/props/frozen_reader.png", "box": Vector2(14, 6)},
+		"[": {"tex": "res://assets/props/frozen_bookshelf.png", "box": Vector2(28, 8), "dx": 8},
+		"]": {"tex": "res://assets/props/display_case.png", "box": Vector2(14, 6)},
 	},
 }
 ## Mini-chefes do mapa: caractere → [id na ficha BossData, cena].
@@ -259,6 +285,28 @@ const THEMES := {
 		# Coberturas destrutíveis (Q) aqui são pilares de rocha.
 		"cover": "res://assets/props/rock_cover.png",
 	},
+	"gelo": {
+		"floor": {
+			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
+			",": [Vector2i(3, 0)], "=": [Vector2i(4, 0), Vector2i(4, 0), Vector2i(2, 2)], ";": [Vector2i(5, 0)],
+			"k": [Vector2i(6, 0)], ":": [Vector2i(7, 0), Vector2i(3, 0)], "g": [Vector2i(3, 2)],
+			"_": [Vector2i(3, 0)],
+		},
+		"default_floor": ".",
+		# "=" é GELO: o herói escorrega (Ice.is_slippery).
+		"ice": "=",
+		"wall_top": Vector2i(0, 1),
+		"wall_face": [Vector2i(1, 1), Vector2i(1, 1), Vector2i(2, 1)],
+		"arch": Vector2i(3, 1),
+		"cliff": Vector2i(4, 1),
+		"cliff_low": Vector2i(5, 1),
+		"barrier": Vector2i(6, 1),
+		# Buracos no lago congelado: água escura (sólida).
+		"solid": {"~": [Vector2i(7, 1), Vector2i(7, 1), Vector2i(0, 2)]},
+		"shore": Vector2i(1, 2),
+		"cliff_under_walls": true,
+		"cover": "res://assets/props/ice_pillar.png",
+	},
 	"laboratorio": {
 		"floor": {
 			".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(0, 0), Vector2i(1, 0)],
@@ -313,7 +361,7 @@ const PROPS := {
 @export_file("*.txt") var layout_file := ""
 @export var area_name := ""
 @export var area_subtitle := ""
-@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas", "montanha") var theme := "teatro"
+@export_enum("teatro", "cidade", "laboratorio", "bosque", "raizes", "forjas", "montanha", "gelo") var theme := "teatro"
 @export var ambience: StringName = &"amb_theater"
 ## Cor geral da área (CanvasModulate). Mais escuro = as tochas brilham mais.
 @export var darkness := Color(1, 1, 1)
@@ -381,6 +429,9 @@ var _item_index := 0
 ## Placas de metal que conduzem raio (Forjas Ocas): célula → true.
 ## Torretas e Durgan "acendem" placas; quem está em cima leva o choque.
 var plate_cells := {}
+## Gelo do mapa (Domínio Congelado): célula → true. O herói escorrega aqui
+## (a regra fica em `Ice.is_slippery`).
+var ice_cells := {}
 ## Saídas trancadas à espera de um chefe: abrem NA HORA em que ele cai
 ## (antes, só abriam ao recarregar a fase — depois de descansar).
 var _locked_exits: Array[Dictionary] = []
@@ -426,6 +477,7 @@ func _clear() -> void:
 	_memorial_point = Vector2.ZERO
 	_item_index = 0
 	plate_cells.clear()
+	ice_cells.clear()
 	_locked_exits.clear()
 	var sky := get_node_or_null("Sky")
 	if sky:
@@ -496,7 +548,7 @@ func _build_cell(x: int, y: int, c: String, tiles: Dictionary) -> void:
 	var floors: Dictionary = tiles["floor"]
 	if floors.has(c):
 		floor_layer.set_cell(cell, 0, _pick(floors[c], x, y))
-		_mark_plate(cell, c, tiles)
+		_mark_ground(cell, c, tiles)
 		return
 	var solids: Dictionary = tiles.get("solid", {})
 	if solids.has(c) or (c == "<" and solids.has("~")):
@@ -518,13 +570,15 @@ func _build_cell(x: int, y: int, c: String, tiles: Dictionary) -> void:
 		_:
 			var under := _underlay_char(x, y, tiles)
 			floor_layer.set_cell(cell, 0, _pick(floors[under], x, y))
-			_mark_plate(cell, under, tiles)
+			_mark_ground(cell, under, tiles)
 			_build_entity(x, y, c)
 
 
-func _mark_plate(cell: Vector2i, c: String, tiles: Dictionary) -> void:
+func _mark_ground(cell: Vector2i, c: String, tiles: Dictionary) -> void:
 	if str(tiles.get("plates", "")).contains(c):
 		plate_cells[cell] = true
+	if str(tiles.get("ice", "")).contains(c):
+		ice_cells[cell] = true
 
 
 # --- Placas de raio (consultas usadas por torretas e chefes) ---------------------
@@ -543,6 +597,10 @@ static func cell_at(point: Vector2) -> Vector2i:
 
 func is_plate(cell: Vector2i) -> bool:
 	return plate_cells.has(cell)
+
+
+func is_ice(cell: Vector2i) -> bool:
+	return ice_cells.has(cell)
 
 
 ## Placas a até `radius` px de um ponto (entre `inner` e `radius`: um anel).
@@ -825,11 +883,23 @@ func _build_theme_entity(spec: Dictionary, x: int, y: int, feet: Vector2) -> voi
 			var offset := Vector2.ZERO if count == 1 else Vector2.from_angle(TAU * i / count + x) * 7.0
 			_add_enemy_spawn({"scene": spec["enemy"], "at": feet + offset})
 	elif spec.has("miniboss"):
+		var leaves: Dictionary = spec.get("memorial", {})
 		if Engine.is_editor_hint() or not Game.is_boss_defeated(spec["miniboss"]):
 			var mini := (spec["scene"] as PackedScene).instantiate() as Node2D
 			mini.position = feet
 			mini.add_to_group("minibosses")
+			if not leaves.is_empty():
+				mini.set_meta(&"memorial", leaves)  # deixado onde ele cair
 			entities.add_child(mini)
+		elif not leaves.is_empty() and not Engine.is_editor_hint():
+			_place_object(leaves, feet)  # já vencido: o objeto continua lá
+	elif spec.has("npc"):
+		if Engine.is_editor_hint():
+			return
+		var npc_def: Dictionary = (spec["npc"] as Dictionary).duplicate()
+		if Game.is_boss_defeated(npc_def.get("freed_by", "")):
+			npc_def["texture"] = npc_def["freed_texture"]
+		_place_object(npc_def, feet)
 	elif spec.has("boss"):
 		_boss = (spec["boss"] as PackedScene).instantiate()
 		_boss.position = feet
@@ -1031,7 +1101,8 @@ func _spawn_player() -> String:
 func _connect_world() -> void:
 	for node in entities.get_children():
 		if node is NPC:
-			(node as NPC).talked.connect(_on_npc_talked)
+			if not (node as NPC).talked.is_connected(_on_npc_talked):
+				(node as NPC).talked.connect(_on_npc_talked)
 			node.add_to_group("npcs")
 	if rest_chamber:
 		rest_chamber.rest_requested.connect(_on_rest_requested)
@@ -1092,6 +1163,14 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Bíblia: "A Fada do Teatro — diálogo novo depois de Nyssa (irmã)".
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
+		"estudioso":
+			# Bíblia: "Libertado do gelo, vende magias e lê livros de lore".
+			if Game.is_boss_defeated("cassian"):
+				return "estudioso_cassian"
+			if Game.is_boss_defeated("golem_arquivo"):
+				return "estudioso_livro"
+			if Game.is_boss_defeated("curadora"):
+				return "estudioso_livre"
 		"vendedor":
 			# Rachel queimou a cidade dele; o Capitão vendia escamas no mercado.
 			if Game.is_boss_defeated("rachel"):
@@ -1292,6 +1371,8 @@ func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
 	if victory:
 		hud.show_victory("INIMIGO VENCIDO", mini.display_name())
 		unlock_exits()
+		if mini.has_meta(&"memorial"):
+			_place_object(mini.get_meta(&"memorial"), mini.global_position)
 
 
 ## Abre as saídas cujo chefe acabou de cair (sem precisar sair e voltar).
@@ -1324,14 +1405,24 @@ func _place_memorial() -> void:
 	var at := _memorial_point if _memorial_point != Vector2.ZERO else _landing
 	if at == Vector2.ZERO:
 		return
-	var memorial := _make_npc(_memorial["dialogue"], _memorial["name"], _memorial["texture"], 1, at)
+	_place_object(_memorial, at)
+
+
+## Um objeto deixado por um chefe (espada, martelo, livro...): um NPC parado
+## que se "examina". Serve aos chefes e aos mini-chefes com "memorial".
+func _place_object(def: Dictionary, at: Vector2) -> NPC:
+	var memorial := _make_npc(def["dialogue"], def["name"], def["texture"], 1, at, def.get("prompt", "Falar"))
 	var sprite := memorial.get_node("Sprite") as AnimatedSprite2D
-	if _memorial.get("planted", false):
+	if def.get("planted", false):
 		# Cabeça do martelo no chão, cabo para cima (a empunhadura fica no alto).
 		sprite.offset = Vector2(13, 0)
 		sprite.position = Vector2(0, -27)
 		sprite.rotation = PI * 0.5 - 0.12
 	else:
-		sprite.rotation = _memorial.get("rotation", 0.0)
-	memorial.talked.connect(_on_npc_talked)
+		sprite.rotation = def.get("rotation", 0.0)
 	memorial.add_to_group("npcs")
+	# Durante a montagem, `_connect_world` liga todos os NPCs de uma vez; depois
+	# (o objeto aparece no meio da luta), ligamos aqui. Nunca duas vezes.
+	if not memorial.talked.is_connected(_on_npc_talked):
+		memorial.talked.connect(_on_npc_talked)
+	return memorial
