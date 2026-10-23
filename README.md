@@ -184,9 +184,56 @@ lembrança, queda): toque na tela para pular a frase.
 
 ## Rodar no computador
 
-1. Instale o Godot 4.7.2 (veja o [BUILD.md](BUILD.md), passo 1).
+Não precisa gerar APK nem ter Android SDK/Java para jogar no PC: basta o Godot.
+
+### Pelo editor do Godot
+
+1. Instale o Godot **4.7.2 Standard** (não a versão .NET). Baixe em
+   <https://github.com/godotengine/godot/releases/tag/4.7.2-stable>
+   (`Godot_v4.7.2-stable_win64.exe.zip`), descompacte onde quiser. Não tem instalador.
 2. Abra o Godot → **Importar** → escolha o `project.godot` desta pasta.
 3. Aperte **F5** (ou o ▶ no canto superior direito).
+
+### Pelo VS Code
+
+O VS Code edita o código; quem executa o jogo é o Godot. O fluxo é:
+
+1. Clone o repositório e abra a pasta no VS Code (**File → Open Folder**).
+2. Instale a extensão **godot-tools** (`geequlim.godot-tools`) para ter realce e
+   autocompletar de GDScript.
+3. **Importe o projeto uma única vez** (sem isso o jogo abre com erros como
+   `Identifier "UIStyle" not declared`, porque as `class_name` só são registradas
+   na importação). No terminal do VS Code (PowerShell), na pasta do projeto:
+
+   ```powershell
+   $godot = "C:\caminho\para\Godot_v4.7.2-stable_win64_console.exe"
+   & $godot --headless --import --path .
+   ```
+
+   Pode demorar alguns minutos na primeira vez (ele cria a pasta `.godot/`).
+4. Rode o jogo:
+
+   ```powershell
+   & $godot --path .
+   ```
+
+   A janela do jogo abre na tela de título; erros e `print()` aparecem no terminal.
+   Para abrir direto a cena atual use `--path . res://scenes/ui/title_screen.tscn`.
+
+Linux/macOS: é igual, trocando `$godot` pelo caminho do binário
+(`godot --headless --import --path .` e depois `godot --path .`).
+
+> **Dica:** para abrir o editor do Godot a partir do VS Code, use
+> `& $godot --editor --path .`. Nas configurações da extensão godot-tools, aponte
+> **Editor Path** para o mesmo executável.
+
+Se algo der errado:
+
+| Sintoma | Causa / solução |
+|---|---|
+| `Identifier "..." not declared` ao abrir | Faltou o passo 3 (importação). Rode-o e abra de novo. |
+| Janela não abre / tela preta | Placa de vídeo sem OpenGL 3.3. O projeto usa o renderer *Compatibility*. |
+| Mudei um arquivo `.gd` e nada mudou | Feche o jogo e rode de novo. |
 
 ## Gerar o APK
 
