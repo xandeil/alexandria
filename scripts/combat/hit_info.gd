@@ -12,6 +12,9 @@ var knockback := 0.0
 var is_heavy := false
 ## Passa por cima do escudo (grito, ondas no chão, agarrões).
 var unblockable := false
+## Dá para aparar (parry)? Só golpes de arma com AttackData.parryable. Tiros,
+## ondas e agarrões montam o HitInfo na mão e ficam com false.
+var parryable := false
 var attack_name := ""
 ## Quem bateu (pode ser null, ex.: dano do cenário).
 var source: Node2D

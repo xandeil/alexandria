@@ -26,6 +26,7 @@ const VORAGEM_HEAL_BASE := 2.0
 const VORAGEM_HEAL_PER_LUCK := 0.2  ## cura = 2 + Sorte × 0.2 (valor FIXO, não %)
 const VORAGEM_BLEED_LIGHT := 22.0
 const VORAGEM_BLEED_HEAVY := 40.0
+const VORAGEM_BLEED_SPECIAL := 55.0  ## o Frenesi: cada estocada enche muito mais
 const VORAGEM_BURST_RATIO := 0.15  ## estouro: 15% da vida máxima...
 const VORAGEM_BURST_BOSS_RATIO := 0.04  ## ...4% num chefe
 # Arco do Sono Eterno (Preguiça): nuvem de pólen.
@@ -65,14 +66,14 @@ static func create(weapon: WeaponData) -> WeaponSkill:
 class LaminaDesolada extends WeaponSkill:
 	func on_hit(player: Player, target: Hurtbox, _info: HitInfo, attack: AttackData) -> void:
 		# Só inimigo conta: acertar uma caixa não vira "dash infinito" pelo mapa.
-		if attack.is_heavy and WeaponSkill.enemy_of(target) != null:
+		if is_special(attack) and WeaponSkill.enemy_of(target) != null:
 			player.stats.restore_stamina(attack.stamina_cost * LAMINA_STAMINA_BACK + LAMINA_STAMINA_FLAT)
 			Fx.sparks(target.global_position, Vector2.UP, Color(0.85, 0.95, 1.0), 6)
 
 
 class PilarEstilhacada extends WeaponSkill:
 	func on_active(player: Player, attack: AttackData, damage: float) -> void:
-		if not attack.is_heavy:
+		if not is_special(attack):
 			return
 		var center := player.hitbox_shape.global_position
 		WeaponFx.ring(player.get_parent(), center, PILAR_RADIUS, Color(1.0, 0.7, 0.35))
@@ -89,10 +90,10 @@ class PilarEstilhacada extends WeaponSkill:
 
 class PresaCaelis extends WeaponSkill:
 	func extra_stamina(attack: AttackData) -> float:
-		return CAELIS_EXTRA_STAMINA if attack.is_heavy else 0.0
+		return CAELIS_EXTRA_STAMINA if is_special(attack) else 0.0
 
 	func on_active(player: Player, attack: AttackData, damage: float) -> void:
-		if not attack.is_heavy:
+		if not is_special(attack):
 			return
 		var direction := Vector2.from_angle(player.hitbox_pivot.rotation)
 		for i in 3:  # três chamas em linha, no rastro do corte
@@ -117,7 +118,7 @@ class ReplicadorBronze extends WeaponSkill:
 	func fire(player: Player, attack: AttackData, damage: float, direction: Vector2) -> void:
 		var shot := PlayerShot.fire(player.get_parent(), player.global_position + direction * 6.0, direction,
 			player, damage, PlayerShot.BOLT)
-		var jumps := 2 if attack.is_heavy else 1
+		var jumps := 2 if is_special(attack) else 1
 		shot.struck.connect(func(target: Hurtbox, _info: HitInfo): _chain(player, target, damage, jumps))
 
 	## O raio salta para o inimigo mais perto de quem levou o virote.
@@ -148,7 +149,11 @@ class PresasVoragem extends WeaponSkill:
 			return
 		var luck := int(Game.attributes.get("sorte", 10))
 		player.stats.heal(VORAGEM_HEAL_BASE + luck * VORAGEM_HEAL_PER_LUCK)
-		var amount := VORAGEM_BLEED_HEAVY if attack.is_heavy else VORAGEM_BLEED_LIGHT
+		var amount := VORAGEM_BLEED_LIGHT
+		if is_special(attack):
+			amount = VORAGEM_BLEED_SPECIAL
+		elif attack.is_heavy:
+			amount = VORAGEM_BLEED_HEAVY
 		if EnemyStatus.of(enemy).add_bleed(amount):
 			var ratio := VORAGEM_BURST_BOSS_RATIO if enemy is Boss else VORAGEM_BURST_RATIO
 			var burst := maxf(10.0, enemy.stats.max_health * ratio)
@@ -164,17 +169,17 @@ class ArcoSono extends WeaponSkill:
 		return true
 
 	func fire(player: Player, attack: AttackData, damage: float, direction: Vector2) -> void:
-		var kind := PlayerShot.POLLEN if attack.is_heavy else PlayerShot.ARROW
+		var kind := PlayerShot.POLLEN if is_special(attack) else PlayerShot.ARROW
 		var shot := PlayerShot.fire(player.get_parent(), player.global_position + direction * 6.0, direction,
 			player, damage, kind)
-		if attack.is_heavy:
+		if is_special(attack):
 			shot.landed.connect(func(at: Vector2, parent: Node):
 				SlumberPollen.spawn(parent, at, SONO_CLOUD_RADIUS, SONO_CLOUD_SECONDS))
 
 
 class AncoraGravidade extends WeaponSkill:
 	func on_active(player: Player, attack: AttackData, damage: float) -> void:
-		if not attack.is_heavy:
+		if not is_special(attack):
 			return
 		var center := player.hitbox_shape.global_position
 		GravityVortex.spawn(player.get_parent(), center, ANCORA_RADIUS, ANCORA_SECONDS, damage * ANCORA_BURST, player)

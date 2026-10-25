@@ -28,3 +28,4 @@ slash_color = Color(1.0, 0.5, 0.3, 0.95)
 sound = &"swing_heavy"
 scaling_attribute = "nenhum"
 scaling_per_point = 0.0
+parryable = false

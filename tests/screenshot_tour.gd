@@ -53,6 +53,10 @@ func _ready() -> void:
 		await _tour_guard()
 		Game.quit_game()
 		return
+	if only == "maos":
+		await _tour_hands()
+		Game.quit_game()
+		return
 	if only == "armas":
 		await _tour_weapons()
 		Game.quit_game()
@@ -1229,6 +1233,66 @@ func _tour_options() -> void:
 	Settings.controller_mode = false
 	Settings.apply()
 	level.queue_free()
+
+
+func _tour_hands() -> void:
+	Game.reset_progress()
+	Game.add_item("escudo_remendado", 1, false)
+	Game.add_item("lembranca_helena", 1, false)
+	Game.add_item("lamina_desolada", 1, false)
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/cidade.tscn") as Level
+	await wait(3.2)
+	var player := level.player
+	player.stats.max_health = 9999.0
+	player.stats.set_health(9999.0)
+	var soldier := (load("res://scenes/enemies/soldado_remendado.tscn") as PackedScene).instantiate() as Enemy
+	soldier.position = player.position + Vector2(20, 0)
+	level.add_child(soldier)
+	soldier.set_physics_process(false)
+	level.camera.snap_to_target()
+	await wait(0.3)
+	await shot("h01_escudo_toque")  # botões de toque: escudo (L1) e "Aparar" (L2)
+	player.facing = Vector2.RIGHT
+	player._start_parry()
+	var info := HitInfo.create(16.0, soldier.global_position, player.global_position)
+	info.parryable = true
+	info.source = soldier
+	player._on_hit_received(info)
+	await wait(0.25)
+	await shot("h02_parry_guarda_aberta")
+	player._buffer(&"light")
+	player._consume_buffer()
+	await wait(0.3)
+	await shot("h03_critico")
+	await wait(0.6)
+	# Duas espadas (espada + Lâmina Desolada: mesmo tipo).
+	Game.equip_weapon("lamina_desolada", "esquerda")
+	Settings.controller_mode = true
+	Settings.apply()
+	await wait(0.4)
+	await shot("h04_duas_espadas_controle")
+	player._buffer(&"left_light")
+	player._consume_buffer()
+	await wait(0.2)
+	await shot("h05_l1_as_duas_juntas")
+	await wait(0.8)
+	Game.set_two_handing(true)
+	await wait(0.4)
+	await shot("h06_duas_maos_controle")
+	Settings.controller_mode = false
+	Settings.apply()
+	await wait(0.3)
+	await shot("h07_duas_maos_toque")
+	Game.set_two_handing(false)
+	level.hud.open_inventory()
+	await wait(0.3)
+	level.hud.inventory_menu._select("lamina_desolada")
+	await wait(0.2)
+	await shot("h08_inventario_maos")
+	level.hud.inventory_menu.close()
+	level.queue_free()
+	Game.reset_progress()
 
 
 func _tour_weapons() -> void:

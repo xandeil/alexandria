@@ -28,3 +28,4 @@ slash_color = Color(1.0, 0.75, 0.7, 0.95)
 sound = &"chomp"
 scaling_attribute = "nenhum"
 scaling_per_point = 0.0
+parryable = false

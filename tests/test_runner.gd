@@ -209,6 +209,13 @@ func _ready() -> void:
 		"test_weapon_skills_melee",
 		"test_weapon_skills_ranged",
 		"test_smith_forge_tab",
+		"test_parryable_flags",
+		"test_parry_and_riposte",
+		"test_backstab",
+		"test_hand_modes",
+		"test_paired_and_dual_attacks",
+		"test_two_hands",
+		"test_touch_follows_hands",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -260,7 +267,7 @@ func _reset_world() -> void:
 
 
 func _release_all_actions() -> void:
-	for action in ["move_left", "move_right", "move_up", "move_down", "attack", "attack_heavy", "dash", "heal", "sanity", "block", "inventory"]:
+	for action in ["move_left", "move_right", "move_up", "move_down", "attack", "attack_heavy", "dash", "heal", "sanity", "block", "special", "inventory"]:
 		Input.action_release(action)
 
 
@@ -4278,8 +4285,10 @@ func test_weapon_forge_and_equip() -> void:
 	check(Game.try_forge_weapon("lamina_desolada"), "forjou")
 	check(Game.has_item("lembranca_helena"), "a Lembrança NÃO é gasta (ela abre o Núcleo)")
 	check(Game.memories == 8500 and Game.item_count("sucata_temperada") == 7, "cobrou memórias e sucata")
-	check(Game.forge_block_reason("lamina_desolada") == "owned" and not Game.try_forge_weapon("lamina_desolada"), "não forja duas vezes")
 	check(Game.owned_weapons() == ["espada", "lamina_desolada"], "armas: %s" % [Game.owned_weapons()])
+	check(Game.try_forge_weapon("lamina_desolada") and Game.weapon_count("lamina_desolada") == 2, "forja uma CÓPIA (uma para cada mão)")
+	check(Game.forge_block_reason("lamina_desolada") == "owned" and not Game.try_forge_weapon("lamina_desolada"), "mas não uma terceira")
+	Game.remove_item("lamina_desolada", 1)
 	check(not Game.equip_weapon("arco_sono"), "não equipa o que não tem")
 	var player := spawn_player()
 	await frames(2)
@@ -4288,7 +4297,8 @@ func test_weapon_forge_and_equip() -> void:
 	check(Game.equip_weapon("lamina_desolada"), "equipou")
 	await frames(1)
 	check(player.weapon.id == "lamina_desolada", "o herói troca de arma na hora")
-	check(player.heavy_attack != sword_heavy and player.heavy_attack.active_during_lunge, "golpe forte vira a estocada")
+	check(player.heavy_attack == sword_heavy, "R2 continua o golpe forte comum")
+	check(player.weapon.special_attack.active_during_lunge, "o especial (L2 em duas mãos) é a estocada")
 	check(player.sword.texture == player.weapon.hand_texture, "e o desenho na mão")
 	var data := Game._to_dict()
 	Game.reset_progress()
@@ -4345,11 +4355,11 @@ func test_weapon_skills_melee() -> void:
 	var enemy: Enemy = setup[1]
 	player.stats.stamina = 10.0
 	var info := HitInfo.create(10.0, player.global_position, enemy.global_position)
-	player._skill.on_hit(player, enemy.hurtbox, info, player.heavy_attack)
+	player._skill.on_hit(player, enemy.hurtbox, info, player.weapon.special_attack)
 	check(player.stats.stamina > 30.0, "Lâmina: acertou a estocada, recuperou estamina")
 	var nobody := Hurtbox.new()
 	player.stats.stamina = 10.0
-	player._skill.on_hit(player, nobody, info, player.heavy_attack)
+	player._skill.on_hit(player, nobody, info, player.weapon.special_attack)
 	check(is_equal_approx(player.stats.stamina, 10.0), "Lâmina: sem inimigo, nada (não vira dash infinito)")
 	nobody.free()
 	# Pilar: a onda derruba a guarda de quem está perto.
@@ -4358,7 +4368,7 @@ func test_weapon_skills_melee() -> void:
 	enemy = setup[1]
 	var health := enemy.stats.health
 	player.hitbox_pivot.rotation = 0.0
-	player._skill.on_active(player, player.heavy_attack, 40.0)
+	player._skill.on_active(player, player.weapon.special_attack, 40.0)
 	await frames(2)
 	check(enemy.stats.health < health, "Pilar: a onda machuca em volta")
 	check((enemy as SoldadoRemendado).ai == SoldadoRemendado.AI.STAGGER, "Pilar: e faz cambalear (postura 999)")
@@ -4367,9 +4377,9 @@ func test_weapon_skills_melee() -> void:
 	player = setup[0]
 	enemy = setup[1]
 	enemy.set_physics_process(false)  # o soldado parado: quem queima é o fogo, não a espada dele
-	check(player._skill.extra_stamina(player.heavy_attack) > 0.0 and player._skill.extra_stamina(player.light_combo[0]) == 0.0, "Caelis: só o forte custa a 'mana'")
+	check(player._skill.extra_stamina(player.weapon.special_attack) > 0.0 and player._skill.extra_stamina(player.light_combo[0]) == 0.0, "Caelis: só o forte custa a 'mana'")
 	player.hitbox_pivot.rotation = 0.0
-	player._skill.on_active(player, player.heavy_attack, 40.0)
+	player._skill.on_active(player, player.weapon.special_attack, 40.0)
 	var patches := get_tree().get_nodes_in_group("fire_patches")
 	check(patches.size() == 3, "Caelis: três chamas no rastro")
 	health = enemy.stats.health
@@ -4447,7 +4457,7 @@ func test_weapon_skills_ranged() -> void:
 	await seconds(1.4)
 	check(is_equal_approx(enemy.move_speed, speed), "Arco: saiu/acabou, volta ao normal")
 	player.facing = Vector2.RIGHT
-	check(player._start_attack(player.heavy_attack, -1), "flecha de pólen")
+	check(player._start_attack(player.weapon.special_attack, -1), "flecha de pólen")
 	var cloud := await wait_for(func(): return not get_tree().get_nodes_in_group("slumber_pollen").is_empty(), 180)
 	check(cloud, "Arco: a flecha forte abre a nuvem onde cai")
 	Game.reset_progress()
@@ -4478,7 +4488,7 @@ func test_inventory_menu() -> void:
 	menu._activate("pilar_estilhacada")
 	await frames(1)
 	check(Game.equipped_weapon == "pilar_estilhacada" and level.player.weapon.id == "pilar_estilhacada", "equipar pelo inventário")
-	check(menu._equip_rows["direita"].text.begins_with("Pilar"), "a coluna EQUIPADO atualiza")
+	check(menu._equip_rows["direita"].text.contains("Pilar"), "a coluna EQUIPADO atualiza")
 	# L1/R1 trocam a aba.
 	var r1 := InputEventJoypadButton.new()
 	r1.button_index = JOY_BUTTON_RIGHT_SHOULDER
@@ -4531,4 +4541,257 @@ func test_smith_forge_tab() -> void:
 	menu._closed.emit()
 	await frames(1)
 	menu.queue_free()
+	Game.reset_progress()
+
+
+
+# --- v0.21: parry, crítico, duas armas e duas mãos -------------------------------------------
+
+func test_parryable_flags() -> void:
+	check((load("res://data/attacks/soldado_golpe.tres") as AttackData).parryable, "cassetete do soldado: dá para aparar")
+	check((load("res://data/attacks/helena_corte_1.tres") as AttackData).parryable, "cortes da Helena: dá para aparar")
+	check(not (load("res://data/attacks/aldir_martelada.tres") as AttackData).parryable, "martelo do Aldir: não")
+	check(not (load("res://data/attacks/governanta_abraco.tres") as AttackData).parryable, "agarrão: não")
+	check(not (load("res://data/attacks/rachel_garra.tres") as AttackData).parryable, "garra da Rachel: não")
+	check(not (load("res://data/attacks/cavaleiro_corte_3.tres") as AttackData).parryable, "A Promessa do Cavaleiro: não")
+	check((load("res://data/attacks/cavaleiro_corte_1.tres") as AttackData).parryable, "Espadão I: sim")
+	check(not HitInfo.new().parryable, "HitInfo montado na mão (tiro, onda) não é aparável")
+
+
+## Golpe de verdade do soldado contra o herói (passa pela Hitbox, como no jogo).
+func _soldier_hit(soldier: Enemy) -> HitInfo:
+	var info := HitInfo.create(16.0, soldier.global_position, Vector2(200, 200))
+	info.parryable = true
+	info.source = soldier
+	info.attack_name = "Golpe de cassetete"
+	return info
+
+
+func test_parry_and_riposte() -> void:
+	Game.reset_progress()
+	Game.add_item("escudo_remendado", 1, false)
+	check(Game.hand_mode() == "escudo", "pegou o escudo: ele vai para a esquerda")
+	var player := spawn_player(Vector2(200, 200))
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(220, 200))
+	await frames(2)
+	soldier.set_physics_process(false)
+	player.facing = Vector2.RIGHT
+	player._iframes_left = 0.0
+	var got := []
+	player.parried.connect(func(e): got.append(e))
+	# L2 com escudo = aparar. Golpe dentro da janela: desvia e abre a guarda.
+	player._buffer(&"l2")
+	player._consume_buffer()
+	check(player.state == Player.State.PARRY, "L2 com escudo: aparar")
+	var health := player.stats.health
+	player._on_hit_received(_soldier_hit(soldier))
+	check(is_equal_approx(player.stats.health, health), "aparou: nenhum dano")
+	check(got.size() == 1 and soldier.is_guard_open(), "a guarda do soldado ABRIU")
+	check((soldier as SoldadoRemendado).ai == SoldadoRemendado.AI.STAGGER, "e ele cambaleia")
+	# R1 perto da guarda aberta = crítico.
+	var crits := []
+	player.critical_landed.connect(func(e, kind): crits.append(kind))
+	var before := soldier.stats.health
+	var expected := player.critical_damage(soldier)
+	player._buffer(&"light")
+	player._consume_buffer()
+	check(player.state == Player.State.CRITICAL, "R1 na guarda aberta: crítico")
+	check(player._is_invulnerable(), "invencível durante o crítico")
+	await seconds(0.7)
+	check(crits == [&"riposte"], "foi um riposte")
+	check(soldier.dead or is_equal_approx(before - soldier.stats.health, expected), "dano do crítico = 3× o golpe leve (%d)" % expected)
+	check(expected >= player.attack_damage(player.light_combo[0]) * 2.9, "crítico ≈ 3× o golpe leve")
+	# Fora da janela: apanha normal.
+	var soldier2 := spawn_enemy_scene(SOLDIER_SCENE, Vector2(180, 200))
+	await frames(2)
+	soldier2.set_physics_process(false)
+	player.facing = Vector2.LEFT
+	player._iframes_left = 0.0
+	player._start_parry()
+	await seconds(0.3)
+	health = player.stats.health
+	player._on_hit_received(_soldier_hit(soldier2))
+	check(player.stats.health < health and not soldier2.is_guard_open(), "atrasado: apanhou e a guarda dele não abriu")
+	# Golpe que não dá para aparar: apanha mesmo na janela.
+	await seconds(0.6)
+	player._iframes_left = 0.0
+	player._set_state(Player.State.FREE)
+	player._start_parry()
+	health = player.stats.health
+	var grab := _soldier_hit(soldier2)
+	grab.parryable = false
+	player._on_hit_received(grab)
+	check(player.stats.health < health, "agarrão/martelo gigante: o parry não segura")
+	# Chefe: crítico pela metade.
+	var boss := Boss.new()
+	check(is_equal_approx(player.critical_damage(boss), player.critical_damage(soldier2) * player.critical_boss_ratio), "em chefe o crítico rende metade")
+	boss.free()
+	# Sorte aumenta o crítico.
+	var normal := player.critical_damage(soldier2)
+	Game.attributes["sorte"] = 30
+	check(player.critical_damage(soldier2) > normal, "Sorte aumenta o crítico")
+	Game.reset_progress()
+
+
+func test_backstab() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(218, 200))
+	await frames(2)
+	soldier.set_physics_process(false)
+	soldier.facing = Vector2.LEFT  # olhando para o herói
+	player.facing = Vector2.RIGHT
+	check(not player._try_critical(), "de frente, sem parry: nada de crítico")
+	soldier.facing = Vector2.RIGHT  # de costas
+	check(soldier.can_be_backstabbed(player.global_position), "de costas: dá")
+	var kinds := []
+	player.critical_landed.connect(func(_e, kind): kinds.append(kind))
+	check(player._try_critical(), "R1 pelas costas: crítico")
+	await seconds(0.7)
+	check(kinds == [&"costas"], "foi pelas costas")
+	var boss := Boss.new()
+	check(not boss.can_be_backstabbed(Vector2.ZERO), "chefe não toma ataque pelas costas")
+	boss.free()
+
+
+func test_hand_modes() -> void:
+	Game.reset_progress()
+	check(Game.hand_mode() == "vazia", "começa com a esquerda vazia")
+	Game.add_item("lembranca_helena", 1, false)
+	Game.add_item("lamina_desolada", 1, false)
+	Game.add_item("lembranca_aldir", 1, false)
+	Game.add_item("pilar_estilhacada", 1, false)
+	check(Game.equip_weapon("lamina_desolada", "esquerda") and Game.hand_mode() == "par", "espada + Lâmina: duas do mesmo tipo")
+	check(Game.equip_weapon("pilar_estilhacada", "esquerda") and Game.hand_mode() == "dupla", "espada + martelo: tipos diferentes")
+	check(not Game.equip_weapon("espada", "esquerda"), "só uma espada: não vai nas duas mãos")
+	Game.add_item("espada", 1, false)  # a cópia do Ferreiro
+	check(Game.weapon_count("espada") == 2 and Game.equip_weapon("espada", "esquerda"), "com a cópia, vai")
+	Game.equip_weapon("pilar_estilhacada", "esquerda")
+	Game.equip_weapon("pilar_estilhacada", "direita")
+	check(Game.equipped_weapon == "pilar_estilhacada" and Game.left_hand == "", "uma só: ela MUDA de mão")
+	Game.add_item("escudo_remendado", 1, false)
+	Game.set_shield_equipped(true)
+	check(Game.hand_mode() == "escudo" and Game.shield_ready(), "escudo na esquerda")
+	check(not Game.equip_weapon("escudo_remendado", "direita"), "escudo não vai na direita")
+	Game.set_two_handing(true)
+	check(Game.hand_mode() == "duas_maos" and not Game.shield_ready() and Game.shield_equipped(), "duas mãos: o escudo vai para as costas")
+	var data := Game._to_dict()
+	Game.reset_progress()
+	Game._from_dict(data)
+	check(Game.left_hand == "escudo_remendado" and Game.two_handing, "mãos ficam no save")
+	# Save da v0.20: "escudo equipado" vira escudo na mão esquerda.
+	Game._from_dict({"version": 3, "inventory": {"escudo_remendado": 1}, "shield_equipped": true})
+	check(Game.left_hand == "escudo_remendado" and not Game.two_handing, "migração do escudo antigo")
+	Game.reset_progress()
+
+
+func test_paired_and_dual_attacks() -> void:
+	Game.reset_progress()
+	Game.add_item("lembranca_helena", 1, false)
+	Game.add_item("lamina_desolada", 1, false)
+	Game.equip_weapon("lamina_desolada", "esquerda")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	check(player.left_weapon != null and player.left_weapon.id == "lamina_desolada", "herói com a Lâmina na esquerda")
+	check(player.off_pivot.visible, "e ela aparece na mão")
+	var attack := player.light_combo[0]
+	var right := player.attack_damage(attack, &"direita")
+	var left := Game.weapon_hit_damage(player.left_weapon, attack)
+	check(is_equal_approx(player.attack_damage(attack, &"ambas"), (right + left) * 0.75), "L1 com duas iguais: 75% da soma")
+	# R1 só com a direita.
+	player._buffer(&"light")
+	player._consume_buffer()
+	check(player._attack_hand == &"direita", "R1: só a direita")
+	await seconds(0.8)
+	var before := player.stats.stamina
+	player._buffer(&"left_light")
+	player._consume_buffer()
+	check(player._attack_hand == &"ambas", "L1: as duas juntas")
+	var avg := (attack.stamina_cost * player.weapon.stamina_scale + attack.stamina_cost * player.left_weapon.stamina_scale) * 0.5
+	check(is_equal_approx(before - player.stats.stamina, avg * 1.25), "estamina: média das duas + 25%")
+	await seconds(0.8)
+	player._buffer(&"l2")
+	player._consume_buffer()
+	check(player._attack_hand == &"esquerda" and player._current_attack.is_heavy, "L2: forte só com a esquerda")
+	await seconds(1.2)
+	# Tipos diferentes: L1 é o golpe fraco da arma da esquerda.
+	Game.add_item("lembranca_aldir", 1, false)
+	Game.add_item("pilar_estilhacada", 1, false)
+	Game.equip_weapon("pilar_estilhacada", "esquerda")
+	await frames(1)
+	player._buffer(&"left_light")
+	player._consume_buffer()
+	check(player._attack_hand == &"esquerda", "dupla: L1 bate com a da esquerda")
+	check(is_equal_approx(player.attack_damage(player._current_attack, &"esquerda"), Game.weapon_hit_damage(player.left_weapon, player._current_attack)), "com o dano do martelo")
+	Game.reset_progress()
+
+
+func test_two_hands() -> void:
+	Game.reset_progress()
+	Game.add_item("escudo_remendado", 1, false)
+	Game.vision_loss = 1
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	var light := player.light_combo[0]
+	var one_hand := player.attack_damage(light)
+	# Segurar △: duas mãos (e NÃO gasta a Humanidade).
+	var flasks := Game.sanity_flasks
+	Input.action_press(&"sanity")
+	await seconds(0.65)
+	Input.action_release(&"sanity")
+	await frames(3)
+	check(Game.two_handing, "segurar △: duas mãos")
+	check(Game.sanity_flasks == flasks and player.state != Player.State.SANITY, "segurar não usa a Humanidade")
+	check(is_equal_approx(player.attack_damage(light), one_hand * 1.5), "duas mãos: +50% de dano")
+	var before := player.stats.stamina
+	player._start_attack(light, 0)
+	check(is_equal_approx(before - player.stats.stamina, light.stamina_cost * player.weapon.stamina_scale * 1.5), "e +50% de estamina")
+	await seconds(0.8)
+	# L2 em duas mãos: o especial da arma.
+	player._buffer(&"l2")
+	player._consume_buffer()
+	check(player._current_attack == player.weapon.special_attack, "L2: ataque especial (Giro da Cobaia)")
+	await seconds(1.2)
+	# L1: guarda com a arma, segura 75%.
+	Input.action_press(&"block")
+	await frames(3)
+	check(player.state == Player.State.BLOCK and player._weapon_guard(), "L1: guarda com a própria arma")
+	var health := player.stats.health
+	var hit := HitInfo.create(20.0, Vector2(240, 200), player.global_position)
+	player.facing = Vector2.RIGHT
+	player._on_hit_received(hit)
+	check(is_equal_approx(health - player.stats.health, 20.0 * 0.25), "a arma segura 75% (passam 25%)")
+	Input.action_release(&"block")
+	await frames(2)
+	# Toque rápido no △: Humanidade normal.
+	Input.action_press(&"sanity")
+	await frames(3)
+	Input.action_release(&"sanity")
+	await frames(3)
+	check(player.state == Player.State.SANITY or Game.sanity_flasks == flasks - 1, "toque rápido: Humanidade")
+	await seconds(1.4)
+	# Arco em duas mãos: sem o bônus (atirar já é com as duas).
+	Game.add_item("lembranca_nyssa", 1, false)
+	Game.add_item("arco_sono", 1, false)
+	Game.equip_weapon("arco_sono")
+	await frames(1)
+	var arrow := player.light_combo[0]
+	check(is_equal_approx(player.attack_damage(arrow), Game.weapon_hit_damage(player.weapon, arrow)), "arco: duas mãos não muda o dano")
+	Game.reset_progress()
+
+
+func test_touch_follows_hands() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "porta")
+	var touch := level.hud.touch
+	check(not touch.block_button.visible and touch.special_button.label_text == "Aparar", "mão vazia: sem L1; L2 apara")
+	Game.add_item("escudo_remendado", 1, false)
+	await frames(1)
+	check(touch.block_button.visible and touch.special_button.label_text == "Aparar", "escudo: L1 defende, L2 apara")
+	Game.set_two_handing(true)
+	await frames(1)
+	check(touch.block_button.label_text == "Guarda" and touch.special_button.label_text == "Especial", "duas mãos: guarda e especial")
+	check(touch.pad_hints.l1_label == "Guarda" and touch.pad_hints.l2_label == "Especial", "a legenda do controle acompanha")
+	level.queue_free()
+	await frames(2)
 	Game.reset_progress()

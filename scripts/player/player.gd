@@ -31,6 +31,10 @@ signal died
 ## Golpe segurado pelo escudo (testes e efeitos escutam).
 signal blocked(info: HitInfo)
 signal guard_broken
+## Aparou um golpe (parry certo).
+signal parried(enemy: Enemy)
+## Crítico: "riposte" (de frente, depois do parry) ou "costas".
+signal critical_landed(enemy: Enemy, kind: StringName)
 signal drowsiness_changed(current: float, maximum: float)
 signal sleep_changed(asleep: bool)
 ## Agarrado (true) ou solto (false). taps_needed = toques em Ataque para escapar.
@@ -40,10 +44,10 @@ signal grab_progress(taps: int, taps_needed: int)
 ## Durgan conta isso durante a luta e, na fase 2, copia o que você mais usou.
 signal action_used(action: StringName)
 
-enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED }
+enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED, PARRY, CRITICAL }
 
 ## Ações de comando (o movimento fica de fora: andar logo após o diálogo é normal).
-const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &"heal", &"sanity", &"block"]
+const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &"heal", &"sanity", &"block", &"special"]
 ## Estados "com os pés no chão": só neles dá para cair num buraco. No DASH o herói
 ## está no ar — é assim que se atravessa um buraco.
 const GROUNDED_STATES := [State.FREE, State.ATTACK, State.HEAL, State.SANITY, State.STAGGER, State.BLOCK, State.SLEEP]
@@ -117,6 +121,38 @@ const IDLE_SWORD_ANGLE := 1.15
 ## Guarda quebrada: cambaleio longo — é a janela do inimigo.
 @export var guard_break_time := 0.9
 @export_range(0.0, 1.0) var guard_break_damage_ratio := 0.5
+
+@export_group("Mãos: duas armas, duas mãos, parry e crítico")
+## Arma em DUAS MÃOS: mais dano e mais estamina (arcos e bestas não mudam).
+@export var two_hand_damage := 1.5
+@export var two_hand_stamina := 1.5
+## Duas do mesmo tipo (L1): o golpe das duas juntas rende 75% da SOMA dos danos...
+@export var paired_damage_ratio := 0.75
+## ...e custa a MÉDIA das duas × 1.25.
+@export var paired_stamina := 1.25
+## Guarda com a própria arma (L1 em duas mãos): segura menos que um escudo.
+@export_range(0.0, 1.0) var weapon_guard_absorption := 0.75
+@export var weapon_guard_stamina := 1.3
+## Segurar △ por isto alterna "duas mãos" (toque rápido continua sendo a Humanidade).
+@export var two_hand_hold_time := 0.5
+## Parry (L2): janela em que o golpe é desviado. Com escudo é mais folgada.
+@export var parry_window_shield := 0.22
+@export var parry_window_hand := 0.12
+## Duração total do movimento (o que sobra depois da janela é a punição por errar).
+@export var parry_time := 0.5
+@export var parry_stamina := 14.0
+## Meio-ângulo da frente que dá para aparar.
+@export var parry_angle := 100.0
+## Crítico: alcance, quanto multiplica o golpe e o tempo da animação (invencível).
+@export var critical_range := 26.0
+@export var critical_angle := 70.0
+@export var critical_multiplier := 3.0
+## Cada ponto de Sorte acima de 10 soma isto ao multiplicador do crítico.
+@export var critical_luck_bonus := 0.05
+## Em chefe o crítico rende metade (senão a luta vira "aparar e matar").
+@export_range(0.0, 1.0) var critical_boss_ratio := 0.5
+@export var critical_time := 0.6
+@export var critical_hit_at := 0.24
 
 @export_group("Sono (Barra de Sonolência)")
 ## Bíblia (Nyssa): "Uma Barra de Sonolência sobe [...] Cheia, ele adormece por
@@ -196,6 +232,20 @@ var _skill: WeaponSkill = WeaponSkill.new()
 ## próprios usam estes.
 var _base_light: Array[AttackData] = []
 var _base_heavy: AttackData
+## A arma da mão esquerda (null = escudo ou vazia) e a habilidade dela.
+var left_weapon: WeaponData
+var _left_skill: WeaponSkill = WeaponSkill.new()
+## Com que mão(s) o golpe atual foi dado: &"direita", &"esquerda" ou &"ambas".
+var _attack_hand: StringName = &"direita"
+var _sanity_held := false
+var _sanity_hold_time := 0.0
+var _two_hand_fired := false
+var _parry_window := 0.0
+var _crit_target: Enemy
+var _crit_kind: StringName = &""
+var _crit_done := false
+var off_pivot: Node2D
+var off_sprite: Sprite2D
 var _combo_index := 0
 var _combo_grace := 0.0
 var _state_time := 0.0
@@ -262,6 +312,7 @@ func _ready() -> void:
 	apply_appearance(Game.appearance)
 	_base_light = light_combo.duplicate()
 	_base_heavy = heavy_attack
+	_build_off_hand()
 	equip_weapon(Game.current_weapon())
 	Game.weapon_changed.connect(func(_id: String): equip_weapon(Game.current_weapon()))
 	_last_safe_position = global_position
@@ -285,6 +336,45 @@ func equip_weapon(data: WeaponData) -> void:
 		sword.texture = data.hand_texture
 		# O pivô fica no cabo: o desenho começa logo depois da mão.
 		sword.offset = Vector2(data.hand_texture.get_width() * 0.5 - 2.0, 0.0)
+	left_weapon = Game.left_weapon()
+	_left_skill = WeaponSkills.create(left_weapon) if left_weapon else WeaponSkill.new()
+	if off_sprite:
+		off_sprite.texture = left_weapon.hand_texture if left_weapon else null
+		if left_weapon and left_weapon.hand_texture:
+			off_sprite.offset = Vector2(left_weapon.hand_texture.get_width() * 0.5 - 2.0, 0.0)
+
+
+## A arma da mão esquerda: um pivô próprio, criado por código (o player.tscn
+## continua igual — quem não usa duas armas nem percebe que ele existe).
+func _build_off_hand() -> void:
+	off_pivot = Node2D.new()
+	off_pivot.name = "OffPivot"
+	off_pivot.position = Vector2(-4, -7)
+	visual.add_child(off_pivot)
+	off_sprite = Sprite2D.new()
+	off_sprite.name = "OffWeapon"
+	off_pivot.add_child(off_sprite)
+
+
+## Como as mãos estão: "escudo", "vazia", "par", "dupla" ou "duas_maos".
+func hand_mode() -> String:
+	return Game.hand_mode()
+
+
+func _weapon_of(hand: StringName) -> WeaponData:
+	return left_weapon if hand == &"esquerda" and left_weapon else weapon
+
+
+func _skill_of(hand: StringName) -> WeaponSkill:
+	return _left_skill if hand == &"esquerda" else _skill
+
+
+func _combo_of(data: WeaponData) -> Array[AttackData]:
+	return data.light_combo if data and not data.light_combo.is_empty() else _base_light
+
+
+func _heavy_of(data: WeaponData) -> AttackData:
+	return data.heavy_attack if data and data.heavy_attack else _base_heavy
 
 
 ## Troca o visual (criação de personagem). Mantém a animação que estava tocando.
@@ -376,6 +466,10 @@ func _physics_process(delta: float) -> void:
 			_state_sleep(delta)
 		State.GRABBED:
 			_state_grabbed(delta)
+		State.PARRY:
+			_state_parry(delta)
+		State.CRITICAL:
+			_state_critical(delta)
 		State.LOCKED, State.DEAD:
 			velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 
@@ -405,6 +499,8 @@ func _exit_state(old_state: State) -> void:
 			stats.regen_scale = 1.0  # abaixou o escudo: estamina volta ao ritmo normal
 		State.GRABBED:
 			_end_grab()
+		State.CRITICAL:
+			_crit_target = null
 		State.SLEEP:
 			drowsiness = 0.0
 			_sleep_grace_left = sleep_grace
@@ -415,6 +511,8 @@ func _exit_state(old_state: State) -> void:
 func _is_invulnerable() -> bool:
 	if state == State.DEAD or state == State.FALL or _plunging or _iframes_left > 0.0:
 		return true
+	if state == State.CRITICAL:
+		return true  # o crítico não é interrompido
 	return state == State.DASH and _state_time < dash_iframe_time
 
 
@@ -453,14 +551,43 @@ func _read_input(delta: float) -> void:
 		_buffer(&"dash")
 	if _just_pressed(&"heal"):
 		_buffer(&"heal")
-	if _just_pressed(&"sanity"):
-		_buffer(&"sanity")
+	_read_sanity_hold(delta)
+	# L1: escudo/guarda é SEGURAR (lido no estado); com arma na esquerda é golpe.
+	if _just_pressed(&"block") and hand_mode() in ["dupla", "par"]:
+		_buffer(&"left_light")
+	if _just_pressed(&"special"):
+		_buffer(&"l2")
 	if _just_pressed(&"interact"):
 		_buffer(&"interact")  # ✕ no controle / F no teclado: só conversa e examina
 	if _buffer_left > 0.0:
 		_buffer_left -= delta
 		if _buffer_left <= 0.0:
 			_buffered = &""
+
+
+## △: TOQUE = Humanidade (ao soltar). SEGURAR = pega/solta a arma com as duas mãos.
+func _read_sanity_hold(delta: float) -> void:
+	if _just_pressed(&"sanity"):
+		_sanity_held = true
+		_sanity_hold_time = 0.0
+		_two_hand_fired = false
+	if not _sanity_held:
+		return
+	_sanity_hold_time += delta
+	if not _two_hand_fired and _sanity_hold_time >= two_hand_hold_time:
+		_two_hand_fired = true
+		toggle_two_hands()
+	if not Input.is_action_pressed(&"sanity"):
+		if not _two_hand_fired:
+			_buffer(&"sanity")
+		_sanity_held = false
+
+
+func toggle_two_hands() -> void:
+	Game.set_two_handing(not Game.two_handing)
+	Sfx.play(&"shield_up", -4.0)
+	Fx.float_text(global_position + Vector2(-22, -30), "DUAS MÃOS" if Game.two_handing else "UMA MÃO", Color(0.95, 0.9, 0.75), 7)
+	action_used.emit(&"duas_maos")
 
 
 func _buffer(action: StringName) -> void:
@@ -472,6 +599,7 @@ func _clear_input() -> void:
 	_buffered = &""
 	_buffer_left = 0.0
 	_attack_held = false
+	_sanity_held = false
 
 
 ## "Acabou de apertar" — exceto teclas que já estavam apertadas no destravamento.
@@ -512,9 +640,14 @@ func _consume_buffer(allow_heal: bool = true) -> void:
 	_buffer_left = 0.0
 	match action:
 		&"light":
-			_start_light_attack()
+			if not _try_critical():
+				_start_light_attack()
 		&"heavy":
 			_start_attack(heavy_attack, -1)
+		&"left_light":
+			_start_left_light()
+		&"l2":
+			_start_l2()
 		&"dash":
 			_start_dash()
 		&"heal":
@@ -556,7 +689,15 @@ func _state_free(delta: float) -> void:
 # Não segura o que não é golpe de arma: grito, onda no chão, agarrão (info.unblockable).
 
 func _wants_block() -> bool:
-	return Game.shield_ready() and _is_held(&"block")
+	if not _is_held(&"block"):
+		return false
+	# Escudo, ou a guarda com a própria arma (só em duas mãos: com duas armas o L1 bate).
+	return Game.shield_ready() or hand_mode() == "duas_maos"
+
+
+## A guarda é com a arma (não com o escudo)?
+func _weapon_guard() -> bool:
+	return not Game.shield_ready()
 
 
 func _start_block() -> void:
@@ -611,11 +752,15 @@ func _can_block(info: HitInfo) -> bool:
 
 func _absorb_hit(info: HitInfo) -> void:
 	var cost := info.damage * block_stamina_per_damage + (block_heavy_extra if info.is_heavy else 0.0)
+	var absorption := shield_absorption
+	if _weapon_guard():  # arma não é escudo: segura menos e cansa mais
+		cost *= weapon_guard_stamina
+		absorption = weapon_guard_absorption
 	if stats.is_exhausted or stats.stamina < cost:
 		_guard_break(info)
 		return
 	stats.drain_stamina(cost)
-	stats.take_damage(info.damage * (1.0 - shield_absorption))  # raspão: a barra desce um pouco
+	stats.take_damage(info.damage * (1.0 - absorption))  # raspão: a barra desce um pouco
 	velocity = info.direction * info.knockback * 0.5
 	_shield_recoil = 0.15
 	Sfx.play(&"block")
@@ -825,22 +970,56 @@ func _end_grab() -> void:
 # --- ATTACK (Step and Anchor) -----------------------------------------------------------
 
 func _start_light_attack() -> bool:
-	if light_combo.is_empty():
+	return _start_combo(light_combo, &"direita")
+
+
+func _start_combo(combo: Array[AttackData], hand: StringName) -> bool:
+	if combo.is_empty():
 		return false
 	var chaining := (state == State.ATTACK and _runner.in_combo_window()) or _combo_grace > 0.0
-	var index := (_combo_index + 1) % light_combo.size() if chaining else 0
-	return _start_attack(light_combo[index], index)
+	var index := (_combo_index + 1) % combo.size() if chaining else 0
+	return _start_attack(combo[index], index, hand)
 
 
-## combo_index = -1 para o golpe forte.
-func _start_attack(attack: AttackData, combo_index: int) -> bool:
+## L1 com arma na esquerda: "dupla" = golpe fraco da esquerda; "par" = as duas juntas.
+func _start_left_light() -> bool:
+	if left_weapon == null:
+		return false
+	if hand_mode() == "par":
+		return _start_combo(light_combo, &"ambas")
+	return _start_combo(_combo_of(left_weapon), &"esquerda")
+
+
+## L2 muda com as mãos: aparar (escudo ou mão vazia), golpe forte da esquerda
+## (duas armas) ou o ataque especial da arma (duas mãos).
+func _start_l2() -> bool:
+	match hand_mode():
+		"escudo", "vazia":
+			return _start_parry()
+		"par", "dupla":
+			return _start_attack(_heavy_of(left_weapon), -1, &"esquerda")
+		"duas_maos":
+			var special := weapon.special_attack if weapon else null
+			return _start_attack(special if special else heavy_attack, -1)
+	return false
+
+
+## combo_index = -1 para o golpe forte. hand: qual mão bate (ver _attack_hand).
+func _start_attack(attack: AttackData, combo_index: int, hand: StringName = &"direita") -> bool:
 	if attack == null:
 		return false
-	var cost := attack.stamina_cost * (weapon.stamina_scale if weapon else 1.0) + _skill.extra_stamina(attack)
+	var data := _weapon_of(hand)
+	var cost := attack.stamina_cost * (data.stamina_scale if data else 1.0) + _skill_of(hand).extra_stamina(attack)
+	if hand == &"ambas" and left_weapon:
+		# A MÉDIA do custo das duas × 1.25 (duas espadas iguais = 25% a mais).
+		cost = (cost + attack.stamina_cost * left_weapon.stamina_scale) * 0.5 * paired_stamina
+	elif _two_handed_bonus(data):
+		cost *= two_hand_stamina
 	if not stats.try_spend_stamina(cost):
 		_deny_stamina()  # exausto ou sem estamina: o comando simplesmente não sai
 		return false
 	_current_attack = attack
+	_attack_hand = hand
 	_combo_index = combo_index  # -1 depois do golpe forte: o próximo leve abre o combo do zero
 	relieve_drowsiness(drowsiness_attack_relief)  # bater espanta o sono
 	var direction := _aim_direction()
@@ -851,7 +1030,7 @@ func _start_attack(attack: AttackData, combo_index: int) -> bool:
 	hitbox_shape.position = Vector2(attack.reach, 0.0)
 	_setup_swing(attack, direction, combo_index)
 	_set_state(State.ATTACK)
-	_runner.start(attack, direction, weapon.speed_scale if weapon else 1.0)
+	_runner.start(attack, direction, data.speed_scale if data else 1.0)
 	action_used.emit(&"forte" if attack.is_heavy else &"leve")
 	return true
 
@@ -876,7 +1055,7 @@ func _on_attack_phase_changed(phase: AttackRunner.Phase) -> void:
 			if not hitbox.active:
 				_activate_hitbox()
 			var angle := hitbox_pivot.rotation
-			if not _skill.fires_projectile(_current_attack):  # tiro não tem rastro de corte
+			if not _skill_of(_attack_hand).fires_projectile(_current_attack):  # tiro não tem rastro de corte
 				Fx.spawn_slash(global_position + Vector2(0, -7) + Vector2.from_angle(angle) * 4.0, angle, _current_attack, _swing_reverse)
 			visual.scale = Vector2(1.12, 0.9)  # pequeno "esmagamento" no impacto
 		AttackRunner.Phase.RECOVERY:
@@ -890,18 +1069,43 @@ func _on_attack_phase_changed(phase: AttackRunner.Phase) -> void:
 func _activate_hitbox() -> void:
 	# Dano = golpe × arma × letras de escala × reforço do Ferreiro (Game.weapon_hit_damage:
 	# a MESMA conta que a ficha do inventário mostra).
-	var damage := Game.weapon_hit_damage(weapon, _current_attack) if weapon else _current_attack.damage
-	if _skill.fires_projectile(_current_attack):
-		_skill.fire(self, _current_attack, damage, Vector2.from_angle(hitbox_pivot.rotation))
+	var damage := attack_damage(_current_attack, _attack_hand)
+	var skill := _skill_of(_attack_hand)
+	if skill.fires_projectile(_current_attack):
+		skill.fire(self, _current_attack, damage, Vector2.from_angle(hitbox_pivot.rotation))
 		return
 	hitbox.activate_with(_current_attack, damage)
-	_skill.on_active(self, _current_attack, damage)
+	skill.on_active(self, _current_attack, damage)
+	if _attack_hand == &"ambas":
+		_left_skill.on_active(self, _current_attack, damage)
+
+
+## Duas mãos rende mais — menos para arco e besta (atirar já é com as duas).
+func _two_handed_bonus(data: WeaponData) -> bool:
+	return hand_mode() == "duas_maos" and data != null and not data.ranged
+
+
+## O dano deste golpe com esta(s) mão(s). Pública: a ficha e os testes usam.
+func attack_damage(attack: AttackData, hand: StringName = &"direita") -> float:
+	var data := _weapon_of(hand)
+	var damage := Game.weapon_hit_damage(data, attack) if data else attack.damage
+	if hand == &"ambas" and left_weapon:
+		# As duas juntas: 75% da SOMA (duas de 200 = 300). Bate muito, mas não tudo.
+		damage = (damage + Game.weapon_hit_damage(left_weapon, attack)) * paired_damage_ratio
+	elif _two_handed_bonus(data):
+		damage *= two_hand_damage
+	return damage
 
 
 func _on_hit_landed(target: Hurtbox, info: HitInfo) -> void:
 	if _current_attack == null:
 		return
-	_skill.on_hit(self, target, info, _current_attack)
+	if _attack_hand == &"esquerda":
+		_left_skill.on_hit(self, target, info, _current_attack)
+	else:
+		_skill.on_hit(self, target, info, _current_attack)
+		if _attack_hand == &"ambas":
+			_left_skill.on_hit(self, target, info, _current_attack)
 	make_noise(noise_hit)
 	Fx.hitstop(_current_attack.hitstop)
 	Fx.shake(_current_attack.shake, 0.12)
@@ -1040,6 +1244,9 @@ func _on_hit_received(info: HitInfo) -> void:
 		return
 	if state == State.BLOCK and _can_block(info):
 		_absorb_hit(info)
+		return
+	if state == State.PARRY and _state_time <= _parry_window and _can_parry(info):
+		_parry_success(info)
 		return
 	var applied := stats.take_damage(info.damage)
 	_iframes_left = hurt_iframes
@@ -1259,11 +1466,12 @@ func _update_visuals(delta: float) -> void:
 		body_sprite.modulate = Color(0.78, 0.84, 1.0) if stats.is_exhausted else Color.WHITE
 	_update_weapon(side, delta)
 	_update_shield(side, delta)
+	_update_off_hand(side, delta)
 
 
 ## Escudo: no braço (atrás do corpo) ou erguido À FRENTE, na direção da defesa.
 func _update_shield(side: float, delta: float) -> void:
-	shield_sprite.visible = Game.shield_ready()
+	shield_sprite.visible = Game.shield_ready() and not _shooting_with_both_hands()
 	if not shield_sprite.visible:
 		return
 	_shield_recoil = maxf(_shield_recoil - delta, 0.0)
@@ -1280,7 +1488,11 @@ func _update_shield(side: float, delta: float) -> void:
 func _update_weapon(side: float, delta: float) -> void:
 	var target_angle := IDLE_SWORD_ANGLE if side > 0.0 else PI - IDLE_SWORD_ANGLE
 	var target_pos := Vector2(4.0 * side, -7.0)
-	if state == State.ATTACK and _current_attack:
+	if state == State.CRITICAL and is_instance_valid(_crit_target):
+		target_angle = (_crit_target.global_position - global_position).angle()
+		target_pos = Vector2(0, -8) + Vector2.from_angle(target_angle) * (6.0 if _crit_done else -2.0)
+		weapon_pivot.rotation = target_angle
+	elif state == State.ATTACK and _current_attack and _attack_hand != &"esquerda":
 		target_pos = Vector2(0, -8)
 		var pull := -0.5 if not _swing_reverse else 0.5
 		match _runner.phase:
@@ -1306,3 +1518,174 @@ func _update_weapon(side: float, delta: float) -> void:
 	sword.flip_v = cos(weapon_pivot.rotation) < 0.0
 	# A espada fica atrás do corpo quando aponta para cima.
 	weapon_pivot.z_index = -1 if sin(weapon_pivot.rotation) < -0.35 else 1
+
+
+# --- PARRY (L2 com escudo ou com a mão vazia) -------------------------------------------
+# Como no DS3: um movimento curto. Se o golpe chegar DENTRO da janela, é desviado
+# e a guarda do inimigo abre (Enemy.parried). Fora dela, você apanha normal — o
+# risco é o que faz o parry ser bom.
+
+func _start_parry() -> bool:
+	if not stats.try_spend_stamina(parry_stamina):
+		_deny_stamina()
+		return false
+	_parry_window = parry_window_shield if Game.shield_ready() else parry_window_hand
+	_runner.cancel()
+	facing = _block_direction(_move_input())
+	_set_state(State.PARRY)
+	Sfx.play(&"swing_small", -2.0)
+	action_used.emit(&"aparar")
+	return true
+
+
+func _state_parry(delta: float) -> void:
+	velocity = velocity.move_toward(Vector2.ZERO, _brake() * delta)
+	if _state_time >= parry_time:
+		_set_state(State.FREE)
+
+
+func is_parrying() -> bool:
+	return state == State.PARRY and _state_time <= _parry_window
+
+
+func _can_parry(info: HitInfo) -> bool:
+	if not info.parryable:
+		return false
+	var toward_source := -info.direction
+	if toward_source == Vector2.ZERO:
+		return true
+	return absf(rad_to_deg(facing.angle_to(toward_source))) <= parry_angle
+
+
+func _parry_success(info: HitInfo) -> void:
+	var enemy := info.source as Enemy
+	Sfx.play(&"clang")
+	Fx.sparks(global_position + Vector2(0, -8) + facing * 8.0, facing, Color(1.0, 0.95, 0.7), 16)
+	Fx.hitstop(0.12)
+	Fx.shake(3.0, 0.15)
+	Fx.vibrate(40)
+	_iframes_left = 0.15
+	_set_state(State.FREE)
+	if enemy and enemy.parried(info):
+		parried.emit(enemy)
+
+
+# --- CRÍTICO (R1 perto de uma guarda aberta, ou pelas costas) ----------------------------
+
+## Procura alguém para o crítico: guarda aberta à frente, ou de costas para você.
+func _try_critical() -> bool:
+	if weapon == null or weapon.ranged:
+		return false  # besta e arco não fazem crítico (é preciso a lâmina encostada)
+	var best: Enemy = null
+	var best_kind := &""
+	var best_distance := critical_range
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy == null or enemy.dead:
+			continue
+		var to_enemy := enemy.global_position - global_position
+		var distance := to_enemy.length()
+		if distance > best_distance or distance < 0.5:
+			continue
+		var kind := &""
+		if enemy.is_guard_open():
+			kind = &"riposte"
+		elif enemy.can_be_backstabbed(global_position):
+			kind = &"costas"
+		if kind == &"":
+			continue
+		var aim := _move_input() if _move_input().length() > 0.2 else facing
+		if absf(rad_to_deg(aim.angle_to(to_enemy))) > critical_angle and distance > 12.0:
+			continue
+		best = enemy
+		best_kind = kind
+		best_distance = distance
+	if best == null:
+		return false
+	_start_critical(best, best_kind)
+	return true
+
+
+func _start_critical(enemy: Enemy, kind: StringName) -> void:
+	_crit_target = enemy
+	_crit_kind = kind
+	_crit_done = false
+	_runner.cancel()
+	facing = (enemy.global_position - global_position).normalized()
+	_set_state(State.CRITICAL)
+	# Segura o inimigo no lugar durante a animação (pelas costas ele nem viu).
+	enemy._runner.cancel()
+	enemy.hitbox.deactivate()
+	Sfx.play(&"swing_heavy", -2.0)
+	action_used.emit(&"critico")
+
+
+func _state_critical(delta: float) -> void:
+	if not is_instance_valid(_crit_target):
+		_set_state(State.FREE)
+		return
+	var to_target := _crit_target.global_position - global_position
+	if _state_time < critical_hit_at and to_target.length() > 12.0:
+		velocity = to_target.normalized() * 160.0  # encosta no inimigo
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, _brake() * 2.0 * delta)
+	if not _crit_done and _state_time >= critical_hit_at:
+		_crit_done = true
+		var damage := critical_damage(_crit_target)
+		Fx.hitstop(0.16)
+		Fx.shake(6.0, 0.25)
+		Fx.vibrate(90)
+		Fx.float_text(_crit_target.global_position + Vector2(-20, -36), "CRÍTICO", Color(1.0, 0.45, 0.4), 8)
+		var target := _crit_target
+		target.receive_critical(damage, self)
+		critical_landed.emit(target, _crit_kind)
+		make_noise(noise_heavy)
+	if _state_time >= critical_time:
+		_set_state(State.FREE)
+
+
+## Dano do crítico: o primeiro golpe leve × multiplicador (+ Sorte). Chefe: metade.
+func critical_damage(enemy: Enemy) -> float:
+	var luck := int(Game.attributes.get("sorte", 10)) - 10
+	var multiplier := critical_multiplier + maxi(luck, 0) * critical_luck_bonus
+	var damage := attack_damage(light_combo[0] if not light_combo.is_empty() else _base_light[0]) * multiplier
+	if enemy is Boss:
+		damage *= critical_boss_ratio
+	return damage
+
+
+# --- Mão esquerda (desenho) ---------------------------------------------------------------
+
+## Arco/besta disparando: as duas mãos vão para a arma (o escudo/arma da
+## esquerda some por um instante).
+func _shooting_with_both_hands() -> bool:
+	return state == State.ATTACK and weapon != null and weapon.ranged and _attack_hand != &"esquerda"
+
+
+func _update_off_hand(side: float, delta: float) -> void:
+	var show := left_weapon != null and hand_mode() != "duas_maos" and not _shooting_with_both_hands()
+	off_pivot.visible = show
+	if not show:
+		return
+	var attacking := state == State.ATTACK and _current_attack and _attack_hand != &"direita"
+	var target_angle := (PI - IDLE_SWORD_ANGLE if side > 0.0 else IDLE_SWORD_ANGLE) + 0.4 * side
+	var target_pos := Vector2(-5.0 * side, -6.0)
+	if attacking:
+		var progress := _runner.phase_progress()
+		target_pos = Vector2(0, -8)
+		match _runner.phase:
+			AttackRunner.Phase.WINDUP:
+				target_angle = _swing_to - 0.5 * progress  # a esquerda corta pelo outro lado
+			AttackRunner.Phase.LUNGE:
+				target_angle = _swing_to
+			AttackRunner.Phase.ACTIVE:
+				target_angle = lerp_angle(_swing_to, _swing_from, progress)
+			_:
+				target_angle = _swing_from
+		off_pivot.rotation = target_angle
+		off_pivot.z_index = 1
+	else:
+		off_pivot.rotation = lerp_angle(off_pivot.rotation, target_angle, 14.0 * delta)
+		off_pivot.z_index = -1  # descansando: atrás do corpo
+	off_pivot.position = off_pivot.position.lerp(target_pos, 20.0 * delta)
+	off_sprite.flip_v = cos(off_pivot.rotation) < 0.0

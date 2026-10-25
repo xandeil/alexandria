@@ -38,6 +38,9 @@ var _hint: ButtonHintBar
 var _empty: Label
 var _back_button: Button
 var _selected := ""
+## Para qual mão vai a próxima arma escolhida ("direita" ou "esquerda").
+## No controle: ✕ = direita, □ = esquerda. No toque: tocar na linha da mão.
+var target_hand := "direita"
 
 
 func _ready() -> void:
@@ -107,8 +110,11 @@ func _build() -> void:
 			row.add_theme_stylebox_override(state, _slot_style(state == "focus" or state == "hover"))
 		row.custom_minimum_size = Vector2(118, 26)
 		row.clip_text = true
-		var tab_for: int = {"direita": 0, "esquerda": 1, "vida": 2, "sanidade": 2}[key]
-		row.pressed.connect(func(): set_tab(tab_for))
+		var tab_for: int = {"direita": 0, "esquerda": 0, "vida": 2, "sanidade": 2}[key]
+		row.pressed.connect(func():
+			if key in ["direita", "esquerda"]:
+				target_hand = key  # a próxima arma tocada vai para esta mão
+			set_tab(tab_for))
 		equip.add_child(row)
 		_equip_rows[key] = row
 	var memories := UIStyle.label("", 8, UIStyle.TEXT_DIM, UIStyle.FONT_NUMBERS)
@@ -210,6 +216,7 @@ func _slot_style(lit: bool) -> StyleBoxFlat:
 func open(player: Player) -> void:
 	_player = player
 	_tab = 0
+	target_hand = "direita"
 	_rebuild()
 	visible = true
 	Sfx.play(&"ui_open")
@@ -246,6 +253,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		close()
 		get_viewport().set_input_as_handled()
 		return
+	# □ no controle (ou R no teclado) com uma arma escolhida: vai para a mão esquerda.
+	if (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_X) \
+			or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R):
+		if Items.get_item(_selected) is WeaponData:
+			target_hand = "esquerda"
+			_activate(_selected)
+			target_hand = "direita"
+			get_viewport().set_input_as_handled()
+			return
 	var direction := _tab_direction(event)
 	if direction != 0:
 		set_tab(_tab + direction)
@@ -279,7 +295,7 @@ func entries(tab: int = -1) -> Array[Dictionary]:
 	match TABS[tab]:
 		"Armas":
 			for id in Game.owned_weapons():
-				result.append({"id": id, "count": 1})
+				result.append({"id": id, "count": Game.weapon_count(id)})
 		"Escudos":
 			if Game.has_shield():
 				result.append({"id": "escudo_remendado", "count": 1})
@@ -353,34 +369,41 @@ func _make_slot(entry: Dictionary) -> Button:
 	corner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	corner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var count := int(entry["count"])
-	var equipped := _is_equipped(item_id)
+	var hands := _hands_holding(item_id)
 	corner.draw.connect(func():
 		var font := UIStyle.FONT_NUMBERS
-		if item.max_stack > 1 or item_id.begins_with("frasco"):
+		if (item.max_stack > 1 and count > 1) or item_id.begins_with("frasco"):
 			corner.draw_string_outline(font, Vector2(SLOT - 12, SLOT - 3), str(count), HORIZONTAL_ALIGNMENT_RIGHT, 10, 8, 2, Color.BLACK)
 			corner.draw_string(font, Vector2(SLOT - 12, SLOT - 3), str(count), HORIZONTAL_ALIGNMENT_RIGHT, 10, 8, SLOT_LIT)
-		if equipped:
-			corner.draw_rect(Rect2(2, 2, 7, 7), Color(0.85, 0.7, 0.35))
-			corner.draw_string(UIStyle.FONT, Vector2(3, 8), "E", HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color.BLACK))
+		# Selos de "equipado": D = mão direita, E = mão esquerda (DS3 mostra assim).
+		for i in hands.size():
+			corner.draw_rect(Rect2(2 + i * 8, 2, 7, 7), Color(0.85, 0.7, 0.35))
+			corner.draw_string(UIStyle.FONT, Vector2(3 + i * 8, 8), hands[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color.BLACK))
 	slot.add_child(corner)
 	_slots.append(slot)
 	return slot
 
 
-func _is_equipped(item_id: String) -> bool:
+## Em que mão(s) este item está: ["D"], ["E"], ["D", "E"] ou [].
+func _hands_holding(item_id: String) -> Array[String]:
+	var hands: Array[String] = []
 	if item_id == Game.equipped_weapon:
-		return true
-	return item_id == "escudo_remendado" and Game.shield_ready()
+		hands.append("D")
+	if item_id == Game.left_hand and (item_id != Game.SHIELD or Game.has_shield()):
+		hands.append("E")
+	return hands
 
 
 func _refresh_equipped() -> void:
 	var weapon := Game.current_weapon()
 	var right: Button = _equip_rows["direita"]
 	right.icon = weapon.icon
-	right.text = "%s +%d" % [weapon.display_name, Game.weapon_level]
+	right.text = "%s%s +%d%s" % ["▶ " if target_hand == "direita" else "", weapon.display_name, Game.weapon_level,
+		"  (2 mãos)" if Game.two_handing else ""]
 	var left: Button = _equip_rows["esquerda"]
-	left.icon = Items.get_item("escudo_remendado").icon if Game.shield_ready() else null
-	left.text = Items.display_name("escudo_remendado") if Game.shield_ready() else "Mão esquerda: vazia"
+	var left_item := Items.get_item(Game.left_hand)
+	left.icon = left_item.icon if left_item else null
+	left.text = ("▶ " if target_hand == "esquerda" else "") + (left_item.display_name if left_item else "Mão esquerda: vazia")
 	var life: Button = _equip_rows["vida"]
 	life.icon = Items.get_item("frasco_vida").icon
 	life.text = "Frasco de Vida  %d/%d" % [_health_flasks(), Game.health_flasks_max]
@@ -393,7 +416,10 @@ func _refresh_equipped() -> void:
 
 func _hint_items() -> Array:
 	var result := []
-	if TABS[_tab] == "Armas" or TABS[_tab] == "Escudos":
+	if TABS[_tab] == "Armas":
+		result.append(["cross", "Enter", "Mão direita"])
+		result.append(["square", "R", "Mão esquerda"])
+	elif TABS[_tab] == "Escudos":
 		result.append(["cross", "Enter", "Equipar"])
 	result.append(["circle", "Esc", "Voltar"])
 	result.append(["L1/R1", "Q/E", "Categoria"])
@@ -426,7 +452,7 @@ func _select(item_id: String) -> void:
 		"frasco_sanidade":
 			_detail_stats.text = "x%d" % Game.sanity_flasks
 		"escudo_remendado":
-			_detail_stats.text = "Equipado" if Game.shield_ready() else "Guardado"
+			_detail_stats.text = "Equipado" if Game.shield_equipped() else "Guardado"
 		_:
 			_detail_stats.text = "" if item.max_stack == 1 else "x%d" % Game.item_count(item_id)
 
@@ -472,11 +498,18 @@ func _clear_detail() -> void:
 func _activate(item_id: String) -> void:
 	_select(item_id)
 	if Items.get_item(item_id) is WeaponData:
-		if Game.equipped_weapon != item_id:
-			Game.equip_weapon(item_id)
+		if target_hand == "esquerda" and Game.left_hand == item_id:
+			Game.clear_left_hand()  # apertar de novo a da esquerda = guardar
+			Sfx.play(&"shield_up", -4.0)
+		elif target_hand == "esquerda" and not Game.equip_weapon(item_id, "esquerda"):
+			Sfx.play(&"ui_click")  # só tem uma e ela está na direita: forje uma cópia
+			_detail_skill.text = "Você só tem uma. O Ferreiro forja uma cópia para a outra mão."
+			return
+		elif target_hand == "direita" and Game.equipped_weapon != item_id:
+			Game.equip_weapon(item_id, "direita")
 			Sfx.play(&"shield_up", -4.0)
 	elif item_id == "escudo_remendado":
-		Game.set_shield_equipped(not Game.shield_ready())
+		Game.set_shield_equipped(not Game.shield_equipped())
 		Sfx.play(&"shield_up", -4.0)
 	else:
 		return

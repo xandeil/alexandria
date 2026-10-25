@@ -20,7 +20,7 @@ const REASONS := {
 }
 ## ...e quando não dá para forjar.
 const FORGE_REASONS := {
-	"owned": "\"Essa já está com você.\"",
+	"owned": "\"Você já tem duas. Mão tem só duas também.\"",
 	"lembranca": "\"Sem a Lembrança dele, isso é só ferro. Traga a alma, eu dou a forma.\"",
 	"memories": "Faltam memórias.",
 	"sucata": "Falta Sucata Temperada.",
@@ -119,7 +119,7 @@ func _build_forge_page(box: VBoxContainer) -> void:
 	grid.add_theme_constant_override("h_separation", 3)
 	grid.add_theme_constant_override("v_separation", 3)
 	_forge_page.add_child(grid)
-	for id in Game.forgeable_weapons():
+	for id in Game.smith_weapons():  # a espada inicial (cópia) e as 8 de chefe
 		var weapon := Items.get_item(id) as WeaponData
 		var slot := Button.new()
 		slot.custom_minimum_size = Vector2(32, 32)
@@ -229,7 +229,7 @@ func _refresh() -> void:
 	_upgrade_button.disabled = reason != ""
 	for slot in _forge_slots:
 		var id: String = slot.get_meta("weapon_id")
-		slot.modulate = Color.WHITE if Game.has_item(id) or Game.forge_block_reason(id) != "lembranca" else Color(0.35, 0.35, 0.35)
+		slot.modulate = Color.WHITE if Game.owns_weapon(id) or Game.forge_block_reason(id) != "lembranca" else Color(0.35, 0.35, 0.35)
 	if _forge_selected != "":
 		var keep := _forge_selected
 		_forge_selected = ""
@@ -245,16 +245,20 @@ func _select_forge(id: String) -> void:
 	var weapon := Items.get_item(id) as WeaponData
 	var reason := Game.forge_block_reason(id)
 	var known := reason != "lembranca"  # sem a Lembrança, a arma é um mistério
-	_forge_name.text = weapon.display_name if known else "???"
+	var copy := Game.owns_weapon(id)  # já tem uma: esta seria a cópia para a outra mão
+	_forge_name.text = (weapon.display_name + (" (cópia)" if copy else "")) if known else "???"
 	var lines: Array[String] = []
 	if known:
 		lines.append("%s  ·  %s" % [weapon.weapon_class, weapon.scaling_text()])
 		lines.append("%s — %s" % [weapon.skill_name, weapon.skill_text])
-	lines.append("Requer: %s %s" % [Items.display_name(weapon.memory_item), "(você tem)" if Game.has_item(weapon.memory_item) else "(falta)"])
+	if not weapon.memory_item.is_empty():
+		lines.append("Requer: %s %s" % [Items.display_name(weapon.memory_item), "(você tem)" if Game.has_item(weapon.memory_item) else "(falta)"])
+	lines.append("Você tem: %d de 2 (uma para cada mão)" % Game.weapon_count(id))
 	lines.append("Custo: %d memórias · %d sucata" % [weapon.forge_memories, weapon.forge_sucata])
 	_forge_info.text = "\n".join(lines)
 	_forge_reason.text = FORGE_REASONS.get(reason, "\"A Lembrança fica com você. Eu só copio a raiva dela no aço.\"")
 	_forge_button.disabled = reason != ""
+	_forge_button.text = "Forjar cópia" if copy else "Forjar"
 
 
 func _forge() -> void:

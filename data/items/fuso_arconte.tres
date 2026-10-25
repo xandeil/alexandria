@@ -13,10 +13,10 @@ description = "A haste com que ele girava as vitrines. Tudo que ela toca vira co
 Ganância é tirar do outro até o tempo de reagir."
 kind = 0
 icon = ExtResource("2")
-max_stack = 1
+max_stack = 2
 weapon_class = "Lança"
 scaling = {"magia": "A", "destreza": "C"}
-heavy_attack = ExtResource("4")
+special_attack = ExtResource("4")
 damage_scale = 1.0
 speed_scale = 1.0
 stamina_scale = 1.0

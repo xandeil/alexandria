@@ -3,8 +3,8 @@ extends Control
 ## No Modo controle, no lugar dos botões de toque: uma legenda DISCRETA com os
 ## botões do controle (padrão PlayStation) e o que cada um faz agora.
 ##
-##        L1/L2 Escudo   R1 Ataque   R2 Forte
-##                    △ Humanidade
+##   L1 Escudo  L2 Aparar  R1 Ataque  R2 Forte   (L1/L2 mudam com as mãos)
+##                    △ Humanidade (segurar: duas mãos)
 ##          □ Frasco x3        ○ Esquiva
 ##                    ✕ Interagir / Falar
 ##
@@ -19,6 +19,24 @@ const TRIANGLE := Color(0.5, 0.95, 0.72)
 var interact_label := "Interagir"
 var flasks := 0
 var sanity_flasks := 0
+## O que L1 e L2 fazem agora (mudam com o que está nas mãos — hand_labels).
+var l1_label := "Escudo"
+var l2_label := "Aparar"
+
+
+## [L1, L2] para cada jeito de segurar (Game.hand_mode). Um lugar só: a
+## legenda do controle e os botões de toque leem daqui.
+static func hand_labels(mode: String) -> Array[String]:
+	match mode:
+		"escudo":
+			return ["Escudo", "Aparar"]
+		"duas_maos":
+			return ["Guarda", "Especial"]
+		"par":
+			return ["As duas", "Forte E."]
+		"dupla":
+			return ["Ataque E.", "Forte E."]
+	return ["—", "Aparar"]
 
 
 func _ready() -> void:
@@ -34,8 +52,8 @@ func _draw() -> void:
 	var font := UIStyle.FONT
 	draw_set_transform(Vector2.ZERO)
 	# Ombros (uma linha acima do losango).
-	var shoulders := [["L1", "Escudo"], ["R1", "Ataque"], ["R2", "Forte"]]
-	var x := view.x - 170.0
+	var shoulders := [["L1", l1_label], ["L2", l2_label], ["R1", "Ataque"], ["R2", "Forte"]]
+	var x := view.x - 236.0
 	for pair in shoulders:
 		x = _shoulder(Vector2(x, view.y - 80), pair[0], pair[1], font) + 16.0
 	# O losango dos botões de face.
@@ -43,7 +61,7 @@ func _draw() -> void:
 	glyph(self, center + Vector2(-step, 0), "square", r, ALPHA)
 	glyph(self, center + Vector2(step, 0), "circle", r, ALPHA)
 	glyph(self, center + Vector2(0, step), "cross", r, ALPHA)
-	_text(center + Vector2(0, -step - 9), "Humanidade x%d" % sanity_flasks, font, HORIZONTAL_ALIGNMENT_CENTER)
+	_text(center + Vector2(0, -step - 9), "Humanidade x%d · segure: 2 mãos" % sanity_flasks, font, HORIZONTAL_ALIGNMENT_CENTER)
 	_text(center + Vector2(-step - 9, 3), "Frasco x%d" % flasks, font, HORIZONTAL_ALIGNMENT_RIGHT)
 	_text(center + Vector2(step + 9, 3), "Esquiva", font, HORIZONTAL_ALIGNMENT_LEFT)
 	_text(center + Vector2(0, step + 15), interact_label, font, HORIZONTAL_ALIGNMENT_CENTER)

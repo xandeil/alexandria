@@ -9,6 +9,9 @@ extends ItemData
 ##   • quanto eles rendem (dano, velocidade, estamina) e com quais atributos
 ##     escalam (as letras S/A/B/C/D/E, como nos soulslike);
 ##   • qual HABILIDADE única ela tem (skill → WeaponSkills).
+##
+## Duas da mesma arma = uma em cada mão: por isso max_stack é 2 (o Ferreiro
+## forja uma cópia).
 
 ## Quanto cada letra rende por ponto de atributo acima de 10.
 const SCALING_PER_POINT := {"S": 0.045, "A": 0.035, "B": 0.028, "C": 0.021, "D": 0.013, "E": 0.007}
@@ -23,6 +26,9 @@ const SCALING_ATTRIBUTES: Array[String] = ["forca", "destreza", "magia", "fe", "
 ## Golpes próprios (vazio/null = os do herói).
 @export var light_combo: Array[AttackData] = []
 @export var heavy_attack: AttackData
+## Ataque especial: L2 com a arma em DUAS MÃOS. Nas armas de chefe é onde mora
+## a habilidade (a onda do Pilar, o fogo da Presa de Caelis...).
+@export var special_attack: AttackData
 @export var damage_scale := 1.0
 ## Multiplica o tempo de preparo e de recuperação (0.8 = 20% mais rápida).
 @export var speed_scale := 1.0

@@ -84,6 +84,7 @@ const WEAPON_LEVEL_CAP_AFTER_DURGAN := 5
 
 ## Armas de chefe: o Ferreiro forja com a Lembrança do Pecado (que NÃO é gasta).
 const START_WEAPON := "espada"
+const SHIELD := "escudo_remendado"
 const FORGEABLE_WEAPONS: Array[String] = ["lamina_desolada", "pilar_estilhacada", "arco_sono", "presas_voragem",
 	"replicador_bronze", "presa_caelis", "fuso_arconte", "ancora_gravidade"]
 ## Os golpes do herói (armas sem golpes próprios usam estes) — para a ficha do inventário.
@@ -130,7 +131,10 @@ var inventory := {}
 ## Melhoria da espada no Ferreiro (0 = de fábrica).
 var weapon_level := 0
 ## Escudo na mão esquerda (só vale se você TIVER o escudo).
-var shield_equipped := false
+## Mão esquerda: "" (vazia), o escudo ou o id de uma arma. A direita é equipped_weapon.
+var left_hand := ""
+## Arma da direita segura com as DUAS mãos (segurar △): mais dano e mais estamina.
+var two_handing := false
 ## Arma na mão direita (id do catálogo; sempre uma arma que você tem).
 var equipped_weapon := START_WEAPON
 ## Itens do chão que já foram pegos ("cidade@13,3") — não voltam ao descansar.
@@ -223,7 +227,8 @@ func reset_progress() -> void:
 	inventory = {}
 	weapon_level = 0
 	equipped_weapon = START_WEAPON
-	shield_equipped = false
+	left_hand = ""
+	two_handing = false
 	collected_pickups.clear()
 	flags = {}
 
@@ -426,8 +431,8 @@ func add_item(item_id: String, count: int = 1, announce: bool = true) -> int:
 	var after := mini(before + count, item.max_stack)
 	inventory[item_id] = after
 	var added := after - before
-	if item_id == "escudo_remendado" and before == 0:
-		shield_equipped = true  # pegou o escudo: já vai para a mão esquerda
+	if item_id == SHIELD and before == 0 and left_hand.is_empty():
+		left_hand = SHIELD  # pegou o escudo com a mão livre: já vai para ela
 	items_changed.emit()
 	if announce and added > 0:
 		item_added.emit(item_id, added)
@@ -482,12 +487,21 @@ func has_shield() -> bool:
 
 ## O herói só ergue o escudo se tem um E ele está equipado.
 func shield_ready() -> bool:
-	return has_shield() and shield_equipped
+	return shield_equipped() and not two_handing  # em duas mãos o escudo vai para as costas
+
+
+## O escudo está na mão esquerda (mesmo que agora a arma esteja em duas mãos).
+func shield_equipped() -> bool:
+	return left_hand == SHIELD and has_shield()
 
 
 func set_shield_equipped(equipped: bool) -> void:
-	shield_equipped = equipped and has_shield()
+	if equipped and has_shield():
+		left_hand = SHIELD
+	elif left_hand == SHIELD:
+		left_hand = ""
 	items_changed.emit()
+	weapon_changed.emit(equipped_weapon)
 	save_game()
 
 
@@ -538,15 +552,23 @@ func try_upgrade_weapon() -> bool:
 
 # --- Armas de chefe: forjar e equipar ------------------------------------------------------
 
+## Quantas desta arma você tem (a espada inicial já conta uma; o Ferreiro
+## forja uma cópia para a outra mão — por isso o máximo é 2).
+func weapon_count(id: String) -> int:
+	if Items.get_weapon(id) == null:
+		return 0
+	return (1 if id == START_WEAPON else 0) + item_count(id)
+
+
 func owns_weapon(id: String) -> bool:
-	return id == START_WEAPON or (Items.get_weapon(id) != null and has_item(id))
+	return weapon_count(id) > 0
 
 
 ## A espada inicial e as forjadas, na ordem da forja.
 func owned_weapons() -> Array[String]:
-	var result: Array[String] = [START_WEAPON]
-	for id in FORGEABLE_WEAPONS:
-		if has_item(id):
+	var result: Array[String] = []
+	for id in smith_weapons():
+		if owns_weapon(id):
 			result.append(id)
 	return result
 
@@ -555,28 +577,87 @@ func forgeable_weapons() -> Array[String]:
 	return FORGEABLE_WEAPONS
 
 
+## O que aparece na forja: a espada inicial (cópia) e as 8 de chefe.
+func smith_weapons() -> Array[String]:
+	var result: Array[String] = [START_WEAPON]
+	result.append_array(FORGEABLE_WEAPONS)
+	return result
+
+
 func current_weapon() -> WeaponData:
 	var weapon := Items.get_weapon(equipped_weapon)
 	return weapon if weapon else Items.get_weapon(START_WEAPON)
 
 
-func equip_weapon(id: String) -> bool:
+## A arma da mão esquerda (null = escudo ou mão vazia).
+func left_weapon() -> WeaponData:
+	return Items.get_weapon(left_hand)
+
+
+## Cópias desta arma que sobram para uma mão (a outra mão pode estar usando uma).
+func _copies_free(id: String, hand: String) -> int:
+	var other := left_hand if hand == "direita" else equipped_weapon
+	return weapon_count(id) - (1 if other == id else 0)
+
+
+## Equipa uma arma numa mão ("direita" ou "esquerda").
+## Sem uma cópia sobrando, a arma MUDA de mão: sai da esquerda e vai para a
+## direita. A direita nunca fica vazia (o golpe precisa de uma arma).
+func equip_weapon(id: String, hand: String = "direita") -> bool:
 	if not owns_weapon(id):
 		return false
-	equipped_weapon = id
-	weapon_changed.emit(id)
+	if hand == "esquerda":
+		if _copies_free(id, "esquerda") <= 0:
+			return false  # a única está na direita: forje uma cópia
+		left_hand = id
+	else:
+		if left_hand == id and weapon_count(id) < 2:
+			left_hand = ""
+		equipped_weapon = id
+	weapon_changed.emit(equipped_weapon)
+	items_changed.emit()
 	save_game()
 	return true
+
+
+func clear_left_hand() -> void:
+	left_hand = ""
+	weapon_changed.emit(equipped_weapon)
+	items_changed.emit()
+	save_game()
+
+
+func set_two_handing(on: bool) -> void:
+	if two_handing == on:
+		return
+	two_handing = on
+	weapon_changed.emit(equipped_weapon)
+	items_changed.emit()
+
+
+## Como as mãos estão agora — decide o que L1, L2, R1 e R2 fazem:
+##   "duas_maos" · "escudo" · "vazia" · "par" (duas do mesmo tipo) · "dupla" (tipos diferentes)
+func hand_mode() -> String:
+	if two_handing:
+		return "duas_maos"
+	if left_hand.is_empty():
+		return "vazia"
+	if left_hand == SHIELD:
+		return "escudo" if has_shield() else "vazia"
+	var left := left_weapon()
+	if left == null:
+		return "vazia"
+	return "par" if left.weapon_class == current_weapon().weapon_class else "dupla"
 
 
 ## "" = pode forjar; senão o motivo (o menu do Ferreiro mostra a fala certa).
 func forge_block_reason(id: String) -> String:
 	var weapon := Items.get_weapon(id)
-	if weapon == null or not FORGEABLE_WEAPONS.has(id):
+	if weapon == null or not smith_weapons().has(id):
 		return "lembranca"
-	if has_item(id):
-		return "owned"
-	if not has_item(weapon.memory_item):
+	if weapon_count(id) >= 2:
+		return "owned"  # já tem uma para cada mão
+	if not weapon.memory_item.is_empty() and not has_item(weapon.memory_item):
 		return "lembranca"
 	if memories < weapon.forge_memories:
 		return "memories"
@@ -729,7 +810,8 @@ func _to_dict() -> Dictionary:
 		"spared_child": spared_child,
 		"inventory": inventory.duplicate(),
 		"weapon_level": weapon_level,
-		"shield_equipped": shield_equipped,
+		"left_hand": left_hand,
+		"two_handing": two_handing,
 		"equipped_weapon": equipped_weapon,
 		"collected_pickups": collected_pickups.duplicate(),
 		"flags": flags.duplicate(),
@@ -771,7 +853,6 @@ func _from_dict(data: Dictionary) -> void:
 			if item:
 				inventory[item.id] = clampi(int(saved_items[item_id]), 0, item.max_stack)
 	weapon_level = clampi(int(data.get("weapon_level", 0)), 0, WEAPON_UPGRADES.size())
-	shield_equipped = bool(data.get("shield_equipped", false)) and has_shield()
 	# Itens-chave de chefes já vencidos que faltem no save (ex.: a Lembrança do
 	# Cavaleiro, que só existe desde a v0.20) são devolvidos. Como são únicos,
 	# repetir isto não duplica nada.
@@ -783,6 +864,14 @@ func _from_dict(data: Dictionary) -> void:
 				inventory[item_id] = 1
 	var saved_weapon := str(data.get("equipped_weapon", START_WEAPON))
 	equipped_weapon = saved_weapon if owns_weapon(saved_weapon) else START_WEAPON
+	# MIGRAÇÃO v0.20 → v0.21: antes só existia "escudo equipado ou não".
+	var saved_left := str(data.get("left_hand", SHIELD if bool(data.get("shield_equipped", false)) else ""))
+	left_hand = ""
+	if saved_left == SHIELD:
+		left_hand = SHIELD if has_shield() else ""
+	elif Items.get_weapon(saved_left) != null and _copies_free(saved_left, "esquerda") > 0:
+		left_hand = saved_left
+	two_handing = bool(data.get("two_handing", false))
 	var saved_pickups: Variant = data.get("collected_pickups", [])
 	if typeof(saved_pickups) == TYPE_ARRAY:
 		for key in saved_pickups:

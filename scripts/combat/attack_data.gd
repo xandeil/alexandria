@@ -34,6 +34,9 @@ extends Resource
 @export var active_during_lunge := false
 ## Agarrões (o abraço da Governanta, o civil): o escudo não segura — só o dash.
 @export var unblockable := false
+## Dá para APARAR (parry no L2)? Golpes de arma, sim; agarrões, golpes de
+## gigantes (martelo do Aldir, garra da Rachel...) e tiros, não.
+@export var parryable := true
 
 @export_group("Mira (inimigos)")
 ## Durante o windup a mira acompanha o alvo até esta fração do tempo...

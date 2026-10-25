@@ -28,3 +28,4 @@ slash_color = Color(1.0, 0.8, 0.6, 0.9)
 sound = &"hooves"
 scaling_attribute = "nenhum"
 scaling_per_point = 0.0
+parryable = false

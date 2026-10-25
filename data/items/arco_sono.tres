@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/items/arco_sono.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/arma_arco_sono.png" id="3"]
 [ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="4"]
 [ext_resource type="Resource" path="res://data/attacks/arma_flecha.tres" id="5"]
-[ext_resource type="Resource" path="res://data/attacks/arma_flecha_polen.tres" id="6"]
+[ext_resource type="Resource" path="res://data/attacks/arma_flecha_forte.tres" id="6"]
+[ext_resource type="Resource" path="res://data/attacks/arma_flecha_polen.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
@@ -15,17 +16,18 @@ description = "Um galho da estufa que nunca acordou. As flores ainda abrem quand
 Preguiça é fazer o mundo ir mais devagar para não ter que alcançá-lo."
 kind = 0
 icon = ExtResource("2")
-max_stack = 1
+max_stack = 2
 weapon_class = "Arco"
 scaling = {"fe": "S"}
 light_combo = Array[ExtResource("4")]([ExtResource("5")])
 heavy_attack = ExtResource("6")
+special_attack = ExtResource("7")
 damage_scale = 1.0
 speed_scale = 1.0
 stamina_scale = 1.0
 skill = "polen_sono"
 skill_name = "Pólen do Sono"
-skill_text = "a flecha forte abre uma nuvem de pólen: quem está dentro anda e ataca na metade da velocidade."
+skill_text = "a flecha especial abre uma nuvem de pólen: quem está dentro anda e ataca na metade da velocidade."
 boss_id = "nyssa"
 memory_item = "lembranca_nyssa"
 ranged = true

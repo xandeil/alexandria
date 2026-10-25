@@ -145,6 +145,18 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
   | Âncora da Gravidade | Cavaleiro | Machado | FOR A · FÉ A | vórtice que puxa os inimigos e explode; chefes e gigantes não saem do lugar |
 
   A Âncora é pós-final: vencer o Cavaleiro deixa a "Lembrança: O Posto Vazio" (saves antigos de quem já venceu também recebem). O reforço do Ferreiro (+1…+5) vale para todas as armas.
+- **Parry e crítico (como no DS3):** L2 com escudo (ou de mão vazia, janela menor) **apara**. Golpe aparado = guarda do inimigo aberta (ele brilha dourado e aparece "ABERTO"); R1 perto dele faz o **crítico** (3× o golpe leve, + Sorte; em chefe, metade), invencível durante a animação. Pelas costas de um inimigo comum, R1 também é crítico. Dá para aparar golpes de arma (soldados, cães, Helena, Sargento, Cavaleiro I/II...); não dá para aparar agarrões, tiros, fogo e golpes de gigantes (Aldir, Rachel, Mabel, Golem, A Promessa).
+- **Duas mãos e duas armas** (o L1/L2 muda com o que você segura — a legenda e os botões de toque acompanham):
+
+  | Mãos | R1 / R2 | L1 | L2 |
+  |---|---|---|---|
+  | Escudo na esquerda | fraco / forte | defende (segura 85%) | aparar |
+  | Mão esquerda vazia | fraco / forte | — | aparar (janela menor) |
+  | Duas do mesmo tipo (ex.: duas espadas) | só a direita | as duas juntas: 75% da soma do dano, custa a média × 1,25 | forte da esquerda |
+  | Tipos diferentes | ataques da direita | fraco da esquerda | forte da esquerda |
+  | Duas mãos (segurar △) | +50% de dano e de estamina | guarda com a arma (segura 75%) | **ataque especial** da arma |
+
+  O especial é onde mora a habilidade das armas de chefe (a onda do Pilar, o fogo da Presa de Caelis...); a espada inicial gira 360°. Arco e besta já atiram com as duas mãos (sem bônus). Toque rápido no △ continua sendo a Humanidade. O escudo só vai na mão esquerda. Para usar a MESMA arma nas duas mãos, o Ferreiro forja uma cópia (a espada inicial também).
 - **Inventário soulslike** (uma mistura nossa de DS1/2/3 com Lies of P): abas com L1/R1 (Q/E no teclado), grade de espaços com quantidade no canto e "E" de equipado, coluna EQUIPADO à esquerda, ficha à direita com Ataque leve/forte, tabela de letras FOR DES MAG FÉ SOR e a habilidade. A legenda do rodapé desenha os símbolos do PlayStation no modo controle.
 - **Correção:** derrotar um mini-chefe que tranca uma porta (a Mãe dos Esporos, o Banqueteiro, o Guardião) agora **abre a porta na hora**; antes era preciso sair e voltar.
 - **Morte:** "VOCÊ ESQUECEU" — perde metade das memórias, a visão escurece pelas bordas e cabelo/olhos clareiam a cada morte.
@@ -463,7 +475,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-125 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+132 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3

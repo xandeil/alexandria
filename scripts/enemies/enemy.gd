@@ -223,6 +223,62 @@ func regen_poise(delta: float) -> void:
 		poise = minf(poise + poise_regen_per_second * delta, max_poise)
 
 
+# --- Parry e crítico (v0.21) ------------------------------------------------------------
+# Como no DS3: aparar no tempo certo ABRE a guarda; de frente, o herói tem uma
+# janela curta para o crítico. Pelas costas (sem estar olhando), também.
+
+## Quanto tempo a guarda fica aberta depois de um parry (chefes: bem menos).
+const RIPOSTE_WINDOW := 1.1
+const RIPOSTE_WINDOW_BOSS := 0.7
+
+
+## O herói aparou um golpe meu. Devolve true se a guarda abriu (alguns
+## momentos não deixam cambalear: a Helena no ar, troca de fase...).
+func parried(info: HitInfo) -> bool:
+	if dead or not _can_be_staggered():
+		return false
+	poise = max_poise
+	velocity = -info.direction * 40.0  # recua meio passo, desequilibrado
+	_on_poise_broken(info)  # cada inimigo já sabe cambalear do seu jeito
+	_runner.cancel()
+	hitbox.deactivate()
+	EnemyStatus.of(self).guard_open = RIPOSTE_WINDOW_BOSS if self is Boss else RIPOSTE_WINDOW
+	Fx.float_text(global_position + Vector2(-16, -34), "ABERTO", Color(1.0, 0.9, 0.5), 7)
+	return true
+
+
+func is_guard_open() -> bool:
+	var status := EnemyStatus.find(self)
+	return status != null and status.guard_open > 0.0 and not dead
+
+
+## Pelas costas: o herói está ATRÁS de onde eu olho. Chefes e gigantes, não.
+func can_be_backstabbed(from: Vector2) -> bool:
+	if dead or self is Boss or is_in_group("giants") or knockback_taken <= 0.05:
+		return false
+	var to_attacker := from - global_position
+	if to_attacker.length() < 0.5:
+		return false
+	return facing.normalized().dot(to_attacker.normalized()) < -0.45
+
+
+## O crítico entrou (de frente depois do parry, ou pelas costas).
+func receive_critical(damage: float, from: Node2D) -> void:
+	if dead:
+		return
+	var status := EnemyStatus.find(self)
+	if status:
+		status.guard_open = 0.0
+	Fx.flash(body_sprite, 0.2, Color(1.0, 0.3, 0.3))
+	Fx.sparks(global_position + Vector2(0, -8), Vector2.UP, Color(0.9, 0.1, 0.15), 18)
+	Sfx.play(&"hit_heavy")
+	stats.take_damage(damage)
+	if not dead:
+		var info := HitInfo.create(0.0, from.global_position, global_position)
+		_on_poise_broken(info)  # ainda no chão depois do golpe
+		_runner.cancel()
+
+
 # --- Morte ---------------------------------------------------------------------------
 
 func _on_died() -> void:

@@ -8,7 +8,7 @@ extends RefCounted
 ## (aberto para extensão, fechado para modificação).
 ##
 ## Linha do tempo de um golpe e onde cada gancho entra:
-##   apertou ──► extra_stamina()          (custa mais? ex.: Presa de Caelis)
+##   apertou ──► extra_stamina()          (custa mais? ex.: o especial da Presa de Caelis)
 ##   ACTIVE  ──► fires_projectile()? fire() : liga a hitbox + on_active()
 ##   acertou ──► on_hit()
 
@@ -40,6 +40,11 @@ func on_hit(_player: Player, _target: Hurtbox, _info: HitInfo, _attack: AttackDa
 
 
 # --- Ajudantes para as estratégias ----------------------------------------------------
+
+## É o ataque ESPECIAL desta arma (L2 em duas mãos)? A habilidade de chefe mora nele.
+func is_special(attack: AttackData) -> bool:
+	return weapon != null and attack != null and attack == weapon.special_attack
+
 
 ## O inimigo dono da hurtbox (null para coberturas e afins).
 static func enemy_of(target: Hurtbox) -> Enemy:

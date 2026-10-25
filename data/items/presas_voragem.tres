@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/items/presas_voragem.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/arma_presas_voragem.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_frenesi_voragem.tres" id="4"]
 
 [resource]
 script = ExtResource("1")
@@ -12,15 +13,16 @@ description = "Dois talheres da cozinha dela, gastos de tanto raspar o fundo da 
 A fome não acaba quando o prato enche."
 kind = 0
 icon = ExtResource("2")
-max_stack = 1
+max_stack = 2
 weapon_class = "Adagas"
 scaling = {"sorte": "A", "destreza": "B"}
+special_attack = ExtResource("4")
 damage_scale = 0.72
 speed_scale = 0.7
 stamina_scale = 0.75
 skill = "fome_voragem"
 skill_name = "Fome da Vorágine"
-skill_text = "os golpes fazem sangrar (a barra enche e estoura) e cada acerto devolve um pouco de vida: 2 + Sorte × 0,2."
+skill_text = "os golpes fazem sangrar (a barra enche e estoura; o especial, um avanço em frenesi, enche muito) e cada acerto devolve um pouco de vida: 2 + Sorte × 0,2."
 boss_id = "mabel"
 memory_item = "lembranca_mabel"
 hand_texture = ExtResource("3")

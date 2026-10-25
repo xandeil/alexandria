@@ -6,6 +6,9 @@ extends CanvasLayer
 ##   Ataque: TOQUE = golpe leve (combo de 3) · SEGURAR = golpe forte
 ##   Cura: vira "Interagir" perto de NPCs e da Câmara
 ##   Escudo (só com o Escudo Remendado equipado): SEGURAR = defesa erguida
+##   L1/L2 mudam com as mãos (PadHints.hand_labels): com arma na esquerda, o
+##   botão do escudo vira o golpe dela; o botãozinho "L2" apara / bate forte /
+##   faz o especial. Segurar a Humanidade pega a arma com as duas mãos.
 
 const ICON_ATTACK := preload("res://assets/ui/icon_attack.png")
 const ICON_DASH := preload("res://assets/ui/icon_dash.png")
@@ -20,6 +23,7 @@ var dash_button: TouchButton
 var heal_button: TouchButton
 var sanity_button: TouchButton
 var block_button: TouchButton
+var special_button: TouchButton
 
 var pad_hints: PadHints
 var _player: Player
@@ -42,6 +46,7 @@ func _ready() -> void:
 	heal_button = _make_button(&"heal", ICON_HEAL, 17.0, "", Color(1.0, 0.5, 0.5))
 	sanity_button = _make_button(&"sanity", ICON_SANITY, 13.0, "", Color(0.9, 0.95, 1.0))
 	block_button = _make_button(&"block", ICON_BLOCK, 17.0, "", Color(0.75, 0.8, 0.95))
+	special_button = _make_button(&"special", ICON_BLOCK, 12.0, "Aparar", Color(1.0, 0.85, 0.45))
 	pad_hints = PadHints.new()
 	add_child(pad_hints)
 	get_viewport().size_changed.connect(_layout)
@@ -50,6 +55,7 @@ func _ready() -> void:
 	Game.sanity_flasks_changed.connect(func(_c: int): _refresh_sanity())
 	Game.vision_changed.connect(func(_v: int): _refresh_sanity())
 	Game.items_changed.connect(_refresh_block)
+	Game.weapon_changed.connect(func(_id: String): _refresh_block())
 	_layout()
 	_refresh_sanity()
 	_refresh_block()
@@ -94,7 +100,7 @@ func _apply_mode() -> void:
 ## Solta joystick e botões (diálogo abrindo, morte, pausa...).
 func release_all() -> void:
 	joystick.release()
-	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button]:
+	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button, special_button]:
 		button.release()
 
 
@@ -117,7 +123,7 @@ func _layout() -> void:
 	var safe := _safe_margins(view)
 	var corner := Vector2(view.x - safe.y, view.y)
 	var k := Settings.button_scale()
-	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button]:
+	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button, special_button]:
 		button.radius = float(button.get_meta(&"base_radius", button.radius)) * k
 		button.queue_redraw()
 	attack_button.place_at(corner + Vector2(-40, -44) * k)
@@ -125,6 +131,7 @@ func _layout() -> void:
 	heal_button.place_at(corner + Vector2(-82, -84) * k)
 	sanity_button.place_at(corner + Vector2(-36, -100) * k)
 	block_button.place_at(corner + Vector2(-132, -62) * k)
+	special_button.place_at(corner + Vector2(-140, -100) * k)
 	joystick.max_radius = 28.0 * k
 	joystick.rest_position = Vector2(safe.x + 52 * k, view.y - 52 * k)
 	joystick._reset()
@@ -152,12 +159,25 @@ func _refresh_sanity() -> void:
 	sanity_button.queue_redraw()
 
 
-## O botão do escudo só existe com o escudo na mão (botão inútil na tela confunde).
+## Os botões da mão esquerda seguem o que está nas mãos. Sem nada útil para
+## o L1 (mão vazia), o botão some (botão inútil na tela confunde).
 func _refresh_block() -> void:
-	var ready := Game.shield_ready()
-	if not ready:
+	var mode := Game.hand_mode()
+	var labels := PadHints.hand_labels(mode)
+	var useful := mode != "vazia"
+	if not useful:
 		block_button.release()
-	block_button.visible = ready
+	block_button.visible = useful
+	var left := Game.left_weapon()
+	block_button.icon = left.icon if mode in ["dupla", "par"] and left else ICON_BLOCK
+	block_button.label_text = "" if mode == "escudo" else labels[0]
+	block_button.queue_redraw()
+	special_button.label_text = labels[1]
+	special_button.icon = ICON_BLOCK if labels[1] == "Aparar" else ICON_ATTACK
+	special_button.queue_redraw()
+	pad_hints.l1_label = labels[0]
+	pad_hints.l2_label = labels[1]
+	pad_hints.queue_redraw()
 
 
 func _on_interact_target_changed(target: Interactable) -> void:

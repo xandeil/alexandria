@@ -17,6 +17,8 @@ var enemy: Enemy
 var slow_left := 0.0
 var drain_left := 0.0
 var bleed := 0.0
+## Guarda aberta depois de um parry: enquanto > 0, o herói pode dar o crítico.
+var guard_open := 0.0
 
 var _base_move_speed := -1.0
 var _tint := 0.0
@@ -88,11 +90,15 @@ func _physics_process(delta: float) -> void:
 				sprite.speed_scale = 1.0
 	if drain_left > 0.0:
 		drain_left -= delta
+	if guard_open > 0.0:
+		guard_open -= delta
 	if bleed > 0.0:
 		bleed = maxf(bleed - BLEED_DECAY * delta, 0.0)
 	# Um véu de cor por cima do inimigo diz qual efeito pegou.
 	var want := Color.WHITE
-	if slow_left > 0.0:
+	if guard_open > 0.0:
+		want = Color(1.0, 0.92, 0.55)  # guarda aberta: brilha dourado (é a deixa do crítico)
+	elif slow_left > 0.0:
 		want = Color(1.0, 0.95, 0.7)  # pólen dourado
 	elif drain_left > 0.0:
 		want = Color(0.75, 0.88, 1.0)  # gelo do Arconte

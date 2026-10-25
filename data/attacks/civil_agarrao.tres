@@ -29,3 +29,4 @@ sound = &"swing_small"
 scaling_attribute = "nenhum"
 scaling_per_point = 0.0
 unblockable = true
+parryable = false

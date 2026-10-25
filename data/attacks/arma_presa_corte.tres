@@ -28,3 +28,4 @@ slash_color = Color(1.0, 0.55, 0.2, 0.95)
 sound = &"fire_breath"
 scaling_attribute = "nenhum"
 scaling_per_point = 0.0
+parryable = false
