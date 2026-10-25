@@ -47,6 +47,7 @@ var _forge_selected := ""
 
 
 func _ready() -> void:
+	add_to_group(&"pad_menu")  # PadMenus: ✕ confirma e o foco nunca se perde no controle
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var dim := ColorRect.new()
@@ -183,6 +184,11 @@ func set_tab(index: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
+		return
+	if event.is_action_pressed(&"ui_cancel"):  # ○ sai da forja
+		Sfx.play(&"ui_click")
+		_closed.emit()
+		get_viewport().set_input_as_handled()
 		return
 	# L1/R1 (ou Q/E) trocam a aba, como no inventário.
 	if (event is InputEventJoypadButton and event.pressed and event.button_index in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]) \

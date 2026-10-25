@@ -216,6 +216,8 @@ func _ready() -> void:
 		"test_paired_and_dual_attacks",
 		"test_two_hands",
 		"test_touch_follows_hands",
+		"test_pad_menus_never_stuck",
+		"test_pad_confirms_menus",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -3984,7 +3986,10 @@ func test_version_consistency() -> void:
 		if line.begins_with("version/code="):
 			codes.append(int(line.get_slice("=", 1)))
 	check(names.size() == 2 and names.all(func(n): return n == version), "versão igual no projeto e nos presets (%s / %s)" % [version, names])
-	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == int(version.get_slice(".", 1)), "versionCode acompanha a versão (%s)" % [codes])
+	# versionCode = meio × 10 + correção (0.21.1 → 211, 0.22.0 → 220): SEMPRE sobe,
+	# e o Android só instala por cima se o número subir.
+	var expected := int(version.get_slice(".", 1)) * 10 + int(version.get_slice(".", 2))
+	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == expected, "versionCode acompanha a versão (%s, esperado %d)" % [codes, expected])
 
 
 # --- O Guarda Sem Posto (o marido de Helena) --------------------------------------------
@@ -4792,6 +4797,97 @@ func test_touch_follows_hands() -> void:
 	await frames(1)
 	check(touch.block_button.label_text == "Guarda" and touch.special_button.label_text == "Especial", "duas mãos: guarda e especial")
 	check(touch.pad_hints.l1_label == "Guarda" and touch.pad_hints.l2_label == "Especial", "a legenda do controle acompanha")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+
+## Bug da v0.21 (achado jogando no controle): o ✕ não escolhia nada nos menus,
+## porque o "ui_accept" padrão do Godot 4 só tem teclado.
+func _pad_press(button: JoyButton) -> void:
+	for pressed in [true, false]:
+		var event := InputEventJoypadButton.new()
+		event.button_index = button
+		event.pressed = pressed
+		Input.parse_input_event(event)
+		await frames(2)
+
+
+func test_pad_confirms_menus() -> void:
+	var cross := InputEventJoypadButton.new()
+	cross.button_index = JOY_BUTTON_A
+	var circle := InputEventJoypadButton.new()
+	circle.button_index = JOY_BUTTON_B
+	check(InputMap.action_has_event(&"ui_accept", cross), "✕ confirma nos menus")
+	check(InputMap.action_has_event(&"ui_cancel", circle), "○ volta nos menus")
+	var enter := InputEventKey.new()
+	enter.physical_keycode = KEY_ENTER
+	check(InputMap.action_has_event(&"ui_accept", enter), "Enter continua confirmando")
+	# Título de verdade: ✕ passa o "pressione qualquer botão" e ✕ de novo escolhe o item.
+	var title := (load("res://scenes/ui/title_screen.tscn") as PackedScene).instantiate()
+	add_child(title)
+	await frames(2)
+	await _pad_press(JOY_BUTTON_A)
+	check(title._menu.visible, "✕: passa o 'pressione qualquer botão'")
+	var picked := []
+	var options_button: Button = null
+	for child in title._menu.get_children():
+		if child is Button and child.text == "Opções":
+			options_button = child
+	options_button.pressed.connect(func(): picked.append("opcoes"))
+	options_button.grab_focus()
+	await _pad_press(JOY_BUTTON_A)
+	check(picked == ["opcoes"] and title._options.is_open(), "✕ escolhe o item focado (abriu as Opções)")
+	await _pad_press(JOY_BUTTON_B)
+	check(not title._options.is_open(), "○ fecha as Opções")
+	title.queue_free()
+	await frames(2)
+
+
+
+## O defeito do celular: o menu abre SEM item selecionado e o ✕ não fazia nada.
+func test_pad_menus_never_stuck() -> void:
+	var title := (load("res://scenes/ui/title_screen.tscn") as PackedScene).instantiate()
+	add_child(title)
+	await frames(3)
+	await _pad_press(JOY_BUTTON_A)
+	check(title._menu.visible, "✕ passa do 'Pressione qualquer botão'")
+	get_viewport().gui_release_focus()  # simula o celular perdendo a seleção
+	check(get_viewport().gui_get_focus_owner() == null, "menu sem nada selecionado")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	var focus := get_viewport().gui_get_focus_owner()
+	check(focus is DSMenuButton and title._menu.is_ancestor_of(focus), "qualquer botão do controle seleciona o primeiro item")
+	UIStyle.focus_first([title._new_game_button])
+	await _pad_press(JOY_BUTTON_A)
+	check(title._creation != null, "✕ confirma: 'Novo jogo' abre a criação")
+	get_viewport().gui_release_focus()
+	await _pad_press(JOY_BUTTON_A)
+	await _pad_press(JOY_BUTTON_A)
+	check(title._creation != null and title._creation.look["sexo"] != 0 or get_viewport().gui_get_focus_owner() != null, "na criação o ✕ também funciona")
+	# ○ volta (ui_cancel).
+	await _pad_press(JOY_BUTTON_B)
+	check(title._creation == null and title._menu.visible, "○ volta da criação para o menu")
+	title.queue_free()
+	await frames(2)
+	# No jogo, sem menu aberto, o PadMenus não rouba o ✕ (ele é "interagir").
+	check(PadMenus.active_menu() == null, "jogo sem menu: nenhum menu ativo")
+	# Inventário: perdeu a seleção, ✕ seleciona e ✕ de novo equipa.
+	Game.reset_progress()
+	Game.add_item("escudo_remendado", 1, false)
+	var level := await open_level(CIDADE, "porta")
+	level.hud.open_inventory()
+	await frames(2)
+	get_viewport().gui_release_focus()
+	await _pad_press(JOY_BUTTON_A)
+	check(get_viewport().gui_get_focus_owner() != null, "inventário: o ✕ 'acorda' a seleção")
+	level.hud.inventory_menu.set_tab(1)  # Escudos
+	await frames(1)
+	var before := Game.shield_equipped()
+	await _pad_press(JOY_BUTTON_A)
+	check(Game.shield_equipped() != before, "inventário: ✕ equipa/guarda")
+	await _pad_press(JOY_BUTTON_B)
+	check(not level.hud.inventory_menu.visible, "inventário: ○ fecha")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

@@ -13,6 +13,7 @@ var _inventory_button: Button
 
 
 func _ready() -> void:
+	add_to_group(&"pad_menu")  # PadMenus: ✕ confirma e o foco nunca se perde no controle
 	layer = 30
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	var dim := ColorRect.new()
@@ -88,6 +89,7 @@ func _open_options() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and not (_options and _options.is_open()) and event.is_action_pressed(&"pause"):
+	# Start de novo, ou ○ (voltar), fecham a pausa — como em todo soulslike.
+	if visible and not (_options and _options.is_open()) and (event.is_action_pressed(&"pause") or event.is_action_pressed(&"ui_cancel")):
 		close()
 		get_viewport().set_input_as_handled()

@@ -25,6 +25,11 @@ const ACTIONS := {
 	"special": {"keys": [KEY_O], "axis": [JOY_AXIS_TRIGGER_LEFT, 1.0]},
 	"inventory": {"keys": [KEY_I, KEY_TAB], "pad": [JOY_BUTTON_BACK]},
 	"pause": {"keys": [KEY_ESCAPE, KEY_P], "pad": [JOY_BUTTON_START]},
+	# Menus. O Godot 4 NÃO traz botão de controle para "confirmar" e "voltar" (só
+	# teclado) — sem isto, o ✕ não escolhe nada nos menus. Reescrever a ação no
+	# project.godot SUBSTITUI o padrão, então as teclas antigas vêm junto.
+	"ui_accept": {"keys": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE], "pad": [JOY_BUTTON_A]},  # ✕ confirma
+	"ui_cancel": {"keys": [KEY_ESCAPE], "pad": [JOY_BUTTON_B]},  # ○ volta
 }
 
 ## Atlas → tiles com colisão (coordenadas no atlas). O resto é só piso.

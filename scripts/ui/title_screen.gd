@@ -21,6 +21,7 @@ var _ash: Array[Vector3] = []  # x, y, velocidade (em fração da tela)
 
 
 func _ready() -> void:
+	add_to_group(&"pad_menu")  # PadMenus: ✕ confirma e o foco nunca se perde no controle
 	_build()
 	Sfx.play_ambience(&"tema_alexandria", -8.0)
 

@@ -20,6 +20,7 @@ var _walk_timer := 0.0
 
 
 func _ready() -> void:
+	add_to_group(&"pad_menu")  # PadMenus: ✕ confirma e o foco nunca se perde no controle
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build()

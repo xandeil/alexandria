@@ -19,6 +19,7 @@ var _close_button: Button
 
 
 func _ready() -> void:
+	add_to_group(&"pad_menu")  # PadMenus: ✕ confirma e o foco nunca se perde no controle
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var dim := ColorRect.new()
@@ -77,6 +78,14 @@ func run(player: Player) -> void:
 	Sfx.play(&"ui_open")
 	await _closed
 	visible = false
+
+
+## ○ (ou Esc) sai, igual ao botão "Sair".
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed(&"ui_cancel"):
+		Sfx.play(&"ui_click")
+		_closed.emit()
+		get_viewport().set_input_as_handled()
 
 
 ## Foco no primeiro "+" que dá para comprar; sem memórias, no "Sair".

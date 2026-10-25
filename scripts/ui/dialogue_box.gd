@@ -20,6 +20,7 @@ var _visible_chars := 0.0
 
 
 func _ready() -> void:
+	add_to_group(&"pad_menu")  # PadMenus: ✕ confirma e o foco nunca se perde no controle
 	layer = 12
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_catcher = Control.new()
