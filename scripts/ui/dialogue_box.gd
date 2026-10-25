@@ -129,7 +129,8 @@ func _on_catcher_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and (event.is_action_pressed(&"ui_accept") or event.is_action_pressed(&"attack") or event.is_action_pressed(&"heal")):
+	if visible and (event.is_action_pressed(&"ui_accept") or event.is_action_pressed(&"attack") or event.is_action_pressed(&"heal") \
+			or event.is_action_pressed(&"interact")):
 		_tap()
 		get_viewport().set_input_as_handled()
 

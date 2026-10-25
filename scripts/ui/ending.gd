@@ -103,7 +103,7 @@ func _run() -> void:
 	_label.add_theme_font_override("font", UIStyle.FONT)
 	_label.add_theme_font_size_override("font_size", 10)
 	_label.add_theme_color_override("font_color", UIStyle.TEXT_DIM)
-	_label.text = "Toque para voltar ao título"
+	_label.text = "Pressione um botão para voltar ao título" if Settings.controller_mode else "Toque para voltar ao título"
 	var tween := create_tween()
 	tween.tween_property(_label, "modulate:a", 1.0, FADE)
 	_done = true

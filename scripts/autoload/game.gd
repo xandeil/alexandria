@@ -126,6 +126,8 @@ var collected_pickups: Array[String] = []
 ## Um dicionário de marcas é mais simples que uma variável por escolha — e o
 ## save não precisa mudar de versão a cada marca nova.
 var flags := {}
+## Aparência escolhida na criação de personagem (ver Appearance).
+var appearance := Appearance.default_data()
 ## Id do ponto onde o herói aparece na próxima área carregada.
 var pending_spawn := ""
 ## Testes automáticos desligam a gravação em disco.
@@ -196,6 +198,7 @@ func reset_progress() -> void:
 	for attribute in StatsComponent.ATTRIBUTE_NAMES:
 		attributes[attribute] = StatsComponent.BASE_ATTRIBUTE
 	defeated_bosses.clear()
+	appearance = Appearance.default_data()
 	rest_scene = START_SCENE
 	rest_spawn = START_SPAWN
 	pending_spawn = ""
@@ -641,6 +644,7 @@ func _to_dict() -> Dictionary:
 		"shield_equipped": shield_equipped,
 		"collected_pickups": collected_pickups.duplicate(),
 		"flags": flags.duplicate(),
+		"appearance": appearance.duplicate(),
 	}
 
 
@@ -687,6 +691,9 @@ func _from_dict(data: Dictionary) -> void:
 	if typeof(saved_flags) == TYPE_DICTIONARY:
 		for flag in saved_flags:
 			flags[str(flag)] = bool(saved_flags[flag])
+	# Saves de antes da criação de personagem não têm "appearance": ficam com
+	# a aparência padrão (Homem/Magro/Sereno/Curto), que é o visual antigo.
+	appearance = Appearance.sanitized(data.get("appearance", {}))
 	# MIGRAÇÃO v2 → v3: quem já venceu chefes antes do inventário existir
 	# recebe agora o que eles deixam (sem anúncio: é acerto de contas).
 	if version < 3:
@@ -707,8 +714,10 @@ func _quarantine_broken_save() -> void:
 
 # --- Fluxo entre cenas -----------------------------------------------------------------------
 
-func new_game() -> void:
+## `look`: a aparência escolhida na tela de criação (vazio = a padrão).
+func new_game(look: Dictionary = {}) -> void:
 	reset_progress()
+	appearance = Appearance.sanitized(look)
 	session_active = true
 	save_game()
 	pending_spawn = START_SPAWN

@@ -127,6 +127,10 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
   - **"Venha comigo":** ele luta ao seu lado nas ilhas (não nas arenas dos Pecados): segue você, corta o inimigo mais perto de você e leva os golpes no meio da briga. Caiu de joelhos, volta para o Teatro.
   - **O sacrifício:** quando você desafia a mulher da plateia, ele entra na frente do golpe — "Eu não lembro de você. Mas lembro deste lugar." Fica o **posto vazio** e o **Anel do Guarda** vai para você.
   - **Fase 3 de Helena:** sem armadura, ela vê o anel na sua mão e **para** ("Esse anel... Ele esteve aqui? Todo esse tempo... e eu não..."). É o golpe emocional da luta — e uma janela de 3 segundos em que o golpe dói mais.
+- **Título no estilo soulslike:** fundo preto com cinzas subindo, "PRESSIONE QUALQUER BOTÃO" e um menu só de texto branco — o item escolhido clareia com uma faixa de luz atrás (no mouse, no teclado e no controle). A pausa e as Opções seguem o mesmo estilo.
+- **Controle no padrão soulslike:** R1 ataque · R2 golpe forte · ○ esquiva · □ frasco de vida · △ **Humanidade** (Frasco de Sanidade) · ✕ interagir/falar · L1/L2 escudo · Start pausa · Share/Select inventário. No teclado, F também interage.
+- **Modo controle** (Opções): os botões de toque somem e, no lugar, aparece uma legenda discreta com os botões do PlayStation e o que cada um faz agora (o ✕ mostra "Falar"/"Examinar" perto de alguém; os frascos mostram quantos restam). As dicas e o "PRESO!" passam a falar dos botões do controle.
+- **Criação de personagem** (depois de "Novo jogo", antes do despertar): Homem ou Mulher, 3 corpos (Magro, Forte, Gordo), 3 rostos e 5 cabelos para cada sexo — 90 combinações, com prévia andando e o botão "Aleatório". A escolha fica no save; saves antigos ficam com o visual de antes. O cabelo e os olhos de todas usam as cores-chave do shader, então continuam embranquecendo a cada morte.
 - **Correção:** derrotar um mini-chefe que tranca uma porta (a Mãe dos Esporos, o Banqueteiro, o Guardião) agora **abre a porta na hora**; antes era preciso sair e voltar.
 - **Morte:** "VOCÊ ESQUECEU" — perde metade das memórias, a visão escurece pelas bordas e cabelo/olhos clareiam a cada morte.
 
@@ -444,7 +448,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-113 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+119 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3

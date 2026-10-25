@@ -12,12 +12,15 @@ const ACTIONS := {
 	"move_right": {"keys": [KEY_D, KEY_RIGHT], "axis": [JOY_AXIS_LEFT_X, 1.0], "pad": [JOY_BUTTON_DPAD_RIGHT]},
 	"move_up": {"keys": [KEY_W, KEY_UP], "axis": [JOY_AXIS_LEFT_Y, -1.0], "pad": [JOY_BUTTON_DPAD_UP]},
 	"move_down": {"keys": [KEY_S, KEY_DOWN], "axis": [JOY_AXIS_LEFT_Y, 1.0], "pad": [JOY_BUTTON_DPAD_DOWN]},
-	"attack": {"keys": [KEY_J], "pad": [JOY_BUTTON_X]},
-	"attack_heavy": {"keys": [KEY_K], "pad": [JOY_BUTTON_RIGHT_SHOULDER]},
+	# Controle no padrão dos soulslike (botões do PlayStation entre parênteses):
+	# R1 ataque · R2 forte · ○ esquiva · □ frasco · △ humanidade · ✕ interagir · L1/L2 escudo
+	"attack": {"keys": [KEY_J], "pad": [JOY_BUTTON_RIGHT_SHOULDER]},
+	"attack_heavy": {"keys": [KEY_K], "axis": [JOY_AXIS_TRIGGER_RIGHT, 1.0]},
 	"dash": {"keys": [KEY_SPACE], "pad": [JOY_BUTTON_B]},
-	"heal": {"keys": [KEY_E, KEY_H], "pad": [JOY_BUTTON_Y]},
-	"sanity": {"keys": [KEY_Q], "pad": [JOY_BUTTON_LEFT_SHOULDER]},
-	"block": {"keys": [KEY_L, KEY_SHIFT], "axis": [JOY_AXIS_TRIGGER_LEFT, 1.0]},
+	"heal": {"keys": [KEY_E, KEY_H], "pad": [JOY_BUTTON_X]},
+	"sanity": {"keys": [KEY_Q], "pad": [JOY_BUTTON_Y]},
+	"interact": {"keys": [KEY_F], "pad": [JOY_BUTTON_A]},
+	"block": {"keys": [KEY_L, KEY_SHIFT], "pad": [JOY_BUTTON_LEFT_SHOULDER], "axis": [JOY_AXIS_TRIGGER_LEFT, 1.0]},
 	"inventory": {"keys": [KEY_I, KEY_TAB], "pad": [JOY_BUTTON_BACK]},
 	"pause": {"keys": [KEY_ESCAPE, KEY_P], "pad": [JOY_BUTTON_START]},
 }

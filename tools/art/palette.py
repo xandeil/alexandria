@@ -22,6 +22,7 @@ SCARF = (44, 51, 67)
 SCARF_LIGHT = (70, 81, 112)
 LEATHER = (90, 61, 39)
 WRAPS = (201, 191, 174)
+LIP = (171, 104, 98)  # boca dos rostos da criacao de personagem
 
 # --- Helena Altiva -------------------------------------------------------------
 HELENA_HAIR = (168, 67, 42)  # cabelo ruivo, como na imagem do Teatro

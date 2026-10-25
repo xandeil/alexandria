@@ -19,6 +19,9 @@ var ambience_volume := 0.8
 var vibration := true
 var button_size := "Médios"
 var hints := true
+## Modo controle: some os botões de toque e aparecem, discretos, os botões do
+## controle (padrão PlayStation) no lugar deles.
+var controller_mode := false
 ## Testes e o passeio de fotos não gravam opções no aparelho.
 var persistence_enabled := true
 
@@ -53,6 +56,7 @@ func load_settings() -> void:
 	var size := str(config.get_value("toque", "botoes", button_size))
 	button_size = size if BUTTON_SIZES.has(size) else "Médios"
 	hints = bool(config.get_value("jogo", "dicas", hints))
+	controller_mode = bool(config.get_value("toque", "modo_controle", controller_mode))
 
 
 func save_settings() -> void:
@@ -64,6 +68,7 @@ func save_settings() -> void:
 	config.set_value("toque", "vibracao", vibration)
 	config.set_value("toque", "botoes", button_size)
 	config.set_value("jogo", "dicas", hints)
+	config.set_value("toque", "modo_controle", controller_mode)
 	config.save(PATH)
 	_loaded_from_file = true
 
@@ -107,6 +112,11 @@ func step_ambience(delta: float) -> void:
 
 func toggle_vibration() -> void:
 	vibration = not vibration
+	_commit()
+
+
+func toggle_controller_mode() -> void:
+	controller_mode = not controller_mode
 	_commit()
 
 

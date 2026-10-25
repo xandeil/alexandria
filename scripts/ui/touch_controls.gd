@@ -21,8 +21,11 @@ var heal_button: TouchButton
 var sanity_button: TouchButton
 var block_button: TouchButton
 
+var pad_hints: PadHints
 var _player: Player
 var _root: Control
+## O HUD pediu os controles na tela? (falso durante cenas, diálogos, morte)
+var _wanted := true
 
 
 func _ready() -> void:
@@ -39,21 +42,27 @@ func _ready() -> void:
 	heal_button = _make_button(&"heal", ICON_HEAL, 17.0, "", Color(1.0, 0.5, 0.5))
 	sanity_button = _make_button(&"sanity", ICON_SANITY, 13.0, "", Color(0.9, 0.95, 1.0))
 	block_button = _make_button(&"block", ICON_BLOCK, 17.0, "", Color(0.75, 0.8, 0.95))
+	pad_hints = PadHints.new()
+	add_child(pad_hints)
 	get_viewport().size_changed.connect(_layout)
 	Settings.changed.connect(_layout)  # Opções: botões pequenos, médios ou grandes
+	Settings.changed.connect(_apply_mode)  # Opções: modo controle liga/desliga
 	Game.sanity_flasks_changed.connect(func(_c: int): _refresh_sanity())
 	Game.vision_changed.connect(func(_v: int): _refresh_sanity())
 	Game.items_changed.connect(_refresh_block)
 	_layout()
 	_refresh_sanity()
 	_refresh_block()
+	_apply_mode()
 
 
 func bind_player(player: Player) -> void:
 	_player = player
 	player.health_flasks_changed.connect(func(current: int, _max: int):
 		heal_button.badge = current
-		heal_button.queue_redraw())
+		heal_button.queue_redraw()
+		pad_hints.flasks = current
+		pad_hints.queue_redraw())
 	player.interact_target_changed.connect(_on_interact_target_changed)
 	# Agarrado: o botão de Ataque avisa que é ELE que solta.
 	player.grab_changed.connect(func(grabbed: bool, _taps: int):
@@ -62,11 +71,23 @@ func bind_player(player: Player) -> void:
 		attack_button.queue_redraw())
 	heal_button.badge = player.health_flasks
 	heal_button.queue_redraw()
+	pad_hints.flasks = player.health_flasks
+	pad_hints.queue_redraw()
 
 
 func set_enabled(enabled: bool) -> void:
-	visible = enabled
-	if not enabled:
+	_wanted = enabled
+	_apply_mode()
+
+
+## Toque OU controle (nunca os dois): no Modo controle, os botões de toque somem
+## e a legenda discreta do controle aparece no lugar deles.
+func _apply_mode() -> void:
+	visible = _wanted
+	var pad := Settings.controller_mode
+	_root.visible = not pad
+	pad_hints.visible = pad
+	if pad or not _wanted:
 		release_all()
 
 
@@ -124,6 +145,8 @@ func _safe_margins(view: Vector2) -> Vector2:
 
 
 func _refresh_sanity() -> void:
+	pad_hints.sanity_flasks = Game.sanity_flasks
+	pad_hints.queue_redraw()
 	sanity_button.badge = Game.sanity_flasks
 	sanity_button.dimmed = Game.sanity_flasks <= 0 or Game.vision_loss <= 0
 	sanity_button.queue_redraw()
@@ -138,6 +161,8 @@ func _refresh_block() -> void:
 
 
 func _on_interact_target_changed(target: Interactable) -> void:
+	pad_hints.interact_label = target.prompt if target else "Interagir"
+	pad_hints.queue_redraw()
 	if target:
 		heal_button.icon = ICON_INTERACT
 		heal_button.label_text = target.prompt

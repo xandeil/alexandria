@@ -197,6 +197,12 @@ func _ready() -> void:
 		"test_guard_companion",
 		"test_guard_sacrifice",
 		"test_helena_recognizes_ring",
+		"test_title_souls_style",
+		"test_controller_mode",
+		"test_pad_mapping_and_interact",
+		"test_appearance_atlas",
+		"test_appearance_save_and_player",
+		"test_character_creation_screen",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -4108,3 +4114,157 @@ func test_helena_recognizes_ring() -> void:
 	await seconds(HelenaAltiva.RING_HESITATION + 0.2)
 	check(not helena.is_hesitating(), "depois ela volta a lutar")
 
+
+# --- v0.18: título soulslike e modo controle ----------------------------------------------
+
+func test_title_souls_style() -> void:
+	var title := (load("res://scenes/ui/title_screen.tscn") as PackedScene).instantiate()
+	add_child(title)
+	await frames(2)
+	check(not title._menu.visible and title._press_any.visible, "começa em 'Pressione qualquer botão'")
+	var key := InputEventKey.new()
+	key.pressed = true
+	key.keycode = KEY_ENTER
+	title._input(key)
+	await frames(2)
+	check(title._menu.visible and not title._press_any.visible, "qualquer botão abre o menu")
+	var focused := get_viewport().gui_get_focus_owner()
+	check(focused is DSMenuButton, "o menu é de itens só-texto com foco (DSMenuButton)")
+	title.queue_free()
+	await frames(2)
+
+
+func test_controller_mode() -> void:
+	var saved := Settings.controller_mode
+	var level := await open_level(CIDADE, "porta")
+	var touch := level.hud.touch
+	Settings.controller_mode = false
+	Settings.apply()
+	check(touch._root.visible and not touch.pad_hints.visible, "toque: botões na tela, sem legenda do controle")
+	Settings.controller_mode = true
+	Settings.apply()
+	check(not touch._root.visible and touch.pad_hints.visible, "modo controle: os botões somem, a legenda aparece")
+	touch.set_enabled(false)
+	check(not touch.visible, "em cena/diálogo, nada aparece")
+	touch.set_enabled(true)
+	check(touch.visible and touch.pad_hints.visible, "e volta a legenda depois")
+	check(TutorialHints.text_for("esquivar").contains("○"), "as dicas falam dos botões do controle")
+	Settings.controller_mode = saved
+	Settings.apply()
+	level.queue_free()
+	await frames(2)
+
+
+func test_pad_mapping_and_interact() -> void:
+	var expect := {&"attack": JOY_BUTTON_RIGHT_SHOULDER, &"dash": JOY_BUTTON_B, &"heal": JOY_BUTTON_X,
+		&"sanity": JOY_BUTTON_Y, &"interact": JOY_BUTTON_A, &"block": JOY_BUTTON_LEFT_SHOULDER}
+	for action in expect:
+		var found := false
+		for event in InputMap.action_get_events(action):
+			if event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == expect[action]:
+				found = true
+		check(found, "controle: %s no botão %d" % [action, expect[action]])
+	var heavy_on_r2 := InputMap.action_get_events(&"attack_heavy").any(func(e): return e is InputEventJoypadMotion and (e as InputEventJoypadMotion).axis == JOY_AXIS_TRIGGER_RIGHT)
+	check(heavy_on_r2, "golpe forte no R2")
+	# ✕ conversa com quem está perto (sem beber frasco por engano).
+	var level := await open_level(TEATRO, "camara")
+	var fairy := find_npc("fada")
+	level.player.global_position = fairy.global_position + Vector2(0, 14)
+	await frames(4)
+	var flasks := level.player.health_flasks
+	level.player._buffer(&"interact")
+	await frames(4)
+	check(level.hud.dialogue.visible and level.player.health_flasks == flasks, "✕ conversa com a Fada")
+	level.hud.dialogue.visible = false
+	get_tree().paused = false
+	level.queue_free()
+	await frames(2)
+
+
+
+func test_appearance_atlas() -> void:
+	var atlas: Texture2D = load(Appearance.ATLAS_PATH)
+	check(atlas.get_width() == Appearance.FRAMES_PER_ROW * 24, "atlas: 4 quadros por linha")
+	check(atlas.get_height() == Appearance.row_count() * 24, "atlas: uma linha por combinação (%d)" % Appearance.row_count())
+	check(Appearance.row_count() == 90, "2 sexos x 3 corpos x 3 rostos x 5 cabelos = 90")
+	var last := {"sexo": 1, "corpo": 2, "rosto": 2, "cabelo": 4}
+	check(Appearance.row(last) == Appearance.row_count() - 1, "a última combinação é a última linha (mesma fórmula do Python)")
+	check(Appearance.row({"sexo": 0, "corpo": 1, "rosto": 0, "cabelo": 0}) == 15, "corpo pula 15 linhas")
+	var broken := Appearance.sanitized({"sexo": 9, "corpo": -3, "rosto": "x", "cabelo": 99})
+	check(broken["sexo"] == 1 and broken["corpo"] == 0 and broken["cabelo"] == 4, "valores absurdos são corrigidos")
+	check(Appearance.sanitized(null) == Appearance.default_data(), "lixo vira a aparência padrão")
+	var frames := Appearance.sprite_frames(last)
+	check(frames.has_animation(&"idle") and frames.get_frame_count(&"walk") == 4, "mesmas animações do player_frames.tres")
+	check(Appearance.sprite_frames(last) == frames, "SpriteFrames reaproveitado (cache)")
+	# Cada combinação tem que ser DIFERENTE das outras (nenhuma linha repetida).
+	var image := atlas.get_image()
+	var seen := {}
+	for r in Appearance.row_count():
+		var digest := image.get_region(Rect2i(0, r * 24, 24, 24)).get_data().hex_encode().md5_text()
+		seen[digest] = true
+	check(seen.size() == Appearance.row_count(), "as 90 aparências são todas diferentes (%d)" % seen.size())
+	# O cabelo usa a cor-chave do shader (embranquece com a perda de sanidade).
+	var hair_key := Color8(59, 43, 36)
+	var has_key := false
+	var sample := image.get_region(Rect2i(0, (Appearance.row_count() - 1) * 24, 24, 24))
+	for y in 24:
+		for x in 24:
+			if sample.get_pixel(x, y).is_equal_approx(hair_key):
+				has_key = true
+	check(has_key, "o cabelo usa a cor-chave do shader sprite_fx")
+
+
+func test_appearance_save_and_player() -> void:
+	var look := {"sexo": 1, "corpo": 2, "rosto": 1, "cabelo": 3}
+	Game.reset_progress()
+	Game.appearance = Appearance.sanitized(look)
+	var data := Game._to_dict()
+	Game.reset_progress()
+	check(Game.appearance == Appearance.default_data(), "reset volta à aparência padrão")
+	Game._from_dict(data)
+	check(Game.appearance == look, "a aparência sobrevive ao save")
+	Game._from_dict({"version": 3})
+	check(Game.appearance == Appearance.default_data(), "save antigo (sem aparência) usa a padrão")
+	Game.appearance = Appearance.sanitized(look)
+	var level := await open_level(CIDADE, "porta")
+	var body: AnimatedSprite2D = level.player.body_sprite
+	check(body.sprite_frames == Appearance.sprite_frames(look), "o herói nasce com a aparência escolhida")
+	check(body.material != null, "o shader de sanidade continua no corpo")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_character_creation_screen() -> void:
+	var creation := CharacterCreation.new()
+	add_child(creation)
+	await frames(2)
+	check(get_viewport().gui_get_focus_owner() is DSMenuButton, "criação começa com foco (dá para usar o controle)")
+	creation.step("sexo", 1)
+	check(creation.look["sexo"] == 1 and creation._values["sexo"].text == "Mulher", "troca o sexo")
+	check(creation._values["rosto"].text == "Serena", "rostos de mulher aparecem")
+	creation.step("cabelo", -1)
+	check(creation.look["cabelo"] == 4, "‹ no primeiro cabelo dá a volta para o último")
+	check(creation._preview.sprite_frames == Appearance.sprite_frames(creation.look), "a prévia acompanha a escolha")
+	for i in 20:
+		creation.randomize_look()
+		check(Appearance.sanitized(creation.look) == creation.look, "aleatório sempre gera combinação válida")
+	var got: Array = []
+	creation.confirmed.connect(func(l): got.append(l))
+	creation._confirm()
+	check(got.size() == 1 and got[0] == creation.look, "Despertar devolve a aparência escolhida")
+	got[0]["sexo"] = 99
+	check(creation.look["sexo"] != 99, "devolve uma CÓPIA (mexer nela não muda a tela)")
+	creation.queue_free()
+	var title := (load("res://scenes/ui/title_screen.tscn") as PackedScene).instantiate()
+	add_child(title)
+	await frames(2)
+	title.show_menu()
+	title.open_creation()
+	await frames(2)
+	check(title._creation != null and title._creation.is_inside_tree(), "Novo jogo abre a criação")
+	title._creation.cancelled.emit()
+	await frames(2)
+	check(title._creation == null and title._menu.visible, "Voltar retorna ao menu")
+	title.queue_free()
+	await frames(2)

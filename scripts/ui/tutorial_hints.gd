@@ -12,13 +12,13 @@ extends Node
 const GAP := 5.0
 const ENEMY_NEAR := 120.0
 
-## id → [texto no celular, texto no teclado/controle]
+## id → [texto no celular, texto no teclado, texto no controle (PlayStation)]
 const TEXTS := {
-	"andar": ["Arraste o polegar no lado ESQUERDO da tela para andar.", "WASD ou setas para andar."],
-	"atacar": ["Toque na ESPADA para atacar. SEGURE para o golpe forte.", "J ataca. Segure J (ou K) para o golpe forte."],
-	"esquivar": ["O botão » é a esquiva: durante ela, nenhum golpe acerta.", "ESPAÇO esquiva: durante ela, nenhum golpe acerta."],
+	"andar": ["Arraste o polegar no lado ESQUERDO da tela para andar.", "WASD ou setas para andar.", "Analógico esquerdo para andar."],
+	"atacar": ["Toque na ESPADA para atacar. SEGURE para o golpe forte.", "J ataca. Segure J (ou K) para o golpe forte.", "R1 ataca. R2 é o golpe forte."],
+	"esquivar": ["O botão » é a esquiva: durante ela, nenhum golpe acerta.", "ESPAÇO esquiva: durante ela, nenhum golpe acerta.", "○ (Bola) esquiva: durante ela, nenhum golpe acerta."],
 	"estamina": ["Barra VERDE: estamina. Golpes e esquivas gastam; pare um instante para ela voltar.", "Barra VERDE: estamina. Golpes e esquivas gastam; pare um instante para ela voltar."],
-	"curar": ["Vida baixa: toque no FRASCO VERMELHO para beber.", "Vida baixa: E bebe um frasco de vida."],
+	"curar": ["Vida baixa: toque no FRASCO VERMELHO para beber.", "Vida baixa: E bebe um frasco de vida.", "Vida baixa: □ (Quadrado) bebe um frasco de vida."],
 	"camara": ["Câmara: descansar enche a vida e os frascos — e os inimigos voltam.", "Câmara: descansar enche a vida e os frascos — e os inimigos voltam."],
 	"memorias": ["Memórias são a moeda: a Fada do Teatro as troca por força. Morrer faz perder metade.", "Memórias são a moeda: a Fada do Teatro as troca por força. Morrer faz perder metade."],
 }
@@ -58,8 +58,10 @@ func seen(id: String) -> bool:
 
 
 static func text_for(id: String) -> String:
-	var pair: Array = TEXTS.get(id, ["", ""])
-	return pair[0] if OS.has_feature("mobile") else pair[1]
+	var texts: Array = TEXTS.get(id, ["", ""])
+	if Settings.controller_mode and texts.size() > 2:
+		return texts[2]
+	return texts[0] if OS.has_feature("mobile") else texts[1]
 
 
 func _process(delta: float) -> void:

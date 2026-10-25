@@ -502,7 +502,8 @@ func _on_grab_changed(grabbed: bool, taps_needed: int) -> void:
 
 func _on_grab_progress(taps: int, taps_needed: int) -> void:
 	var bar := "■".repeat(mini(taps, taps_needed)) + "□".repeat(maxi(taps_needed - taps, 0))
-	_grab_label.text = "PRESO!  Toque ATAQUE rápido\n%s" % bar
+	var press := "Aperte R1 rápido" if Settings.controller_mode else "Toque ATAQUE rápido"
+	_grab_label.text = "PRESO!  %s\n%s" % [press, bar]
 	_grab_label.pivot_offset = _grab_label.size * 0.5
 
 

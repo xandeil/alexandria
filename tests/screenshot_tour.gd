@@ -53,6 +53,10 @@ func _ready() -> void:
 		await _tour_guard()
 		Game.quit_game()
 		return
+	if only == "criacao":
+		await _tour_creation()
+		Game.quit_game()
+		return
 	if only == "opcoes":
 		await _tour_options()
 		Game.quit_game()
@@ -1192,11 +1196,18 @@ func _tour_core() -> void:
 
 func _tour_options() -> void:
 	var title := await open("res://scenes/ui/title_screen.tscn")
-	await wait(1.0)
+	await wait(2.0)
+	await shot("o00_titulo_pressione")
+	title.show_menu()
+	await wait(0.8)
 	await shot("o01_titulo")
+	title._new_game_button.grab_focus()
+	await wait(0.5)
+	await shot("o01b_titulo_foco")
 	title._open_options()
 	await wait(0.4)
 	await shot("o02_opcoes")
+	title._options.close()
 	Game.reset_progress()
 	Game.pending_spawn = "porta"
 	var level := await open("res://scenes/world/cidade.tscn") as Level
@@ -1207,8 +1218,61 @@ func _tour_options() -> void:
 	await wait(0.3)
 	await shot("o04_botoes_grandes")
 	Settings.button_size = "Médios"
+	Settings.controller_mode = true
+	Settings.apply()
+	await wait(0.4)
+	await shot("o05_modo_controle")
+	Settings.controller_mode = false
 	Settings.apply()
 	level.queue_free()
+
+
+func _tour_creation() -> void:
+	var title := await open("res://scenes/ui/title_screen.tscn")
+	title.show_menu()
+	title.open_creation()
+	await wait(0.6)
+	await shot("c01_criacao")
+	var creation: CharacterCreation = title._creation
+	creation.look = {"sexo": 1, "corpo": 0, "rosto": 1, "cabelo": 2}
+	creation._refresh()
+	await wait(0.5)
+	await shot("c02_criacao_mulher")
+	creation.look = {"sexo": 0, "corpo": 2, "rosto": 1, "cabelo": 2}
+	creation._refresh()
+	await wait(0.5)
+	await shot("c03_criacao_gordo_barbudo")
+	# Todas as 90 combinações lado a lado, ampliadas (folha de conferência).
+	title.queue_free()
+	var sheet := Control.new()
+	sheet.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var bg := ColorRect.new()
+	bg.color = Color(0.12, 0.12, 0.15)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sheet.add_child(bg)
+	add_child(sheet)
+	for r in Appearance.row_count():
+		var cell := TextureRect.new()
+		var tex := AtlasTexture.new()
+		tex.atlas = load(Appearance.ATLAS_PATH)
+		tex.region = Rect2(0, r * 24, 24, 24)
+		cell.texture = tex
+		cell.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		cell.position = Vector2((r % 15) * 31 + 6, int(r / 15) * 44 + 4)
+		cell.size = Vector2(24, 24)
+		cell.scale = Vector2(1.25, 1.25)
+		sheet.add_child(cell)
+	await wait(0.3)
+	await shot("c04_todas_as_aparencias")
+	sheet.queue_free()
+	Game.reset_progress()
+	Game.appearance = {"sexo": 1, "corpo": 1, "rosto": 0, "cabelo": 1}
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/cidade.tscn") as Level
+	await wait(1.5)
+	await shot("c05_no_jogo")
+	level.queue_free()
+	Game.reset_progress()
 
 
 func _tour_guard() -> void:
@@ -1249,4 +1313,3 @@ func _tour_guard() -> void:
 	await shot("q03_o_sacrificio")
 	await wait(4.5)
 	await shot("q04_posto_vazio")
-

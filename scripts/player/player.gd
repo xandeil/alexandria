@@ -252,11 +252,19 @@ func _ready() -> void:
 	hurtbox.hit_received.connect(_on_hit_received)
 	stats.died.connect(_on_died)
 	body_sprite.material = body_sprite.material.duplicate()
+	apply_appearance(Game.appearance)
 	_last_safe_position = global_position
 	var ring := NoiseRing.new()
 	ring.player = self
 	add_child(ring)
 	apply_progress(true)
+
+
+## Troca o visual (criação de personagem). Mantém a animação que estava tocando.
+func apply_appearance(look: Dictionary) -> void:
+	var current := body_sprite.animation
+	body_sprite.sprite_frames = Appearance.sprite_frames(look)
+	body_sprite.play(current if body_sprite.sprite_frames.has_animation(current) else &"idle")
 
 
 ## Lê atributos e frascos do Game (save) para o herói.
@@ -420,6 +428,8 @@ func _read_input(delta: float) -> void:
 		_buffer(&"heal")
 	if _just_pressed(&"sanity"):
 		_buffer(&"sanity")
+	if _just_pressed(&"interact"):
+		_buffer(&"interact")  # ✕ no controle / F no teclado: só conversa e examina
 	if _buffer_left > 0.0:
 		_buffer_left -= delta
 		if _buffer_left <= 0.0:
@@ -467,7 +477,7 @@ func _update_unlock_filter() -> void:
 func _consume_buffer(allow_heal: bool = true) -> void:
 	if _buffered == &"":
 		return
-	if not allow_heal and (_buffered == &"heal" or _buffered == &"sanity"):
+	if not allow_heal and (_buffered == &"heal" or _buffered == &"sanity" or _buffered == &"interact"):
 		_buffer_left = maxf(_buffer_left, 0.1)  # segura o comando até o golpe acabar
 		return
 	var action := _buffered
@@ -487,6 +497,9 @@ func _consume_buffer(allow_heal: bool = true) -> void:
 				_start_heal()
 		&"sanity":
 			_start_sanity()
+		&"interact":
+			if _interactable != null:
+				_interactable.interact(self)
 
 
 # --- FREE ------------------------------------------------------------------------------

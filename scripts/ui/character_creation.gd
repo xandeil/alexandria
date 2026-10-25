@@ -1,0 +1,168 @@
+class_name CharacterCreation
+extends Control
+## Criação de personagem, no estilo da tela de título: fundo preto, texto branco,
+## sem caixas. À esquerda o personagem andando (ampliado); à direita as escolhas.
+##
+## A tela NÃO mexe no save nem no Game: só devolve o dicionário escolhido no
+## sinal `confirmed`. Quem decide o que fazer com ele é a tela de título — assim
+## esta tela pode ser testada sozinha e reaproveitada (ex.: um "espelho" no jogo).
+
+signal confirmed(look: Dictionary)
+signal cancelled
+
+const PREVIEW_SCALE := 5.0
+
+var look := Appearance.default_data()
+var _preview: AnimatedSprite2D
+var _values := {}  # campo -> Label com o valor atual
+var _first_focus: Control
+var _walk_timer := 0.0
+
+
+func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	_build()
+	_refresh()
+	_first_focus.grab_focus()
+
+
+func _build() -> void:
+	var background := ColorRect.new()
+	background.color = Color(0, 0, 0)
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(background)
+
+	var title := UIStyle.label("QUEM DESPERTA?", 16, Color(0.9, 0.88, 0.84), UIStyle.TITLE_FONT)
+	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	title.offset_left = -200
+	title.offset_right = 200
+	title.offset_top = 18
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(title)
+
+	# Prévia: um "palco" com luz fraca embaixo e o personagem andando.
+	var stage := Control.new()
+	stage.set_anchors_preset(Control.PRESET_CENTER)
+	stage.offset_left = -170
+	stage.offset_right = -40
+	stage.offset_top = -80
+	stage.offset_bottom = 90
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage.draw.connect(func():
+		var c := stage.size * Vector2(0.5, 0.86)
+		for i in 6:  # elipses concêntricas = um brilho suave sem textura
+			var k := 1.0 - i / 6.0
+			stage.draw_set_transform(c, 0.0, Vector2(1.0, 0.28))
+			stage.draw_circle(Vector2.ZERO, 58.0 * k, Color(0.9, 0.85, 0.75, 0.025))
+		stage.draw_set_transform(Vector2.ZERO))
+	add_child(stage)
+	_preview = AnimatedSprite2D.new()
+	_preview.scale = Vector2.ONE * PREVIEW_SCALE
+	_preview.position = Vector2(65, 92)
+	_preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	stage.add_child(_preview)
+
+	var box := VBoxContainer.new()
+	box.set_anchors_preset(Control.PRESET_CENTER)
+	box.offset_left = -10
+	box.offset_right = 200
+	box.offset_top = -78
+	box.offset_bottom = 100
+	box.add_theme_constant_override("separation", 2)
+	add_child(box)
+	var titles := {"sexo": "Sexo", "corpo": "Corpo", "rosto": "Rosto", "cabelo": "Cabelo"}
+	for field in Appearance.FIELDS:
+		_add_row(box, field, titles[field])
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 8)
+	box.add_child(spacer)
+	var random := DSMenuButton.make("Aleatório", 11)
+	random.pressed.connect(randomize_look)
+	box.add_child(random)
+	var confirm := DSMenuButton.make("Despertar", 12)
+	confirm.pressed.connect(_confirm)
+	box.add_child(confirm)
+	var back := DSMenuButton.make("Voltar", 11)
+	back.pressed.connect(_cancel)
+	box.add_child(back)
+
+
+func _add_row(box: VBoxContainer, field: String, title: String) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	var name_label := UIStyle.label(title, 10, Color(0.8, 0.78, 0.74))
+	name_label.custom_minimum_size = Vector2(56, 0)
+	row.add_child(name_label)
+	var minus := DSMenuButton.make("‹", 14)
+	minus.custom_minimum_size = Vector2(24, 0)
+	minus.pressed.connect(func(): step(field, -1))
+	row.add_child(minus)
+	var value := UIStyle.label("", 10, UIStyle.GOLD, UIStyle.TITLE_FONT)
+	value.custom_minimum_size = Vector2(96, 0)
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(value)
+	var plus := DSMenuButton.make("›", 14)
+	plus.custom_minimum_size = Vector2(24, 0)
+	plus.pressed.connect(func(): step(field, 1))
+	row.add_child(plus)
+	box.add_child(row)
+	_values[field] = value
+	if _first_focus == null:
+		_first_focus = plus
+
+
+## Avança (+1) ou volta (-1) uma opção, dando a volta no fim da lista.
+func step(field: String, direction: int) -> void:
+	var count := Appearance.option_count(field, look["sexo"])
+	look[field] = posmod(int(look[field]) + direction, count)
+	look = Appearance.sanitized(look)
+	Sfx.play(&"ui_click")
+	_refresh()
+
+
+func randomize_look() -> void:
+	look["sexo"] = randi() % Appearance.SEXES.size()
+	for field in ["corpo", "rosto", "cabelo"]:
+		look[field] = randi() % Appearance.option_count(field, look["sexo"])
+	Sfx.play(&"ui_click")
+	_refresh()
+
+
+func _refresh() -> void:
+	for field in Appearance.FIELDS:
+		_values[field].text = Appearance.option_name(field, look)
+	_preview.sprite_frames = Appearance.sprite_frames(look)
+	_preview.play(&"walk")
+
+
+func _process(delta: float) -> void:
+	# A cada 3 s o personagem para um instante e vira de lado: dá para ver os
+	# dois perfis (o jogo espelha o sprite quando se anda para a esquerda).
+	_walk_timer += delta
+	if _walk_timer > 3.0:
+		_walk_timer = 0.0
+		_preview.flip_h = not _preview.flip_h
+
+
+func _confirm() -> void:
+	Sfx.play(&"ui_open")
+	confirmed.emit(look.duplicate())
+
+
+func _cancel() -> void:
+	Sfx.play(&"ui_click")
+	cancelled.emit()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_cancel()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_visible_in_tree():
+		_cancel()

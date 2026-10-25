@@ -25,6 +25,8 @@ import montanha as MT  # noqa: E402
 import gelo as GL  # noqa: E402
 import nucleo as NC  # noqa: E402
 import aliados as AL2  # noqa: E402
+import aparencia as AP  # noqa: E402
+import armas as AR  # noqa: E402
 import props as PR  # noqa: E402
 import tiles as TL  # noqa: E402
 from pixel import canvas, hstrip, paste, upscale, rect, mix  # noqa: E402
@@ -41,6 +43,7 @@ def main() -> None:
     print("Personagens")
     save(hstrip(C.player_frames()), "assets/sprites/player.png")
     save(C.player_sword(), "assets/sprites/player_sword.png")
+    save(AP.atlas(), "assets/sprites/player_aparencias.png")  # criacao de personagem
     save(hstrip(C.soldier_frames()), "assets/sprites/soldier.png")
     save(C.soldier_shield(), "assets/sprites/soldier_shield.png")
     save(C.soldier_baton(), "assets/sprites/soldier_baton.png")
@@ -256,6 +259,11 @@ def main() -> None:
     save(GL.scholar(frozen=True), "assets/sprites/estudioso_congelado.png")
     save(GL.scholar(), "assets/sprites/estudioso.png")
     save(IT.icon_lembranca((190, 230, 255), (60, 110, 170)), "assets/items/lembranca_cassian.png")
+    save(IT.icon_lembranca((246, 226, 160), (120, 96, 50)), "assets/items/lembranca_cavaleiro.png")
+    print("Armas de chefe")
+    for weapon_id in AR.WEAPONS:
+        save(AR.hand(weapon_id), f"assets/sprites/arma_{weapon_id}.png")
+        save(AR.icon(weapon_id), f"assets/items/{weapon_id}.png")
 
     print("O Nucleo")
     save(NC.core_atlas(), "assets/tiles/nucleo_tiles.png")
