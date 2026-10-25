@@ -36,6 +36,8 @@ signal items_changed
 ## Item GANHO — o HUD mostra "+ Sucata Temperada x2" no canto.
 signal item_added(id: String, count: int)
 signal weapon_upgraded(level: int)
+## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
+signal weapon_changed(id: String)
 
 const SAVE_PATH := "user://alexandria_save.json"
 ## Versão 2 = com o Prólogo. Versão 3 = com inventário.
@@ -80,8 +82,17 @@ const WEAPON_UPGRADES := [
 const WEAPON_LEVEL_CAP := 3
 const WEAPON_LEVEL_CAP_AFTER_DURGAN := 5
 
+## Armas de chefe: o Ferreiro forja com a Lembrança do Pecado (que NÃO é gasta).
+const START_WEAPON := "espada"
+const FORGEABLE_WEAPONS: Array[String] = ["lamina_desolada", "pilar_estilhacada", "arco_sono", "presas_voragem",
+	"replicador_bronze", "presa_caelis", "fuso_arconte", "ancora_gravidade"]
+## Os golpes do herói (armas sem golpes próprios usam estes) — para a ficha do inventário.
+const BASE_LIGHT := preload("res://data/attacks/player_light_1.tres")
+const BASE_HEAVY := preload("res://data/attacks/player_heavy.tres")
+
 ## O que cada chefe deixa ao ser vencido PELA PRIMEIRA VEZ (além das memórias).
 const BOSS_REWARDS := {
+	"cavaleiro": {"lembranca_cavaleiro": 1},
 	"governanta": {"lembranca_governanta": 1},
 	"sargento": {"apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
@@ -120,6 +131,8 @@ var inventory := {}
 var weapon_level := 0
 ## Escudo na mão esquerda (só vale se você TIVER o escudo).
 var shield_equipped := false
+## Arma na mão direita (id do catálogo; sempre uma arma que você tem).
+var equipped_weapon := START_WEAPON
 ## Itens do chão que já foram pegos ("cidade@13,3") — não voltam ao descansar.
 var collected_pickups: Array[String] = []
 ## Escolhas e acontecimentos que o mundo lembra ("vigia_evitado"...).
@@ -209,6 +222,7 @@ func reset_progress() -> void:
 	wake_from_capsule = false
 	inventory = {}
 	weapon_level = 0
+	equipped_weapon = START_WEAPON
 	shield_equipped = false
 	collected_pickups.clear()
 	flags = {}
@@ -522,6 +536,80 @@ func try_upgrade_weapon() -> bool:
 	return true
 
 
+# --- Armas de chefe: forjar e equipar ------------------------------------------------------
+
+func owns_weapon(id: String) -> bool:
+	return id == START_WEAPON or (Items.get_weapon(id) != null and has_item(id))
+
+
+## A espada inicial e as forjadas, na ordem da forja.
+func owned_weapons() -> Array[String]:
+	var result: Array[String] = [START_WEAPON]
+	for id in FORGEABLE_WEAPONS:
+		if has_item(id):
+			result.append(id)
+	return result
+
+
+func forgeable_weapons() -> Array[String]:
+	return FORGEABLE_WEAPONS
+
+
+func current_weapon() -> WeaponData:
+	var weapon := Items.get_weapon(equipped_weapon)
+	return weapon if weapon else Items.get_weapon(START_WEAPON)
+
+
+func equip_weapon(id: String) -> bool:
+	if not owns_weapon(id):
+		return false
+	equipped_weapon = id
+	weapon_changed.emit(id)
+	save_game()
+	return true
+
+
+## "" = pode forjar; senão o motivo (o menu do Ferreiro mostra a fala certa).
+func forge_block_reason(id: String) -> String:
+	var weapon := Items.get_weapon(id)
+	if weapon == null or not FORGEABLE_WEAPONS.has(id):
+		return "lembranca"
+	if has_item(id):
+		return "owned"
+	if not has_item(weapon.memory_item):
+		return "lembranca"
+	if memories < weapon.forge_memories:
+		return "memories"
+	if not has_item("sucata_temperada", weapon.forge_sucata):
+		return "sucata"
+	return ""
+
+
+func try_forge_weapon(id: String) -> bool:
+	if forge_block_reason(id) != "":
+		return false
+	var weapon := Items.get_weapon(id)
+	spend_memories(weapon.forge_memories)
+	if weapon.forge_sucata > 0:
+		remove_item("sucata_temperada", weapon.forge_sucata)
+	add_item(id, 1, true)  # a Lembrança fica: ela é a chave do Núcleo
+	save_game()
+	return true
+
+
+## Dano de um golpe desta arma com os atributos e o reforço atuais.
+## O herói usa ESTA função ao bater — a ficha e o golpe nunca discordam.
+func weapon_hit_damage(weapon: WeaponData, attack: AttackData) -> float:
+	return attack.damage * weapon.damage_scale * weapon.scaling_multiplier(attributes) * weapon_damage_multiplier()
+
+
+## Ataque (leve, forte) para a ficha do inventário.
+func weapon_power(weapon: WeaponData) -> Vector2i:
+	var light: AttackData = weapon.light_combo[0] if not weapon.light_combo.is_empty() else BASE_LIGHT
+	var heavy: AttackData = weapon.heavy_attack if weapon.heavy_attack else BASE_HEAVY
+	return Vector2i(roundi(weapon_hit_damage(weapon, light)), roundi(weapon_hit_damage(weapon, heavy)))
+
+
 # --- Orbe Branco: fragmentos → frascos -------------------------------------------------------
 
 func can_purify_fragment() -> bool:
@@ -642,6 +730,7 @@ func _to_dict() -> Dictionary:
 		"inventory": inventory.duplicate(),
 		"weapon_level": weapon_level,
 		"shield_equipped": shield_equipped,
+		"equipped_weapon": equipped_weapon,
 		"collected_pickups": collected_pickups.duplicate(),
 		"flags": flags.duplicate(),
 		"appearance": appearance.duplicate(),
@@ -683,6 +772,17 @@ func _from_dict(data: Dictionary) -> void:
 				inventory[item.id] = clampi(int(saved_items[item_id]), 0, item.max_stack)
 	weapon_level = clampi(int(data.get("weapon_level", 0)), 0, WEAPON_UPGRADES.size())
 	shield_equipped = bool(data.get("shield_equipped", false)) and has_shield()
+	# Itens-chave de chefes já vencidos que faltem no save (ex.: a Lembrança do
+	# Cavaleiro, que só existe desde a v0.20) são devolvidos. Como são únicos,
+	# repetir isto não duplica nada.
+	for boss in defeated_bosses:
+		var rewards: Dictionary = BOSS_REWARDS.get(boss, {})
+		for item_id: String in rewards:
+			var item := Items.get_item(item_id)
+			if item and item.kind == ItemData.Kind.LEMBRANCA and not inventory.has(item_id):
+				inventory[item_id] = 1
+	var saved_weapon := str(data.get("equipped_weapon", START_WEAPON))
+	equipped_weapon = saved_weapon if owns_weapon(saved_weapon) else START_WEAPON
 	var saved_pickups: Variant = data.get("collected_pickups", [])
 	if typeof(saved_pickups) == TYPE_ARRAY:
 		for key in saved_pickups:

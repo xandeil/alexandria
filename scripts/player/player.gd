@@ -189,6 +189,13 @@ var health_flasks_max := 3
 
 var _runner := AttackRunner.new()
 var _current_attack: AttackData
+## Arma na mão direita e a habilidade dela (padrão Strategy, ver WeaponSkill).
+var weapon: WeaponData
+var _skill: WeaponSkill = WeaponSkill.new()
+## Os golpes "de fábrica" do herói (vêm do player.tscn): armas sem golpes
+## próprios usam estes.
+var _base_light: Array[AttackData] = []
+var _base_heavy: AttackData
 var _combo_index := 0
 var _combo_grace := 0.0
 var _state_time := 0.0
@@ -253,11 +260,31 @@ func _ready() -> void:
 	stats.died.connect(_on_died)
 	body_sprite.material = body_sprite.material.duplicate()
 	apply_appearance(Game.appearance)
+	_base_light = light_combo.duplicate()
+	_base_heavy = heavy_attack
+	equip_weapon(Game.current_weapon())
+	Game.weapon_changed.connect(func(_id: String): equip_weapon(Game.current_weapon()))
 	_last_safe_position = global_position
 	var ring := NoiseRing.new()
 	ring.player = self
 	add_child(ring)
 	apply_progress(true)
+
+
+## Põe a arma na mão: golpes, desenho e habilidade. Chamado ao nascer e
+## sempre que o inventário troca a arma (Game.weapon_changed).
+func equip_weapon(data: WeaponData) -> void:
+	if data == null:
+		return
+	weapon = data
+	light_combo = data.light_combo if not data.light_combo.is_empty() else _base_light
+	heavy_attack = data.heavy_attack if data.heavy_attack else _base_heavy
+	_skill = WeaponSkills.create(data)
+	_combo_index = 0
+	if data.hand_texture:
+		sword.texture = data.hand_texture
+		# O pivô fica no cabo: o desenho começa logo depois da mão.
+		sword.offset = Vector2(data.hand_texture.get_width() * 0.5 - 2.0, 0.0)
 
 
 ## Troca o visual (criação de personagem). Mantém a animação que estava tocando.
@@ -809,7 +836,8 @@ func _start_light_attack() -> bool:
 func _start_attack(attack: AttackData, combo_index: int) -> bool:
 	if attack == null:
 		return false
-	if not stats.try_spend_stamina(attack.stamina_cost):
+	var cost := attack.stamina_cost * (weapon.stamina_scale if weapon else 1.0) + _skill.extra_stamina(attack)
+	if not stats.try_spend_stamina(cost):
 		_deny_stamina()  # exausto ou sem estamina: o comando simplesmente não sai
 		return false
 	_current_attack = attack
@@ -823,7 +851,7 @@ func _start_attack(attack: AttackData, combo_index: int) -> bool:
 	hitbox_shape.position = Vector2(attack.reach, 0.0)
 	_setup_swing(attack, direction, combo_index)
 	_set_state(State.ATTACK)
-	_runner.start(attack, direction)
+	_runner.start(attack, direction, weapon.speed_scale if weapon else 1.0)
 	action_used.emit(&"forte" if attack.is_heavy else &"leve")
 	return true
 
@@ -848,7 +876,8 @@ func _on_attack_phase_changed(phase: AttackRunner.Phase) -> void:
 			if not hitbox.active:
 				_activate_hitbox()
 			var angle := hitbox_pivot.rotation
-			Fx.spawn_slash(global_position + Vector2(0, -7) + Vector2.from_angle(angle) * 4.0, angle, _current_attack, _swing_reverse)
+			if not _skill.fires_projectile(_current_attack):  # tiro não tem rastro de corte
+				Fx.spawn_slash(global_position + Vector2(0, -7) + Vector2.from_angle(angle) * 4.0, angle, _current_attack, _swing_reverse)
 			visual.scale = Vector2(1.12, 0.9)  # pequeno "esmagamento" no impacto
 		AttackRunner.Phase.RECOVERY:
 			hitbox.deactivate()
@@ -859,14 +888,20 @@ func _on_attack_phase_changed(phase: AttackRunner.Phase) -> void:
 
 
 func _activate_hitbox() -> void:
-	var multiplier := stats.damage_multiplier(_current_attack.scaling_attribute, _current_attack.scaling_per_point)
-	multiplier *= Game.weapon_damage_multiplier()  # melhoria do Ferreiro
-	hitbox.activate_with(_current_attack, _current_attack.damage * multiplier)
+	# Dano = golpe × arma × letras de escala × reforço do Ferreiro (Game.weapon_hit_damage:
+	# a MESMA conta que a ficha do inventário mostra).
+	var damage := Game.weapon_hit_damage(weapon, _current_attack) if weapon else _current_attack.damage
+	if _skill.fires_projectile(_current_attack):
+		_skill.fire(self, _current_attack, damage, Vector2.from_angle(hitbox_pivot.rotation))
+		return
+	hitbox.activate_with(_current_attack, damage)
+	_skill.on_active(self, _current_attack, damage)
 
 
-func _on_hit_landed(_target: Hurtbox, _info: HitInfo) -> void:
+func _on_hit_landed(target: Hurtbox, info: HitInfo) -> void:
 	if _current_attack == null:
 		return
+	_skill.on_hit(self, target, info, _current_attack)
 	make_noise(noise_hit)
 	Fx.hitstop(_current_attack.hitstop)
 	Fx.shake(_current_attack.shake, 0.12)

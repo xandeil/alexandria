@@ -26,6 +26,16 @@ const CATALOG := {
 	"lembranca_rachel": preload("res://data/items/lembranca_rachel.tres"),
 	"lembranca_cassian": preload("res://data/items/lembranca_cassian.tres"),
 	"anel_do_guarda": preload("res://data/items/anel_do_guarda.tres"),
+	"lembranca_cavaleiro": preload("res://data/items/lembranca_cavaleiro.tres"),
+	# Armas de chefe (WeaponData — também são itens).
+	"lamina_desolada": preload("res://data/items/lamina_desolada.tres"),
+	"pilar_estilhacada": preload("res://data/items/pilar_estilhacada.tres"),
+	"arco_sono": preload("res://data/items/arco_sono.tres"),
+	"presas_voragem": preload("res://data/items/presas_voragem.tres"),
+	"replicador_bronze": preload("res://data/items/replicador_bronze.tres"),
+	"presa_caelis": preload("res://data/items/presa_caelis.tres"),
+	"fuso_arconte": preload("res://data/items/fuso_arconte.tres"),
+	"ancora_gravidade": preload("res://data/items/ancora_gravidade.tres"),
 }
 
 
@@ -35,6 +45,10 @@ static func exists(id: String) -> bool:
 
 static func get_item(id: String) -> ItemData:
 	return CATALOG.get(id) as ItemData
+
+
+static func get_weapon(id: String) -> WeaponData:
+	return CATALOG.get(id) as WeaponData
 
 
 static func display_name(id: String) -> String:

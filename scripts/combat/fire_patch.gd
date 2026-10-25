@@ -58,9 +58,23 @@ func _physics_process(delta: float) -> void:
 	if _tick > 0.0:
 		return
 	_tick = TICK
+	# Fogo do HERÓI (Presa de Caelis) queima os inimigos; o resto queima o herói.
+	if is_instance_valid(source) and source is Player:
+		_burn_enemies()
+		return
 	var player := get_tree().get_first_node_in_group("player") as Player
 	if player and covers(player.global_position):
 		player.apply_burn(dps * TICK)
+
+
+func _burn_enemies() -> void:
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy == null or enemy.dead or not covers(enemy.global_position):
+			continue
+		# Fogo no chão não é "golpe": escudo não segura e ninguém cambaleia.
+		enemy.stats.take_damage(dps * TICK)
+		Fx.flash(enemy.body_sprite, 0.08, Color(1.0, 0.6, 0.3))
 
 
 func _draw() -> void:

@@ -145,6 +145,17 @@ func drain_stamina(amount: float) -> void:
 		_consume_stamina(amount)
 
 
+## Devolve estamina na hora (armas de chefe: Lâmina Desolada, Fuso do Arconte).
+## Pode tirar da Exaustão, como a regeneração normal.
+func restore_stamina(amount: float) -> void:
+	if is_dead or amount <= 0.0:
+		return
+	stamina = minf(stamina + amount, max_stamina)
+	stamina_changed.emit(stamina, max_stamina)
+	if is_exhausted and stamina >= max_stamina * exhaustion_recovery_ratio:
+		_set_exhausted(false)
+
+
 ## Segura a recuperação de estamina por um tempo (Cassian "rouba estamina
 ## temporariamente": esvazia a barra e ela demora a voltar).
 func suppress_regen(seconds: float) -> void:

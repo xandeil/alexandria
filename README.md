@@ -131,6 +131,21 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
 - **Controle no padrão soulslike:** R1 ataque · R2 golpe forte · ○ esquiva · □ frasco de vida · △ **Humanidade** (Frasco de Sanidade) · ✕ interagir/falar · L1/L2 escudo · Start pausa · Share/Select inventário. No teclado, F também interage.
 - **Modo controle** (Opções): os botões de toque somem e, no lugar, aparece uma legenda discreta com os botões do PlayStation e o que cada um faz agora (o ✕ mostra "Falar"/"Examinar" perto de alguém; os frascos mostram quantos restam). As dicas e o "PRESO!" passam a falar dos botões do controle.
 - **Criação de personagem** (depois de "Novo jogo", antes do despertar): Homem ou Mulher, 3 corpos (Magro, Forte, Gordo), 3 rostos e 5 cabelos para cada sexo — 90 combinações, com prévia andando e o botão "Aleatório". A escolha fica no save; saves antigos ficam com o visual de antes. O cabelo e os olhos de todas usam as cores-chave do shader, então continuam embranquecendo a cada morte.
+- **Armas de chefe** (o Ferreiro forja na aba "Forjar com Lembrança"; a Lembrança **não é gasta**, porque ela abre o Núcleo):
+
+  | Arma | Chefe | Classe | Escala | Habilidade |
+  |---|---|---|---|---|
+  | Lâmina Desolada | Helena | Espada | DES A | o golpe forte é uma estocada longa; se acertar um inimigo, devolve estamina |
+  | Pilar da Estilhaçada | Aldir | Martelo | FOR S | onda de choque: postura de todos em volta zerada (escudo não segura) e coberturas quebradas |
+  | Presa de Caelis | Rachel | Espada Grande | FOR B · MAG C | rastro de fogo por 3 s; custa estamina extra (no lugar de mana) |
+  | Fuso do Arconte | Cassian | Lança | MAG A · DES C | rouba estamina e atrasa o próximo golpe do inimigo |
+  | Replicador de Bronze | Durgan | Besta | FÉ B · DES B | virote elétrico que salta para o inimigo mais perto |
+  | Presas da Vorágine | Mabel | Adagas | SOR A · DES B | sangramento (a barra enche e estoura) + cura fixa de 2 + Sorte × 0,2 |
+  | Arco do Sono Eterno | Nyssa | Arco | FÉ S | flecha de pólen: metade da velocidade de movimento e de ataque |
+  | Âncora da Gravidade | Cavaleiro | Machado | FOR A · FÉ A | vórtice que puxa os inimigos e explode; chefes e gigantes não saem do lugar |
+
+  A Âncora é pós-final: vencer o Cavaleiro deixa a "Lembrança: O Posto Vazio" (saves antigos de quem já venceu também recebem). O reforço do Ferreiro (+1…+5) vale para todas as armas.
+- **Inventário soulslike** (uma mistura nossa de DS1/2/3 com Lies of P): abas com L1/R1 (Q/E no teclado), grade de espaços com quantidade no canto e "E" de equipado, coluna EQUIPADO à esquerda, ficha à direita com Ataque leve/forte, tabela de letras FOR DES MAG FÉ SOR e a habilidade. A legenda do rodapé desenha os símbolos do PlayStation no modo controle.
 - **Correção:** derrotar um mini-chefe que tranca uma porta (a Mãe dos Esporos, o Banqueteiro, o Guardião) agora **abre a porta na hora**; antes era preciso sair e voltar.
 - **Morte:** "VOCÊ ESQUECEU" — perde metade das memórias, a visão escurece pelas bordas e cabelo/olhos clareiam a cada morte.
 
@@ -448,7 +463,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-119 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+125 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3

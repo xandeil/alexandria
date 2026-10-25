@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Corte de Caelis"
+stamina_cost = 36.0
+damage = 50.0
+poise_damage = 55.0
+knockback = 170.0
+is_heavy = true
+windup_time = 0.38
+lunge_speed = 200.0
+lunge_time = 0.09
+active_time = 0.1
+recovery_time = 0.48
+combo_window = 0.1
+active_during_lunge = false
+track_until = 0.6
+reach = 16.0
+radius = 15.0
+hitstop = 0.1
+shake = 4.0
+slash_arc_degrees = 170.0
+slash_radius = 19.0
+slash_color = Color(1.0, 0.55, 0.2, 0.95)
+sound = &"fire_breath"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

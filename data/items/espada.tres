@@ -1,14 +1,18 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/items/espada.png" id="2_icon"]
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/espada.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player_sword.png" id="3"]
 
 [resource]
-script = ExtResource("1_script")
+script = ExtResource("1")
 id = "espada"
 display_name = "Espada de Cobaia"
 description = "Estava ao lado da sua cápsula. Ninguém deixa uma arma ao lado de quem dorme — a não ser que espere que ele acorde lutando.
 O Ferreiro do Teatro sabe deixá-la mais afiada."
 kind = 0
-icon = ExtResource("2_icon")
+icon = ExtResource("2")
 max_stack = 1
+weapon_class = "Espada"
+scaling = {"forca": "C", "destreza": "C"}
+hand_texture = ExtResource("3")

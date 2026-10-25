@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/lamina_desolada.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_lamina_desolada.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_estocada_desolada.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "lamina_desolada"
+display_name = "Lâmina Desolada"
+description = "O sabre de quem não saiu do posto. Leve demais para ser de guerra; afiado demais para ser de enfeite.
+Nas mãos certas, nunca para."
+kind = 0
+icon = ExtResource("2")
+max_stack = 1
+weapon_class = "Espada"
+scaling = {"destreza": "A"}
+heavy_attack = ExtResource("4")
+damage_scale = 1.05
+speed_scale = 0.85
+stamina_scale = 0.9
+skill = "estocada_desolada"
+skill_name = "Estocada Desolada"
+skill_text = "o golpe forte é uma estocada que atravessa a distância. Se acertar um inimigo, devolve fôlego."
+boss_id = "helena"
+memory_item = "lembranca_helena"
+hand_texture = ExtResource("3")
+forge_memories = 1500
+forge_sucata = 3

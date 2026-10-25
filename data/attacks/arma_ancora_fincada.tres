@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Âncora Fincada"
+stamina_cost = 42.0
+damage = 52.0
+poise_damage = 70.0
+knockback = 120.0
+is_heavy = true
+windup_time = 0.55
+lunge_speed = 100.0
+lunge_time = 0.08
+active_time = 0.1
+recovery_time = 0.6
+combo_window = 0.08
+active_during_lunge = false
+track_until = 0.6
+reach = 16.0
+radius = 15.0
+hitstop = 0.12
+shake = 5.0
+slash_arc_degrees = 60.0
+slash_radius = 17.0
+slash_color = Color(0.95, 0.85, 0.5, 0.9)
+sound = &"gravity"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0

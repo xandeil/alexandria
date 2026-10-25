@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/ancora_gravidade.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_ancora_gravidade.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_ancora_fincada.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "ancora_gravidade"
+display_name = "Âncora da Gravidade"
+description = "O machado que segurava a ilha no lugar. Pesa como uma promessa.
+Quem o ergue entende por que ele nunca saiu do posto."
+kind = 0
+icon = ExtResource("2")
+max_stack = 1
+weapon_class = "Machado"
+scaling = {"forca": "A", "fe": "A"}
+heavy_attack = ExtResource("4")
+damage_scale = 1.25
+speed_scale = 1.25
+stamina_scale = 1.2
+skill = "vortice_ancora"
+skill_name = "Vórtice da Âncora"
+skill_text = "o golpe forte finca o machado: o chão puxa os inimigos para perto e explode. Chefes e gigantes não saem do lugar."
+boss_id = "cavaleiro"
+memory_item = "lembranca_cavaleiro"
+hand_texture = ExtResource("3")
+forge_memories = 0
+forge_sucata = 0

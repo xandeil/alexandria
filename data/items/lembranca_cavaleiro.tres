@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/lembranca_cavaleiro.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lembranca_cavaleiro"
+display_name = "Lembrança: O Posto Vazio"
+description = "Ele protegeu o Núcleo até esquecer de quem. A armadura continuou de pé depois que ele foi embora.
+Não é um pecado. É o que sobra quando todos os outros terminam."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

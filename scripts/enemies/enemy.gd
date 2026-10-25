@@ -98,6 +98,11 @@ func start_attack(attack: AttackData, direction: Vector2, speed_multiplier: floa
 	hitbox_pivot.rotation = facing.angle()
 	(hitbox_shape.shape as CircleShape2D).radius = attack.radius
 	hitbox_shape.position = Vector2(attack.reach, 0.0)
+	# Pólen (lento) e o Fuso do Arconte (exausto) atrasam o golpe. O status só
+	# existe se alguma arma já pendurou um (EnemyStatus.of), senão não custa nada.
+	var status := EnemyStatus.find(self)
+	if status:
+		speed_multiplier *= status.consume_attack_scale()
 	_runner.start(attack, facing, speed_multiplier)
 
 

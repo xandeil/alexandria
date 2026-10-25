@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/pilar_estilhacada.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_pilar_estilhacada.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_pilar_impacto.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "pilar_estilhacada"
+display_name = "Pilar da Estilhaçada"
+description = "Um pedaço da Cidade que ele mesmo derrubou, preso num cabo.
+A raiva dele não queria vencer. Queria que nada ficasse de pé."
+kind = 0
+icon = ExtResource("2")
+max_stack = 1
+weapon_class = "Martelo"
+scaling = {"forca": "S"}
+heavy_attack = ExtResource("4")
+damage_scale = 1.3
+speed_scale = 1.3
+stamina_scale = 1.25
+skill = "onda_estilhacada"
+skill_name = "Onda Estilhaçada"
+skill_text = "o golpe forte racha o chão: a onda derruba a guarda de todos em volta e quebra coberturas."
+boss_id = "aldir"
+memory_item = "lembranca_aldir"
+hand_texture = ExtResource("3")
+forge_memories = 1500
+forge_sucata = 3

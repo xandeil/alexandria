@@ -379,6 +379,39 @@ ATTACKS = {
                               windup_time=0.85, lunge_speed=220.0, lunge_time=0.16, active_time=0.12, recovery_time=1.0,
                               track_until=0.5, reach=30.0, radius=26.0, slash_arc_degrees=200.0, slash_radius=40.0,
                               slash_color=(1.0, 0.92, 0.6, 0.95), hitstop=0.12, shake=6.0, sound="&swing_heavy"),
+    # --- Armas de chefe (v0.20): golpes proprios ---------------------------------------
+    "arma_estocada_desolada": dict(display_name="Estocada Desolada", stamina_cost=24.0, damage=34.0, poise_damage=30.0,
+        knockback=130.0, is_heavy=True, windup_time=0.14, lunge_speed=340.0, lunge_time=0.14, active_time=0.06,
+        recovery_time=0.3, active_during_lunge=True, reach=14.0, radius=11.0, hitstop=0.07, shake=2.5,
+        slash_arc_degrees=0.0, slash_radius=14.0, slash_color=(1.0, 0.75, 0.78, 0.9), sound="&swing_heavy"),
+    "arma_pilar_impacto": dict(display_name="Impacto do Pilar", stamina_cost=40.0, damage=58.0, poise_damage=80.0,
+        knockback=200.0, is_heavy=True, windup_time=0.5, lunge_speed=120.0, lunge_time=0.08, active_time=0.1,
+        recovery_time=0.55, combo_window=0.08, reach=16.0, radius=16.0, hitstop=0.14, shake=6.0,
+        slash_arc_degrees=90.0, slash_radius=18.0, slash_color=(1.0, 0.72, 0.4, 0.9), sound="&swing_heavy"),
+    "arma_presa_corte": dict(display_name="Corte de Caelis", stamina_cost=36.0, damage=50.0, poise_damage=55.0,
+        knockback=170.0, is_heavy=True, windup_time=0.38, lunge_speed=200.0, lunge_time=0.09, active_time=0.1,
+        recovery_time=0.48, combo_window=0.1, reach=16.0, radius=15.0, hitstop=0.1, shake=4.0,
+        slash_arc_degrees=170.0, slash_radius=19.0, slash_color=(1.0, 0.55, 0.2, 0.95), sound="&fire_breath"),
+    "arma_fuso_estocada": dict(display_name="Estocada do Fuso", stamina_cost=30.0, damage=40.0, poise_damage=40.0,
+        knockback=150.0, is_heavy=True, windup_time=0.26, lunge_speed=260.0, lunge_time=0.1, active_time=0.09,
+        recovery_time=0.38, combo_window=0.1, reach=21.0, radius=10.0, hitstop=0.08, shake=3.0,
+        slash_arc_degrees=0.0, slash_radius=16.0, slash_color=(0.75, 0.9, 1.0, 0.9), sound="&swing_heavy"),
+    "arma_virote": dict(display_name="Virote", stamina_cost=14.0, damage=18.0, poise_damage=12.0, knockback=70.0,
+        windup_time=0.12, lunge_speed=0.0, lunge_time=0.02, active_time=0.05, recovery_time=0.3, combo_window=0.12,
+        reach=0.0, radius=1.0, slash_arc_degrees=0.0, sound="&shot"),
+    "arma_virote_carregado": dict(display_name="Virote Carregado", stamina_cost=28.0, damage=34.0, poise_damage=25.0,
+        knockback=90.0, is_heavy=True, windup_time=0.4, lunge_speed=0.0, lunge_time=0.02, active_time=0.05,
+        recovery_time=0.45, combo_window=0.1, reach=0.0, radius=1.0, slash_arc_degrees=0.0, sound="&zap"),
+    "arma_flecha": dict(display_name="Flecha", stamina_cost=12.0, damage=15.0, poise_damage=8.0, knockback=50.0,
+        windup_time=0.18, lunge_speed=0.0, lunge_time=0.02, active_time=0.05, recovery_time=0.25, combo_window=0.12,
+        reach=0.0, radius=1.0, slash_arc_degrees=0.0, sound="&swing_small"),
+    "arma_flecha_polen": dict(display_name="Flecha de Pólen", stamina_cost=30.0, damage=20.0, poise_damage=10.0,
+        knockback=40.0, is_heavy=True, windup_time=0.45, lunge_speed=0.0, lunge_time=0.02, active_time=0.05,
+        recovery_time=0.4, combo_window=0.1, reach=0.0, radius=1.0, slash_arc_degrees=0.0, sound="&swing_small"),
+    "arma_ancora_fincada": dict(display_name="Âncora Fincada", stamina_cost=42.0, damage=52.0, poise_damage=70.0,
+        knockback=120.0, is_heavy=True, windup_time=0.55, lunge_speed=100.0, lunge_time=0.08, active_time=0.1,
+        recovery_time=0.6, combo_window=0.08, reach=16.0, radius=15.0, hitstop=0.12, shake=5.0,
+        slash_arc_degrees=60.0, slash_radius=17.0, slash_color=(0.95, 0.85, 0.5, 0.9), sound="&gravity"),
 }
 
 # --- Os Sete Pecados (da Bíblia) ------------------------------------------------------------
@@ -610,9 +643,115 @@ ITEMS = {
         description="Ele guardava tudo para que nada se perdesse: livros, vozes, rostos. Um dia percebeu que só ele podia abrir as vitrines — e gostou.\nGanância é querer tudo, até o tempo."),
     "anel_do_guarda": dict(display_name="Anel do Guarda", kind=3, max_stack=1, icon="res://assets/items/anel_do_guarda.png",
         description="Ele usou até o fim sem saber de quem era a outra metade. Por dentro, gravado quase apagado: “no posto”.\nAlguém, em algum lugar deste teatro, tem a outra."),
+    "lembranca_cavaleiro": dict(display_name="Lembrança: O Posto Vazio", kind=3, max_stack=1, icon="res://assets/items/lembranca_cavaleiro.png",
+        description="Ele protegeu o Núcleo até esquecer de quem. A armadura continuou de pé depois que ele foi embora.\nNão é um pecado. É o que sobra quando todos os outros terminam."),
     "lembranca_helena": dict(display_name="Lembrança: Luxúria · Apego", kind=3, max_stack=1, icon="res://assets/items/lembranca_helena.png",
         description="Ela e o marido eram os melhores agentes. Na invasão, um deles saiu do posto.\nLuxúria aqui é apego: não aceitar a perda."),
 }
+
+
+# --- Armas (v0.20) ------------------------------------------------------------------
+# Cada arma e um WeaponData (que herda de ItemData: e item E arma).
+# light/heavy vazios = usa os golpes do heroi (player_light_1..3 / player_heavy).
+WEAPONS = {
+    "espada": dict(display_name="Espada de Cobaia", weapon_class="Espada", scaling={"forca": "C", "destreza": "C"},
+        icon="espada", hand="player_sword",
+        description=ITEMS["espada"]["description"]),
+    "lamina_desolada": dict(display_name="Lâmina Desolada", weapon_class="Espada", scaling={"destreza": "A"},
+        damage_scale=1.05, speed_scale=0.85, stamina_scale=0.9, heavy="arma_estocada_desolada",
+        skill="estocada_desolada", skill_name="Estocada Desolada",
+        skill_text="o golpe forte é uma estocada que atravessa a distância. Se acertar um inimigo, devolve fôlego.",
+        boss="helena", memory="lembranca_helena", memories=1500, sucata=3,
+        description="O sabre de quem não saiu do posto. Leve demais para ser de guerra; afiado demais para ser de enfeite.\nNas mãos certas, nunca para."),
+    "pilar_estilhacada": dict(display_name="Pilar da Estilhaçada", weapon_class="Martelo", scaling={"forca": "S"},
+        damage_scale=1.3, speed_scale=1.3, stamina_scale=1.25, heavy="arma_pilar_impacto",
+        skill="onda_estilhacada", skill_name="Onda Estilhaçada",
+        skill_text="o golpe forte racha o chão: a onda derruba a guarda de todos em volta e quebra coberturas.",
+        boss="aldir", memory="lembranca_aldir", memories=1500, sucata=3,
+        description="Um pedaço da Cidade que ele mesmo derrubou, preso num cabo.\nA raiva dele não queria vencer. Queria que nada ficasse de pé."),
+    "presa_caelis": dict(display_name="Presa de Caelis", weapon_class="Espada Grande", scaling={"forca": "B", "magia": "C"},
+        damage_scale=1.2, speed_scale=1.2, stamina_scale=1.15, heavy="arma_presa_corte",
+        skill="rastro_caelis", skill_name="Rastro de Caelis",
+        skill_text="o golpe forte deixa fogo no chão por 3 s. Custa estamina extra (é a magia que o jogo cobra).",
+        boss="rachel", memory="lembranca_rachel", memories=5000, sucata=6,
+        description="Uma escama do peito dela, afiada até virar lâmina. Ainda está quente.\nO orgulho não se apaga; só espera alguém pisar perto."),
+    "fuso_arconte": dict(display_name="Fuso do Arconte", weapon_class="Lança", scaling={"magia": "A", "destreza": "C"},
+        damage_scale=1.0, speed_scale=1.0, stamina_scale=1.0, heavy="arma_fuso_estocada",
+        skill="dreno_arconte", skill_name="Dreno do Arconte",
+        skill_text="cada golpe rouba fôlego do inimigo para você e atrasa o próximo ataque dele.",
+        boss="cassian", memory="lembranca_cassian", memories=6000, sucata=6,
+        description="A haste com que ele girava as vitrines. Tudo que ela toca vira coleção.\nGanância é tirar do outro até o tempo de reagir."),
+    "replicador_bronze": dict(display_name="Replicador de Bronze", weapon_class="Besta", scaling={"fe": "B", "destreza": "B"},
+        damage_scale=1.0, speed_scale=1.0, stamina_scale=1.0, light=["arma_virote"], heavy="arma_virote_carregado",
+        ranged=True, skill="virote_replicante", skill_name="Virote Replicante",
+        skill_text="o virote elétrico salta para o inimigo mais perto (o carregado salta duas vezes).",
+        boss="durgan", memory="lembranca_durgan", memories=4000, sucata=5,
+        description="Ele não inventou esta besta. Copiou a do irmão, peça por peça, e ela saiu melhor.\nInveja também é uma forma de aprender."),
+    "presas_voragem": dict(display_name="Presas da Vorágine", weapon_class="Adagas", scaling={"sorte": "A", "destreza": "B"},
+        damage_scale=0.72, speed_scale=0.7, stamina_scale=0.75,
+        skill="fome_voragem", skill_name="Fome da Vorágine",
+        skill_text="os golpes fazem sangrar (a barra enche e estoura) e cada acerto devolve um pouco de vida: 2 + Sorte × 0,2.",
+        boss="mabel", memory="lembranca_mabel", memories=3000, sucata=4,
+        description="Dois talheres da cozinha dela, gastos de tanto raspar o fundo da panela.\nA fome não acaba quando o prato enche."),
+    "arco_sono": dict(display_name="Arco do Sono Eterno", weapon_class="Arco", scaling={"fe": "S"},
+        damage_scale=1.0, speed_scale=1.0, stamina_scale=1.0, light=["arma_flecha"], heavy="arma_flecha_polen",
+        ranged=True, skill="polen_sono", skill_name="Pólen do Sono",
+        skill_text="a flecha forte abre uma nuvem de pólen: quem está dentro anda e ataca na metade da velocidade.",
+        boss="nyssa", memory="lembranca_nyssa", memories=2500, sucata=4,
+        description="Um galho da estufa que nunca acordou. As flores ainda abrem quando alguém boceja.\nPreguiça é fazer o mundo ir mais devagar para não ter que alcançá-lo."),
+    "ancora_gravidade": dict(display_name="Âncora da Gravidade", weapon_class="Machado", scaling={"forca": "A", "fe": "A"},
+        damage_scale=1.25, speed_scale=1.25, stamina_scale=1.2, heavy="arma_ancora_fincada",
+        skill="vortice_ancora", skill_name="Vórtice da Âncora",
+        skill_text="o golpe forte finca o machado: o chão puxa os inimigos para perto e explode. Chefes e gigantes não saem do lugar.",
+        boss="cavaleiro", memory="lembranca_cavaleiro", memories=0, sucata=0,
+        description="O machado que segurava a ilha no lugar. Pesa como uma promessa.\nQuem o ergue entende por que ele nunca saiu do posto."),
+}
+
+
+def weapon_resource(weapon_id: str, w: dict) -> str:
+    """WeaponData (.tres) com as referencias de icone, sprite e golpes."""
+    ext = [
+        ("Script", "res://scripts/items/weapon_data.gd"),
+        ("Texture2D", f"res://assets/items/{w.get('icon', weapon_id)}.png"),
+        ("Texture2D", f"res://assets/sprites/{w.get('hand', 'arma_' + weapon_id)}.png"),
+    ]
+    light = w.get("light", [])
+    if light:  # Array tipado (Array[AttackData]) precisa do script do AttackData
+        ext.append(("Script", "res://scripts/combat/attack_data.gd"))
+    for name in light:
+        ext.append(("Resource", f"res://data/attacks/{name}.tres"))
+    if w.get("heavy"):
+        ext.append(("Resource", f"res://data/attacks/{w['heavy']}.tres"))
+    lines = [f'[gd_resource type="Resource" script_class="WeaponData" load_steps={len(ext) + 1} format=3]', ""]
+    for i, (kind, path) in enumerate(ext, start=1):
+        lines.append(f'[ext_resource type="{kind}" path="{path}" id="{i}"]')
+    lines += ["", "[resource]", 'script = ExtResource("1")',
+              f"id = {gd_value(weapon_id)}",
+              f"display_name = {gd_value(w['display_name'])}",
+              f"description = {gd_value(w['description'])}",
+              "kind = 0", 'icon = ExtResource("2")', "max_stack = 1",
+              f"weapon_class = {gd_value(w['weapon_class'])}",
+              "scaling = {%s}" % ", ".join(f"{gd_value(k)}: {gd_value(v)}" for k, v in w["scaling"].items())]
+    first_attack = 5 if light else 4
+    if light:
+        refs = ", ".join(f'ExtResource("{first_attack + i}")' for i in range(len(light)))
+        lines.append('light_combo = Array[ExtResource("4")]([%s])' % refs)
+    if w.get("heavy"):
+        lines.append(f'heavy_attack = ExtResource("{first_attack + len(light)}")')
+    for key in ("damage_scale", "speed_scale", "stamina_scale"):
+        if key in w:
+            lines.append(f"{key} = {gd_value(float(w[key]))}")
+    for key, prop in (("skill", "skill"), ("skill_name", "skill_name"), ("skill_text", "skill_text"),
+                      ("boss", "boss_id"), ("memory", "memory_item")):
+        if key in w:
+            lines.append(f"{prop} = {gd_value(w[key])}")
+    if w.get("ranged"):
+        lines.append("ranged = true")
+    lines.append('hand_texture = ExtResource("3")')
+    if "memories" in w:
+        lines.append(f"forge_memories = {w['memories']}")
+        lines.append(f"forge_sucata = {w['sucata']}")
+    return "\n".join(lines) + "\n"
 
 
 def item_resource(item_id: str, props: dict) -> str:
@@ -647,7 +786,12 @@ def main() -> None:
         write(f"data/bosses/{name}.tres", resource("res://scripts/bosses/boss_data.gd", "BossData", props))
     print("Itens")
     for item_id, props in ITEMS.items():
+        if item_id in WEAPONS:
+            continue  # armas sao escritas abaixo (WeaponData)
         write(f"data/items/{item_id}.tres", item_resource(item_id, props))
+    print("Armas")
+    for weapon_id, props in WEAPONS.items():
+        write(f"data/items/{weapon_id}.tres", weapon_resource(weapon_id, props))
     print("SpriteFrames")
     walk = {"idle": ([0], 5.0), "walk": ([0, 1, 2, 3], 8.0)}
     write("assets/sprites/player_frames.tres", sprite_frames("res://assets/sprites/player.png", 24, 24, 4, walk))

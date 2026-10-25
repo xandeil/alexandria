@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/presa_caelis.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_presa_caelis.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_presa_corte.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "presa_caelis"
+display_name = "Presa de Caelis"
+description = "Uma escama do peito dela, afiada até virar lâmina. Ainda está quente.
+O orgulho não se apaga; só espera alguém pisar perto."
+kind = 0
+icon = ExtResource("2")
+max_stack = 1
+weapon_class = "Espada Grande"
+scaling = {"forca": "B", "magia": "C"}
+heavy_attack = ExtResource("4")
+damage_scale = 1.2
+speed_scale = 1.2
+stamina_scale = 1.15
+skill = "rastro_caelis"
+skill_name = "Rastro de Caelis"
+skill_text = "o golpe forte deixa fogo no chão por 3 s. Custa estamina extra (é a magia que o jogo cobra)."
+boss_id = "rachel"
+memory_item = "lembranca_rachel"
+hand_texture = ExtResource("3")
+forge_memories = 5000
+forge_sucata = 6

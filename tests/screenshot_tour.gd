@@ -53,6 +53,10 @@ func _ready() -> void:
 		await _tour_guard()
 		Game.quit_game()
 		return
+	if only == "armas":
+		await _tour_weapons()
+		Game.quit_game()
+		return
 	if only == "criacao":
 		await _tour_creation()
 		Game.quit_game()
@@ -1225,6 +1229,78 @@ func _tour_options() -> void:
 	Settings.controller_mode = false
 	Settings.apply()
 	level.queue_free()
+
+
+func _tour_weapons() -> void:
+	Game.reset_progress()
+	Game.memories = 9000
+	Game.add_item("sucata_temperada", 12, false)
+	for memory in ["lembranca_helena", "lembranca_aldir", "lembranca_nyssa", "lembranca_mabel", "lembranca_durgan"]:
+		Game.add_item(memory, 1, false)
+	Game.add_item("escudo_remendado", 1, false)
+	Game.pending_spawn = "camara"
+	var level := await open("res://scenes/world/teatro.tscn") as Level
+	await wait(1.0)
+	level._on_dialogue_action("melhorar_arma")
+	await wait(0.4)
+	var smith := level.hud.smith_menu
+	smith.set_tab(1)
+	smith._select_forge("pilar_estilhacada")
+	await wait(0.3)
+	await shot("w01_forja_lembranca")
+	for id in ["lamina_desolada", "pilar_estilhacada", "arco_sono", "presas_voragem", "replicador_bronze"]:
+		Game.try_forge_weapon(id)
+	smith._select_forge("presa_caelis")
+	await wait(0.3)
+	await shot("w02_forja_sem_lembranca")
+	smith._closed.emit()
+	await wait(0.3)
+	level.hud.open_inventory()
+	await wait(0.3)
+	var menu := level.hud.inventory_menu
+	menu._select("pilar_estilhacada")
+	await wait(0.3)
+	await shot("w03_inventario_armas")
+	menu.set_tab(4)
+	await wait(0.3)
+	await shot("w04_inventario_lembrancas")
+	Settings.controller_mode = true
+	Settings.apply()
+	menu.set_tab(2)
+	await wait(0.3)
+	await shot("w05_inventario_frascos_controle")
+	Settings.controller_mode = false
+	Settings.apply()
+	menu.close()
+	await wait(0.3)
+	level.queue_free()
+	# Em combate: cada habilidade, num campo com soldados.
+	for id in ["pilar_estilhacada", "presa_caelis", "replicador_bronze", "arco_sono", "ancora_gravidade"]:
+		if not Game.has_item(id):
+			Game.add_item(id, 1, false)
+		Game.equip_weapon(id)
+		Game.pending_spawn = "porta"
+		level = await open("res://scenes/world/cidade.tscn") as Level
+		await wait(3.2)  # o título da região some
+		var player := level.player
+		player.stats.max_health = 9999.0
+		player.stats.set_health(9999.0)
+		var soldiers: Array[Enemy] = []
+		for k in 3:
+			var soldier := (load("res://scenes/enemies/soldado_remendado.tscn") as PackedScene).instantiate() as Enemy
+			soldier.position = player.position + Vector2(34 + k * 16, -18 + k * 18)
+			level.add_child(soldier)
+			soldier.set_physics_process(false)  # parados, para a foto mostrar só a habilidade
+			soldiers.append(soldier)
+		level.camera.snap_to_target()
+		await wait(0.3)
+		player.facing = Vector2.RIGHT
+		player._start_attack(player.heavy_attack, -1)
+		var delay: float = {"pilar_estilhacada": 0.78, "presa_caelis": 0.8, "replicador_bronze": 0.62, "arco_sono": 0.9, "ancora_gravidade": 1.3}[id]
+		await wait(delay)
+		await shot("w1%d_%s" % [["pilar_estilhacada", "presa_caelis", "replicador_bronze", "arco_sono", "ancora_gravidade"].find(id), id])
+		level.queue_free()
+	Game.reset_progress()
 
 
 func _tour_creation() -> void:

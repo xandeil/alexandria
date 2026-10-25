@@ -203,6 +203,12 @@ func _ready() -> void:
 		"test_appearance_atlas",
 		"test_appearance_save_and_player",
 		"test_character_creation_screen",
+		"test_weapon_catalog",
+		"test_weapon_forge_and_equip",
+		"test_weapon_damage_matches_sheet",
+		"test_weapon_skills_melee",
+		"test_weapon_skills_ranged",
+		"test_smith_forge_tab",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -2010,47 +2016,6 @@ func test_shield_block() -> void:
 	await frames(3)
 	check(player.state == Player.State.FREE, "escudo guardado não ergue")
 
-
-func test_inventory_menu() -> void:
-	Game.add_item("sucata_temperada", 3)
-	Game.add_item("escudo_remendado")
-	Game.add_item("lembranca_aldir")
-	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
-	var hud := level.hud
-	hud.open_inventory()
-	await frames(2)
-	check(hud.inventory_menu.visible and get_tree().paused, "I/Tab: inventário abre e pausa")
-	var ids := []
-	for entry in hud.inventory_menu.entries():
-		ids.append(entry["id"])
-	check(ids == ["espada", "escudo_remendado", "frasco_vida", "frasco_sanidade", "sucata_temperada", "lembranca_aldir"], "lista agrupada: %s" % [ids])
-	hud.inventory_menu._select("escudo_remendado")
-	check(hud.inventory_menu._action_button.visible, "escudo tem botão de equipar/guardar")
-	hud.inventory_menu._action_button.pressed.emit()
-	await frames(1)
-	check(not Game.shield_ready(), "guardou o escudo pelo menu")
-	hud.inventory_menu._select("lembranca_aldir")
-	check(hud.inventory_menu._detail_text.text.contains("impotência"), "lembrança mostra a lore")
-	hud.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
-	await frames(2)
-	check(not hud.inventory_menu.visible and not get_tree().paused, "Voltar fecha o inventário e despausa")
-	# Pela pausa: abre por cima e volta para a pausa.
-	hud.pause_menu.open()
-	hud.pause_menu._inventory_button.pressed.emit()
-	await frames(2)
-	check(hud.inventory_menu.visible and not hud.pause_menu.visible, "inventário pela pausa")
-	hud.inventory_menu.close()
-	await frames(2)
-	check(hud.pause_menu.visible and get_tree().paused, "fechou: volta para a pausa")
-	hud.pause_menu.close()
-	await frames(1)
-	check(not get_tree().paused, "pausa fechada")
-	level.queue_free()
-	await frames(2)
-
-
-
-# --- Bosque do Sono Eterno ---------------------------------------------------------------
 
 func test_drowsiness_and_sleep() -> void:
 	var player := spawn_player(Vector2(200, 200))
@@ -4268,3 +4233,302 @@ func test_character_creation_screen() -> void:
 	check(title._creation == null and title._menu.visible, "Voltar retorna ao menu")
 	title.queue_free()
 	await frames(2)
+
+
+# --- v0.20: armas de chefe, forja e inventário soulslike -----------------------------------
+
+## A tabela do TXT: classe e letras de cada arma.
+func test_weapon_catalog() -> void:
+	var expect := {
+		"lamina_desolada": ["Espada", {"destreza": "A"}, "helena"],
+		"pilar_estilhacada": ["Martelo", {"forca": "S"}, "aldir"],
+		"presa_caelis": ["Espada Grande", {"forca": "B", "magia": "C"}, "rachel"],
+		"fuso_arconte": ["Lança", {"magia": "A", "destreza": "C"}, "cassian"],
+		"replicador_bronze": ["Besta", {"fe": "B", "destreza": "B"}, "durgan"],
+		"presas_voragem": ["Adagas", {"sorte": "A", "destreza": "B"}, "mabel"],
+		"arco_sono": ["Arco", {"fe": "S"}, "nyssa"],
+		"ancora_gravidade": ["Machado", {"forca": "A", "fe": "A"}, "cavaleiro"],
+	}
+	check(Game.forgeable_weapons().size() == 8, "8 armas de chefe")
+	for id: String in expect:
+		var weapon := Items.get_weapon(id)
+		check(weapon != null and weapon.kind == ItemData.Kind.EQUIPAMENTO, "%s é arma e item" % id)
+		check(weapon.weapon_class == expect[id][0], "%s: classe %s" % [id, weapon.weapon_class])
+		check(weapon.scaling == expect[id][1], "%s: escalas %s" % [id, weapon.scaling])
+		check(weapon.boss_id == expect[id][2] and Items.exists(weapon.memory_item), "%s: forjada com a Lembrança de %s" % [id, weapon.boss_id])
+		check(weapon.icon != null and weapon.hand_texture != null, "%s: ícone e desenho na mão" % id)
+		check(not weapon.skill.is_empty() and not weapon.skill_text.is_empty(), "%s: tem habilidade descrita" % id)
+		check(WeaponSkills.create(weapon).get_script() != WeaponSkill, "%s: habilidade própria (não a nula)" % id)
+	check(Items.get_weapon("espada") != null, "a espada inicial também é WeaponData")
+	check(Items.get_weapon("replicador_bronze").ranged and Items.get_weapon("arco_sono").ranged, "besta e arco atiram")
+	# Letras → números: A = 3,5% por ponto; acima de 25 rende metade.
+	var lamina := Items.get_weapon("lamina_desolada")
+	check(is_equal_approx(lamina.scaling_multiplier({"destreza": 20}), 1.35), "DES A com 20 pontos = +35%")
+	check(is_equal_approx(lamina.scaling_multiplier({"destreza": 35}), 1.0 + 15 * 0.035 + 10 * 0.0175), "retorno decrescente depois de 25")
+	check(is_equal_approx(lamina.scaling_multiplier({"forca": 40}), 1.0), "força não mexe numa arma só de destreza")
+
+
+func test_weapon_forge_and_equip() -> void:
+	Game.reset_progress()
+	Game.memories = 10000
+	Game.add_item("sucata_temperada", 10, false)
+	check(Game.forge_block_reason("lamina_desolada") == "lembranca", "sem a Lembrança da Helena: não forja")
+	Game.add_item("lembranca_helena", 1, false)
+	check(Game.forge_block_reason("lamina_desolada") == "", "com a Lembrança: pode forjar")
+	check(Game.try_forge_weapon("lamina_desolada"), "forjou")
+	check(Game.has_item("lembranca_helena"), "a Lembrança NÃO é gasta (ela abre o Núcleo)")
+	check(Game.memories == 8500 and Game.item_count("sucata_temperada") == 7, "cobrou memórias e sucata")
+	check(Game.forge_block_reason("lamina_desolada") == "owned" and not Game.try_forge_weapon("lamina_desolada"), "não forja duas vezes")
+	check(Game.owned_weapons() == ["espada", "lamina_desolada"], "armas: %s" % [Game.owned_weapons()])
+	check(not Game.equip_weapon("arco_sono"), "não equipa o que não tem")
+	var player := spawn_player()
+	await frames(2)
+	check(player.weapon.id == "espada", "começa com a espada")
+	var sword_heavy := player.heavy_attack
+	check(Game.equip_weapon("lamina_desolada"), "equipou")
+	await frames(1)
+	check(player.weapon.id == "lamina_desolada", "o herói troca de arma na hora")
+	check(player.heavy_attack != sword_heavy and player.heavy_attack.active_during_lunge, "golpe forte vira a estocada")
+	check(player.sword.texture == player.weapon.hand_texture, "e o desenho na mão")
+	var data := Game._to_dict()
+	Game.reset_progress()
+	Game._from_dict(data)
+	check(Game.equipped_weapon == "lamina_desolada", "a arma equipada fica no save")
+	data["equipped_weapon"] = "arco_sono"
+	Game._from_dict(data)
+	check(Game.equipped_weapon == "espada", "save com arma que não tem volta para a espada")
+	Game.equip_weapon("espada")
+	# Save antigo de quem já venceu o Cavaleiro ganha a Lembrança nova.
+	Game._from_dict({"version": 3, "defeated_bosses": ["cavaleiro", "aldir"], "inventory": {}})
+	check(Game.has_item("lembranca_cavaleiro") and Game.has_item("lembranca_aldir"), "Lembranças que faltavam são devolvidas")
+	check(Game.forge_block_reason("ancora_gravidade") == "", "a Âncora (pós-final) é forjável")
+	Game.reset_progress()
+
+
+func test_weapon_damage_matches_sheet() -> void:
+	Game.reset_progress()
+	Game.attributes["forca"] = 20
+	Game.add_item("lembranca_aldir", 1, false)
+	Game.add_item("pilar_estilhacada", 1, false)
+	Game.equip_weapon("pilar_estilhacada")
+	var player := spawn_player()
+	await frames(2)
+	var power := Game.weapon_power(player.weapon)
+	player._current_attack = player.heavy_attack
+	player._activate_hitbox()
+	check(roundi(player.hitbox._damage) == power.y, "o golpe bate o que a ficha mostra (%d)" % power.y)
+	check(power.y > Game.weapon_power(Items.get_weapon("espada")).y, "FOR S com 20 de força bate mais que a espada")
+	# Custo de estamina: o martelo pesa mais.
+	var before := player.stats.stamina
+	player._start_attack(player.light_combo[0], 0)
+	check(is_equal_approx(before - player.stats.stamina, player.light_combo[0].stamina_cost * 1.25), "martelo gasta 25% mais estamina")
+	check(player._runner.time_scale > 1.0, "e é mais lento")
+	Game.reset_progress()
+
+
+func _skill_setup(weapon_id: String) -> Array:
+	_reset_world()  # cada arma num mundo limpo (sem os soldados do teste anterior)
+	Game.reset_progress()
+	Game.add_item(weapon_id, 1, false)
+	Game.equip_weapon(weapon_id)
+	var player := spawn_player(Vector2(200, 200))
+	var enemy := spawn_enemy_scene(SOLDIER_SCENE, Vector2(222, 200))
+	await frames(2)
+	player._iframes_left = 0.0
+	return [player, enemy]
+
+
+func test_weapon_skills_melee() -> void:
+	# Lâmina Desolada: a estocada que acerta devolve fôlego (e no vazio, não).
+	var setup: Array = await _skill_setup("lamina_desolada")
+	var player: Player = setup[0]
+	var enemy: Enemy = setup[1]
+	player.stats.stamina = 10.0
+	var info := HitInfo.create(10.0, player.global_position, enemy.global_position)
+	player._skill.on_hit(player, enemy.hurtbox, info, player.heavy_attack)
+	check(player.stats.stamina > 30.0, "Lâmina: acertou a estocada, recuperou estamina")
+	var nobody := Hurtbox.new()
+	player.stats.stamina = 10.0
+	player._skill.on_hit(player, nobody, info, player.heavy_attack)
+	check(is_equal_approx(player.stats.stamina, 10.0), "Lâmina: sem inimigo, nada (não vira dash infinito)")
+	nobody.free()
+	# Pilar: a onda derruba a guarda de quem está perto.
+	setup = await _skill_setup("pilar_estilhacada")
+	player = setup[0]
+	enemy = setup[1]
+	var health := enemy.stats.health
+	player.hitbox_pivot.rotation = 0.0
+	player._skill.on_active(player, player.heavy_attack, 40.0)
+	await frames(2)
+	check(enemy.stats.health < health, "Pilar: a onda machuca em volta")
+	check((enemy as SoldadoRemendado).ai == SoldadoRemendado.AI.STAGGER, "Pilar: e faz cambalear (postura 999)")
+	# Presa de Caelis: o golpe forte custa mais e deixa fogo que queima INIMIGOS.
+	setup = await _skill_setup("presa_caelis")
+	player = setup[0]
+	enemy = setup[1]
+	enemy.set_physics_process(false)  # o soldado parado: quem queima é o fogo, não a espada dele
+	check(player._skill.extra_stamina(player.heavy_attack) > 0.0 and player._skill.extra_stamina(player.light_combo[0]) == 0.0, "Caelis: só o forte custa a 'mana'")
+	player.hitbox_pivot.rotation = 0.0
+	player._skill.on_active(player, player.heavy_attack, 40.0)
+	var patches := get_tree().get_nodes_in_group("fire_patches")
+	check(patches.size() == 3, "Caelis: três chamas no rastro")
+	health = enemy.stats.health
+	var player_health := player.stats.health
+	await seconds(1.1)
+	check(enemy.stats.health < health, "Caelis: o fogo queima o inimigo")
+	check(is_equal_approx(player.stats.health, player_health), "Caelis: e não queima o herói")
+	for patch in patches:
+		patch.queue_free()
+	# Fuso do Arconte: rouba fôlego e o próximo golpe do inimigo demora.
+	setup = await _skill_setup("fuso_arconte")
+	player = setup[0]
+	enemy = setup[1]
+	player.stats.stamina = 10.0
+	player._skill.on_hit(player, enemy.hurtbox, info, player.light_combo[0])
+	check(player.stats.stamina > 10.0, "Fuso: roubou estamina")
+	check(EnemyStatus.find(enemy).drain_left > 0.0, "Fuso: inimigo exausto")
+	enemy.start_attack(enemy._current_attack if enemy._current_attack else player.light_combo[0], Vector2.LEFT)
+	check(is_equal_approx(enemy._runner.time_scale, EnemyStatus.DRAIN_ATTACK_DELAY), "Fuso: o golpe dele sai 60% mais devagar")
+	check(EnemyStatus.find(enemy).drain_left == 0.0, "Fuso: vale para UM golpe")
+	enemy._runner.cancel()
+	# Presas da Vorágine: cura FIXA (2 + Sorte × 0,2) e sangramento que estoura.
+	setup = await _skill_setup("presas_voragem")
+	player = setup[0]
+	enemy = setup[1]
+	Game.attributes["sorte"] = 20
+	player.stats.set_health(50.0)
+	player._skill.on_hit(player, enemy.hurtbox, info, player.light_combo[0])
+	check(is_equal_approx(player.stats.health, 56.0), "Vorágine: curou 2 + 20 × 0,2 = 6")
+	health = enemy.stats.health
+	for i in 4:  # 22 × 5 > 100
+		player._skill.on_hit(player, enemy.hurtbox, info, player.light_combo[0])
+	check(enemy.stats.health < health - 9.0, "Vorágine: o sangramento estourou")
+	# Âncora: puxa os comuns, chefes ficam.
+	setup = await _skill_setup("ancora_gravidade")
+	player = setup[0]
+	enemy = setup[1]
+	enemy.set_physics_process(false)  # parado: só o vórtice mexe nele
+	var center := enemy.global_position + Vector2(0, -45)  # acima dele: nada no caminho
+	GravityVortex.spawn(_world, center, 72.0, 0.6, 30.0, player)
+	var start := enemy.global_position.distance_to(center)
+	await seconds(0.4)
+	check(enemy.global_position.distance_to(center) < start - 8.0, "Âncora: o vórtice puxa o inimigo")
+	var knight_like := Boss.new()
+	check(WeaponSkill.is_heavyweight(knight_like), "Âncora: chefes não são puxados")
+	knight_like.free()
+	Game.reset_progress()
+
+
+func test_weapon_skills_ranged() -> void:
+	# Replicador de Bronze: o virote acerta e o raio salta para o vizinho.
+	var setup: Array = await _skill_setup("replicador_bronze")
+	var player: Player = setup[0]
+	var first: Enemy = setup[1]
+	var second := spawn_enemy_scene(SOLDIER_SCENE, Vector2(240, 230))
+	await frames(2)
+	var h1 := first.stats.health
+	var h2 := second.stats.health
+	player.facing = Vector2.RIGHT
+	check(player._start_attack(player.light_combo[0], 0), "atirou")
+	var shot_out := await wait_for(func(): return first.stats.health < h1, 60)
+	check(shot_out, "Replicador: o virote acertou o primeiro")
+	check(not player.hitbox.active, "Replicador: arma de longe não liga a hitbox")
+	check(second.stats.health < h2, "Replicador: o raio saltou para o segundo")
+	# Arco do Sono Eterno: a flecha forte abre a nuvem; a nuvem deixa lento.
+	setup = await _skill_setup("arco_sono")
+	player = setup[0]
+	var enemy: Enemy = setup[1]
+	enemy.set_physics_process(false)  # parado: não interrompe a flecha carregada do herói
+	var speed := enemy.move_speed
+	SlumberPollen.spawn(_world, enemy.global_position, 34.0, 0.6)
+	await seconds(0.3)
+	check(EnemyStatus.find(enemy) != null and EnemyStatus.find(enemy).is_slowed(), "Arco: no pólen, fica lento")
+	check(is_equal_approx(enemy.move_speed, speed * 0.5), "Arco: anda na metade")
+	await seconds(1.4)
+	check(is_equal_approx(enemy.move_speed, speed), "Arco: saiu/acabou, volta ao normal")
+	player.facing = Vector2.RIGHT
+	check(player._start_attack(player.heavy_attack, -1), "flecha de pólen")
+	var cloud := await wait_for(func(): return not get_tree().get_nodes_in_group("slumber_pollen").is_empty(), 180)
+	check(cloud, "Arco: a flecha forte abre a nuvem onde cai")
+	Game.reset_progress()
+
+
+func test_inventory_menu() -> void:
+	Game.add_item("sucata_temperada", 3)
+	Game.add_item("escudo_remendado")
+	Game.add_item("lembranca_aldir")
+	Game.add_item("pilar_estilhacada")
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	var hud := level.hud
+	var menu := hud.inventory_menu
+	hud.open_inventory()
+	await frames(2)
+	check(menu.visible and get_tree().paused, "I/Tab: inventário abre e pausa")
+	var ids := menu.entries(0).map(func(e): return e["id"])
+	check(ids == ["espada", "pilar_estilhacada"], "aba Armas: %s" % [ids])
+	check(menu.entries(1).map(func(e): return e["id"]) == ["escudo_remendado"], "aba Escudos")
+	check(menu.entries(2).map(func(e): return e["id"]) == ["frasco_vida", "frasco_sanidade"], "aba Frascos")
+	check(menu.entries(3).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
+	check(menu.entries(4).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
+	check(get_viewport().gui_get_focus_owner() in menu._slots, "o foco começa na grade (controle)")
+	# Ficha da arma: letras de escala e habilidade.
+	menu._select("pilar_estilhacada")
+	check(menu._scaling_box.get_child_count() == 5, "ficha: FOR DES MAG FÉ SOR")
+	check(menu._detail_skill.text.contains("Onda"), "ficha: habilidade")
+	menu._activate("pilar_estilhacada")
+	await frames(1)
+	check(Game.equipped_weapon == "pilar_estilhacada" and level.player.weapon.id == "pilar_estilhacada", "equipar pelo inventário")
+	check(menu._equip_rows["direita"].text.begins_with("Pilar"), "a coluna EQUIPADO atualiza")
+	# L1/R1 trocam a aba.
+	var r1 := InputEventJoypadButton.new()
+	r1.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	r1.pressed = true
+	menu._unhandled_input(r1)
+	check(menu._tab == 1, "R1: próxima aba")
+	menu._activate("escudo_remendado")
+	await frames(1)
+	check(not Game.shield_ready(), "guardou o escudo pelo menu")
+	menu.set_tab(4)
+	menu._select("lembranca_aldir")
+	check(menu._detail_text.text.contains("impotência"), "lembrança mostra a lore")
+	hud.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
+	await frames(2)
+	check(not menu.visible and not get_tree().paused, "Voltar fecha o inventário e despausa")
+	# Pela pausa: abre por cima e volta para a pausa.
+	hud.pause_menu.open()
+	hud.pause_menu._inventory_button.pressed.emit()
+	await frames(2)
+	check(menu.visible and not hud.pause_menu.visible, "inventário pela pausa")
+	menu.close()
+	await frames(2)
+	check(hud.pause_menu.visible and get_tree().paused, "fechou: volta para a pausa")
+	hud.pause_menu.close()
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_smith_forge_tab() -> void:
+	Game.reset_progress()
+	Game.memories = 5000
+	Game.add_item("sucata_temperada", 5, false)
+	Game.add_item("lembranca_nyssa", 1, false)
+	var menu := SmithMenu.new()
+	add_child(menu)
+	var player := spawn_player()
+	await frames(2)
+	menu.run(player)
+	await frames(1)
+	menu.set_tab(1)
+	check(menu._forge_page.visible and not menu._upgrade_page.visible, "aba Forjar")
+	menu._select_forge("lamina_desolada")
+	check(menu._forge_button.disabled and menu._forge_name.text == "???", "sem a Lembrança: arma desconhecida")
+	menu._select_forge("arco_sono")
+	check(not menu._forge_button.disabled and menu._forge_name.text == "Arco do Sono Eterno", "com a Lembrança da Nyssa: pode forjar")
+	menu._forge()
+	check(Game.has_item("arco_sono") and Game.has_item("lembranca_nyssa"), "forjou o arco (a Lembrança fica)")
+	check(menu._forge_button.disabled, "já forjada: botão apaga")
+	menu._closed.emit()
+	await frames(1)
+	menu.queue_free()
+	Game.reset_progress()

@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/replicador_bronze.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_replicador_bronze.png" id="3"]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="4"]
+[ext_resource type="Resource" path="res://data/attacks/arma_virote.tres" id="5"]
+[ext_resource type="Resource" path="res://data/attacks/arma_virote_carregado.tres" id="6"]
+
+[resource]
+script = ExtResource("1")
+id = "replicador_bronze"
+display_name = "Replicador de Bronze"
+description = "Ele não inventou esta besta. Copiou a do irmão, peça por peça, e ela saiu melhor.
+Inveja também é uma forma de aprender."
+kind = 0
+icon = ExtResource("2")
+max_stack = 1
+weapon_class = "Besta"
+scaling = {"fe": "B", "destreza": "B"}
+light_combo = Array[ExtResource("4")]([ExtResource("5")])
+heavy_attack = ExtResource("6")
+damage_scale = 1.0
+speed_scale = 1.0
+stamina_scale = 1.0
+skill = "virote_replicante"
+skill_name = "Virote Replicante"
+skill_text = "o virote elétrico salta para o inimigo mais perto (o carregado salta duas vezes)."
+boss_id = "durgan"
+memory_item = "lembranca_durgan"
+ranged = true
+hand_texture = ExtResource("3")
+forge_memories = 4000
+forge_sucata = 5
