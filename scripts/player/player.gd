@@ -81,6 +81,11 @@ const IDLE_SWORD_ANGLE := 1.15
 
 @export_group("Dash (esquiva)")
 @export var dash_stamina_cost := 22.0
+## CORRER (segurar ○): toque rápido = esquiva; segurar mais que isto = corre.
+@export var sprint_hold_time := 0.28
+@export var sprint_speed_multiplier := 1.6
+## Correr gasta estamina enquanto corre (e não deixa regenerar).
+@export var sprint_stamina_per_second := 12.0
 @export var dash_speed := 250.0
 @export var dash_time := 0.26
 ## Janela de invencibilidade (i-frames) no começo do dash.
@@ -238,6 +243,10 @@ var _left_skill: WeaponSkill = WeaponSkill.new()
 ## Com que mão(s) o golpe atual foi dado: &"direita", &"esquerda" ou &"ambas".
 var _attack_hand: StringName = &"direita"
 var _sanity_held := false
+var _dash_held := false
+var _dash_hold_time := 0.0
+## Correndo agora (segurando ○ e andando).
+var sprinting := false
 var _sanity_hold_time := 0.0
 var _two_hand_fired := false
 var _parry_window := 0.0
@@ -547,8 +556,7 @@ func _read_input(delta: float) -> void:
 			_attack_held = false
 	if _just_pressed(&"attack_heavy"):
 		_buffer(&"heavy")
-	if _just_pressed(&"dash"):
-		_buffer(&"dash")
+	_read_dash_hold(delta)
 	if _just_pressed(&"heal"):
 		_buffer(&"heal")
 	_read_sanity_hold(delta)
@@ -563,6 +571,26 @@ func _read_input(delta: float) -> void:
 		_buffer_left -= delta
 		if _buffer_left <= 0.0:
 			_buffered = &""
+
+
+## ○: TOQUE = esquiva (ao soltar, como nos soulslike). SEGURAR = correr.
+## Por que ao soltar? Só dá para saber se é "toque" ou "segurar" quando o
+## dedo sai do botão — o mesmo truque do ataque (toque = leve, segurar = forte).
+func _read_dash_hold(delta: float) -> void:
+	if _just_pressed(&"dash"):
+		_dash_held = true
+		_dash_hold_time = 0.0
+	if not _dash_held:
+		sprinting = false
+		return
+	_dash_hold_time += delta
+	if not Input.is_action_pressed(&"dash"):
+		if _dash_hold_time < sprint_hold_time:
+			_buffer(&"dash")
+		_dash_held = false
+		sprinting = false
+		return
+	sprinting = _dash_hold_time >= sprint_hold_time
 
 
 ## △: TOQUE = Humanidade (ao soltar). SEGURAR = pega/solta a arma com as duas mãos.
@@ -600,6 +628,8 @@ func _clear_input() -> void:
 	_buffer_left = 0.0
 	_attack_held = false
 	_sanity_held = false
+	_dash_held = false
+	sprinting = false
 
 
 ## "Acabou de apertar" — exceto teclas que já estavam apertadas no destravamento.
@@ -670,6 +700,10 @@ func _state_free(delta: float) -> void:
 	speed *= lerpf(1.0, drowsy_speed_multiplier, drowsiness / drowsiness_max)
 	if is_chilled():
 		speed *= chill_speed_multiplier
+	if sprinting and input != Vector2.ZERO and not stats.is_exhausted:
+		speed *= sprint_speed_multiplier
+		stats.drain_stamina(sprint_stamina_per_second * delta)  # zerou: Exaustão, para de correr
+		_sprint_dust(delta)
 	if input != Vector2.ZERO:
 		facing = input.normalized()
 		velocity = velocity.move_toward(input * speed, _grip() * delta)
@@ -680,6 +714,16 @@ func _state_free(delta: float) -> void:
 	_consume_buffer()
 	if state == State.FREE and _wants_block():
 		_start_block()
+
+
+var _dust_timer := 0.0
+
+
+func _sprint_dust(delta: float) -> void:
+	_dust_timer -= delta
+	if _dust_timer <= 0.0:
+		_dust_timer = 0.18
+		Fx.dust(global_position, 2)
 
 
 # --- BLOCK (escudo na mão esquerda) --------------------------------------------------------
@@ -1437,7 +1481,7 @@ func _update_visuals(delta: float) -> void:
 	if walking:
 		if body_sprite.animation != &"walk":
 			body_sprite.play(&"walk")
-		body_sprite.speed_scale = clampf(speed / move_speed, 0.4, 1.3)
+		body_sprite.speed_scale = clampf(speed / move_speed, 0.4, 1.8)  # correndo: as pernas aceleram
 		_walk_phase += delta * 11.0 * body_sprite.speed_scale
 		visual.position.y = -absf(sin(_walk_phase)) * 1.5
 	else:

@@ -63,7 +63,7 @@ func _draw() -> void:
 	glyph(self, center + Vector2(0, step), "cross", r, ALPHA)
 	_text(center + Vector2(0, -step - 9), "Humanidade x%d · segure: 2 mãos" % sanity_flasks, font, HORIZONTAL_ALIGNMENT_CENTER)
 	_text(center + Vector2(-step - 9, 3), "Frasco x%d" % flasks, font, HORIZONTAL_ALIGNMENT_RIGHT)
-	_text(center + Vector2(step + 9, 3), "Esquiva", font, HORIZONTAL_ALIGNMENT_LEFT)
+	_text(center + Vector2(step + 9, 3), "Esquiva · segure: correr", font, HORIZONTAL_ALIGNMENT_LEFT)
 	_text(center + Vector2(0, step + 15), interact_label, font, HORIZONTAL_ALIGNMENT_CENTER)
 
 

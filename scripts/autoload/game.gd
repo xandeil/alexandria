@@ -139,6 +139,8 @@ var two_handing := false
 var equipped_weapon := START_WEAPON
 ## Itens do chão que já foram pegos ("cidade@13,3") — não voltam ao descansar.
 var collected_pickups: Array[String] = []
+## Câmaras onde você já descansou (dá para viajar entre elas).
+var capsules: Array[String] = []
 ## Escolhas e acontecimentos que o mundo lembra ("vigia_evitado"...).
 ## Um dicionário de marcas é mais simples que uma variável por escolha — e o
 ## save não precisa mudar de versão a cada marca nova.
@@ -230,6 +232,7 @@ func reset_progress() -> void:
 	left_hand = ""
 	two_handing = false
 	collected_pickups.clear()
+	capsules.clear()
 	flags = {}
 
 
@@ -389,7 +392,62 @@ func requirement_met(requires: String) -> bool:
 func set_rest_point(scene_path: String, spawn_id: String) -> void:
 	rest_scene = scene_path
 	rest_spawn = spawn_id
+	unlock_capsule(scene_path)
 	save_game()
+
+
+# --- Viagem entre Câmaras (menu de descanso) ------------------------------------------------
+## Todas as Câmaras para onde dá para viajar, na ordem da jornada.
+## O Prólogo fica de fora: ele é um caminho só de ida.
+const CAPSULES := [
+	{"scene": "res://scenes/world/teatro.tscn", "name": "Teatro Alexandria", "thumb": "teatro"},
+	{"scene": "res://scenes/world/cidade.tscn", "name": "Cidade Estilhaçada", "thumb": "cidade"},
+	{"scene": "res://scenes/world/bosque.tscn", "name": "Bosque do Sono Eterno", "thumb": "bosque"},
+	{"scene": "res://scenes/world/raizes.tscn", "name": "Raízes da Fome", "thumb": "raizes"},
+	{"scene": "res://scenes/world/forjas.tscn", "name": "Forjas Ocas", "thumb": "forjas"},
+	{"scene": "res://scenes/world/montanha.tscn", "name": "Montanha Carbonizada", "thumb": "montanha"},
+	{"scene": "res://scenes/world/dominio.tscn", "name": "Domínio Congelado", "thumb": "dominio"},
+	{"scene": "res://scenes/world/nucleo.tscn", "name": "O Núcleo", "thumb": "nucleo"},
+]
+
+
+static func capsule_info(scene_path: String) -> Dictionary:
+	for info: Dictionary in CAPSULES:
+		if info["scene"] == scene_path:
+			return info
+	return {}
+
+
+## Descansou numa Câmara: ela passa a aparecer no menu de viagem.
+func unlock_capsule(scene_path: String) -> void:
+	if not capsule_info(scene_path).is_empty() and not capsules.has(scene_path):
+		capsules.append(scene_path)
+
+
+## As Câmaras desbloqueadas, na ordem da jornada (não na ordem em que você achou).
+func unlocked_capsules() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for info: Dictionary in CAPSULES:
+		if is_capsule_unlocked(info["scene"]):
+			result.append(info)
+	return result
+
+
+## O Teatro é a casa: depois do Prólogo, a Câmara dele está sempre aberta.
+func is_capsule_unlocked(scene_path: String) -> bool:
+	return capsules.has(scene_path) or (scene_path == HUB_SCENE and prologue_done)
+
+
+## Viaja para outra Câmara: a próxima vez que morrer, renasce lá; e o herói
+## sai de dentro da cápsula (a mesma animação do despertar).
+func travel_to_capsule(scene_path: String) -> bool:
+	if not is_capsule_unlocked(scene_path):
+		return false
+	set_rest_point(scene_path, "camara")
+	clear_carry()
+	wake_from_capsule = true
+	travel(scene_path, "camara")
+	return true
 
 
 # --- Prólogo: a escolha sem aviso -----------------------------------------------------------
@@ -814,6 +872,7 @@ func _to_dict() -> Dictionary:
 		"two_handing": two_handing,
 		"equipped_weapon": equipped_weapon,
 		"collected_pickups": collected_pickups.duplicate(),
+		"capsules": capsules.duplicate(),
 		"flags": flags.duplicate(),
 		"appearance": appearance.duplicate(),
 	}
@@ -862,6 +921,15 @@ func _from_dict(data: Dictionary) -> void:
 			var item := Items.get_item(item_id)
 			if item and item.kind == ItemData.Kind.LEMBRANCA and not inventory.has(item_id):
 				inventory[item_id] = 1
+	var saved_capsules: Variant = data.get("capsules", [])
+	if typeof(saved_capsules) == TYPE_ARRAY:
+		for scene_path in saved_capsules:
+			unlock_capsule(str(scene_path))
+	# MIGRAÇÃO (saves de antes da v0.22): a Câmara onde você descansou por último
+	# e a do Teatro (depois do Prólogo) já contam como desbloqueadas.
+	unlock_capsule(rest_scene)
+	if prologue_done:
+		unlock_capsule(HUB_SCENE)
 	var saved_weapon := str(data.get("equipped_weapon", START_WEAPON))
 	equipped_weapon = saved_weapon if owns_weapon(saved_weapon) else START_WEAPON
 	# MIGRAÇÃO v0.20 → v0.21: antes só existia "escudo equipado ou não".

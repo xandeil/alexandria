@@ -1494,6 +1494,14 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 	camera.snap_to_target()
 	await _wait(0.3)
 	await Fader.fade_in(0.6)
+	# Menu da Câmara: o herói desce na cápsula; dá para viajar para outra.
+	var destination := await hud.rest_menu.run(scene_file_path)
+	if not destination.is_empty() and Game.is_capsule_unlocked(destination):
+		# Despausa (a troca de cena precisa do mundo andando), mas o herói segue
+		# travado e sem botões até a outra fase assumir.
+		get_tree().paused = false
+		Game.travel_to_capsule(destination)
+		return  # a viagem troca de cena (e o herói acorda na outra cápsula)
 	_end_modal()
 	var lines: Array = DialogueData.get_entry("descanso").get("falas", [])
 	if not lines.is_empty():

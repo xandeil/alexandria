@@ -15,6 +15,7 @@ const ICON_PAUSE := preload("res://assets/ui/icon_pause.png")
 var dialogue: DialogueBox
 var level_up_menu: LevelUpMenu
 var smith_menu: SmithMenu
+var rest_menu: RestMenu
 var pause_menu: PauseMenu
 var inventory_menu: InventoryMenu
 var touch: TouchControls
@@ -66,6 +67,8 @@ func _ready() -> void:
 	add_child(level_up_menu)
 	smith_menu = SmithMenu.new()
 	add_child(smith_menu)
+	rest_menu = RestMenu.new()
+	add_child(rest_menu)
 	pause_menu = PauseMenu.new()
 	add_child(pause_menu)
 	inventory_menu = InventoryMenu.new()
@@ -156,7 +159,8 @@ func _notification(what: int) -> void:
 ## descanso, troca de cena ou com o herói morto (a morte já foi registrada,
 ## mas abrir o menu por cima da tela "VOCÊ ESQUECEU" só confunde).
 func can_pause() -> bool:
-	if cutscene or get_tree().paused or Fader.busy or dialogue.visible or level_up_menu.visible or smith_menu.visible or inventory_menu.visible:
+	if cutscene or get_tree().paused or Fader.busy or dialogue.visible or level_up_menu.visible or smith_menu.visible or inventory_menu.visible \
+			or rest_menu.visible:
 		return false
 	return is_instance_valid(_player) and not _player.is_dead()
 

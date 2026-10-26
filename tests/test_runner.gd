@@ -217,6 +217,8 @@ func _ready() -> void:
 		"test_two_hands",
 		"test_touch_follows_hands",
 		"test_pad_menus_never_stuck",
+		"test_sprint_hold_circle",
+		"test_rest_menu_and_travel",
 		"test_pad_confirms_menus",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
@@ -4888,6 +4890,95 @@ func test_pad_menus_never_stuck() -> void:
 	check(Game.shield_equipped() != before, "inventário: ✕ equipa/guarda")
 	await _pad_press(JOY_BUTTON_B)
 	check(not level.hud.inventory_menu.visible, "inventário: ○ fecha")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+
+# --- v0.22: correr e viajar entre Câmaras ------------------------------------------------------
+
+func test_sprint_hold_circle() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	# Toque rápido: esquiva (sai ao soltar).
+	await tap(&"dash")
+	await frames(1)
+	check(player.state == Player.State.DASH, "toque rápido no ○: esquiva")
+	await seconds(0.6)
+	# Segurar + andar: corre.
+	Input.action_press(&"move_right")
+	Input.action_press(&"dash")
+	await seconds(0.5)
+	var stamina := player.stats.stamina  # já correndo (a esquiva de antes não conta)
+	await seconds(0.5)
+	check(player.sprinting and player.state == Player.State.FREE, "segurar o ○: corre (sem esquivar)")
+	check(player.velocity.length() > player.move_speed * 1.4, "correndo: mais rápido (%d)" % player.velocity.length())
+	check(player.stats.stamina < stamina, "correr gasta estamina (e não regenera)")
+	Input.action_release(&"dash")
+	await frames(3)
+	check(not player.sprinting and player.state == Player.State.FREE, "soltou: para de correr (e não esquiva)")
+	await seconds(0.5)
+	check(player.velocity.length() <= player.move_speed + 1.0, "volta à velocidade normal")
+	# Sem estamina: a corrida acaba sozinha.
+	Input.action_press(&"dash")
+	await seconds(0.4)
+	player.stats.drain_stamina(player.stats.max_stamina)
+	await seconds(0.4)
+	check(player.velocity.length() <= player.move_speed * player.exhausted_speed_multiplier + 2.0, "exausto: não corre mais")
+	Input.action_release(&"dash")
+	Input.action_release(&"move_right")
+	await frames(2)
+
+
+func test_rest_menu_and_travel() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	check(Game.unlocked_capsules().map(func(c): return c["thumb"]) == ["teatro"], "depois do Prólogo: só o Teatro")
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	var menu := level.hud.rest_menu
+	level._on_rest_requested(level.rest_chamber)  # o que acontece ao apertar ✕ na cápsula
+	var opened := await wait_for(func(): return menu.visible, 180)
+	check(opened and get_tree().paused, "descansar abre o menu da Câmara (com o jogo pausado)")
+	check(menu._hero.sprite_frames == Appearance.sprite_frames(Game.appearance), "a descida usa a aparência do SEU personagem")
+	var start_y := menu._hero.position.y
+	await seconds(1.5)
+	check(menu._hero.position.y > start_y + 40.0, "o herói desce para dentro da cápsula")
+	check(menu._capsule.texture == RestMenu.CAPSULE_CLOSED, "e a tampa fecha")
+	check(menu.cards().size() == 1 and menu.cards()[0].disabled, "só a Câmara de onde está (marcada 'você está aqui')")
+	check(Game.rest_scene == "res://scenes/world/teatro.tscn", "descansar salvou o ponto")
+	# ○ = Levantar.
+	var cancel := InputEventAction.new()
+	cancel.action = &"ui_cancel"
+	cancel.pressed = true
+	menu._unhandled_input(cancel)
+	await frames(3)
+	check(not menu.visible and not get_tree().paused, "○: levanta e o jogo segue")
+	# Desbloqueia a Cidade e viaja até ela.
+	Game.unlock_capsule("res://scenes/world/cidade.tscn")
+	Game.unlock_capsule("res://scenes/world/prologo.tscn")  # o Prólogo não é destino
+	level._on_rest_requested(level.rest_chamber)
+	await wait_for(func(): return menu.visible, 180)
+	var names: Array = menu.cards().map(func(c): return c.get_meta("scene"))
+	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn"], "Câmaras na ordem da jornada (sem o Prólogo)")
+	var city: Button = menu.cards()[1]
+	check(not city.disabled and city.icon != null, "a Cidade tem miniatura e dá para escolher")
+	Game.last_scene_request = ""
+	city.pressed.emit()
+	await frames(3)
+	check(Game.last_scene_request == "res://scenes/world/cidade.tscn", "viaja para a Cidade")
+	check(Game.rest_scene == "res://scenes/world/cidade.tscn" and Game.pending_spawn == "camara", "e renasce lá (na Câmara)")
+	check(Game.wake_from_capsule, "o herói vai sair de dentro da cápsula")
+	check(not get_tree().paused, "o mundo despausa para a viagem")
+	# Save: as Câmaras ficam guardadas; save antigo ganha a do último descanso.
+	var data := Game._to_dict()
+	Game.reset_progress()
+	Game._from_dict(data)
+	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn"), "Câmaras desbloqueadas ficam no save")
+	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/forjas.tscn", "rest_spawn": "camara"})
+	check(Game.is_capsule_unlocked("res://scenes/world/forjas.tscn") and Game.is_capsule_unlocked(Game.HUB_SCENE), "migração: a última Câmara e o Teatro")
+	Game.wake_from_capsule = false
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

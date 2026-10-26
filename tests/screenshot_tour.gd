@@ -53,6 +53,10 @@ func _ready() -> void:
 		await _tour_guard()
 		Game.quit_game()
 		return
+	if only == "descanso":
+		await _tour_rest()
+		Game.quit_game()
+		return
 	if only == "maos":
 		await _tour_hands()
 		Game.quit_game()
@@ -1233,6 +1237,38 @@ func _tour_options() -> void:
 	Settings.controller_mode = false
 	Settings.apply()
 	level.queue_free()
+
+
+func _tour_rest() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.appearance = {"sexo": 1, "corpo": 1, "rosto": 1, "cabelo": 2}
+	for scene in ["cidade", "bosque", "raizes", "forjas"]:
+		Game.unlock_capsule("res://scenes/world/%s.tscn" % scene)
+	Game.pending_spawn = "camara"
+	var level := await open("res://scenes/world/teatro.tscn") as Level
+	await wait(1.0)
+	level._on_rest_requested(level.rest_chamber)
+	await wait(1.65)
+	await shot("r01_descendo")
+	await wait(1.4)
+	level.hud.rest_menu.cards()[2].grab_focus()
+	await wait(0.3)
+	await shot("r02_capsula_fechada_viajar")
+	level.hud.rest_menu._picked.emit("")
+	await wait(0.5)
+	# Correndo (segurando ○).
+	Game.pending_spawn = "porta"
+	level = await open("res://scenes/world/cidade.tscn") as Level
+	await wait(3.3)
+	Input.action_press(&"move_down")
+	Input.action_press(&"dash")
+	await wait(0.8)
+	await shot("r03_correndo")
+	Input.action_release(&"dash")
+	Input.action_release(&"move_down")
+	level.queue_free()
+	Game.reset_progress()
 
 
 func _tour_hands() -> void:
