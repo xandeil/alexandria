@@ -947,7 +947,9 @@ func _from_dict(data: Dictionary) -> void:
 	var saved_flags: Variant = data.get("flags", {})
 	if typeof(saved_flags) == TYPE_DICTIONARY:
 		for flag in saved_flags:
-			flags[str(flag)] = bool(saved_flags[flag])
+			# "dicas" guarda uma lista de ids (tutorial_hints.gd); as demais são booleanas.
+			var value: Variant = saved_flags[flag]
+			flags[str(flag)] = value if typeof(value) == TYPE_ARRAY else bool(value)
 	# Saves de antes da criação de personagem não têm "appearance": ficam com
 	# a aparência padrão (Homem/Magro/Sereno/Curto), que é o visual antigo.
 	appearance = Appearance.sanitized(data.get("appearance", {}))
