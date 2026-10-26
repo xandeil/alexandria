@@ -68,6 +68,9 @@ func _ready() -> void:
 	light.color = glow
 	light.energy = 0.7
 	light.texture_scale = 0.3
+	if item is WeaponData:  # arma de chefe no chão: brilho maior (é raro, o jogador tem que ver)
+		light.energy = 1.3
+		light.texture_scale = 0.5
 	light.position = Vector2(0, -8)
 	add_child(light)
 	_sprite = Sprite2D.new()

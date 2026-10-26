@@ -16,6 +16,9 @@ var dialogue: DialogueBox
 var level_up_menu: LevelUpMenu
 var smith_menu: SmithMenu
 var rest_menu: RestMenu
+## O "II" no canto (atalho de toque para a pausa).
+var pause_button: TextureButton
+var shop_menu: ShopMenu
 var pause_menu: PauseMenu
 var inventory_menu: InventoryMenu
 var touch: TouchControls
@@ -69,6 +72,8 @@ func _ready() -> void:
 	add_child(smith_menu)
 	rest_menu = RestMenu.new()
 	add_child(rest_menu)
+	shop_menu = ShopMenu.new()
+	add_child(shop_menu)
 	pause_menu = PauseMenu.new()
 	add_child(pause_menu)
 	inventory_menu = InventoryMenu.new()
@@ -155,12 +160,16 @@ func _notification(what: int) -> void:
 			pause_menu.open()
 
 
+func _refresh_pause_button() -> void:
+	pause_button.visible = Settings.controls_mode() != "limpo"
+
+
 ## Só pausa no meio do jogo "normal": nunca por cima de diálogo, menu da Fada,
 ## descanso, troca de cena ou com o herói morto (a morte já foi registrada,
 ## mas abrir o menu por cima da tela "VOCÊ ESQUECEU" só confunde).
 func can_pause() -> bool:
 	if cutscene or get_tree().paused or Fader.busy or dialogue.visible or level_up_menu.visible or smith_menu.visible or inventory_menu.visible \
-			or rest_menu.visible:
+			or rest_menu.visible or shop_menu.visible:
 		return false
 	return is_instance_valid(_player) and not _player.is_dead()
 
@@ -234,6 +243,13 @@ func _build_status() -> void:
 		if can_pause():
 			pause_menu.open())
 	add_child(pause)
+	pause_button = pause
+	# Modo Limpo: nem o botão de pausa na tela (no controle, a pausa é o Start).
+	# Um MÉTODO, e não uma lambda: quando o HUD é apagado, o Godot desliga a
+	# conexão sozinho. A lambda continuaria presa ao Settings (que nunca morre)
+	# e tentaria mexer num botão que já não existe.
+	Settings.changed.connect(_refresh_pause_button)
+	_refresh_pause_button()
 
 
 func _icon(texture: Texture2D) -> TextureRect:

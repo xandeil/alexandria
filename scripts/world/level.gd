@@ -1401,6 +1401,8 @@ func _on_dialogue_action(action: String) -> void:
 			await hud.level_up_menu.run(player)
 		"melhorar_arma":
 			await hud.smith_menu.run(player)
+		"loja":
+			await hud.shop_menu.run(player)
 		"purificar":
 			if Game.purify_fragment():
 				player.apply_progress(false)

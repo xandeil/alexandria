@@ -39,7 +39,12 @@ signal weapon_upgraded(level: int)
 ## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
 signal weapon_changed(id: String)
 
+## Save das versões antigas (um só). Na primeira vez, ele vira o slot 1.
 const SAVE_PATH := "user://alexandria_save.json"
+## Saves no estilo Dark Souls: 3 "personagens" independentes.
+const SLOT_COUNT := 3
+## Qual slot foi usado por último ("Continuar" no título carrega esse).
+const LAST_SLOT_PATH := "user://ultimo_save.cfg"
 ## Versão 2 = com o Prólogo. Versão 3 = com inventário.
 ## Saves antigos são MIGRADOS em _from_dict().
 const SAVE_VERSION := 3
@@ -153,6 +158,11 @@ var pending_spawn := ""
 var persistence_enabled := true
 ## Caminho do save (os testes usam um arquivo próprio para não tocar no seu).
 var save_path := SAVE_PATH
+## Slot atual (1..SLOT_COUNT). Os testes trocam slot_prefix para não tocar nos saves reais.
+var slot := 1
+var slot_prefix := "user://alexandria_save_"
+## Tempo jogado (segundos) — aparece na escolha de save, como nos soulslike.
+var play_seconds := 0.0
 ## Só existe "partida em andamento" depois de Novo jogo / Continuar (ou ao abrir
 ## uma fase direto pelo editor). Na tela de título não há nada para salvar: sem
 ## esta trava, minimizar o app no título gravaria o progresso ZERADO por cima do save.
@@ -183,8 +193,15 @@ func _ready() -> void:
 	# Quem fecha o jogo somos nós (quit_game): dá tempo de salvar e silenciar.
 	get_tree().auto_accept_quit = false
 	reset_progress()
+	_migrate_single_save()
+	use_slot(_read_last_slot())
 	load_game()  # já deixa o progresso e as opções (vibração) prontos no título
 
+
+## Só conta o tempo de verdade jogando (pausado, menu e título não contam).
+func _process(delta: float) -> void:
+	if session_active and not get_tree().paused:
+		play_seconds += delta
 
 func _notification(what: int) -> void:
 	match what:
@@ -233,6 +250,8 @@ func reset_progress() -> void:
 	two_handing = false
 	collected_pickups.clear()
 	capsules.clear()
+	play_seconds = 0.0
+	shop_bought.clear()
 	flags = {}
 
 
@@ -336,6 +355,108 @@ func buy_sanity_flask() -> bool:
 		return false
 	sanity_flasks += 1
 	sanity_flasks_changed.emit(sanity_flasks)
+	save_game()
+	return true
+
+
+# --- Loja do Vendedor (v0.23): comprar e vender -------------------------------------------
+## O que o Vendedor tem. "limite" = quantos ele tem no total (o resto é infinito).
+const SHOP_STOCK := [
+	{"id": "frasco_sanidade", "preco": SANITY_FLASK_PRICE},
+	{"id": "sucata_temperada", "preco": SUCATA_PRICE},
+	{"id": "fragmento_turvo", "preco": 900, "limite": 3},
+]
+## Quanto o Vendedor paga. Arma: um terço do custo de forja (mínimo 300).
+const SELL_PRICES := {"sucata_temperada": 60, "fragmento_turvo": 300}
+## Depois que a Rachel cai, ele "vende mais barato. Só um pouco." (diálogo dele)
+const RACHEL_DISCOUNT := 0.8
+
+## Quantos de cada item com limite você já comprou (id → quantidade).
+var shop_bought := {}
+
+
+func shop_price(item_id: String) -> int:
+	for entry: Dictionary in SHOP_STOCK:
+		if entry["id"] == item_id:
+			var price := int(entry["preco"])
+			return int(round(price * RACHEL_DISCOUNT)) if is_boss_defeated("rachel") else price
+	return 0
+
+
+## Quantos ainda restam (-1 = infinito).
+func shop_left(item_id: String) -> int:
+	for entry: Dictionary in SHOP_STOCK:
+		if entry["id"] == item_id and entry.has("limite"):
+			return maxi(int(entry["limite"]) - int(shop_bought.get(item_id, 0)), 0)
+	return -1
+
+
+## "" = pode comprar; senão o motivo: "memories", "esgotado" ou "cheio".
+func shop_block_reason(item_id: String) -> String:
+	if shop_left(item_id) == 0:
+		return "esgotado"
+	var item := Items.get_item(item_id)
+	if item_id != "frasco_sanidade" and item and item_count(item_id) >= item.max_stack:
+		return "cheio"
+	if memories < shop_price(item_id):
+		return "memories"
+	return ""
+
+
+func buy_from_shop(item_id: String) -> bool:
+	if shop_block_reason(item_id) != "":
+		return false
+	spend_memories(shop_price(item_id))
+	if item_id == "frasco_sanidade":
+		sanity_flasks += 1  # o Frasco de Sanidade é um contador, não um item da mochila
+		sanity_flasks_changed.emit(sanity_flasks)
+	else:
+		add_item(item_id, 1, false)
+	if shop_left(item_id) >= 0:
+		shop_bought[item_id] = int(shop_bought.get(item_id, 0)) + 1
+	items_changed.emit()
+	save_game()
+	return true
+
+
+## Preço de venda (0 = o Vendedor não compra isso).
+func sell_price(item_id: String) -> int:
+	if SELL_PRICES.has(item_id):
+		return int(SELL_PRICES[item_id])
+	var weapon := Items.get_weapon(item_id)
+	if weapon and item_id != START_WEAPON:
+		return maxi(300, weapon.forge_memories / 3)
+	return 0
+
+
+## O que dá para vender agora: [{id, count, price}]. Lembranças, escudo e
+## anel NÃO entram (são da história). Arma: só as cópias que não estão na mão.
+func sellable_items() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for item_id: String in Items.CATALOG:
+		var price := sell_price(item_id)
+		if price <= 0:
+			continue
+		var count := _sellable_count(item_id)
+		if count > 0:
+			result.append({"id": item_id, "count": count, "price": price})
+	return result
+
+
+func _sellable_count(item_id: String) -> int:
+	if Items.get_weapon(item_id) == null:
+		return item_count(item_id)
+	var in_hands := (1 if equipped_weapon == item_id else 0) + (1 if left_hand == item_id else 0)
+	return maxi(item_count(item_id) - in_hands, 0)
+
+
+func sell_to_shop(item_id: String) -> bool:
+	var price := sell_price(item_id)
+	if price <= 0 or _sellable_count(item_id) <= 0:
+		return false
+	remove_item(item_id, 1)
+	add_memories(price)
+	items_changed.emit()
 	save_game()
 	return true
 
@@ -780,6 +901,87 @@ func clear_carry() -> void:
 	carry_flasks = -1
 
 
+# --- Slots de save (3, como nos soulslike) ---------------------------------------------------
+
+func slot_path(n: int) -> String:
+	return "%s%d.json" % [slot_prefix, n]
+
+
+## Passa a ler e gravar no slot n (e lembra dele para o "Continuar").
+func use_slot(n: int) -> void:
+	slot = clampi(n, 1, SLOT_COUNT)
+	save_path = slot_path(slot)
+	if persistence_enabled:
+		var config := ConfigFile.new()
+		config.set_value("save", "ultimo", slot)
+		config.save(LAST_SLOT_PATH)
+
+
+func _read_last_slot() -> int:
+	var config := ConfigFile.new()
+	if config.load(LAST_SLOT_PATH) != OK:
+		return 1
+	return clampi(int(config.get_value("save", "ultimo", 1)), 1, SLOT_COUNT)
+
+
+func slot_has_save(n: int) -> bool:
+	var path := slot_path(n)
+	return FileAccess.file_exists(path) or FileAccess.file_exists(path + ".bak")
+
+
+## Existe pelo menos um save (o título mostra "Carregar").
+func any_save() -> bool:
+	for n in range(1, SLOT_COUNT + 1):
+		if slot_has_save(n):
+			return true
+	return false
+
+
+## O resumo que a tela de saves mostra, lido do arquivo SEM carregar o jogo:
+## {nivel, memorias, mortes, area, tempo, aparencia, chefes}. Vazio = slot livre.
+func slot_summary(n: int) -> Dictionary:
+	var data := _read_save(slot_path(n))
+	if data.is_empty():
+		data = _read_save(slot_path(n) + ".bak")
+	if data.is_empty():
+		return {}
+	var total := 0
+	var saved_attributes: Variant = data.get("attributes", {})
+	for attribute in StatsComponent.ATTRIBUTE_NAMES:
+		total += int((saved_attributes as Dictionary).get(attribute, StatsComponent.BASE_ATTRIBUTE)) if saved_attributes is Dictionary else StatsComponent.BASE_ATTRIBUTE
+	var rest := str(data.get("rest_scene", START_SCENE))
+	var area := str(capsule_info(rest).get("name", ""))
+	if area.is_empty():
+		area = "Complexo das Cápsulas" if rest == START_SCENE else "?"
+	var bosses: Variant = data.get("defeated_bosses", [])
+	return {
+		"nivel": total - StatsComponent.ATTRIBUTE_NAMES.size() * StatsComponent.BASE_ATTRIBUTE + 1,
+		"memorias": int(data.get("memories", 0)),
+		"mortes": int(data.get("deaths", 0)),
+		"area": area,
+		"tempo": float(data.get("play_seconds", 0.0)),
+		"aparencia": Appearance.sanitized(data.get("appearance", {})),
+		"pecados": SEVEN.filter(func(id): return (bosses as Array).has(id)).size() if bosses is Array else 0,
+	}
+
+
+## "12:05" (horas:minutos) para a tela de saves.
+static func format_play_time(seconds: float) -> String:
+	var minutes := int(seconds) / 60
+	return "%d:%02d" % [minutes / 60, minutes % 60]
+
+
+## Versões antigas tinham UM save. Ele vira o slot 1 (nada se perde).
+func _migrate_single_save() -> void:
+	if not persistence_enabled:
+		return
+	for suffix in ["", ".bak"]:
+		var old: String = SAVE_PATH + suffix
+		var new: String = slot_path(1) + suffix
+		if FileAccess.file_exists(old) and not FileAccess.file_exists(new):
+			DirAccess.rename_absolute(_absolute(old), _absolute(new))
+
+
 # --- Persistência (JSON) ---------------------------------------------------------------------
 
 func has_save() -> bool:
@@ -873,7 +1075,9 @@ func _to_dict() -> Dictionary:
 		"equipped_weapon": equipped_weapon,
 		"collected_pickups": collected_pickups.duplicate(),
 		"capsules": capsules.duplicate(),
+		"play_seconds": play_seconds,
 		"flags": flags.duplicate(),
+		"shop_bought": shop_bought.duplicate(),
 		"appearance": appearance.duplicate(),
 	}
 
@@ -921,6 +1125,11 @@ func _from_dict(data: Dictionary) -> void:
 			var item := Items.get_item(item_id)
 			if item and item.kind == ItemData.Kind.LEMBRANCA and not inventory.has(item_id):
 				inventory[item_id] = 1
+	play_seconds = maxf(float(data.get("play_seconds", 0.0)), 0.0)
+	var saved_shop: Variant = data.get("shop_bought", {})
+	if typeof(saved_shop) == TYPE_DICTIONARY:
+		for item_id in saved_shop:
+			shop_bought[str(item_id)] = maxi(int(saved_shop[item_id]), 0)
 	var saved_capsules: Variant = data.get("capsules", [])
 	if typeof(saved_capsules) == TYPE_ARRAY:
 		for scene_path in saved_capsules:

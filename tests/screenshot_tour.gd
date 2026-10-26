@@ -53,6 +53,22 @@ func _ready() -> void:
 		await _tour_guard()
 		Game.quit_game()
 		return
+	if only == "limpo":
+		Settings.controller_mode = true
+		Settings.pad_legend = false
+		Settings.apply()
+		Game.reset_progress()
+		Game.pending_spawn = "porta"
+		var clean_level := await open("res://scenes/world/cidade.tscn") as Level
+		await wait(3.4)
+		await shot("l01_modo_limpo")
+		clean_level.queue_free()
+		Game.quit_game()
+		return
+	if only == "balcao":
+		await _tour_shop()
+		Game.quit_game()
+		return
 	if only == "descanso":
 		await _tour_rest()
 		Game.quit_game()
@@ -208,7 +224,7 @@ func _tour() -> void:
 	Game.add_item("lembranca_aldir", 1, false)
 	level._on_dialogue_action("melhorar_arma")
 	await wait(0.4)
-	level.hud.smith_menu._upgrade_button.pressed.emit()
+	level.hud.smith_menu.upgrade()
 	await wait(0.5)
 	await shot("08a_forja")
 	level.hud.smith_menu._closed.emit()
@@ -1239,6 +1255,83 @@ func _tour_options() -> void:
 	level.queue_free()
 
 
+func _tour_shop() -> void:
+	# Saves (3 slots) com personagens diferentes.
+	Game.slot_prefix = "user://tour_slot_"
+	Game.persistence_enabled = true
+	var looks := [{"sexo": 0, "corpo": 1, "rosto": 1, "cabelo": 2}, {}, {"sexo": 1, "corpo": 0, "rosto": 2, "cabelo": 1}]
+	for n in [1, 3]:
+		Game.reset_progress()
+		Game.use_slot(n)
+		Game.appearance = looks[n - 1]
+		Game.memories = 1234 * n
+		Game.deaths = 7 * n
+		Game.rest_scene = "res://scenes/world/cidade.tscn" if n == 1 else "res://scenes/world/forjas.tscn"
+		Game.defeated_bosses.append_array(["helena", "aldir"] if n == 1 else ["helena", "aldir", "nyssa", "mabel"])
+		Game.play_seconds = 3600.0 * n + 900.0
+		Game.save_game()
+	Game.persistence_enabled = false
+	var title := await open("res://scenes/ui/title_screen.tscn")
+	title.show_menu()
+	await wait(0.6)
+	title.open_slots("carregar")
+	await wait(0.5)
+	await shot("s01_carregar_save")
+	title._slots.picked.emit(0)
+	await wait(0.3)
+	title.open_slots("novo")
+	await wait(0.3)
+	title._slots._cards[0].pressed.emit()
+	await wait(0.3)
+	await shot("s02_novo_jogo_confirmar")
+	title.queue_free()
+	for n in range(1, 4):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.slot_path(n)))
+	# Loja e Ferreiro.
+	Game.reset_progress()
+	Game.memories = 4200
+	Game.add_item("sucata_temperada", 6, false)
+	Game.add_item("fragmento_turvo", 2, false)
+	Game.add_item("lembranca_helena", 1, false)
+	Game.add_item("lembranca_aldir", 1, false)
+	Game.add_item("lamina_desolada", 2, false)
+	Game.pending_spawn = "camara"
+	var level := await open("res://scenes/world/teatro.tscn") as Level
+	await wait(1.0)
+	level._on_dialogue_action("loja")
+	await wait(0.4)
+	await shot("s03_loja_comprar")
+	level.hud.shop_menu.set_tab(1)
+	level.hud.shop_menu.select("lamina_desolada")
+	await wait(0.3)
+	await shot("s04_loja_vender")
+	level.hud.shop_menu.close()
+	await wait(0.3)
+	level._on_dialogue_action("melhorar_arma")
+	await wait(0.4)
+	await shot("s05_ferreiro_reforcar")
+	level.hud.smith_menu.set_tab(1)
+	level.hud.smith_menu.select("pilar_estilhacada")
+	await wait(0.3)
+	await shot("s06_ferreiro_forjar")
+	level.hud.smith_menu.select("arco_sono")
+	await wait(0.3)
+	await shot("s07_ferreiro_sem_lembranca")
+	level.hud.smith_menu.close()
+	# Arma de chefe caída no chão.
+	Enemy.weapon_drop_chance = 1.0
+	var soldier := (load("res://scenes/enemies/soldado_remendado.tscn") as PackedScene).instantiate() as Enemy
+	soldier.position = level.player.position + Vector2(30, 10)
+	level.add_child(soldier)
+	await wait(0.2)
+	soldier.stats.take_damage(9999.0)
+	await wait(1.2)
+	await shot("s08_arma_no_chao")
+	Enemy.weapon_drop_chance = 0.03
+	level.queue_free()
+	Game.reset_progress()
+
+
 func _tour_rest() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
@@ -1345,12 +1438,12 @@ func _tour_weapons() -> void:
 	await wait(0.4)
 	var smith := level.hud.smith_menu
 	smith.set_tab(1)
-	smith._select_forge("pilar_estilhacada")
+	smith.select("pilar_estilhacada")
 	await wait(0.3)
 	await shot("w01_forja_lembranca")
 	for id in ["lamina_desolada", "pilar_estilhacada", "arco_sono", "presas_voragem", "replicador_bronze"]:
 		Game.try_forge_weapon(id)
-	smith._select_forge("presa_caelis")
+	smith.select("presa_caelis")
 	await wait(0.3)
 	await shot("w02_forja_sem_lembranca")
 	smith._closed.emit()

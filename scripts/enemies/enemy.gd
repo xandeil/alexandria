@@ -302,11 +302,33 @@ func _on_died() -> void:
 
 ## Sorte também ajuda aqui (+2% de chance relativa por ponto acima de 10).
 func _try_drop() -> void:
+	var luck := 1.0 + (int(Game.attributes.get("sorte", 10)) - 10) * 0.02
+	_try_weapon_drop(luck)
 	if drop_item.is_empty() or drop_chance <= 0.0:
 		return
-	var luck := 1.0 + (int(Game.attributes.get("sorte", 10)) - 10) * 0.02
 	if randf() < drop_chance * luck:
 		ItemPickup.drop(get_parent(), global_position, drop_item, drop_count)
+
+
+# --- Armas de chefe no chão (v0.23) ----------------------------------------------------------
+## Chance de um inimigo COMUM deixar cair uma arma de chefe (3%, a Sorte aumenta).
+## static var (e não const): os testes sobem para 1.0 sem depender da sorte.
+static var weapon_drop_chance := 0.03
+
+
+## Chefes e mini-chefes não entram (eles já deixam Lembranças e materiais).
+## A arma sorteada é uma das que você ainda não tem DUAS (uma para cada mão).
+func _try_weapon_drop(luck: float) -> void:
+	if self is Boss or randf() >= weapon_drop_chance * luck:
+		return
+	var weapon_id := Enemy.pick_weapon_drop()
+	if not weapon_id.is_empty():
+		ItemPickup.drop(get_parent(), global_position + Vector2(6, 0), weapon_id, 1)
+
+
+static func pick_weapon_drop() -> String:
+	var options := Game.forgeable_weapons().filter(func(id): return Game.weapon_count(id) < 2)
+	return "" if options.is_empty() else str(options.pick_random())
 
 
 ## "A humanidade era extraída e transformada em líquido": o corpo derrete em branco.

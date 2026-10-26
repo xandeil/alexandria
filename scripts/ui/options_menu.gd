@@ -32,7 +32,7 @@ func _ready() -> void:
 	_add_stepper(box, "efeitos", "Efeitos", func(d): Settings.step_sfx(d))
 	_add_stepper(box, "ambiente", "Música e ambiente", func(d): Settings.step_ambience(d))
 	_add_toggle(box, "vibracao", func(): Settings.toggle_vibration())
-	_add_toggle(box, "controle", func(): Settings.toggle_controller_mode())
+	_add_toggle(box, "controle", func(): Settings.cycle_controls())
 	_add_toggle(box, "botoes", func(): Settings.cycle_button_size())
 	_add_toggle(box, "dicas", func(): Settings.toggle_hints())
 	_back_button = DSMenuButton.make("Voltar")
@@ -102,7 +102,11 @@ func _refresh() -> void:
 	(_rows["efeitos"] as Label).text = "%d%%" % roundi(Settings.sfx_volume * 100.0)
 	(_rows["ambiente"] as Label).text = "%d%%" % roundi(Settings.ambience_volume * 100.0)
 	(_rows["vibracao"] as Button).text = "Vibração: %s" % ("ligada" if Settings.vibration else "desligada")
-	(_rows["controle"] as Button).text = "Modo controle: %s" % ("ligado (botões do PlayStation)" if Settings.controller_mode else "desligado (toque)")
+	(_rows["controle"] as Button).text = "Controles: %s" % {
+		"toque": "Toque (botões na tela)",
+		"controle": "Controle (legenda do PlayStation)",
+		"limpo": "Limpo (nada na tela)",
+	}[Settings.controls_mode()]
 	(_rows["botoes"] as Button).text = "Botões de toque: %s" % Settings.button_size
 	(_rows["botoes"] as Button).disabled = Settings.controller_mode  # sem toque, o tamanho não importa
 	(_rows["dicas"] as Button).text = "Dicas: %s" % ("ligadas" if Settings.hints else "desligadas")

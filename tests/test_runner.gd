@@ -79,6 +79,10 @@ func _ready() -> void:
 	Game.persistence_enabled = false
 	Settings.persistence_enabled = false  # nunca grava opções no aparelho de quem roda os testes
 	Game.save_path = TEST_SAVE
+	Game.slot_prefix = "user://teste_slot_"  # os 3 saves dos testes nunca tocam nos seus
+	for n in range(1, Game.SLOT_COUNT + 1):
+		for suffix in ["", ".bak", ".tmp"]:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.slot_path(n) + suffix))
 	Game.scene_changes_enabled = false  # Game.travel() & cia. só anotam o pedido
 	Game.delete_save()
 	Sfx.muted = true
@@ -220,6 +224,11 @@ func _ready() -> void:
 		"test_sprint_hold_circle",
 		"test_rest_menu_and_travel",
 		"test_rest_menu_pad_navigation",
+		"test_save_slots",
+		"test_title_with_slots",
+		"test_weapon_drops",
+		"test_shop_buy_and_sell",
+		"test_clean_controls_mode",
 		"test_pad_confirms_menus",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
@@ -1862,12 +1871,13 @@ func test_smith_upgrade() -> void:
 	check(find_npc("ferreiro,ferreiro_forja") != null, "Ferreiro no Teatro com as duas falas")
 	level._on_dialogue_action("melhorar_arma")
 	await frames(2)
-	check(level.hud.smith_menu.visible and not level.hud.smith_menu._upgrade_button.disabled, "forja aberta, botão Melhorar ativo")
-	level.hud.smith_menu._upgrade_button.pressed.emit()
-	await frames(1)
+	var smith := level.hud.smith_menu
+	check(smith.visible and smith._tab == 0 and not smith._slots.is_empty(), "forja aberta na aba Reforçar")
+	await _pad_press(JOY_BUTTON_A)  # ✕ no espaço da espada = reforçar
 	check(Game.weapon_level == 1 and Game.memories == 50, "melhorou pela forja (nível %d, memórias %d)" % [Game.weapon_level, Game.memories])
-	check(level.hud.smith_menu._upgrade_button.disabled, "sem recursos: botão desativa")
-	level.hud.smith_menu._close_button.pressed.emit()
+	check(not smith.upgrade() and Game.weapon_level == 1, "sem recursos: não reforça")
+	check(smith.detail_status.text.contains("memórias") or smith.detail_status.text.contains("Sucata"), "e o Ferreiro diz o que falta")
+	smith._close_button.pressed.emit()
 	await frames(2)
 	check(not level.hud.smith_menu.visible, "Sair fecha a forja")
 	level.queue_free()
@@ -4245,7 +4255,10 @@ func test_character_creation_screen() -> void:
 	check(title._creation != null and title._creation.is_inside_tree(), "Novo jogo abre a criação")
 	title._creation.cancelled.emit()
 	await frames(2)
-	check(title._creation == null and title._menu.visible, "Voltar retorna ao menu")
+	check(title._creation == null and title._slots != null, "Voltar retorna à escolha de save")
+	title._slots.picked.emit(0)
+	await frames(2)
+	check(title._slots == null and title._menu.visible, "e dali ao menu")
 	title.queue_free()
 	await frames(2)
 
@@ -4538,14 +4551,15 @@ func test_smith_forge_tab() -> void:
 	menu.run(player)
 	await frames(1)
 	menu.set_tab(1)
-	check(menu._forge_page.visible and not menu._upgrade_page.visible, "aba Forjar")
-	menu._select_forge("lamina_desolada")
-	check(menu._forge_button.disabled and menu._forge_name.text == "???", "sem a Lembrança: arma desconhecida")
-	menu._select_forge("arco_sono")
-	check(not menu._forge_button.disabled and menu._forge_name.text == "Arco do Sono Eterno", "com a Lembrança da Nyssa: pode forjar")
-	menu._forge()
+	var ids := menu._slots.map(func(b): return b.get_meta("id"))
+	check(ids.size() == 9 and ids[0] == "espada", "aba Forjar: a espada (cópia) e as 8 de chefe")
+	menu.select("lamina_desolada")
+	check(menu.detail_name.text == "???" and not menu.forge("lamina_desolada"), "sem a Lembrança: arma desconhecida e não forja")
+	menu.select("arco_sono")
+	check(menu.detail_name.text == "Arco do Sono Eterno" and menu.detail_extra.get_child_count() >= 2, "com a Lembrança da Nyssa: ficha com escalas e custos")
+	check(menu.forge("arco_sono"), "forjou")
 	check(Game.has_item("arco_sono") and Game.has_item("lembranca_nyssa"), "forjou o arco (a Lembrança fica)")
-	check(menu._forge_button.disabled, "já forjada: botão apaga")
+	check(menu.detail_name.text.contains("cópia"), "a próxima seria a cópia (uma para cada mão)")
 	menu._closed.emit()
 	await frames(1)
 	menu.queue_free()
@@ -4863,14 +4877,18 @@ func test_pad_menus_never_stuck() -> void:
 	check(focus is DSMenuButton and title._menu.is_ancestor_of(focus), "qualquer botão do controle seleciona o primeiro item")
 	UIStyle.focus_first([title._new_game_button])
 	await _pad_press(JOY_BUTTON_A)
-	check(title._creation != null, "✕ confirma: 'Novo jogo' abre a criação")
+	check(title._slots != null, "✕ confirma: 'Novo jogo' abre a escolha de save")
+	await _pad_press(JOY_BUTTON_A)  # slot 1 (vazio)
+	check(title._creation != null, "✕ no slot vazio: criação de personagem")
 	get_viewport().gui_release_focus()
 	await _pad_press(JOY_BUTTON_A)
 	await _pad_press(JOY_BUTTON_A)
 	check(title._creation != null and title._creation.look["sexo"] != 0 or get_viewport().gui_get_focus_owner() != null, "na criação o ✕ também funciona")
 	# ○ volta (ui_cancel).
 	await _pad_press(JOY_BUTTON_B)
-	check(title._creation == null and title._menu.visible, "○ volta da criação para o menu")
+	check(title._creation == null and title._slots != null, "○ volta da criação para a escolha de save")
+	await _pad_press(JOY_BUTTON_B)
+	check(title._slots == null and title._menu.visible, "○ de novo volta ao menu")
 	title.queue_free()
 	await frames(2)
 	# No jogo, sem menu aberto, o PadMenus não rouba o ✕ (ele é "interagir").
@@ -5020,3 +5038,205 @@ func test_rest_menu_pad_navigation() -> void:
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
+
+
+
+# --- v0.23: 3 saves, armas no chão, loja e Ferreiro novos -------------------------------------
+
+func _clear_test_slots() -> void:
+	for n in range(1, Game.SLOT_COUNT + 1):
+		for suffix in ["", ".bak", ".tmp"]:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.slot_path(n) + suffix))
+
+
+func test_save_slots() -> void:
+	_clear_test_slots()
+	var keep_path := Game.save_path
+	Game.persistence_enabled = true
+	Settings.persistence_enabled = false
+	check(not Game.any_save() and Game.slot_summary(1).is_empty(), "sem saves: os 3 slots vazios")
+	# Slot 2: um personagem.
+	Game.reset_progress()
+	Game.use_slot(2)
+	Game.memories = 777
+	Game.deaths = 3
+	Game.attributes["forca"] = 15
+	Game.appearance = {"sexo": 1, "corpo": 2, "rosto": 0, "cabelo": 3}
+	Game.rest_scene = "res://scenes/world/cidade.tscn"
+	Game.defeated_bosses.append("aldir")
+	Game.play_seconds = 3725.0
+	Game.save_game()
+	# Slot 3: outro personagem.
+	Game.reset_progress()
+	Game.use_slot(3)
+	Game.memories = 5
+	Game.save_game()
+	check(Game.any_save() and not Game.slot_has_save(1) and Game.slot_has_save(2) and Game.slot_has_save(3), "cada slot é um arquivo")
+	var info := Game.slot_summary(2)
+	check(info["memorias"] == 777 and info["mortes"] == 3 and info["nivel"] == 6, "resumo do slot 2 (sem carregar o jogo)")
+	check(info["area"] == "Cidade Estilhaçada" and info["pecados"] == 1, "onde parou e quantos Pecados caíram")
+	check(Game.format_play_time(info["tempo"]) == "1:02", "tempo de jogo 1:02")
+	check(info["aparencia"]["sexo"] == 1, "a aparência do personagem daquele save")
+	# Carregar o slot 2 não mexe no 3.
+	Game.use_slot(2)
+	Game.load_game()
+	check(Game.memories == 777, "carregou o slot 2")
+	Game.use_slot(3)
+	Game.load_game()
+	check(Game.memories == 5, "o slot 3 continua o dele")
+	Game.delete_save()
+	check(not Game.slot_has_save(3) and Game.slot_has_save(2), "apagar um slot não apaga os outros")
+	# Migração: o save único das versões antigas vira o slot 1.
+	var legacy := ProjectSettings.globalize_path("user://teste_legado.json")
+	var file := FileAccess.open(legacy, FileAccess.WRITE)
+	file.store_string(JSON.stringify({"version": 3, "memories": 42}))
+	file.close()
+	check(Game.slot_summary(1).is_empty(), "slot 1 vazio antes da migração")
+	DirAccess.rename_absolute(legacy, ProjectSettings.globalize_path(Game.slot_path(1)))  # o que _migrate_single_save faz
+	check(Game.slot_summary(1)["memorias"] == 42, "o save antigo aparece no slot 1")
+	Game.persistence_enabled = false
+	_clear_test_slots()
+	Game.save_path = keep_path
+	Game.reset_progress()
+
+
+func test_title_with_slots() -> void:
+	_clear_test_slots()
+	Game.persistence_enabled = true
+	Game.reset_progress()
+	Game.use_slot(2)
+	Game.memories = 900
+	Game.save_game()
+	Game.persistence_enabled = false
+	var title := (load("res://scenes/ui/title_screen.tscn") as PackedScene).instantiate()
+	add_child(title)
+	await frames(2)
+	title.show_menu()
+	var labels: Array = title._menu.get_children().map(func(b): return (b as Button).text)
+	check(labels.has("Carregar") and labels.has("Novo jogo"), "título com Carregar: %s" % [labels])
+	title.open_slots("carregar")
+	await frames(2)
+	var slots: SlotMenu = title._slots
+	check(slots._cards[0].disabled and not slots._cards[1].disabled and slots._cards[2].disabled, "Carregar: só o slot com save")
+	check(get_viewport().gui_get_focus_owner() == slots._cards[1], "o foco vai direto no save que existe")
+	slots._cancel()
+	await frames(2)
+	# Novo jogo num slot OCUPADO pede confirmação.
+	title.open_slots("novo")
+	await frames(2)
+	slots = title._slots
+	check(not slots._cards[0].disabled and get_viewport().gui_get_focus_owner() == slots._cards[0], "Novo jogo: começa no primeiro slot livre")
+	slots._cards[1].pressed.emit()
+	await frames(1)
+	check(title._slots != null and title._creation == null and slots._hint.text.contains("APAGADO"), "slot ocupado: avisa que vai apagar")
+	slots._cards[1].pressed.emit()
+	await frames(2)
+	check(title._creation != null and title._new_slot == 2, "apertou de novo: vai criar no slot 2")
+	title.queue_free()
+	await frames(2)
+	_clear_test_slots()
+	Game.save_path = TEST_SAVE
+	Game.reset_progress()
+
+
+func test_weapon_drops() -> void:
+	Game.reset_progress()
+	var chance := Enemy.weapon_drop_chance
+	check(is_equal_approx(chance, 0.03), "3% de chance por inimigo comum")
+	Enemy.weapon_drop_chance = 1.0  # sorte garantida, só para o teste
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(200, 200))
+	await frames(2)
+	soldier.stats.take_damage(9999.0)
+	await frames(3)
+	var drops := _world.get_children().filter(func(n): return n is ItemPickup and Items.get_weapon(n.item_id) != null)
+	check(drops.size() == 1 and Game.forgeable_weapons().has(drops[0].item_id), "o soldado deixou uma arma de chefe: %s" % [drops.map(func(d): return d.item_id)])
+	(drops[0] as ItemPickup).take()
+	check(Game.owns_weapon(drops[0].item_id), "pegou: a arma vai para o inventário")
+	# Chefe não deixa arma por sorte (já deixa Lembrança).
+	var boss := Boss.new()
+	check(boss is Boss, "chefes ficam de fora")
+	boss.free()
+	# Já tem duas de todas: nada para sortear.
+	for id in Game.forgeable_weapons():
+		Game.add_item(id, 2, false)
+	check(Enemy.pick_weapon_drop() == "", "com duas de cada, nenhuma arma cai")
+	Enemy.weapon_drop_chance = chance
+	Game.reset_progress()
+
+
+func test_shop_buy_and_sell() -> void:
+	Game.reset_progress()
+	Game.memories = 3000
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	check(DialogueData.get_entry("vendedor")["opcoes"][0]["acao"] == "loja", "o Vendedor oferece 'Negociar'")
+	level._on_dialogue_action("loja")
+	await frames(2)
+	var shop := level.hud.shop_menu
+	check(shop.visible, "a loja abre")
+	var ids := shop._slots.map(func(b): return b.get_meta("id"))
+	check(ids == ["frasco_sanidade", "sucata_temperada", "fragmento_turvo"], "estoque com imagem: %s" % [ids])
+	check(shop._slots[0].icon != null and shop.detail_icon.texture != null, "cada item tem imagem (na grade e na ficha)")
+	var flasks := Game.sanity_flasks
+	shop.select("frasco_sanidade")
+	shop._activate("frasco_sanidade")
+	check(Game.sanity_flasks == flasks + 1 and Game.memories == 3000 - Game.SANITY_FLASK_PRICE, "comprou Frasco de Sanidade")
+	shop._activate("fragmento_turvo")
+	shop._activate("fragmento_turvo")
+	shop._activate("fragmento_turvo")
+	check(Game.shop_left("fragmento_turvo") == 0 and Game.shop_block_reason("fragmento_turvo") in ["esgotado", "memories"], "fragmentos têm limite")
+	Game.memories = 5000
+	check(Game.shop_block_reason("fragmento_turvo") == "esgotado" and not Game.buy_from_shop("fragmento_turvo"), "esgotou: não vende mais")
+	# Vender.
+	shop.set_tab(1)
+	var sell_ids := shop._slots.map(func(b): return b.get_meta("id"))
+	check(sell_ids.has("fragmento_turvo"), "aba Vender: o que dá para vender")
+	var before := Game.memories
+	shop._activate("fragmento_turvo")
+	check(Game.memories == before + Game.sell_price("fragmento_turvo") and Game.item_count("fragmento_turvo") == 2, "vendeu um fragmento")
+	Game.add_item("lembranca_aldir", 1, false)
+	Game.add_item("pilar_estilhacada", 1, false)
+	Game.equip_weapon("pilar_estilhacada")
+	check(Game.sell_price("lembranca_aldir") == 0 and not Game.sell_to_shop("lembranca_aldir"), "Lembranças não se vendem")
+	check(not Game.sell_to_shop("pilar_estilhacada"), "a arma na mão não se vende")
+	Game.add_item("pilar_estilhacada", 1, false)
+	check(Game.sell_to_shop("pilar_estilhacada") and Game.weapon_count("pilar_estilhacada") == 1, "a cópia que sobra, sim")
+	# Desconto depois da Rachel.
+	Game.defeated_bosses.append("rachel")
+	check(Game.shop_price("sucata_temperada") == int(round(Game.SUCATA_PRICE * 0.8)), "depois da Rachel, ele vende mais barato")
+	shop.close()
+	await frames(2)
+	check(not shop.visible and not get_tree().paused, "Sair fecha a loja")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+
+## Terceiro jeito de jogar (v0.24): Limpo — controle sem NADA na tela.
+func test_clean_controls_mode() -> void:
+	var saved := [Settings.controller_mode, Settings.pad_legend]
+	Settings.controller_mode = false
+	Settings.pad_legend = true
+	var level := await open_level(CIDADE, "porta")
+	var touch := level.hud.touch
+	check(Settings.controls_mode() == "toque" and touch._root.visible, "começa no Toque")
+	Settings.cycle_controls()
+	check(Settings.controls_mode() == "controle" and touch.pad_hints.visible and not touch._root.visible, "Controle: legenda do PlayStation")
+	Settings.cycle_controls()
+	check(Settings.controls_mode() == "limpo", "Limpo")
+	check(not touch._root.visible and not touch.pad_hints.visible, "Limpo: nem botões de toque nem legenda")
+	check(not level.hud.pause_button.visible, "Limpo: nem o botão de pausa")
+	check(Settings.controller_mode and TutorialHints.text_for("esquivar").contains("○"), "as dicas continuam falando do controle")
+	var options := OptionsMenu.new()
+	add_child(options)
+	await frames(1)
+	options._refresh()
+	check((options._rows["controle"] as Button).text.contains("Limpo"), "as Opções mostram o modo: %s" % (options._rows["controle"] as Button).text)
+	options.queue_free()
+	Settings.cycle_controls()
+	check(Settings.controls_mode() == "toque" and touch._root.visible and level.hud.pause_button.visible, "e volta para o Toque")
+	level.queue_free()
+	await frames(2)
+	Settings.controller_mode = saved[0]
+	Settings.pad_legend = saved[1]
+	Settings.apply()

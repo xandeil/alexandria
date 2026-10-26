@@ -22,6 +22,9 @@ var hints := true
 ## Modo controle: some os botões de toque e aparecem, discretos, os botões do
 ## controle (padrão PlayStation) no lugar deles.
 var controller_mode := false
+## No modo controle: mostrar a legenda dos botões do PlayStation? false = modo
+## LIMPO (nada de botão na tela; a tela fica só com o jogo).
+var pad_legend := true
 ## Testes e o passeio de fotos não gravam opções no aparelho.
 var persistence_enabled := true
 
@@ -57,6 +60,7 @@ func load_settings() -> void:
 	button_size = size if BUTTON_SIZES.has(size) else "Médios"
 	hints = bool(config.get_value("jogo", "dicas", hints))
 	controller_mode = bool(config.get_value("toque", "modo_controle", controller_mode))
+	pad_legend = bool(config.get_value("toque", "legenda_controle", pad_legend))
 
 
 func save_settings() -> void:
@@ -69,6 +73,7 @@ func save_settings() -> void:
 	config.set_value("toque", "botoes", button_size)
 	config.set_value("jogo", "dicas", hints)
 	config.set_value("toque", "modo_controle", controller_mode)
+	config.set_value("toque", "legenda_controle", pad_legend)
 	config.save(PATH)
 	_loaded_from_file = true
 
@@ -118,6 +123,28 @@ func toggle_vibration() -> void:
 func toggle_controller_mode() -> void:
 	controller_mode = not controller_mode
 	_commit()
+
+
+## Os 3 jeitos de jogar, em ciclo: Toque → Controle (com legenda) → Limpo → Toque.
+## Limpo = controle SEM legenda: a tela mostra só o jogo (e a barra de vida).
+func cycle_controls() -> void:
+	match controls_mode():
+		"toque":
+			controller_mode = true
+			pad_legend = true
+		"controle":
+			controller_mode = true
+			pad_legend = false
+		_:
+			controller_mode = false
+			pad_legend = true
+	_commit()
+
+
+func controls_mode() -> String:
+	if not controller_mode:
+		return "toque"
+	return "controle" if pad_legend else "limpo"
 
 
 func toggle_hints() -> void:
