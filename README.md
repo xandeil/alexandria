@@ -162,6 +162,10 @@ Este projeto é a primeira **fatia vertical** jogável, montada a partir da
 - **Menu da Câmara e viagem (v0.22):** descansar abre o menu de descanso: à esquerda o SEU personagem (a aparência da criação) desce na cápsula e a tampa fecha; à direita, as Câmaras já desbloqueadas, cada uma com a miniatura da região (montada com os tiles dela). Escolher uma = viajar: você acorda dentro da outra cápsula e passa a renascer lá. Uma Câmara desbloqueia quando você descansa nela; o Teatro já vem aberto depois do Prólogo. ○ ou "Levantar" fecha.
 - **Correção (v0.22.1):** no menu da Câmara, com menos de 4 Câmaras (uma linha só), o → do controle pulava para o "Levantar" e não deixava escolher as outras. Agora ←/→ passam por todas (dando a volta), ↓ vai para o "Levantar", e a Câmara onde você está nem recebe foco.
 - **Mapa-múndi:** `tools/map/render_map.tscn` fotografa cada região inteira dentro do próprio Godot e `tools/map/compose_world_map.py` monta o mapa do mundo, com as ilhas ligadas pelas saídas reais de cada fase.
+- **3 saves (v0.23), como nos soulslike:** cada slot é um personagem. A tela de saves mostra o personagem (a aparência da criação), o nível, onde parou, memórias, mortes, quantos Pecados caíram e o tempo de jogo. Título: **Continuar** (o último save usado), **Carregar** (escolher um dos 3) e **Novo jogo** (escolher o slot; num slot ocupado é preciso confirmar, porque ele é apagado). O save único das versões antigas vira o slot 1 sozinho.
+- **Armas de chefe no chão (v0.23):** todo inimigo COMUM tem 3% de chance (a Sorte aumenta) de deixar cair uma das 8 armas de chefe que você ainda não tem duas. A arma caída brilha mais forte que os outros itens.
+- **Loja do Vendedor (v0.23):** "Negociar" abre a loja, no estilo do inventário, com o retrato dele: **Comprar** (Frasco de Sanidade, Sucata Temperada e Fragmento Turvo — este com só 3 no estoque) e **Vender** (sucata, fragmentos e cópias de armas que não estão na mão; Lembranças e o escudo não se vendem). Depois da Rachel, ele vende 20% mais barato.
+- **Ferreiro novo (v0.23):** mesmo estilo (retrato, abas Reforçar/Forjar, grade, ficha com letras de escala e custos com ícones). Loja e Ferreiro herdam da mesma base (`SoulsMenu`): só o conteúdo e a cor mudam.
 - **Inventário soulslike** (uma mistura nossa de DS1/2/3 com Lies of P): abas com L1/R1 (Q/E no teclado), grade de espaços com quantidade no canto e "E" de equipado, coluna EQUIPADO à esquerda, ficha à direita com Ataque leve/forte, tabela de letras FOR DES MAG FÉ SOR e a habilidade. A legenda do rodapé desenha os símbolos do PlayStation no modo controle.
 - **Correção:** derrotar um mini-chefe que tranca uma porta (a Mãe dos Esporos, o Banqueteiro, o Guardião) agora **abre a porta na hora**; antes era preciso sair e voltar.
 - **Morte:** "VOCÊ ESQUECEU" — perde metade das memórias, a visão escurece pelas bordas e cabelo/olhos clareiam a cada morte.
@@ -480,7 +484,7 @@ vitória inteira em 5% da velocidade — quase um congelamento de quase 1 s.
 godot --headless --fixed-fps 60 --path . res://tests/test_runner.tscn
 ```
 
-137 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
+141 grupos de teste cobrem: regras de estamina/Exaustão, a linha do tempo do
 Step and Anchor, que o golpe avança para frente mesmo com o joystick para trás,
 que nada atravessa parede (andar, golpe e dash), combo leve/forte, escudo do
 soldado (frente × costas × golpe forte), frascos, morte/memórias/visão, as 3

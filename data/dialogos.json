@@ -143,12 +143,8 @@
 		],
 		"opcoes": [
 			{
-				"texto": "Comprar Frasco de Sanidade (150)",
-				"acao": "comprar_sanidade"
-			},
-			{
-				"texto": "Comprar Sucata Temperada (200)",
-				"acao": "comprar_sucata"
+				"texto": "Negociar",
+				"acao": "loja"
 			},
 			{
 				"texto": "Sair",
@@ -448,12 +444,8 @@
 		],
 		"opcoes": [
 			{
-				"texto": "Comprar Frasco de Sanidade (150)",
-				"acao": "comprar_sanidade"
-			},
-			{
-				"texto": "Comprar Sucata Temperada (200)",
-				"acao": "comprar_sucata"
+				"texto": "Negociar",
+				"acao": "loja"
 			},
 			{
 				"texto": "Sair",
@@ -600,12 +592,8 @@
 		],
 		"opcoes": [
 			{
-				"texto": "Comprar Frasco de Sanidade (150)",
-				"acao": "comprar_sanidade"
-			},
-			{
-				"texto": "Comprar Sucata Temperada (200)",
-				"acao": "comprar_sucata"
+				"texto": "Negociar",
+				"acao": "loja"
 			},
 			{
 				"texto": "Sair",
@@ -622,12 +610,8 @@
 		],
 		"opcoes": [
 			{
-				"texto": "Comprar Frasco de Sanidade (150)",
-				"acao": "comprar_sanidade"
-			},
-			{
-				"texto": "Comprar Sucata Temperada (200)",
-				"acao": "comprar_sucata"
+				"texto": "Negociar",
+				"acao": "loja"
 			},
 			{
 				"texto": "Sair",

@@ -14,7 +14,9 @@ var _notice: Label
 var _press_any: Label
 var _options: OptionsMenu
 var _creation: CharacterCreation
-var _confirm_new := false
+var _slots: SlotMenu
+## Em qual slot o novo jogo vai começar (escolhido antes da criação de personagem).
+var _new_slot := 0
 var _time := 0.0
 var _waiting_any_key := true
 var _ash: Array[Vector3] = []  # x, y, velocidade (em fração da tela)
@@ -76,6 +78,10 @@ func _build() -> void:
 		_continue_button = DSMenuButton.make("Continuar")
 		_continue_button.pressed.connect(_on_continue)
 		_menu.add_child(_continue_button)
+	if Game.any_save():
+		var load_button := DSMenuButton.make("Carregar")
+		load_button.pressed.connect(func(): open_slots("carregar"))
+		_menu.add_child(load_button)
 	_new_game_button = DSMenuButton.make("Novo jogo")
 	_new_game_button.pressed.connect(_on_new_game)
 	_menu.add_child(_new_game_button)
@@ -181,7 +187,6 @@ func _on_continue() -> void:
 	# Save ilegível: o Game guardou uma cópia (".corrompido") e NÃO apagou nada.
 	_continue_button.queue_free()
 	_continue_button = null
-	_confirm_new = true  # não há mais progresso para "apagar"
 	_notice.text = "Não foi possível ler o save (uma cópia foi guardada). Comece um novo jogo."
 	_new_game_button.grab_focus()
 
@@ -189,17 +194,41 @@ func _on_continue() -> void:
 func _notification(what: int) -> void:
 	# Android: "voltar" na tela de título fecha o jogo (quit_on_go_back=false
 	# no projeto, então cada tela decide o que o botão faz).
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and _creation == null:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and _creation == null and _slots == null:
 		Game.quit_game()
 
 
+## Novo jogo → escolher o slot → criação de personagem → abertura → Prólogo.
+## A confirmação de "apagar" agora é na tela de saves (só se o slot estiver ocupado).
 func _on_new_game() -> void:
 	Sfx.play(&"ui_click")
-	if Game.has_save() and not _confirm_new:
-		_confirm_new = true
-		_new_game_button.text = "Apagar o progresso? Escolha de novo"
-		return
+	open_slots("novo")
+
+
+## Tela de saves por cima do título ("carregar" ou "novo").
+func open_slots(mode: String) -> void:
 	_menu.visible = false
+	_slots = SlotMenu.create(mode)
+	add_child(_slots)
+	_slots.picked.connect(func(n: int): _on_slot_picked(mode, n))
+
+
+func _on_slot_picked(mode: String, n: int) -> void:
+	_slots.queue_free()
+	_slots = null
+	if n == 0:  # Voltar
+		_menu.visible = true
+		UIStyle.focus_first(_menu.get_children())
+		return
+	if mode == "carregar":
+		Game.use_slot(n)
+		if Game.continue_game():
+			return
+		_notice.text = "Não foi possível ler o SAVE %d (uma cópia foi guardada)." % n
+		_menu.visible = true
+		_new_game_button.grab_focus()
+		return
+	_new_slot = n
 	open_creation()
 
 
@@ -215,15 +244,15 @@ func open_creation() -> void:
 func _on_creation_cancelled() -> void:
 	_creation.queue_free()
 	_creation = null
-	_menu.visible = true
-	_new_game_button.grab_focus()
+	open_slots("novo")  # Voltar da criação volta para a escolha do save
 
 
 func _on_creation_confirmed(look: Dictionary) -> void:
 	_creation.queue_free()
 	_creation = null
 	await _play_intro()
-	Game.delete_save()
+	Game.use_slot(_new_slot if _new_slot > 0 else Game.slot)
+	Game.delete_save()  # só o save DESTE slot (os outros dois ficam intactos)
 	Game.new_game(look)
 
 
