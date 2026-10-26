@@ -53,6 +53,18 @@ func _ready() -> void:
 		await _tour_guard()
 		Game.quit_game()
 		return
+	if only == "limpo":
+		Settings.controller_mode = true
+		Settings.pad_legend = false
+		Settings.apply()
+		Game.reset_progress()
+		Game.pending_spawn = "porta"
+		var clean_level := await open("res://scenes/world/cidade.tscn") as Level
+		await wait(3.4)
+		await shot("l01_modo_limpo")
+		clean_level.queue_free()
+		Game.quit_game()
+		return
 	if only == "balcao":
 		await _tour_shop()
 		Game.quit_game()

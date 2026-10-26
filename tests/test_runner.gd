@@ -228,6 +228,7 @@ func _ready() -> void:
 		"test_title_with_slots",
 		"test_weapon_drops",
 		"test_shop_buy_and_sell",
+		"test_clean_controls_mode",
 		"test_pad_confirms_menus",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
@@ -5208,3 +5209,34 @@ func test_shop_buy_and_sell() -> void:
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
+
+
+
+## Terceiro jeito de jogar (v0.24): Limpo — controle sem NADA na tela.
+func test_clean_controls_mode() -> void:
+	var saved := [Settings.controller_mode, Settings.pad_legend]
+	Settings.controller_mode = false
+	Settings.pad_legend = true
+	var level := await open_level(CIDADE, "porta")
+	var touch := level.hud.touch
+	check(Settings.controls_mode() == "toque" and touch._root.visible, "começa no Toque")
+	Settings.cycle_controls()
+	check(Settings.controls_mode() == "controle" and touch.pad_hints.visible and not touch._root.visible, "Controle: legenda do PlayStation")
+	Settings.cycle_controls()
+	check(Settings.controls_mode() == "limpo", "Limpo")
+	check(not touch._root.visible and not touch.pad_hints.visible, "Limpo: nem botões de toque nem legenda")
+	check(not level.hud.pause_button.visible, "Limpo: nem o botão de pausa")
+	check(Settings.controller_mode and TutorialHints.text_for("esquivar").contains("○"), "as dicas continuam falando do controle")
+	var options := OptionsMenu.new()
+	add_child(options)
+	await frames(1)
+	options._refresh()
+	check((options._rows["controle"] as Button).text.contains("Limpo"), "as Opções mostram o modo: %s" % (options._rows["controle"] as Button).text)
+	options.queue_free()
+	Settings.cycle_controls()
+	check(Settings.controls_mode() == "toque" and touch._root.visible and level.hud.pause_button.visible, "e volta para o Toque")
+	level.queue_free()
+	await frames(2)
+	Settings.controller_mode = saved[0]
+	Settings.pad_legend = saved[1]
+	Settings.apply()

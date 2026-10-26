@@ -92,7 +92,7 @@ func _apply_mode() -> void:
 	visible = _wanted
 	var pad := Settings.controller_mode
 	_root.visible = not pad
-	pad_hints.visible = pad
+	pad_hints.visible = pad and Settings.pad_legend  # modo Limpo: nem a legenda
 	if pad or not _wanted:
 		release_all()
 
