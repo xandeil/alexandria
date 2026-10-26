@@ -89,6 +89,10 @@ func _ready() -> void:
 		await _tour_options()
 		Game.quit_game()
 		return
+	if only == "armadura":
+		await _tour_armor()
+		Game.quit_game()
+		return
 	if only != "bosque":
 		await _tour()
 	await _tour_forest()
@@ -1454,12 +1458,12 @@ func _tour_weapons() -> void:
 	menu._select("pilar_estilhacada")
 	await wait(0.3)
 	await shot("w03_inventario_armas")
-	menu.set_tab(4)
+	menu.set_tab(5)
 	await wait(0.3)
 	await shot("w04_inventario_lembrancas")
 	Settings.controller_mode = true
 	Settings.apply()
-	menu.set_tab(2)
+	menu.set_tab(3)
 	await wait(0.3)
 	await shot("w05_inventario_frascos_controle")
 	Settings.controller_mode = false
@@ -1582,3 +1586,31 @@ func _tour_guard() -> void:
 	await shot("q03_o_sacrificio")
 	await wait(4.5)
 	await shot("q04_posto_vazio")
+
+
+## v0.25: o Traje da Vigília largado no palco e a aba Armadura do inventário.
+func _tour_armor() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.pending_spawn = "camara"
+	var level := await open("res://scenes/world/teatro.tscn") as Level
+	level.player.global_position = Vector2(9 * 16 + 8, 6 * 16)
+	await wait(1.2)
+	await shot("a01_traje_no_palco")
+	for set_id: String in ArmorSets.SETS:
+		for id in ArmorSets.pieces(set_id):
+			Game.add_item(id, 1, false)
+	for id in ["capacete_detentor", "peitoral_detentor", "luvas_detentor", "calca_caelis", "botas_caelis"]:
+		Game.equip_armor(id)
+	level.hud.open_inventory()
+	await wait(0.3)
+	var menu := level.hud.inventory_menu
+	menu.set_tab(InventoryMenu.TABS.find("Armadura"))
+	menu._select("botas_caelis")
+	await wait(0.3)
+	await shot("a02_inventario_armadura")
+	menu._select("peitoral_detentor")
+	await wait(0.2)
+	await shot("a03_ficha_detentor")
+	menu.close()
+	level.queue_free()

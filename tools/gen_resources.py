@@ -809,6 +809,54 @@ def item_resource(item_id: str, props: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --- Armaduras (v0.25) ----------------------------------------------------------------
+# 7 conjuntos x 5 pecas. Os NUMEROS dos efeitos moram em scripts/items/armor_sets.gd
+# (uma tabela so); aqui ficam nome, lore e icone de cada peca.
+ARMOR_SLOTS = [("capacete", "Capacete"), ("peitoral", "Peitoral"), ("luvas", "Luvas"), ("calca", "Calça"), ("botas", "Botas")]
+ARMOR_SETS = {
+    "vigilia": ("da Vigília", "Costurado para quem ficava acordado vigiando as cápsulas. O tecido ainda guarda o calor de noites inteiras sem dormir.",
+                "Escondido atrás da cortina do palco do Teatro."),
+    "detentor": ("do Detentor", "Aço da guarda pessoal do Aldir. Cada amassado é uma ordem que ele deu gritando.",
+                 "Largado na grama, no canto da Cidade."),
+    "sono": ("do Sono Leve", "As irmãs vestiam isto para velar o sono dos outros. Quem usa descansa entre um golpe e outro.",
+             "Num recanto escondido, no alto do Bosque."),
+    "banquete": ("do Banquete", "Avental, luvas e botas de quem servia a mesa da Mabel. Os bolsos nunca estão vazios.",
+                 "Na ponta da ilha, embaixo das Raízes."),
+    "eco": ("do Eco", "Forjada pelos dois irmãos a quatro mãos. Os golpes de quem a veste ecoam um pouco mais longe.",
+            "No canto do salão grande das Forjas."),
+    "caelis": ("de Caelis", "Escamas que a dragoa largou ao trocar de pele. Leves como um voo curto.",
+               "No fim da ala esquerda da Montanha."),
+    "arconte": ("do Arconte", "Bordado com fios de vitrine. Tudo o que toca, quer guardar — inclusive as memórias dos outros.",
+                "No corredor gelado sem saída do Domínio."),
+}
+ARMOR = {}
+for _set, (_suffix, _lore, _where) in ARMOR_SETS.items():
+    for _slot, _slot_name in ARMOR_SLOTS:
+        ARMOR[f"{_slot}_{_set}"] = dict(display_name=f"{_slot_name} {_suffix}", slot=_slot, set_id=_set,
+            icon=f"res://assets/items/armadura_{_set}_{_slot}.png", description=_lore)
+
+
+def armor_resource(item_id: str, a: dict) -> str:
+    lines = [
+        '[gd_resource type="Resource" script_class="ArmorData" load_steps=3 format=3]',
+        "",
+        '[ext_resource type="Script" path="res://scripts/items/armor_data.gd" id="1_script"]',
+        f'[ext_resource type="Texture2D" path="{a["icon"]}" id="2_icon"]',
+        "",
+        "[resource]",
+        'script = ExtResource("1_script")',
+        f"id = {gd_value(item_id)}",
+        f"display_name = {gd_value(a['display_name'])}",
+        f"description = {gd_value(a['description'])}",
+        "kind = 4",
+        'icon = ExtResource("2_icon")',
+        "max_stack = 1",
+        f"slot = {gd_value(a['slot'])}",
+        f"set_id = {gd_value(a['set_id'])}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def main() -> None:
     print("Golpes")
     for name, props in ATTACKS.items():
@@ -827,6 +875,9 @@ def main() -> None:
         if item_id in WEAPONS:
             continue  # armas sao escritas abaixo (WeaponData)
         write(f"data/items/{item_id}.tres", item_resource(item_id, props))
+    print("Armaduras")
+    for armor_id, props in ARMOR.items():
+        write(f"data/items/{armor_id}.tres", armor_resource(armor_id, props))
     print("Armas")
     for weapon_id, props in WEAPONS.items():
         write(f"data/items/{weapon_id}.tres", weapon_resource(weapon_id, props))

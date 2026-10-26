@@ -443,6 +443,7 @@ const PROPS := {
 @export var lore_points := {}
 ## Itens do chão: um por "@" do mapa, na ORDEM DE LEITURA (esquerda→direita,
 ## cima→baixo). Formato "id" ou "id:quantidade" — ex.: "sucata_temperada:2".
+## "conjunto:<id>" larga as 5 peças de um conjunto de armadura (ArmorSets).
 ## Pegos uma vez, não voltam (ficam no save com a posição: "cidade@13,3").
 @export var item_points: Array[String] = []
 ## Marque no Inspector para reconstruir o mapa dentro do editor.
@@ -1116,13 +1117,35 @@ func _add_item_pickup(x: int, y: int, feet: Vector2) -> void:
 		return
 	var spec := item_points[index].split(":")
 	var item_id := spec[0].strip_edges()
-	var amount := int(spec[1]) if spec.size() > 1 else 1
 	var key := "%s@%d,%d" % [layout_file.get_file().get_basename(), x, y]
+	if item_id == "conjunto":
+		_add_armor_set(spec[1].strip_edges() if spec.size() > 1 else "", key, feet)
+		return
+	var amount := int(spec[1]) if spec.size() > 1 else 1
+	_place_pickup(item_id, amount, key, feet)
+
+
+func _place_pickup(item_id: String, amount: int, key: String, at: Vector2) -> void:
 	if not Engine.is_editor_hint() and Game.is_pickup_collected(key):
 		return
 	var pickup := ItemPickup.create(item_id, amount, key)
-	pickup.position = feet
+	pickup.position = at
 	entities.add_child(pickup)
+
+
+## "conjunto:vigilia" no item_points: as CINCO peças de armadura largadas em
+## volta do ponto (um montinho de roupa). Cada peça tem a própria chave no
+## save ("teatro@5,2#botas"): pegar uma e morrer não faz as outras sumirem.
+const ARMOR_PILE := [Vector2(0, -7), Vector2(-9, -2), Vector2(9, -2), Vector2(-5, 6), Vector2(5, 6)]
+
+
+func _add_armor_set(set_id: String, key: String, feet: Vector2) -> void:
+	if not ArmorSets.exists(set_id):
+		push_warning("Level: conjunto de armadura desconhecido '%s'" % set_id)
+		return
+	for i in ArmorData.SLOTS.size():
+		var slot := ArmorData.SLOTS[i]
+		_place_pickup(ArmorSets.piece_id(slot, set_id), 1, "%s#%s" % [key, slot], feet + ARMOR_PILE[i])
 
 
 func _add_sky() -> void:

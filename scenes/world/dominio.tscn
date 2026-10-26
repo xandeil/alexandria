@@ -20,7 +20,7 @@ exit2_spawn = "porta"
 exit2_requires = "golem_arquivo"
 exit2_locked_dialogue = "porta_arconte"
 lore_points = {"1": "praca_congelada", "2": "lago_congelado", "3": "galeria_vitrines", "4": "porta_do_arconte"}
-item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:4"])
+item_points = Array[String](["fragmento_turvo", "conjunto:arconte", "sucata_temperada:3", "sucata_temperada:4"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

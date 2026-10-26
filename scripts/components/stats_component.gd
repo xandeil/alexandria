@@ -59,6 +59,11 @@ var is_dead := false
 
 ## Multiplicador de regeneração vindo de FORA (escudo erguido regenera devagar).
 var regen_scale := 1.0
+## Bônus PERMANENTES vindos do equipamento (armadura). Ficam separados do
+## regen_scale de cima porque aquele é temporário (o escudo liga e desliga) —
+## se os dois dividissem a mesma variável, abaixar o escudo apagaria a armadura.
+var health_scale := 1.0
+var regen_bonus := 1.0
 var _regen_delay_left := 0.0
 
 
@@ -74,7 +79,7 @@ func _physics_process(delta: float) -> void:
 
 ## Recalcula os máximos a partir dos atributos (chame ao subir de nível).
 func recalculate(refill: bool = false) -> void:
-	max_health = base_health + _scaled(vitalidade, health_per_vitalidade)
+	max_health = (base_health + _scaled(vitalidade, health_per_vitalidade)) * health_scale
 	max_stamina = base_stamina + _scaled(folego, stamina_per_folego)
 	if refill:
 		health = max_health
@@ -180,7 +185,7 @@ func _regenerate_stamina(delta: float) -> void:
 	if _regen_delay_left > 0.0:
 		_regen_delay_left -= delta
 		return
-	var rate := stamina_regen_per_second * regen_scale
+	var rate := stamina_regen_per_second * regen_scale * regen_bonus
 	if is_exhausted:
 		rate *= exhausted_regen_multiplier
 	stamina = minf(stamina + rate * delta, max_stamina)

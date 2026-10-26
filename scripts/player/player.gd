@@ -324,6 +324,7 @@ func _ready() -> void:
 	_build_off_hand()
 	equip_weapon(Game.current_weapon())
 	Game.weapon_changed.connect(func(_id: String): equip_weapon(Game.current_weapon()))
+	Game.armor_changed.connect(_on_armor_changed)  # método (não lambda): o herói morre e renasce, o Game fica
 	_last_safe_position = global_position
 	var ring := NoiseRing.new()
 	ring.player = self
@@ -395,6 +396,7 @@ func apply_appearance(look: Dictionary) -> void:
 
 ## Lê atributos e frascos do Game (save) para o herói.
 func apply_progress(refill: bool) -> void:
+	_apply_armor_stats()
 	stats.apply_attributes(Game.attributes, refill)
 	var gained := Game.health_flasks_max - health_flasks_max
 	health_flasks_max = Game.health_flasks_max
@@ -404,6 +406,36 @@ func apply_progress(refill: bool) -> void:
 		health_flasks += gained  # o Orbe purificou um fragmento: o frasco novo já vem cheio
 	health_flasks_changed.emit(health_flasks, health_flasks_max)
 	_update_death_marks()
+
+
+## Armadura → números do StatsComponent (vida máxima e pressa da estamina).
+func _apply_armor_stats() -> void:
+	stats.health_scale = 1.0 + Game.armor_bonus("vida")
+	stats.regen_bonus = 1.0 + Game.armor_bonus("folego")
+
+
+## Vestiu/tirou uma peça no inventário: recalcula SEM encher a vida (trocar
+## de roupa não é um frasco de graça).
+func _on_armor_changed() -> void:
+	_apply_armor_stats()
+	stats.recalculate(false)
+
+
+## Velocidade de andar e de correr com as Escamas de Caelis (efeito "passo").
+## Cada peça: andar +12%; com as 5, andar = correr sem armadura (×1.6). A
+## corrida ganha +10% por peça em cima disso (com as 5: ×2.1).
+func walk_multiplier() -> float:
+	return 1.0 + Game.armor_bonus("passo")
+
+
+func sprint_multiplier() -> float:
+	return sprint_speed_multiplier + Game.armor_effect_pieces("passo") * ArmorSets.SPRINT_PER_PIECE
+
+
+## Couraça do Eco (efeito "alcance"): o golpe chega mais longe. O raio cresce
+## um pouco menos que a distância, para o golpe "esticar" e não virar uma bola.
+func reach_multiplier() -> float:
+	return 1.0 + Game.armor_bonus("alcance")
 
 
 ## Câmara de descanso: vida, estamina e frascos de volta.
@@ -696,12 +728,12 @@ func _consume_buffer(allow_heal: bool = true) -> void:
 
 func _state_free(delta: float) -> void:
 	var input := _move_input()
-	var speed := move_speed * (exhausted_speed_multiplier if stats.is_exhausted else 1.0)
+	var speed := move_speed * walk_multiplier() * (exhausted_speed_multiplier if stats.is_exhausted else 1.0)
 	speed *= lerpf(1.0, drowsy_speed_multiplier, drowsiness / drowsiness_max)
 	if is_chilled():
 		speed *= chill_speed_multiplier
 	if sprinting and input != Vector2.ZERO and not stats.is_exhausted:
-		speed *= sprint_speed_multiplier
+		speed *= sprint_multiplier() / walk_multiplier()  # o andar já entrou acima
 		stats.drain_stamina(sprint_stamina_per_second * delta)  # zerou: Exaustão, para de correr
 		_sprint_dust(delta)
 	if input != Vector2.ZERO:
@@ -1070,8 +1102,9 @@ func _start_attack(attack: AttackData, combo_index: int, hand: StringName = &"di
 	facing = direction
 	hitbox.deactivate()
 	hitbox_pivot.rotation = direction.angle()
-	(hitbox_shape.shape as CircleShape2D).radius = attack.radius
-	hitbox_shape.position = Vector2(attack.reach, 0.0)
+	var reach := reach_multiplier()
+	(hitbox_shape.shape as CircleShape2D).radius = attack.radius * (1.0 + (reach - 1.0) * 0.8)
+	hitbox_shape.position = Vector2(attack.reach * reach, 0.0)
 	_setup_swing(attack, direction, combo_index)
 	_set_state(State.ATTACK)
 	_runner.start(attack, direction, data.speed_scale if data else 1.0)

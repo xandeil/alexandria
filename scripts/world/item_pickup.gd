@@ -19,6 +19,7 @@ const GLOW := {
 	ItemData.Kind.MATERIAL: Color(0.85, 0.9, 1.0),
 	ItemData.Kind.LEMBRANCA: Color(1.0, 0.6, 0.5),
 	ItemData.Kind.CONSUMIVEL: Color(1.0, 0.5, 0.5),
+	ItemData.Kind.ARMADURA: Color(0.6, 1.0, 0.75),
 }
 
 var item_id := ""
