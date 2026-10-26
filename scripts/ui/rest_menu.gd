@@ -134,6 +134,42 @@ func _rebuild_travel() -> void:
 		child.queue_free()
 	for info in Game.unlocked_capsules():
 		_grid.add_child(_make_card(info))
+	_link_focus()
+
+
+## Navegação do controle feita À MÃO. Antes, o Godot escolhia o vizinho pela
+## geometria — e o "Levantar" (largo, logo abaixo) "roubava" o direcional:
+## com 2 ou 3 Câmaras numa linha, apertar → pulava para ele em vez da próxima.
+## Regra agora: ←/→ andam entre as Câmaras (dando a volta), ↑/↓ trocam de
+## linha, e de qualquer Câmara da última linha ↓ vai para o "Levantar".
+func _link_focus() -> void:
+	var travel := cards().filter(func(c: Button): return c.focus_mode != Control.FOCUS_NONE)
+	var columns := _grid.columns
+	for i in travel.size():
+		var card: Button = travel[i]
+		var left: Button = travel[posmod(i - 1, travel.size())]
+		var right: Button = travel[posmod(i + 1, travel.size())]
+		card.focus_neighbor_left = card.get_path_to(left)
+		card.focus_neighbor_right = card.get_path_to(right)
+		card.focus_previous = card.get_path_to(left)
+		card.focus_next = card.get_path_to(right)
+		var up: Button = travel[i - columns] if i - columns >= 0 else card
+		var down: Control = travel[i + columns] if i + columns < travel.size() else _leave_button
+		card.focus_neighbor_top = card.get_path_to(up)
+		card.focus_neighbor_bottom = card.get_path_to(down)
+	var first: Control = travel[0] if not travel.is_empty() else _leave_button
+	_leave_button.focus_neighbor_top = _leave_button.get_path_to(first)
+	_leave_button.focus_neighbor_bottom = _leave_button.get_path_to(_leave_button)
+	_leave_button.focus_neighbor_left = _leave_button.get_path_to(_leave_button)
+	_leave_button.focus_neighbor_right = _leave_button.get_path_to(_leave_button)
+
+
+## O que recebe o foco ao abrir: a primeira Câmara para onde dá para ir.
+func _first_focus() -> Control:
+	for card in cards():
+		if card.focus_mode != Control.FOCUS_NONE:
+			return card
+	return _leave_button
 
 
 ## Um "cartão" de Câmara: miniatura + nome. A Câmara em que você está fica marcada.
@@ -160,6 +196,8 @@ func _make_card(info: Dictionary) -> Button:
 	for state in ["hover", "focus", "hover_pressed"]:
 		card.add_theme_stylebox_override(state, _card_style(true))
 	card.disabled = here  # já está aqui: não viaja para o mesmo lugar
+	if here:
+		card.focus_mode = Control.FOCUS_NONE  # nem dá para selecionar (o controle pula)
 	card.set_meta("scene", scene_path)
 	card.mouse_entered.connect(func():
 		if not card.disabled:
@@ -195,7 +233,7 @@ func run(here_scene: String) -> String:
 	visible = true
 	_time = 0.0
 	_play_descent()
-	_leave_button.grab_focus()
+	_first_focus().grab_focus()
 	var picked: String = await _picked
 	visible = false
 	return picked

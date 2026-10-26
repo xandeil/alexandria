@@ -219,6 +219,7 @@ func _ready() -> void:
 		"test_pad_menus_never_stuck",
 		"test_sprint_hold_circle",
 		"test_rest_menu_and_travel",
+		"test_rest_menu_pad_navigation",
 		"test_pad_confirms_menus",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
@@ -4978,6 +4979,43 @@ func test_rest_menu_and_travel() -> void:
 	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn"), "Câmaras desbloqueadas ficam no save")
 	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/forjas.tscn", "rest_spawn": "camara"})
 	check(Game.is_capsule_unlocked("res://scenes/world/forjas.tscn") and Game.is_capsule_unlocked(Game.HUB_SCENE), "migração: a última Câmara e o Teatro")
+	Game.wake_from_capsule = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+
+## Bug da v0.22: com menos de 4 Câmaras (uma linha só), o → no controle pulava
+## para o "Levantar" e não dava para escolher as outras.
+func test_rest_menu_pad_navigation() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	for scene in ["cidade", "bosque", "raizes"]:
+		Game.unlock_capsule("res://scenes/world/%s.tscn" % scene)
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	var menu := level.hud.rest_menu
+	level._on_rest_requested(level.rest_chamber)
+	await wait_for(func(): return menu.visible, 180)
+	await frames(2)
+	var focused := func() -> String:
+		var f := get_viewport().gui_get_focus_owner() as Button
+		return f.get_meta("scene", "levantar") if f else ""
+	check(focused.call() == "res://scenes/world/cidade.tscn", "abre com a primeira Câmara de destino selecionada")
+	check(menu.cards()[0].focus_mode == Control.FOCUS_NONE, "'você está aqui' nem recebe foco")
+	var seen := []
+	for i in 3:
+		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+		seen.append(focused.call().get_file().get_basename())
+	check(seen == ["bosque", "raizes", "cidade"], "→ passa por TODAS as Câmaras e dá a volta: %s" % [seen])
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call() == "levantar", "↓ vai para o Levantar")
+	await _pad_press(JOY_BUTTON_DPAD_UP)
+	check(focused.call() == "res://scenes/world/cidade.tscn", "↑ volta para as Câmaras")
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	Game.last_scene_request = ""
+	await _pad_press(JOY_BUTTON_A)
+	check(Game.last_scene_request == "res://scenes/world/bosque.tscn", "✕ viaja para a Câmara escolhida")
 	Game.wake_from_capsule = false
 	level.queue_free()
 	await frames(2)
