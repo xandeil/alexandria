@@ -275,7 +275,7 @@ func _on_died() -> void:
 	remove_from_group("enemies")
 	hurtbox.set_deferred("monitorable", false)
 	set_deferred("collision_layer", 0)
-	Game.add_memories(REWARD_MEMORIES)
+	Game.earn_memories(REWARD_MEMORIES)
 	if target:
 		Fx.memory_motes(global_position + Vector2(0, -20), target, 14)
 	ItemPickup.drop(get_parent(), global_position, "sucata_temperada", REWARD_SUCATA)

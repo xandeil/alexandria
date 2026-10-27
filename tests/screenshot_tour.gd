@@ -89,6 +89,10 @@ func _ready() -> void:
 		await _tour_options()
 		Game.quit_game()
 		return
+	if only == "ngplus":
+		await _tour_ng()
+		Game.quit_game()
+		return
 	if only == "farm":
 		await _tour_farm()
 		Game.quit_game()
@@ -1643,4 +1647,46 @@ func _tour_farm() -> void:
 	await shot("f04_minotauro_luta")
 	await wait(1.2)
 	await shot("f05_minotauro_pulando")
+	level.queue_free()
+
+
+## v0.27: criação com arma, a escolha do fim e o Experimento Anterior.
+func _tour_ng() -> void:
+	Game.reset_progress()
+	var creation := CharacterCreation.new()
+	creation.journey_cycle = 1
+	creation.size = get_viewport().get_visible_rect().size
+	add_child(creation)
+	creation.step_weapon(2)
+	await wait(0.6)
+	await shot("n01_criacao_novo_experimento")
+	creation.queue_free()
+	Game.flags["final"] = "proteger"
+	var ending := (load("res://scenes/ui/ending.tscn") as PackedScene).instantiate()
+	add_child(ending)
+	for i in 900:
+		ending._skip = true
+		await get_tree().process_frame
+		if ending._done:
+			break
+	await wait(1.4)
+	await shot("n02_fim_duas_escolhas")
+	ending.queue_free()
+	Game.reset_progress()
+	Game.cycle = 1
+	Game.guardian = {"aparencia": {"sexo": 1, "corpo": 2, "rosto": 1, "cabelo": 2}, "direita": "presa_caelis",
+		"esquerda": "", "duas_maos": true, "armadura": {}, "atributos": {"forca": 30}, "frascos": 3, "ciclo": 0}
+	Game.defeated_bosses.assign(Game.SEVEN)
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/coracao.tscn") as Level
+	level.player.stats.health = 9999.0
+	var boss := level.boss_arena.boss
+	level.player.global_position = boss.global_position + Vector2(0, 70)
+	await wait(2.5)
+	await shot("n03_experimento_anterior")
+	boss.stats.take_damage(boss.stats.max_health * 0.6)
+	await wait(1.5)
+	await shot("n04_nucleo_o_escolhe")
+	await wait(3.0)
+	await shot("n05_fase_2")
 	level.queue_free()

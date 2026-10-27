@@ -57,6 +57,8 @@ static func create(weapon: WeaponData) -> WeaponSkill:
 			skill = ArcoSono.new()
 		"vortice_ancora":
 			skill = AncoraGravidade.new()
+		"arco_simples":
+			skill = ArcoSimples.new()
 		_:
 			skill = WeaponSkill.new()  # Espada inicial: sem habilidade (Objeto Nulo)
 	skill.weapon = weapon
@@ -175,6 +177,17 @@ class ArcoSono extends WeaponSkill:
 		if is_special(attack):
 			shot.landed.connect(func(at: Vector2, parent: Node):
 				SlumberPollen.spawn(parent, at, SONO_CLOUD_RADIUS, SONO_CLOUD_SECONDS))
+
+
+## Arco de Cobaia: só atira (sem pólen, sem truque). Toda arma de longe
+## precisa de uma habilidade que diga "este golpe é um tiro".
+class ArcoSimples extends WeaponSkill:
+	func fires_projectile(_attack: AttackData) -> bool:
+		return true
+
+	func fire(player: Player, _attack: AttackData, damage: float, direction: Vector2) -> void:
+		PlayerShot.fire(player.get_parent(), player.global_position + direction * 6.0, direction, player, damage,
+			PlayerShot.ARROW)
 
 
 class AncoraGravidade extends WeaponSkill:

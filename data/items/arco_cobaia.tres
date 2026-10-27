@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/arco_cobaia.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_arco_cobaia.png" id="3"]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="4"]
+[ext_resource type="Resource" path="res://data/attacks/arma_flecha.tres" id="5"]
+[ext_resource type="Resource" path="res://data/attacks/arma_flecha_forte.tres" id="6"]
+[ext_resource type="Resource" path="res://data/attacks/arma_flecha_dupla.tres" id="7"]
+
+[resource]
+script = ExtResource("1")
+id = "arco_cobaia"
+display_name = "Arco de Cobaia"
+description = "Tubos de soro esticados num galho torto. As flechas são agulhas grandes."
+kind = 0
+icon = ExtResource("2")
+max_stack = 2
+weapon_class = "Arco"
+scaling = {"destreza": "B", "fe": "D"}
+light_combo = Array[ExtResource("4")]([ExtResource("5")])
+heavy_attack = ExtResource("6")
+special_attack = ExtResource("7")
+skill = "arco_simples"
+ranged = true
+hand_texture = ExtResource("3")
+forge_memories = 600
+forge_sucata = 2

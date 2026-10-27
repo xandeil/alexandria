@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/adaga_cobaia.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_adaga_cobaia.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_adaga_rajada.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "adaga_cobaia"
+display_name = "Adaga de Cobaia"
+description = "Um bisturi grande demais. Ou uma faca pequena demais. Rápida o bastante para não importar."
+kind = 0
+icon = ExtResource("2")
+max_stack = 2
+weapon_class = "Adaga"
+scaling = {"destreza": "A", "sorte": "D"}
+special_attack = ExtResource("4")
+damage_scale = 0.7
+speed_scale = 0.7
+stamina_scale = 0.7
+hand_texture = ExtResource("3")
+forge_memories = 600
+forge_sucata = 2

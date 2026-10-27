@@ -87,6 +87,73 @@ WEAPONS = {
     ], {"f": P.GRIP, "h": P.KNIGHT_ARMOR_DARK, "K": P.KNIGHT_ARMOR, "k": P.KNIGHT_ARMOR_DARK, "g": P.CORE_GLOW}),
 }
 
+# Armas básicas (v0.27): ferro velho do Complexo das Cápsulas, cores apagadas.
+_IRON = (150, 156, 164)
+_IRON_D = (96, 102, 112)
+_IRON_L = (204, 210, 216)
+_WOOD = (120, 84, 56)
+_WOOD_D = (84, 58, 40)
+_TUBE = (190, 210, 214)
+WEAPONS.update({
+    "espada_grande_cobaia": ([
+        "...g...............",
+        "ffgLLLLLLLLLLLLLLl.",
+        "ffgIIIIIIIIIIIIIIIl",
+        "ffgDDDDDDDDDDDDDDd.",
+        "...g...............",
+    ], {"f": P.GRIP, "g": _IRON_D, "L": _IRON_L, "I": _IRON, "D": _IRON_D, "l": _IRON_L, "d": _IRON_D}),
+    "lanca_cobaia": ([
+        "...................L..",
+        "ffwwwwwwwwwwwwwwwwwILL",
+        "...................L..",
+    ], {"f": P.GRIP, "w": _WOOD, "I": _IRON, "L": _IRON_L}),
+    "martelo_cobaia": ([
+        "..........HHHH",
+        "..........HIIH",
+        "ffwwwwwwwwHIIH",
+        "..........HIIH",
+        "..........HHHH",
+    ], {"f": P.GRIP, "w": _WOOD, "H": _IRON_D, "I": _IRON}),
+    "adaga_cobaia": ([
+        "..g.....",
+        "ffgLLLl.",
+        "ffgIIIII",
+        "..g.....",
+    ], {"f": P.GRIP, "g": _IRON_D, "L": _IRON_L, "I": _IRON, "l": _IRON_L}),
+    "arco_cobaia": ([
+        "w.....",
+        ".w....",
+        "..w...",
+        "..w...",
+        "t.fw..",
+        "t.fw..",
+        "..w...",
+        "..w...",
+        ".w....",
+        "w.....",
+    ], {"w": _WOOD, "f": P.GRIP, "t": _TUBE}),
+})
+
+
+def fist_icon():
+    """Punhos (16x16): uma mão fechada."""
+    grid = [
+        "..kkkkkk..",
+        ".kssksskk.",
+        "kssssssssk",
+        "kssksskssk",
+        "kssssssssk",
+        ".kssssssk.",
+        ".kssssssk.",
+        "..kssssk..",
+        "..kkkkkk..",
+    ]
+    img = canvas(16, 16)
+    sprite = from_grid(grid, {"k": (150, 104, 84), "s": (226, 180, 150)}, outline=O)
+    paste(img, sprite, (16 - sprite.width) // 2, (16 - sprite.height) // 2)
+    return img
+
+
 def hand(weapon_id: str):
     grid, key = WEAPONS[weapon_id]
     return from_grid(grid, key, outline=O)
@@ -99,7 +166,7 @@ def icon(weapon_id: str):
     ampliada 4x (depois reduzida) os degraus ficam limpos.
     """
     sprite = hand(weapon_id)
-    if weapon_id == "arco_sono":  # o arco ja e "em pe": so centraliza
+    if weapon_id in ("arco_sono", "arco_cobaia"):  # o arco ja e "em pe": so centraliza
         img = canvas(16, 16)
         paste(img, sprite, (16 - sprite.width) // 2, (16 - sprite.height) // 2)
         return img

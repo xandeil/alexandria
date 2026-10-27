@@ -433,6 +433,27 @@ func toast(text: String) -> void:
 	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.6)
 
 
+## NG+ pela Câmara: abre a criação do próximo experimento por cima de tudo.
+## Devolve a escolha (aparência + "arma") ou {} se voltou.
+func pick_new_journey() -> Dictionary:
+	var layer := CanvasLayer.new()
+	layer.layer = 40
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var creation := CharacterCreation.new()
+	creation.journey_cycle = Game.cycle + 1
+	layer.add_child(creation)
+	var result := {"done": false, "choice": {}}
+	creation.confirmed.connect(func(choice: Dictionary):
+		result["choice"] = choice
+		result["done"] = true)
+	creation.cancelled.connect(func(): result["done"] = true)
+	while not result["done"]:
+		await get_tree().process_frame
+	layer.queue_free()
+	return result["choice"]
+
+
 func show_boss(boss: Boss) -> void:
 	_boss = boss
 	_boss_bar.boss_name = boss.display_name()

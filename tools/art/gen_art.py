@@ -268,6 +268,8 @@ def main() -> None:
     for weapon_id in AR.WEAPONS:
         save(AR.hand(weapon_id), f"assets/sprites/arma_{weapon_id}.png")
         save(AR.icon(weapon_id), f"assets/items/{weapon_id}.png")
+    save(AR.fist_icon(), "assets/items/punhos.png")  # v0.27: lutar sem arma
+    save(canvas(1, 1), "assets/sprites/punhos.png")  # punho não desenha nada na mão
 
     print("O Nucleo")
     save(NC.core_atlas(), "assets/tiles/nucleo_tiles.png")

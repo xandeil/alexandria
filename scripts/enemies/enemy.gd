@@ -65,9 +65,25 @@ func _ready() -> void:
 	if body_sprite.material:
 		body_sprite.material = body_sprite.material.duplicate()
 	_runner.phase_changed.connect(_on_attack_phase_changed)
+	_apply_cycle()
 	hurtbox.hit_received.connect(_on_hit_received)
 	hitbox.hit_landed.connect(_on_hit_landed)
 	stats.died.connect(_on_died)
+
+
+## NG+: mais vida (o dano mais forte é aplicado no herói, num ponto só).
+## Quem não é "inimigo de verdade" (crianças do Prólogo, o bezerro que morre
+## por contagem) devolve false em scales_with_cycle().
+func _apply_cycle() -> void:
+	var factor := Game.difficulty()
+	if factor <= 1.0 or not scales_with_cycle():
+		return
+	stats.health_scale *= factor
+	stats.recalculate(true)
+
+
+func scales_with_cycle() -> bool:
+	return true
 
 
 ## A mira assistida do herói ignora quem não é alvo válido.
@@ -290,7 +306,7 @@ func _on_died() -> void:
 	set_deferred("collision_mask", 0)
 	hurtbox.set_deferred("monitorable", false)
 	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02) * (1.0 + Game.armor_bonus("memoria"))))
-	Game.add_memories(reward)
+	Game.earn_memories(reward)
 	var player := find_target()
 	if player:
 		Fx.memory_motes(global_position + Vector2(0, -8), player, clampi(reward / 10, 3, 14))

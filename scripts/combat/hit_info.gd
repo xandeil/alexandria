@@ -30,3 +30,21 @@ static func create(amount: float, from_position: Vector2, to_position: Vector2) 
 	info.source_position = from_position
 	info.direction = (to_position - from_position).normalized()
 	return info
+
+
+## Cópia com o dano multiplicado (NG+). Cópia, e não "info.damage *= x":
+## o mesmo pacote às vezes é entregue a mais de um alvo, e multiplicar o
+## original faria o golpe crescer a cada entrega.
+func scaled(factor: float) -> HitInfo:
+	var copy := HitInfo.new()
+	copy.damage = damage * factor
+	copy.poise_damage = poise_damage
+	copy.knockback = knockback
+	copy.is_heavy = is_heavy
+	copy.unblockable = unblockable
+	copy.parryable = parryable
+	copy.attack_name = attack_name
+	copy.source = source
+	copy.source_position = source_position
+	copy.direction = direction
+	return copy

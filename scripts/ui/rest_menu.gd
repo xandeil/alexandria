@@ -11,6 +11,9 @@ extends CanvasLayer
 
 signal _picked(scene_path: String)
 
+## O que run() devolve quando a escolha é começar o NG+ (não é uma cena).
+const NEW_JOURNEY := "nova_jornada"
+
 const CAPSULE_OPEN := preload("res://assets/props/capsule_empty.png")
 const CAPSULE_CLOSED := preload("res://assets/props/capsule_occupied.png")
 const SCALE := 5.0
@@ -25,6 +28,7 @@ var _hero_clip: Control
 var _hero: AnimatedSprite2D
 var _grid: GridContainer
 var _leave_button: Button
+var journey_button: Button
 var _place: Label
 var _time := 0.0
 
@@ -126,6 +130,12 @@ func _build_travel() -> void:
 		Sfx.play(&"ui_click")
 		_picked.emit(""))
 	box.add_child(_leave_button)
+	# Jornada terminada (viu um final): dá para começar o NG+ daqui.
+	journey_button = DSMenuButton.make("Iniciar nova jornada", 11)
+	journey_button.pressed.connect(func():
+		Sfx.play(&"ui_open")
+		_picked.emit(NEW_JOURNEY))
+	box.add_child(journey_button)
 
 
 func _rebuild_travel() -> void:
@@ -159,7 +169,13 @@ func _link_focus() -> void:
 		card.focus_neighbor_bottom = card.get_path_to(down)
 	var first: Control = travel[0] if not travel.is_empty() else _leave_button
 	_leave_button.focus_neighbor_top = _leave_button.get_path_to(first)
-	_leave_button.focus_neighbor_bottom = _leave_button.get_path_to(_leave_button)
+	journey_button.visible = Game.journey_complete()
+	var below: Control = journey_button if journey_button.visible else _leave_button
+	_leave_button.focus_neighbor_bottom = _leave_button.get_path_to(below)
+	journey_button.focus_neighbor_top = journey_button.get_path_to(_leave_button)
+	journey_button.focus_neighbor_bottom = journey_button.get_path_to(journey_button)
+	journey_button.focus_neighbor_left = journey_button.get_path_to(journey_button)
+	journey_button.focus_neighbor_right = journey_button.get_path_to(journey_button)
 	_leave_button.focus_neighbor_left = _leave_button.get_path_to(_leave_button)
 	_leave_button.focus_neighbor_right = _leave_button.get_path_to(_leave_button)
 

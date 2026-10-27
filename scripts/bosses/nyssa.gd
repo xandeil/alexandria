@@ -296,7 +296,7 @@ func _on_died() -> void:
 	_set_light(Color.WHITE, 2.0, true)
 	speech.emit(SPEECH_DEFEAT)
 	var reward := data.memory_reward if data else 1300
-	Game.add_memories(reward)
+	Game.earn_memories(reward)
 	if target:
 		Fx.memory_motes(global_position + Vector2(0, -14), target, 22)
 	Sfx.play(&"boss_phase")
