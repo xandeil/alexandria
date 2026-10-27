@@ -363,6 +363,38 @@ def capsule_empty():
     return frame
 
 
+def capsule_body():
+    """A Câmara em PEÇAS (v0.28, animação de entrar/sair): o corpo aberto,
+    com o colchão à mostra e SEM a tampa. A tampa é outro sprite por cima
+    (capsule_lid), assim ela sobe e desce e o herói aparece deitado entre os dois."""
+    frame = canvas(32, 24)
+    body = [r.replace("g", "c").replace("s", "c") for r in CAPSULE_BASE]
+    paste(frame, from_grid(body, CAPSULE_KEY, outline=O), 2, 6)
+    rect(frame, 7, 10, 25, 16, P.SHEET_SHADOW)  # colchão
+    ellipse(frame, 8.5, 12.5, 2, 1.6, P.SHEET)  # travesseiro
+    return frame
+
+
+def capsule_lid():
+    """A tampa de vidro (mesmo quadro 32x24 do corpo: fechada, encaixa no lugar).
+    Vidro escuro meio transparente (dá para ver quem dorme), aro claro e o brilho."""
+    frame = canvas(32, 24)
+    glass = (26, 37, 43, 175)  # o vidro escuro da Câmara (P.GLASS aqui no Prólogo é o claro)
+    for y in range(9, 17):
+        for x in range(6, 26):
+            frame.putpixel((x, y), glass)
+    for x in range(5, 27):  # aro de cima e de baixo
+        frame.putpixel((x, 8), (*P.CAPSULE_LIGHT[:3], 255))
+        frame.putpixel((x, 17), (*P.CAPSULE_DARK[:3], 255))
+    for y in range(9, 17):
+        frame.putpixel((5, y), (*P.CAPSULE_LIGHT[:3], 255))
+        frame.putpixel((26, y), (*P.CAPSULE_DARK[:3], 255))
+    for k in range(4):  # brilho na diagonal
+        frame.putpixel((8 + k, 10 + k), (120, 150, 160, 230))
+    frame.putpixel((24, 15), (120, 150, 160, 230))
+    return frame
+
+
 def capsule_broken():
     """Capsula quebrada: vidro estilhacado, buracos e cacos no chao."""
     frame = _capsule_frame(CAPSULE_BASE)

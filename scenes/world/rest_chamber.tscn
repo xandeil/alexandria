@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/rest_chamber.gd" id="1_rest"]
-[ext_resource type="Texture2D" path="res://assets/props/capsule.png" id="2_capsule"]
 [ext_resource type="Script" path="res://scripts/world/interactable.gd" id="3_interactable"]
 [ext_resource type="Texture2D" path="res://assets/fx/light.png" id="4_light"]
+[ext_resource type="Texture2D" path="res://assets/props/capsule_body.png" id="5_body"]
+[ext_resource type="Texture2D" path="res://assets/props/capsule_lid.png" id="6_lid"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(26, 9)
@@ -21,7 +22,15 @@ position = Vector2(0, -5)
 shape = SubResource("RectangleShape2D_body")
 
 [node name="Sprite" type="Sprite2D" parent="."]
-texture = ExtResource("2_capsule")
+texture = ExtResource("5_body")
+offset = Vector2(0, -11)
+
+[node name="Sleeper" type="AnimatedSprite2D" parent="."]
+visible = false
+position = Vector2(0, -12)
+
+[node name="Lid" type="Sprite2D" parent="."]
+texture = ExtResource("6_lid")
 offset = Vector2(0, -11)
 
 [node name="Glow" type="PointLight2D" parent="."]

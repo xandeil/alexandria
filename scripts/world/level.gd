@@ -1416,18 +1416,12 @@ func end_cutscene() -> void:
 ## A cápsula se abre "com um som baixo, quase respeitoso" e o herói sai dela.
 func _play_wake_up() -> void:
 	begin_cutscene()
-	var goal := player.global_position
-	player.global_position = rest_chamber.global_position + Vector2(0, 9)
-	player.visual.modulate.a = 0.0
+	player.global_position = rest_chamber.front_point()
+	rest_chamber.show_sleeping()
+	player.visual.visible = false
 	camera.snap_to_target()
 	await _wait(0.6)
-	Sfx.play(&"capsule_open")
-	Fx.dust(rest_chamber.global_position + Vector2(0, -6), 12)
-	var tween := create_tween()
-	tween.tween_property(player.visual, "modulate:a", 1.0, 0.7)
-	tween.parallel().tween_property(player, "global_position", goal, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	await tween.finished
-	await _wait(0.25)
+	await rest_chamber.play_exit(player)
 	if not player.is_dead():
 		end_cutscene()
 
@@ -1523,6 +1517,9 @@ func _play_ending(kind: String) -> void:
 func _on_rest_requested(chamber: RestChamber) -> void:
 	if _talking or (boss_arena and boss_arena.is_busy()) or player.is_dead():
 		return
+	# Entra na cápsula (cena com o mundo andando) e só depois pausa e escurece.
+	begin_cutscene()
+	await chamber.play_enter(player)
 	_begin_modal()
 	Sfx.play(&"rest")
 	await Fader.fade_out(0.6)
@@ -1549,6 +1546,11 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 		Game.travel_to_capsule(destination)
 		return  # a viagem troca de cena (e o herói acorda na outra cápsula)
 	_end_modal()
+	# Levantou: sai da cápsula (o herói segue travado até pisar fora).
+	begin_cutscene()
+	await chamber.play_exit(player)
+	if not player.is_dead():
+		end_cutscene()
 	var lines: Array = DialogueData.get_entry("descanso").get("falas", [])
 	if not lines.is_empty():
 		hud.toast(lines.pick_random())

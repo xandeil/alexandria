@@ -1431,6 +1431,7 @@ func travel(scene_path: String, spawn_id: String) -> void:
 ## Depois da morte: renasce na Câmara com tudo cheio (nada é carregado pela porta).
 func respawn() -> void:
 	clear_carry()
+	wake_from_capsule = true  # renasce saindo da cápsula (a mesma cena do despertar)
 	pending_spawn = rest_spawn
 	_change_scene(rest_scene, 0.9)
 

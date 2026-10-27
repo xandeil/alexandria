@@ -239,6 +239,7 @@ func _ready() -> void:
 		"test_ng_new_journey",
 		"test_ng_guardian_fight",
 		"test_ng_ending_choices",
+		"test_capsule_enter_and_exit",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -4968,7 +4969,7 @@ func test_rest_menu_and_travel() -> void:
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
 	level._on_rest_requested(level.rest_chamber)  # o que acontece ao apertar ✕ na cápsula
-	var opened := await wait_for(func(): return menu.visible, 180)
+	var opened := await wait_for(func(): return menu.visible, 420)
 	check(opened and get_tree().paused, "descansar abre o menu da Câmara (com o jogo pausado)")
 	check(menu._hero.sprite_frames == Appearance.sprite_frames(Game.appearance), "a descida usa a aparência do SEU personagem")
 	var start_y := menu._hero.position.y
@@ -4984,11 +4985,12 @@ func test_rest_menu_and_travel() -> void:
 	menu._unhandled_input(cancel)
 	await frames(3)
 	check(not menu.visible and not get_tree().paused, "○: levanta e o jogo segue")
+	await wait_for(func(): return level.player.state == Player.State.FREE, 300)  # sai da cápsula
 	# Desbloqueia a Cidade e viaja até ela.
 	Game.unlock_capsule("res://scenes/world/cidade.tscn")
 	Game.unlock_capsule("res://scenes/world/prologo.tscn")  # o Prólogo não é destino
 	level._on_rest_requested(level.rest_chamber)
-	await wait_for(func(): return menu.visible, 180)
+	await wait_for(func(): return menu.visible, 420)
 	var names: Array = menu.cards().map(func(c): return c.get_meta("scene"))
 	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn"], "Câmaras na ordem da jornada (sem o Prólogo)")
 	var city: Button = menu.cards()[1]
@@ -5024,7 +5026,7 @@ func test_rest_menu_pad_navigation() -> void:
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
 	level._on_rest_requested(level.rest_chamber)
-	await wait_for(func(): return menu.visible, 180)
+	await wait_for(func(): return menu.visible, 420)
 	await frames(2)
 	var focused := func() -> String:
 		var f := get_viewport().gui_get_focus_owner() as Button
@@ -5763,4 +5765,40 @@ func test_ng_ending_choices() -> void:
 	await frames(2)
 	level.queue_free()
 	await frames(2)
+	Game.reset_progress()
+
+
+# --- Câmara animada (v0.28) -----------------------------------------------------------------
+
+func test_capsule_enter_and_exit() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.appearance = {"sexo": 1, "corpo": 2, "rosto": 1, "cabelo": 3}
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	var chamber := level.rest_chamber
+	check(not chamber.is_occupied() and chamber.lid.position == Vector2.ZERO, "parada: vazia e fechada")
+	level.player.global_position = chamber.front_point() + Vector2(30, 10)
+	level._on_rest_requested(chamber)
+	var opened := await wait_for(func(): return chamber.lid.position.y < -4.0, 120)
+	check(opened, "a tampa sobe")
+	check(level.player.global_position.distance_to(chamber.front_point()) < 2.0, "foi até a frente da cápsula")
+	var lying := await wait_for(func(): return chamber.is_occupied() and absf(chamber.sleeper.rotation + PI * 0.5) < 0.05, 120)
+	check(lying and not level.player.visual.visible, "deitou lá dentro (o sprite de verdade some)")
+	check(chamber.sleeper.sprite_frames == Appearance.sprite_frames(Game.appearance), "quem deita é o SEU personagem")
+	await wait_for(func(): return level.hud.rest_menu.visible, 300)
+	check(chamber.lid.position == Vector2.ZERO and chamber.lid.modulate != Color.WHITE, "tampa fechada e vidro embaçado durante o descanso")
+	# Levantar: sai da cápsula.
+	level.hud.rest_menu._leave_button.pressed.emit()
+	await frames(4)
+	check(level.player.state == Player.State.LOCKED, "saindo: ainda travado")
+	var out := await wait_for(func(): return level.player.state == Player.State.FREE, 300)
+	check(out and level.player.visual.visible and not chamber.is_occupied(), "pulou para fora e o controle volta")
+	check(level.player.global_position.distance_to(chamber.front_point()) < 2.0, "de pé na frente da cápsula")
+	check(chamber.lid.position == Vector2.ZERO and chamber.lid.modulate == Color.WHITE, "a tampa fecha vazia")
+	level.queue_free()
+	await frames(2)
+	# Morrer também acorda na cápsula.
+	Game.respawn()
+	check(Game.wake_from_capsule, "renascer: sai da cápsula")
+	Game.wake_from_capsule = false
 	Game.reset_progress()
