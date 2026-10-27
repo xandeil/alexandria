@@ -419,6 +419,11 @@ const PROPS := {
 @export var outdoor := false
 ## Arena do chefe em TILES (x, y, largura, altura).
 @export var arena_rect_tiles := Rect2i()
+## FARM (v0.26): a volta do Bezerro Dourado, em tiles (vazio = esta fase não tem).
+## O 1º ponto é onde ele nasce; a rota fecha sozinha (do último volta ao 1º).
+@export var farm_route: Array[Vector2i] = []
+## Campo onde o Minotauro pode pular, em tiles.
+@export var farm_field_tiles := Rect2i()
 @export_file("*.tscn") var exit_scene := ""
 @export var exit_spawn := ""
 ## Segunda saída (caractere ">"). Quem chega por ela aparece em "lateral".
@@ -1180,6 +1185,7 @@ func _start_runtime() -> void:
 	if not area_name.is_empty():
 		hud.show_area_title(area_name, area_subtitle)
 	_connect_world()
+	_add_farm()
 	Sfx.play_ambience(ambience, -12.0)
 	# Novo jogo / depois da queda: o herói sai da cápsula (a Câmara).
 	if Game.wake_from_capsule:
@@ -1270,11 +1276,8 @@ func _connect_world() -> void:
 	if rest_chamber:
 		rest_chamber.rest_requested.connect(_on_rest_requested)
 	for node in entities.get_children():
-		var mini := node as MiniBoss
-		if mini:
-			mini.fight_started.connect(_on_miniboss_started)
-			mini.fight_reset.connect(_on_miniboss_ended.bind(false))
-			mini.fight_won.connect(_on_miniboss_ended.bind(true))
+		if node is MiniBoss:
+			register_miniboss(node as MiniBoss)
 		if node is VigiaQueDormiu:
 			(node as VigiaQueDormiu).sneaked_past.connect(func(): hud.toast("O Vigia não acordou. Você passou em silêncio."))
 	if _boss:
@@ -1536,6 +1539,8 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 func _respawn_enemies() -> void:
 	for node in get_tree().get_nodes_in_group("respawnable"):
 		node.queue_free()
+	for farm in get_tree().get_nodes_in_group("farm_spots"):
+		(farm as FarmSpot).reset_cycle()
 	for spawn in _enemy_spawns:
 		_spawn_enemy(spawn)
 
@@ -1596,6 +1601,26 @@ func _on_fight_ended(victory: bool) -> void:
 
 
 ## Mini-chefe acordou: barra de chefe e música de luta (sem névoa, sem arena).
+## Liga um mini-chefe à fase (barra, música, vitória). Pública porque nem todo
+## mini-chefe nasce com o mapa: o Minotauro do farm chega depois (FarmSpot).
+func register_miniboss(mini: MiniBoss) -> void:
+	mini.fight_started.connect(_on_miniboss_started)
+	mini.fight_reset.connect(_on_miniboss_ended.bind(false))
+	mini.fight_won.connect(_on_miniboss_ended.bind(true))
+
+
+func _add_farm() -> void:
+	if farm_route.size() < 2:
+		return
+	var points: Array[Vector2] = []
+	for cell in farm_route:
+		points.append(_cell_center(cell.x, cell.y))
+	var farm := FarmSpot.new()
+	farm.name = "Farm"
+	farm.setup(self, points, Rect2(Vector2(farm_field_tiles.position * TILE), Vector2(farm_field_tiles.size * TILE)))
+	add_child(farm)
+
+
 func _on_miniboss_started(mini: Boss) -> void:
 	hud.show_boss(mini)
 	Sfx.play_ambience(&"amb_boss", -12.0)

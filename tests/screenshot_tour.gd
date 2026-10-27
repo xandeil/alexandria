@@ -89,6 +89,10 @@ func _ready() -> void:
 		await _tour_options()
 		Game.quit_game()
 		return
+	if only == "farm":
+		await _tour_farm()
+		Game.quit_game()
+		return
 	if only == "armadura":
 		await _tour_armor()
 		Game.quit_game()
@@ -1613,4 +1617,30 @@ func _tour_armor() -> void:
 	await wait(0.2)
 	await shot("a03_ficha_detentor")
 	menu.close()
+	level.queue_free()
+
+
+## v0.26: o Bezerro Dourado pastando, o Minotauro caindo e pulando.
+func _tour_farm() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.pending_spawn = "camara"
+	var level := await open("res://scenes/world/montanha.tscn") as Level
+	var farm := level.get_node("Farm") as FarmSpot
+	level.player.global_position = farm.calf.global_position + Vector2(-50, 30)
+	level.player.stats.health = 9999.0
+	await wait(1.5)
+	await shot("f01_bezerro_pastando")
+	for i in 3:
+		farm.calf.hurtbox.receive_hit(HitInfo.create(10.0, farm.calf.global_position + Vector2(-10, 0), farm.calf.global_position))
+	await wait(0.4)
+	await shot("f02_bezerro_fugindo")
+	for i in 4:
+		farm.calf.hurtbox.receive_hit(HitInfo.create(10.0, farm.calf.global_position + Vector2(-10, 0), farm.calf.global_position))
+	await wait(1.9)
+	await shot("f03_minotauro_caindo")
+	await wait(1.6)
+	await shot("f04_minotauro_luta")
+	await wait(1.2)
+	await shot("f05_minotauro_pulando")
 	level.queue_free()

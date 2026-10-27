@@ -322,6 +322,13 @@ ATTACKS = {
                                 recovery_time=0.6, active_during_lunge=True, track_until=0.0, reach=22.0, radius=22.0,
                                 slash_arc_degrees=0.0, slash_radius=26.0, slash_color=(1.0, 0.8, 0.6, 0.9),
                                 hitstop=0.08, shake=5.0, sound="&hooves"),
+    # Minotauro (farm da Montanha, v0.26): só o machado é golpe "de verdade";
+    # os pulos são áreas calculadas no script (minotauro.gd).
+    "minotauro_machado": dict(display_name="Machadada do Minotauro", damage=38.0, poise_damage=60.0, knockback=260.0,
+                              is_heavy=True, windup_time=0.75, lunge_speed=170.0, lunge_time=0.14, active_time=0.12,
+                              recovery_time=0.9, track_until=0.55, reach=34.0, radius=26.0, slash_arc_degrees=150.0,
+                              slash_radius=40.0, slash_color=(1.0, 0.85, 0.6, 0.95), hitstop=0.1, shake=6.0,
+                              sound="&slam"),
     "matriarca_mordida": dict(display_name="Mordida da Matriarca", damage=26.0, poise_damage=34.0, knockback=170.0,
                               is_heavy=True, windup_time=0.6, lunge_speed=150.0, lunge_time=0.12, active_time=0.1,
                               recovery_time=0.8, track_until=0.6, reach=26.0, radius=20.0, slash_arc_degrees=80.0,
@@ -668,7 +675,7 @@ ITEMS = {
 # Quem NAO da para aparar: agarroes (unblockable), golpes de gigantes e chefes
 # pesados demais (seria absurdo desviar o martelo do Aldir com um escudo de tampa)
 # e os golpes do proprio heroi (o Durgan copia; os golpes das armas sao do heroi).
-NOT_PARRYABLE_PREFIXES = ("aldir_", "couraca_", "mabel_", "rachel_", "golem_", "vigia_", "matriarca_",
+NOT_PARRYABLE_PREFIXES = ("aldir_", "couraca_", "mabel_", "rachel_", "golem_", "vigia_", "matriarca_", "minotauro_",
                           "automato_", "estatua_", "player_", "arma_")
 NOT_PARRYABLE = {"bestial_investida", "ninhada_investida", "banqueteiro_cutelo", "capitao_escudada",
                  "durgan_martelada", "durgan_copia_forte", "cavaleiro_corte_3", "minerador_3"}
@@ -959,6 +966,11 @@ def main() -> None:
           {"escudo": ([0], 1.0), "escudo_anda": ([1, 0, 2, 0], 6.0), "troca": ([3], 1.0), "chamas": ([4], 1.0)}))
     write("assets/sprites/matriarca_bestial_frames.tres", sprite_frames("res://assets/sprites/matriarca_bestial.png", 64, 48, 5,
           {"idle": ([0], 1.0), "walk": ([0, 1], 4.0), "ergue": ([2], 1.0), "investida": ([3], 1.0), "morde": ([4], 1.0)}))
+    write("assets/sprites/bezerro_dourado_frames.tres", sprite_frames("res://assets/sprites/bezerro_dourado.png", 24, 24, 4,
+          {"idle": ([0], 1.0), "walk": ([1, 0, 2, 0], 7.0), "corre": ([3, 1, 3, 2], 14.0)}))
+    write("assets/sprites/minotauro_frames.tres", sprite_frames("res://assets/sprites/minotauro.png", 64, 64, 7,
+          {"idle": ([0], 1.0), "walk": ([1, 0, 2, 0], 5.0), "agacha": ([3], 1.0), "salto": ([4], 1.0),
+           "ergue": ([5], 1.0), "golpe": ([6], 1.0)}))
     write("assets/sprites/rachel_frames.tres", sprite_frames("res://assets/sprites/rachel.png", 96, 72, 8,
           {"dorme": ([0], 1.0), "idle": ([1], 1.0), "walk": ([1, 2], 3.0), "prepara": ([3], 1.0), "fogo": ([4], 1.0),
            "cauda": ([5], 1.0), "ruge": ([6], 1.0), "garra": ([7], 1.0)}))
