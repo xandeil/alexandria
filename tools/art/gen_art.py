@@ -117,6 +117,8 @@ def main() -> None:
     save(PG.capsule_occupied(), "assets/props/capsule_occupied.png")
     save(PG.capsule_empty(), "assets/props/capsule_empty.png")
     save(PG.capsule_broken(), "assets/props/capsule_broken.png")
+    save(PG.capsule_body(), "assets/props/capsule_body.png")  # v0.28: a Câmara em peças
+    save(PG.capsule_lid(), "assets/props/capsule_lid.png")
     save(PG.terminal(), "assets/props/terminal.png")
     save(PG.cot(), "assets/props/cot.png")
     save(PG.toys(), "assets/props/toys.png")

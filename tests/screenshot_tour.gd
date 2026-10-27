@@ -89,6 +89,10 @@ func _ready() -> void:
 		await _tour_options()
 		Game.quit_game()
 		return
+	if only == "capsula":
+		await _tour_capsule()
+		Game.quit_game()
+		return
 	if only == "ngplus":
 		await _tour_ng()
 		Game.quit_game()
@@ -1689,4 +1693,27 @@ func _tour_ng() -> void:
 	await shot("n04_nucleo_o_escolhe")
 	await wait(3.0)
 	await shot("n05_fase_2")
+	level.queue_free()
+
+
+## v0.28: entrar e sair da Câmara, quadro a quadro.
+func _tour_capsule() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.appearance = {"sexo": 1, "corpo": 1, "rosto": 2, "cabelo": 4}
+	Game.pending_spawn = "camara"
+	var level := await open("res://scenes/world/teatro.tscn") as Level
+	level.player.global_position = level.rest_chamber.front_point() + Vector2(24, 6)
+	await wait(5.0)  # o título da área some
+	level._on_rest_requested(level.rest_chamber)
+	for i in 30:
+		await shot("c_entra_%02d" % i)
+		await wait(0.07)
+	while not level.hud.rest_menu.visible:
+		await wait(0.1)
+	await wait(0.6)
+	level.hud.rest_menu._leave_button.pressed.emit()
+	for i in 36:
+		await shot("c_sai_%02d" % i)
+		await wait(0.07)
 	level.queue_free()
