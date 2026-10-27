@@ -12,6 +12,7 @@ enum Kind {
 	CONSUMIVEL,   ## Frascos: gastos e repostos.
 	MATERIAL,     ## Sucata, fragmentos: trocados com o Ferreiro e o Orbe.
 	LEMBRANCA,    ## Itens-chave de lore: não servem para nada além de lembrar.
+	ARMADURA,     ## Capacete, peitoral, luvas, calça, botas (ArmorData).
 }
 
 const KIND_NAMES := {
@@ -19,6 +20,7 @@ const KIND_NAMES := {
 	Kind.CONSUMIVEL: "Consumíveis",
 	Kind.MATERIAL: "Materiais",
 	Kind.LEMBRANCA: "Lembranças",
+	Kind.ARMADURA: "Armadura",
 }
 
 @export var id := ""

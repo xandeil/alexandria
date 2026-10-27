@@ -20,7 +20,7 @@ exit2_spawn = "porta"
 exit2_requires = "banqueteiro"
 exit2_locked_dialogue = "porta_cozinha"
 lore_points = {"1": "raiz_pulsando", "2": "placa_estufa", "3": "cardapio", "4": "ninho_larvas", "5": "porta_mabel_cheiro"}
-item_points = Array[String](["sucata_temperada:3", "fragmento_turvo", "sucata_temperada:2"])
+item_points = Array[String](["sucata_temperada:3", "fragmento_turvo", "sucata_temperada:2", "conjunto:banquete"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

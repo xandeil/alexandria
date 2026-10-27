@@ -7,6 +7,7 @@
 [node name="Teatro" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/teatro.txt"
+item_points = Array[String](["conjunto:vigilia"])
 area_name = "Teatro Alexandria"
 area_subtitle = "Todos aqui estão presos a um papel numa peça que nunca termina."
 ambience = &"amb_theater"

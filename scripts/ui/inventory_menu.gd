@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Inventário no estilo dos soulslike (uma mistura nossa de Dark Souls 1/2/3
 ## e Lies of P — parecido no ESPÍRITO, não uma cópia):
 ##
-##   ┌ L1 ‹  Armas · Escudos · Frascos · Materiais · Lembranças  › R1 ┐
+##   ┌ L1 ‹  Armas · Escudos · Armadura · Frascos · Materiais · Lembranças  › R1 ┐
 ##   │ EQUIPADO        │  grade de espaços   │  ficha do item          │
 ##   │ (mãos, frascos) │  (DS1/DS3)          │  (letras de escala, LoP)│
 ##   └ legenda dos botões ─────────────────────────────────────────────┘
@@ -13,7 +13,7 @@ extends CanvasLayer
 
 signal closed
 
-const TABS: Array[String] = ["Armas", "Escudos", "Frascos", "Materiais", "Lembranças"]
+const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Materiais", "Lembranças"]
 const SLOT := 30
 const COLUMNS := 5
 const GOLD_LINE := Color(0.62, 0.52, 0.32, 0.55)
@@ -26,7 +26,7 @@ var _tab := 0
 var _tab_buttons: Array[Button] = []
 var _grid: GridContainer
 var _slots: Array[Button] = []
-var _equip_rows := {}  # "direita"/"esquerda"/"vida"/"sanidade" -> Button
+var _equip_rows := {}  # "direita"/"esquerda"/"armadura"/"vida"/"sanidade" -> Button
 var _detail_name: Label
 var _detail_kind: Label
 var _detail_icon: TextureRect
@@ -72,12 +72,12 @@ func _build() -> void:
 	# Abas (L1/R1). Cada uma é um DSMenuButton: só texto, clareia ao focar.
 	var tabs := HBoxContainer.new()
 	tabs.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	tabs.offset_left = -220
-	tabs.offset_right = 220
+	tabs.offset_left = -236
+	tabs.offset_right = 236
 	tabs.offset_top = 6
 	tabs.offset_bottom = 26
 	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
-	tabs.add_theme_constant_override("separation", 10)
+	tabs.add_theme_constant_override("separation", 8)
 	root.add_child(tabs)
 	var left_hint := UIStyle.label("‹ L1", 8, UIStyle.TEXT_DIM)
 	tabs.add_child(left_hint)
@@ -96,7 +96,7 @@ func _build() -> void:
 	equip.add_theme_constant_override("separation", 3)
 	root.add_child(equip)
 	equip.add_child(UIStyle.label("EQUIPADO", 8, GOLD_LINE.lightened(0.4), UIStyle.TITLE_FONT))
-	for key in ["direita", "esquerda", "vida", "sanidade"]:
+	for key in ["direita", "esquerda", "armadura", "vida", "sanidade"]:
 		var row := Button.new()
 		row.flat = true
 		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -111,29 +111,47 @@ func _build() -> void:
 			row.add_theme_stylebox_override(state, _slot_style(state == "focus" or state == "hover"))
 		row.custom_minimum_size = Vector2(118, 26)
 		row.clip_text = true
-		var tab_for: int = {"direita": 0, "esquerda": 0, "vida": 2, "sanidade": 2}[key]
+		var tab_for: int = TABS.find({"direita": "Armas", "esquerda": "Armas", "armadura": "Armadura",
+			"vida": "Frascos", "sanidade": "Frascos"}[key])
 		row.pressed.connect(func():
 			if key in ["direita", "esquerda"]:
 				target_hand = key  # a próxima arma tocada vai para esta mão
 			set_tab(tab_for))
 		equip.add_child(row)
 		_equip_rows[key] = row
+		if key == "armadura":
+			row.alignment = HORIZONTAL_ALIGNMENT_RIGHT  # à esquerda vão os 5 ícones
+			row.draw.connect(func(): _draw_armor_row(row))
 	var memories := UIStyle.label("", 8, UIStyle.TEXT_DIM, UIStyle.FONT_NUMBERS)
 	memories.name = "Memorias"
 	equip.add_child(memories)
 
 	# Centro: a grade de espaços.
 	var center := VBoxContainer.new()
-	center.position = Vector2(142, 40)
+	center.position = Vector2(139, 37)
 	center.size = Vector2(COLUMNS * (SLOT + 3), 190)
 	root.add_child(center)
+	# A grade ROLA: 7 conjuntos de armadura são 35 espaços, mais do que cabe.
+	# follow_focus faz o controle (↑/↓) levar a rolagem junto; no toque, arrasta.
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(COLUMNS * (SLOT + 3) + 4, 192)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.follow_focus = true
+	center.add_child(scroll)
 	_grid = GridContainer.new()
 	_grid.columns = COLUMNS
 	_grid.add_theme_constant_override("h_separation", 3)
 	_grid.add_theme_constant_override("v_separation", 3)
-	center.add_child(_grid)
+	var pad := MarginContainer.new()  # espaço para o brilho do espaço focado não ser cortado
+	pad.add_theme_constant_override("margin_left", 3)
+	pad.add_theme_constant_override("margin_top", 3)
+	pad.add_theme_constant_override("margin_bottom", 3)
+	pad.add_child(_grid)
+	scroll.add_child(pad)
 	_empty = UIStyle.label("Nada aqui.", 8, UIStyle.TEXT_DIM)
 	center.add_child(_empty)
+	center.move_child(_empty, 0)  # "Nada aqui." no topo (a grade vazia ocupa a altura toda)
 
 	# Direita: a ficha do item (Lies of P: nome grande, tipo, números e as letras).
 	var detail := VBoxContainer.new()
@@ -300,6 +318,9 @@ func entries(tab: int = -1) -> Array[Dictionary]:
 		"Escudos":
 			if Game.has_shield():
 				result.append({"id": "escudo_remendado", "count": 1})
+		"Armadura":
+			for id in Game.owned_armor():
+				result.append({"id": id, "count": 1})
 		"Frascos":
 			result.append({"id": "frasco_vida", "count": _health_flasks()})
 			result.append({"id": "frasco_sanidade", "count": Game.sanity_flasks})
@@ -386,8 +407,11 @@ func _make_slot(entry: Dictionary) -> Button:
 
 
 ## Em que mão(s) este item está: ["D"], ["E"], ["D", "E"] ou [].
+## Armadura vestida ganha o selo "V".
 func _hands_holding(item_id: String) -> Array[String]:
 	var hands: Array[String] = []
+	if Game.is_armor_equipped(item_id):
+		hands.append("V")
 	if item_id == Game.equipped_weapon:
 		hands.append("D")
 	if item_id == Game.left_hand and (item_id != Game.SHIELD or Game.has_shield()):
@@ -405,6 +429,13 @@ func _refresh_equipped() -> void:
 	var left_item := Items.get_item(Game.left_hand)
 	left.icon = left_item.icon if left_item else null
 	left.text = ("▶ " if target_hand == "esquerda" else "") + (left_item.display_name if left_item else "Mão esquerda: vazia")
+	var armor_row: Button = _equip_rows["armadura"]
+	var worn := 0
+	for slot in ArmorData.SLOTS:
+		if Game.armor_in(slot):
+			worn += 1
+	armor_row.text = "%d/5" % worn  # os 5 ícones são desenhados por cima (_draw_armor_row)
+	armor_row.queue_redraw()
 	var life: Button = _equip_rows["vida"]
 	life.icon = Items.get_item("frasco_vida").icon
 	life.text = "Frasco de Vida  %d/%d" % [_health_flasks(), Game.health_flasks_max]
@@ -415,6 +446,17 @@ func _refresh_equipped() -> void:
 	memories.text = "Memórias  %d" % Game.memories
 
 
+## Linha "Armadura" da coluna EQUIPADO: os 5 espaços em miniatura (vazio = moldura).
+func _draw_armor_row(row: Button) -> void:
+	for i in ArmorData.SLOTS.size():
+		var box := Rect2(4 + i * 17, 5, 16, 16)
+		row.draw_rect(box, SLOT_BG)
+		row.draw_rect(box, SLOT_EDGE, false, 1.0)
+		var piece := Game.armor_in(ArmorData.SLOTS[i])
+		if piece:
+			row.draw_texture_rect(piece.icon, box, false)
+
+
 func _hint_items() -> Array:
 	var result := []
 	if TABS[_tab] == "Armas":
@@ -422,6 +464,8 @@ func _hint_items() -> Array:
 		result.append(["square", "R", "Mão esquerda"])
 	elif TABS[_tab] == "Escudos":
 		result.append(["cross", "Enter", "Equipar"])
+	elif TABS[_tab] == "Armadura":
+		result.append(["cross", "Enter", "Vestir / Tirar"])
 	result.append(["circle", "Esc", "Voltar"])
 	result.append(["L1/R1", "Q/E", "Categoria"])
 	return result
@@ -445,6 +489,9 @@ func _select(item_id: String) -> void:
 	_detail_skill.text = ""
 	if item is WeaponData:
 		_show_weapon(item as WeaponData)
+		return
+	if item is ArmorData:
+		_show_armor(item as ArmorData)
 		return
 	_detail_kind.text = ItemData.KIND_NAMES[item.kind]
 	match item_id:
@@ -482,6 +529,28 @@ func _show_weapon(weapon: WeaponData) -> void:
 		_detail_skill.text = "%s — %s" % [weapon.skill_name, weapon.skill_text]
 
 
+## Ficha da armadura: espaço, conjunto, quantas peças dele estão vestidas e
+## quanto o efeito rende AGORA (somando todas as peças vestidas).
+func _show_armor(piece: ArmorData) -> void:
+	var info := ArmorSets.info(piece.set_id)
+	_detail_kind.text = "%s%s" % [ArmorData.SLOT_NAMES[piece.slot], "  ·  vestido" if Game.is_armor_equipped(piece.id) else ""]
+	_detail_stats.text = "%s\n%d/5 peças vestidas" % [info.get("name", ""), Game.armor_pieces(piece.set_id)]
+	_detail_skill.text = ArmorSets.rule_text(piece.set_id) + "\n" + _armor_now_text(piece.set_id)
+
+
+func _armor_now_text(set_id: String) -> String:
+	var effect := ArmorSets.effect_of(set_id)
+	if effect == "passo":
+		var pieces := Game.armor_effect_pieces(effect)
+		return "Agora: andar +%d%%, correr +%d%%" % [roundi(Game.armor_bonus(effect) * 100.0),
+			roundi(pieces * ArmorSets.SPRINT_PER_PIECE / _player_sprint_base() * 100.0)]
+	return "Agora: +%d%%" % roundi(Game.armor_bonus(effect) * 100.0)
+
+
+func _player_sprint_base() -> float:
+	return _player.sprint_speed_multiplier if is_instance_valid(_player) else 1.6
+
+
 func _clear_detail() -> void:
 	_selected = ""
 	_detail_icon.texture = null
@@ -511,6 +580,12 @@ func _activate(item_id: String) -> void:
 			Sfx.play(&"shield_up", -4.0)
 	elif item_id == "escudo_remendado":
 		Game.set_shield_equipped(not Game.shield_equipped())
+		Sfx.play(&"shield_up", -4.0)
+	elif Items.get_armor(item_id):
+		if Game.is_armor_equipped(item_id):
+			Game.unequip_armor(Items.get_armor(item_id).slot)  # apertar a vestida = tirar
+		else:
+			Game.equip_armor(item_id)
 		Sfx.play(&"shield_up", -4.0)
 	else:
 		return

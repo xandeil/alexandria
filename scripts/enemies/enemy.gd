@@ -289,7 +289,7 @@ func _on_died() -> void:
 	set_deferred("collision_layer", 0)
 	set_deferred("collision_mask", 0)
 	hurtbox.set_deferred("monitorable", false)
-	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02)))
+	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02) * (1.0 + Game.armor_bonus("memoria"))))
 	Game.add_memories(reward)
 	var player := find_target()
 	if player:
@@ -302,7 +302,7 @@ func _on_died() -> void:
 
 ## Sorte também ajuda aqui (+2% de chance relativa por ponto acima de 10).
 func _try_drop() -> void:
-	var luck := 1.0 + (int(Game.attributes.get("sorte", 10)) - 10) * 0.02
+	var luck := (1.0 + (int(Game.attributes.get("sorte", 10)) - 10) * 0.02) * (1.0 + Game.armor_bonus("fartura"))
 	_try_weapon_drop(luck)
 	if drop_item.is_empty() or drop_chance <= 0.0:
 		return

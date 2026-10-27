@@ -36,6 +36,42 @@ const CATALOG := {
 	"presa_caelis": preload("res://data/items/presa_caelis.tres"),
 	"fuso_arconte": preload("res://data/items/fuso_arconte.tres"),
 	"ancora_gravidade": preload("res://data/items/ancora_gravidade.tres"),
+	# Armaduras (ArmorData): 7 conjuntos x 5 peças. Os efeitos ficam no ArmorSets.
+	"capacete_vigilia": preload("res://data/items/capacete_vigilia.tres"),
+	"peitoral_vigilia": preload("res://data/items/peitoral_vigilia.tres"),
+	"luvas_vigilia": preload("res://data/items/luvas_vigilia.tres"),
+	"calca_vigilia": preload("res://data/items/calca_vigilia.tres"),
+	"botas_vigilia": preload("res://data/items/botas_vigilia.tres"),
+	"capacete_detentor": preload("res://data/items/capacete_detentor.tres"),
+	"peitoral_detentor": preload("res://data/items/peitoral_detentor.tres"),
+	"luvas_detentor": preload("res://data/items/luvas_detentor.tres"),
+	"calca_detentor": preload("res://data/items/calca_detentor.tres"),
+	"botas_detentor": preload("res://data/items/botas_detentor.tres"),
+	"capacete_sono": preload("res://data/items/capacete_sono.tres"),
+	"peitoral_sono": preload("res://data/items/peitoral_sono.tres"),
+	"luvas_sono": preload("res://data/items/luvas_sono.tres"),
+	"calca_sono": preload("res://data/items/calca_sono.tres"),
+	"botas_sono": preload("res://data/items/botas_sono.tres"),
+	"capacete_banquete": preload("res://data/items/capacete_banquete.tres"),
+	"peitoral_banquete": preload("res://data/items/peitoral_banquete.tres"),
+	"luvas_banquete": preload("res://data/items/luvas_banquete.tres"),
+	"calca_banquete": preload("res://data/items/calca_banquete.tres"),
+	"botas_banquete": preload("res://data/items/botas_banquete.tres"),
+	"capacete_eco": preload("res://data/items/capacete_eco.tres"),
+	"peitoral_eco": preload("res://data/items/peitoral_eco.tres"),
+	"luvas_eco": preload("res://data/items/luvas_eco.tres"),
+	"calca_eco": preload("res://data/items/calca_eco.tres"),
+	"botas_eco": preload("res://data/items/botas_eco.tres"),
+	"capacete_caelis": preload("res://data/items/capacete_caelis.tres"),
+	"peitoral_caelis": preload("res://data/items/peitoral_caelis.tres"),
+	"luvas_caelis": preload("res://data/items/luvas_caelis.tres"),
+	"calca_caelis": preload("res://data/items/calca_caelis.tres"),
+	"botas_caelis": preload("res://data/items/botas_caelis.tres"),
+	"capacete_arconte": preload("res://data/items/capacete_arconte.tres"),
+	"peitoral_arconte": preload("res://data/items/peitoral_arconte.tres"),
+	"luvas_arconte": preload("res://data/items/luvas_arconte.tres"),
+	"calca_arconte": preload("res://data/items/calca_arconte.tres"),
+	"botas_arconte": preload("res://data/items/botas_arconte.tres"),
 }
 
 
@@ -49,6 +85,10 @@ static func get_item(id: String) -> ItemData:
 
 static func get_weapon(id: String) -> WeaponData:
 	return CATALOG.get(id) as WeaponData
+
+
+static func get_armor(id: String) -> ArmorData:
+	return CATALOG.get(id) as ArmorData
 
 
 static func display_name(id: String) -> String:

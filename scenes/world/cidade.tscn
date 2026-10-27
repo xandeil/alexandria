@@ -19,7 +19,7 @@ exit2_scene = "res://scenes/world/montanha.tscn"
 exit2_spawn = "porta"
 exit2_requires = "durgan"
 exit2_locked_dialogue = "ponte_levadica"
-item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo"])
+item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo", "conjunto:detentor"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

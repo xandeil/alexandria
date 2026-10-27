@@ -38,6 +38,8 @@ signal item_added(id: String, count: int)
 signal weapon_upgraded(level: int)
 ## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
 signal weapon_changed(id: String)
+## Vestiu ou tirou uma peça de armadura (o herói recalcula vida e velocidade).
+signal armor_changed
 
 ## Save das versões antigas (um só). Na primeira vez, ele vira o slot 1.
 const SAVE_PATH := "user://alexandria_save.json"
@@ -142,6 +144,8 @@ var left_hand := ""
 var two_handing := false
 ## Arma na mão direita (id do catálogo; sempre uma arma que você tem).
 var equipped_weapon := START_WEAPON
+## Armadura vestida: espaço do corpo ("capacete"...) → id da peça ("" = nada).
+var armor := {}
 ## Itens do chão que já foram pegos ("cidade@13,3") — não voltam ao descansar.
 var collected_pickups: Array[String] = []
 ## Câmaras onde você já descansou (dá para viajar entre elas).
@@ -248,6 +252,7 @@ func reset_progress() -> void:
 	equipped_weapon = START_WEAPON
 	left_hand = ""
 	two_handing = false
+	armor = _empty_armor()
 	collected_pickups.clear()
 	capsules.clear()
 	play_seconds = 0.0
@@ -684,6 +689,90 @@ func set_shield_equipped(equipped: bool) -> void:
 	save_game()
 
 
+# --- Armadura ---------------------------------------------------------------------------
+# Cada peça vestida soma um pouco do efeito do conjunto dela (ArmorSets). O
+# Game só guarda O QUE está vestido e responde "quanto vale o efeito X agora";
+# quem aplica o número é quem cuida daquela regra (o herói, o inimigo, a arma).
+
+func _empty_armor() -> Dictionary:
+	var result := {}
+	for slot in ArmorData.SLOTS:
+		result[slot] = ""
+	return result
+
+
+## Veste a peça no espaço dela (troca o que estava lá). false = você não tem.
+func equip_armor(id: String) -> bool:
+	var piece := Items.get_armor(id)
+	if piece == null or not has_item(id):
+		return false
+	armor[piece.slot] = id
+	_armor_updated()
+	return true
+
+
+func unequip_armor(slot: String) -> void:
+	if str(armor.get(slot, "")).is_empty():
+		return
+	armor[slot] = ""
+	_armor_updated()
+
+
+func is_armor_equipped(id: String) -> bool:
+	var piece := Items.get_armor(id)
+	return piece != null and armor.get(piece.slot, "") == id
+
+
+func armor_in(slot: String) -> ArmorData:
+	return Items.get_armor(str(armor.get(slot, "")))
+
+
+## Quantas peças DESTE conjunto estão vestidas (0 a 5).
+func armor_pieces(set_id: String) -> int:
+	var count := 0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece and piece.set_id == set_id:
+			count += 1
+	return count
+
+
+## Quanto o efeito vale agora (0.18 = +18%). Soma TODAS as peças vestidas
+## que mexem nesse efeito — misturar conjuntos funciona.
+func armor_bonus(effect: String) -> float:
+	var total := 0.0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece and ArmorSets.effect_of(piece.set_id) == effect:
+			total += ArmorSets.per_piece(piece.set_id)
+	return total
+
+
+## Peças do efeito X vestidas (o "passo" precisa da contagem, não da soma).
+func armor_effect_pieces(effect: String) -> int:
+	var count := 0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece and ArmorSets.effect_of(piece.set_id) == effect:
+			count += 1
+	return count
+
+
+## As peças que você tem (para o inventário), na ordem do catálogo.
+func owned_armor() -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Items.CATALOG:
+		if Items.get_armor(id) and has_item(id):
+			result.append(id)
+	return result
+
+
+func _armor_updated() -> void:
+	items_changed.emit()
+	armor_changed.emit()
+	save_game()
+
+
 # --- Ferreiro: melhoria da arma -------------------------------------------------------------
 
 func weapon_damage_multiplier() -> float:
@@ -860,7 +949,8 @@ func try_forge_weapon(id: String) -> bool:
 ## Dano de um golpe desta arma com os atributos e o reforço atuais.
 ## O herói usa ESTA função ao bater — a ficha e o golpe nunca discordam.
 func weapon_hit_damage(weapon: WeaponData, attack: AttackData) -> float:
-	return attack.damage * weapon.damage_scale * weapon.scaling_multiplier(attributes) * weapon_damage_multiplier()
+	return attack.damage * weapon.damage_scale * weapon.scaling_multiplier(attributes) * weapon_damage_multiplier() \
+		* (1.0 + armor_bonus("forca"))
 
 
 ## Ataque (leve, forte) para a ficha do inventário.
@@ -1073,6 +1163,7 @@ func _to_dict() -> Dictionary:
 		"left_hand": left_hand,
 		"two_handing": two_handing,
 		"equipped_weapon": equipped_weapon,
+		"armor": armor.duplicate(),
 		"collected_pickups": collected_pickups.duplicate(),
 		"capsules": capsules.duplicate(),
 		"play_seconds": play_seconds,
@@ -1149,6 +1240,14 @@ func _from_dict(data: Dictionary) -> void:
 	elif Items.get_weapon(saved_left) != null and _copies_free(saved_left, "esquerda") > 0:
 		left_hand = saved_left
 	two_handing = bool(data.get("two_handing", false))
+	# Armadura: só volta o que você TEM e que serve naquele espaço (save
+	# editado à mão ou de versão futura não veste uma calça na cabeça).
+	var saved_armor: Variant = data.get("armor", {})
+	if typeof(saved_armor) == TYPE_DICTIONARY:
+		for slot in ArmorData.SLOTS:
+			var piece := Items.get_armor(str(saved_armor.get(slot, "")))
+			if piece and piece.slot == slot and has_item(piece.id):
+				armor[slot] = piece.id
 	var saved_pickups: Variant = data.get("collected_pickups", [])
 	if typeof(saved_pickups) == TYPE_ARRAY:
 		for key in saved_pickups:

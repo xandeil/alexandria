@@ -38,6 +38,8 @@ static func fire(parent: Node, from: Vector2, dir: Vector2, owner_node: Node2D, 
 	shot.kind = shot_kind
 	shot.direction = dir.normalized() if dir != Vector2.ZERO else Vector2.RIGHT
 	shot.source = owner_node
+	if owner_node is Player:  # Couraça do Eco: "qualquer arma" inclui arco e besta
+		shot.max_distance *= (owner_node as Player).reach_multiplier()
 	shot.damage = shot_damage
 	if shot_kind != BOLT:
 		shot.speed = 240.0  # flecha: um pouco mais lenta, dá para ver o arco

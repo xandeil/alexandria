@@ -230,6 +230,8 @@ func _ready() -> void:
 		"test_shop_buy_and_sell",
 		"test_clean_controls_mode",
 		"test_pad_confirms_menus",
+		"test_armor_rules",
+		"test_armor_in_world_and_menu",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -766,7 +768,7 @@ func test_levels_build() -> void:
 			for node in level.entities.get_children():
 				if node is ItemPickup:
 					items += 1
-			check(items == 3, "Bosque: 3 itens no chão (%d)" % items)
+			check(items == 8, "Bosque: 3 itens + as 5 peças do Sono Leve no chão (%d)" % items)
 		elif path.contains("teatro"):
 			check(level.rest_chamber != null, "Teatro: tem a Câmara de descanso")
 			check(level.spawns.has("camara"), "Teatro: spawn na Câmara")
@@ -1908,7 +1910,7 @@ func test_pickups_and_drops() -> void:
 	for node in level.entities.get_children():
 		if node is ItemPickup:
 			pickups.append(node)
-	check(pickups.size() == 4, "4 itens no chão da Cidade (%d)" % pickups.size())
+	check(pickups.size() == 9, "4 itens + as 5 peças do Detentor no chão da Cidade (%d)" % pickups.size())
 	var shield: ItemPickup = null
 	for pickup in pickups:
 		if pickup.item_id == "escudo_remendado":
@@ -1925,7 +1927,7 @@ func test_pickups_and_drops() -> void:
 		if node is ItemPickup:
 			left += 1
 			check((node as ItemPickup).item_id != "escudo_remendado", "o escudo não volta")
-	check(left == 3, "sobram 3 itens (%d)" % left)
+	check(left == 8, "sobram 8 itens (%d)" % left)
 	level.queue_free()
 	await frames(2)
 	# Drop de inimigo.
@@ -4498,9 +4500,9 @@ func test_inventory_menu() -> void:
 	var ids := menu.entries(0).map(func(e): return e["id"])
 	check(ids == ["espada", "pilar_estilhacada"], "aba Armas: %s" % [ids])
 	check(menu.entries(1).map(func(e): return e["id"]) == ["escudo_remendado"], "aba Escudos")
-	check(menu.entries(2).map(func(e): return e["id"]) == ["frasco_vida", "frasco_sanidade"], "aba Frascos")
-	check(menu.entries(3).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
-	check(menu.entries(4).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
+	check(menu.entries(3).map(func(e): return e["id"]) == ["frasco_vida", "frasco_sanidade"], "aba Frascos")
+	check(menu.entries(4).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
+	check(menu.entries(5).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
 	check(get_viewport().gui_get_focus_owner() in menu._slots, "o foco começa na grade (controle)")
 	# Ficha da arma: letras de escala e habilidade.
 	menu._select("pilar_estilhacada")
@@ -4519,7 +4521,7 @@ func test_inventory_menu() -> void:
 	menu._activate("escudo_remendado")
 	await frames(1)
 	check(not Game.shield_ready(), "guardou o escudo pelo menu")
-	menu.set_tab(4)
+	menu.set_tab(5)
 	menu._select("lembranca_aldir")
 	check(menu._detail_text.text.contains("impotência"), "lembrança mostra a lore")
 	hud.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
@@ -5240,3 +5242,149 @@ func test_clean_controls_mode() -> void:
 	Settings.controller_mode = saved[0]
 	Settings.pad_legend = saved[1]
 	Settings.apply()
+
+
+# --- Armaduras (v0.25) ------------------------------------------------------------------
+
+func _wear_set(set_id: String) -> void:
+	for id in ArmorSets.pieces(set_id):
+		Game.add_item(id, 1, false)
+		Game.equip_armor(id)
+
+
+func test_armor_rules() -> void:
+	Game.reset_progress()
+	check(ArmorSets.SETS.size() == 7, "sete conjuntos")
+	for set_id: String in ArmorSets.SETS:
+		for id in ArmorSets.pieces(set_id):
+			var piece := Items.get_armor(id)
+			check(piece != null and piece.set_id == set_id and piece.icon != null, "peça no catálogo, com ícone: %s" % id)
+	check(not Game.equip_armor("peitoral_detentor"), "não veste o que não tem")
+	# Força (Detentor): +4% por peça, vale para qualquer arma.
+	var weapon := Game.current_weapon()
+	var attack: AttackData = Game.BASE_LIGHT
+	var plain := Game.weapon_hit_damage(weapon, attack)
+	_wear_set("detentor")
+	check(Game.armor_pieces("detentor") == 5 and is_equal_approx(Game.armor_bonus("forca"), 0.2), "5 peças: força +20%")
+	check(is_equal_approx(Game.weapon_hit_damage(weapon, attack), plain * 1.2), "o dano do golpe sobe 20%")
+	# Trocar uma peça: o espaço só tem uma.
+	Game.add_item("luvas_caelis", 1, false)
+	Game.equip_armor("luvas_caelis")
+	check(Game.armor["luvas"] == "luvas_caelis" and Game.armor_pieces("detentor") == 4, "luvas novas tiram as antigas")
+	check(is_equal_approx(Game.armor_bonus("forca"), 0.16) and is_equal_approx(Game.armor_bonus("passo"), 0.12), "misturar conjuntos soma cada um")
+	Game.unequip_armor("luvas")
+	check(Game.armor["luvas"] == "" and Game.armor_in("luvas") == null, "tirar deixa o espaço vazio")
+	# Save: volta igual; peça trocada de espaço ou que você não tem é ignorada.
+	var data := Game._to_dict()
+	Game._from_dict(data)
+	check(Game.armor["peitoral"] == "peitoral_detentor" and Game.armor_pieces("detentor") == 4, "o save guarda a armadura")
+	data["armor"] = {"capacete": "calca_detentor", "botas": "botas_arconte", "peitoral": "peitoral_detentor"}
+	Game._from_dict(data)
+	check(Game.armor["capacete"] == "" and Game.armor["botas"] == "" and Game.armor["peitoral"] == "peitoral_detentor",
+		"save estranho não veste calça na cabeça nem peça que você não tem")
+	var old := {"version": 3, "inventory": {"espada": 1}}
+	Game._from_dict(old)
+	check(Game.armor.size() == 5 and Game.armor_bonus("forca") == 0.0, "save antigo (sem armadura) abre sem nada vestido")
+	# Herói: vida (Vigília) e fôlego (Sono Leve).
+	Game.reset_progress()
+	var player := spawn_player()
+	await frames(2)
+	var base_health := player.stats.max_health
+	player.stats.health = 30.0
+	_wear_set("vigilia")
+	await frames(1)
+	check(is_equal_approx(player.stats.max_health, base_health * 1.3), "Vigília: vida máxima +30%% (%.1f → %.1f)" % [base_health, player.stats.max_health])
+	check(is_equal_approx(player.stats.health, 30.0), "vestir não enche a vida (não é frasco)")
+	_wear_set("sono")
+	await frames(1)
+	check(is_equal_approx(player.stats.regen_bonus, 1.6) and is_equal_approx(player.stats.health_scale, 1.0), "Sono Leve no lugar: estamina +60%, a vida volta ao normal")
+	player.stats.regen_scale = 0.35  # escudo erguido...
+	player.stats.regen_scale = 1.0   # ...e abaixado: a armadura continua
+	check(is_equal_approx(player.stats.regen_bonus, 1.6), "abaixar o escudo não apaga o bônus da armadura")
+	# Passo (Caelis): andar = correr sem armadura; correr fica mais rápido ainda.
+	_wear_set("caelis")
+	check(is_equal_approx(player.walk_multiplier(), player.sprint_speed_multiplier), "5 peças: andar = correr")
+	check(player.sprint_multiplier() > player.sprint_speed_multiplier + 0.4, "e correr passa do correr normal")
+	Input.action_press("move_right")
+	await frames(40)
+	var walking := player.velocity.length()
+	Input.action_release("move_right")
+	check(absf(walking - player.move_speed * 1.6) < 3.0, "andando a %.0f (normal %.0f)" % [walking, player.move_speed])
+	# Alcance (Eco): o golpe sai mais longe.
+	_wear_set("eco")
+	await frames(10)
+	player.stats.stamina = player.stats.max_stamina
+	player._start_attack(Game.BASE_LIGHT, 0)
+	check(is_equal_approx(player.hitbox_shape.position.x, Game.BASE_LIGHT.reach * 1.3), "Eco: alcance +30%")
+	player.queue_free()
+	await frames(2)
+	# Memórias (Arconte) e drops (Banquete) nos inimigos.
+	Game.reset_progress()
+	_wear_set("arconte")
+	var chance := Enemy.weapon_drop_chance
+	Enemy.weapon_drop_chance = 0.0  # aqui só as memórias importam
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(200, 200))
+	await frames(2)
+	var expected := int(round(soldier.memory_reward * 1.4))
+	soldier.stats.take_damage(9999.0)
+	await frames(3)
+	check(Game.memories == expected, "Arconte: +40%% de memórias (%d, esperado %d)" % [Game.memories, expected])
+	_wear_set("banquete")
+	Enemy.weapon_drop_chance = 0.58  # × 1.75 = mais de 100%: só cai se o Banquete contar
+	var other := spawn_enemy_scene(SOLDIER_SCENE, Vector2(260, 200))
+	await frames(2)
+	other.stats.take_damage(9999.0)
+	await frames(3)
+	var drops := _world.get_children().filter(func(n): return n is ItemPickup and Items.get_weapon(n.item_id) != null)
+	check(drops.size() == 1, "Banquete: +75% de chance de drop")
+	Enemy.weapon_drop_chance = chance
+	Game.reset_progress()
+
+
+func test_armor_in_world_and_menu() -> void:
+	Game.reset_progress()
+	# Um conjunto escondido em cada região de chefe (e nenhum repetido).
+	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio"]
+	var placed: Array[String] = []
+	for region in regions:
+		var level := (load("res://scenes/world/%s.tscn" % region) as PackedScene).instantiate() as Level
+		for spec in level.item_points:
+			if spec.begins_with("conjunto:"):
+				placed.append(spec.trim_prefix("conjunto:"))
+		level.free()
+	placed.sort()
+	var all_sets: Array = ArmorSets.SETS.keys()
+	all_sets.sort()
+	check(placed == all_sets, "os 7 conjuntos, um por região: %s" % [placed])
+	# No chão: as 5 peças em volta do ponto, cada uma com a própria chave.
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	var pile := level.entities.get_children().filter(func(n): return n is ItemPickup and Items.get_armor(n.item_id) != null)
+	check(pile.size() == 5, "o Traje da Vigília está no Teatro (%d peças)" % pile.size())
+	for pickup: ItemPickup in pile:
+		pickup.take()
+	check(Game.owned_armor().size() == 5, "pegou as 5 peças")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/teatro.tscn", "camara")
+	pile = level.entities.get_children().filter(func(n): return n is ItemPickup and Items.get_armor(n.item_id) != null)
+	check(pile.is_empty(), "pegou, está pego: não volta")
+	# Inventário: aba Armadura, vestir e tirar.
+	var hud := level.hud
+	var menu := hud.inventory_menu
+	hud.open_inventory()
+	await frames(2)
+	var tab := InventoryMenu.TABS.find("Armadura")
+	check(menu.entries(tab).size() == 5, "aba Armadura lista as peças")
+	menu.set_tab(tab)
+	menu._activate("peitoral_vigilia")
+	await frames(1)
+	check(Game.is_armor_equipped("peitoral_vigilia") and menu._hands_holding("peitoral_vigilia") == ["V"], "✕ veste (selo V)")
+	check(menu._detail_skill.text.contains("Agora: +6%"), "a ficha diz quanto rende agora: %s" % menu._detail_skill.text)
+	check(menu._equip_rows["armadura"].text == "1/5", "a coluna EQUIPADO mostra 1/5")
+	check(is_equal_approx(level.player.stats.health_scale, 1.06), "o herói sente na hora")
+	menu._activate("peitoral_vigilia")
+	await frames(1)
+	check(not Game.is_armor_equipped("peitoral_vigilia"), "✕ de novo tira")
+	menu.close()
+	await frames(2)
+	Game.reset_progress()

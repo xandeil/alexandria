@@ -24,7 +24,7 @@ exit3_spawn = "porta"
 exit3_requires = "rachel"
 exit3_locked_dialogue = "tunel_de_gelo"
 lore_points = {"1": "sope_queimado", "2": "ossario", "3": "acampamento_capitao", "4": "trilha_ninho"}
-item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:3"])
+item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "conjunto:caelis", "sucata_temperada:3"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

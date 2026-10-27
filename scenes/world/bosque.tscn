@@ -24,7 +24,7 @@ exit3_spawn = "porta"
 exit3_requires = "mabel"
 exit3_locked_dialogue = "trilha_forjas"
 lore_points = {"1": "soldado_dormindo", "3": "lago_parado", "4": "cachoeira_lenta"}
-item_points = Array[String](["sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3"])
+item_points = Array[String](["conjunto:sono", "sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

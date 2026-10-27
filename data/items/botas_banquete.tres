@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/armor_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/armadura_banquete_botas.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "botas_banquete"
+display_name = "Botas do Banquete"
+description = "Avental, luvas e botas de quem servia a mesa da Mabel. Os bolsos nunca estão vazios."
+kind = 4
+icon = ExtResource("2_icon")
+max_stack = 1
+slot = "botas"
+set_id = "banquete"

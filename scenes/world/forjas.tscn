@@ -20,7 +20,7 @@ exit2_spawn = "porta"
 exit2_requires = "guardiao_ancora"
 exit2_locked_dialogue = "porta_ancora"
 lore_points = {"1": "placa_ancora", "2": "galeria_estatuas", "3": "oficina_durgan", "5": "porta_durgan"}
-item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2"])
+item_points = Array[String](["conjunto:eco", "fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 
