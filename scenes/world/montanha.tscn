@@ -7,6 +7,8 @@
 [node name="Montanha" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/montanha.txt"
+farm_route = Array[Vector2i]([Vector2i(27, 20), Vector2i(60, 20), Vector2i(60, 26), Vector2i(34, 26), Vector2i(33, 23), Vector2i(27, 22)])
+farm_field_tiles = Rect2i(20, 20, 43, 8)
 area_name = "Montanha Carbonizada"
 area_subtitle = "Florestas queimadas, ossos de dragões e cinza no ar. No topo, alguém dorme sobre as ruínas."
 theme = "montanha"

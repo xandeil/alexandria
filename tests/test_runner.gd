@@ -232,6 +232,8 @@ func _ready() -> void:
 		"test_pad_confirms_menus",
 		"test_armor_rules",
 		"test_armor_in_world_and_menu",
+		"test_farm_calf_seven_hits",
+		"test_farm_minotaur_cycle",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -5386,5 +5388,102 @@ func test_armor_in_world_and_menu() -> void:
 	await frames(1)
 	check(not Game.is_armor_equipped("peitoral_vigilia"), "✕ de novo tira")
 	menu.close()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- Farm da Montanha (v0.26) -------------------------------------------------------------
+
+func _hit_calf(calf: BezerroDourado, damage: float) -> void:
+	var info := HitInfo.create(damage, calf.global_position + Vector2(-20, 0), calf.global_position)
+	calf.hurtbox.receive_hit(info)
+
+
+func _kill_calf(calf: BezerroDourado) -> void:
+	for i in BezerroDourado.HITS_TO_KILL:
+		_hit_calf(calf, 30.0)
+
+
+func test_farm_calf_seven_hits() -> void:
+	Game.reset_progress()
+	var level := await open_level("res://scenes/world/montanha.tscn", "camara")
+	var farm := level.get_node_or_null("Farm") as FarmSpot
+	check(farm != null and is_instance_valid(farm.calf), "a Montanha tem o farm, com o Bezerro pastando")
+	var calf := farm.calf
+	check(level.farm_field_tiles.has_point(Vector2i(calf.global_position / 16.0)), "ele nasce dentro do campo")
+	# Calmo: anda devagar pela rota.
+	await frames(30)
+	check(not calf.fleeing and calf.velocity.length() <= calf.graze_speed + 1.0, "pastando: passo lento (%.0f)" % calf.velocity.length())
+	# Um pouco mais rápido que o herói mais rápido possível (5 Escamas de Caelis, correndo).
+	for id in ArmorSets.pieces("caelis"):
+		Game.add_item(id, 1, false)
+		Game.equip_armor(id)
+	var fastest := level.player.move_speed * level.player.sprint_multiplier()
+	check(calf.flee_speed > fastest and calf.flee_speed < fastest * 1.15,
+		"fugindo: %.0f contra %.0f do herói de Caelis correndo (um pouco mais)" % [calf.flee_speed, fastest])
+	# Dano não importa: são 7 golpes, nem mais nem menos.
+	for i in 6:
+		_hit_calf(calf, 99999.0 if i % 2 == 0 else 1.0)
+	await frames(6)
+	check(not calf.dead and calf.hits == 6, "6 golpes (até de 99999 de dano): ainda de pé")
+	check(calf.fleeing and absf(calf.velocity.length() - calf.flee_speed) < 2.0, "apanhou: dispara pela rota (%.0f)" % calf.velocity.length())
+	var before := calf.global_position
+	await frames(30)
+	var route_ok := false
+	for point in calf.route:
+		route_ok = route_ok or point.distance_to(calf.global_position) < 200.0
+	check(calf.global_position.distance_to(before) > 60.0 and route_ok, "corre de verdade, sem sair da volta")
+	check(not calf.can_be_backstabbed(calf.global_position - calf.facing * 20.0), "sem crítico pelas costas")
+	_hit_calf(calf, 1.0)
+	await frames(2)
+	check(calf.dead, "o 7º golpe derruba, mesmo com 1 de dano")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_farm_minotaur_cycle() -> void:
+	Game.reset_progress()
+	var level := await open_level("res://scenes/world/montanha.tscn", "camara")
+	var farm := level.get_node("Farm") as FarmSpot
+	_kill_calf(farm.calf)
+	var came := await wait_for(func(): return farm.is_minotaur_active() and farm.minotaur.active, 300)
+	check(came, "o bezerro caiu: o Minotauro despenca e a luta começa")
+	var mino := farm.minotaur
+	check(level.hud._boss_bar.visible and level.hud._boss_bar.boss_name == "O Minotauro", "a barra de chefe aparece")
+	var inside := true
+	for i in 40:
+		inside = inside and farm.field.has_point(mino._clamp_to_field(mino._random_point()))
+	check(inside, "os pulos ficam dentro do campo")
+	# Deixa ele lutar um pouco (pulos de verdade, sem travar).
+	level.player.stats.health = 99999.0
+	await seconds(4.0)
+	check(is_instance_valid(mino) and not mino.dead and farm.field.grow(32.0).has_point(mino.global_position), "pulou pelo campo e continua nele")
+	# Vence: 4000 memórias e 10 Sucata no chão. NÃO fica salvo como vencido.
+	var memories := Game.memories
+	mino.stats.take_damage(999999.0)
+	await frames(4)
+	check(Game.memories == memories + Minotauro.REWARD_MEMORIES, "+4000 memórias (%d)" % (Game.memories - memories))
+	var sucata := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "sucata_temperada" and n.count == Minotauro.REWARD_SUCATA)
+	check(sucata.size() == 1, "10 Sucata Temperada no chão")
+	check(Game.defeated_bosses.is_empty(), "não entra no save como chefe vencido (ele volta)")
+	var back := await wait_for(func(): return is_instance_valid(farm.calf) and not farm.calf.dead, 300)
+	check(back and farm.calf.hits == 0, "o bezerro volta a pastar, como se nada tivesse acontecido")
+	# Desistir no meio (descansar na Câmara): o Minotauro some e o bezerro volta.
+	_kill_calf(farm.calf)
+	await wait_for(func(): return farm.is_minotaur_active() and farm.minotaur.active, 300)
+	var second := farm.minotaur
+	level._respawn_enemies()  # o que o descanso faz
+	await frames(60)
+	check(not is_instance_valid(second) or second.modulate.a < 0.1, "descansou: o Minotauro some")
+	check(is_instance_valid(farm.calf) and not farm.calf.dead, "e o bezerro já está lá")
+	check(not level.hud._boss_bar.visible or level.hud._boss_bar.modulate.a < 1.0, "a barra sai")
+	level.queue_free()
+	await frames(2)
+	# Morreu? A fase recarrega e começa com o bezerro.
+	level = await open_level("res://scenes/world/montanha.tscn", "camara")
+	farm = level.get_node("Farm") as FarmSpot
+	check(is_instance_valid(farm.calf) and not farm.is_minotaur_active(), "fase nova: só o bezerro")
+	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
