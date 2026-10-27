@@ -112,6 +112,9 @@ func _make_card(n: int) -> Button:
 	hero.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	portrait.add_child(hero)
 	head.text = "SAVE %d   ·   Nível %d" % [n, int(info["nivel"])]
+	var cycle_text := Game.cycle_label(int(info.get("ciclo", 0)))
+	if not cycle_text.is_empty():
+		head.text += "   ·   " + cycle_text
 	var where := UIStyle.label(str(info["area"]), 8, UIStyle.GOLD)
 	where.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lines.add_child(where)

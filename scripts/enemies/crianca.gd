@@ -317,3 +317,8 @@ func _update_sword(delta: float) -> void:
 		sword_pivot.rotation = lerp_angle(sword_pivot.rotation, rest_angle, 10.0 * delta)
 	sword_pivot.position = Vector2(3.0 * side, -6.0)
 	sword_pivot.z_index = -1 if sin(sword_pivot.rotation) < -0.3 else 1
+
+
+## NG+ não muda as crianças: a escolha moral do Prólogo é a mesma em todo ciclo.
+func scales_with_cycle() -> bool:
+	return false

@@ -589,7 +589,7 @@ func _on_died() -> void:
 		burst.queue_free()
 	speech.emit(SPEECH_DEFEAT)
 	var reward := data.memory_reward if data else 1400
-	Game.add_memories(reward)
+	Game.earn_memories(reward)
 	if target:
 		Fx.memory_motes(global_position + Vector2(0, -20), target, 24)
 	Sfx.play(&"boss_phase")

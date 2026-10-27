@@ -23,6 +23,7 @@ const REASONS := {
 const FORGE_REASONS := {
 	"owned": "\"Você já tem duas. Mão tem só duas também.\"",
 	"lembranca": "\"Sem a Lembrança dele, isso é só ferro. Traga a alma, eu dou a forma.\"",
+	"basica": "\"Arma comum eu não invento: traga uma, que eu faço a outra.\"",
 	"memories": "Faltam memórias.",
 	"sucata": "Falta Sucata Temperada.",
 }
@@ -43,6 +44,8 @@ func _entries(tab_index: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if tab_index == 0:
 		for id in Game.owned_weapons():
+			if id == Game.FISTS:
+				continue  # punho não se reforça no fogo
 			result.append({"id": id, "icon": Items.get_item(id).icon, "corner": "+%d" % Game.weapon_level})
 	else:
 		for id in Game.smith_weapons():

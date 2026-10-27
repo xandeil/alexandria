@@ -27,6 +27,13 @@ const CATALOG := {
 	"lembranca_cassian": preload("res://data/items/lembranca_cassian.tres"),
 	"anel_do_guarda": preload("res://data/items/anel_do_guarda.tres"),
 	"lembranca_cavaleiro": preload("res://data/items/lembranca_cavaleiro.tres"),
+	# Armas básicas (v0.27): a escolhida na criação fica no chão do Prólogo.
+	"punhos": preload("res://data/items/punhos.tres"),
+	"espada_grande_cobaia": preload("res://data/items/espada_grande_cobaia.tres"),
+	"lanca_cobaia": preload("res://data/items/lanca_cobaia.tres"),
+	"martelo_cobaia": preload("res://data/items/martelo_cobaia.tres"),
+	"adaga_cobaia": preload("res://data/items/adaga_cobaia.tres"),
+	"arco_cobaia": preload("res://data/items/arco_cobaia.tres"),
 	# Armas de chefe (WeaponData — também são itens).
 	"lamina_desolada": preload("res://data/items/lamina_desolada.tres"),
 	"pilar_estilhacada": preload("res://data/items/pilar_estilhacada.tres"),

@@ -376,7 +376,7 @@ func _on_died() -> void:
 		(block as IceBlock).shatter()
 	speech.emit(SPEECH_DEFEAT)
 	var reward := data.memory_reward if data else 2000
-	Game.add_memories(reward)
+	Game.earn_memories(reward)
 	if target:
 		Fx.memory_motes(global_position + Vector2(0, -16), target, 26)
 	Sfx.play(&"boss_phase")

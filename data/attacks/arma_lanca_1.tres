@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Estocada"
+stamina_cost = 16.0
+damage = 19.0
+poise_damage = 14.0
+knockback = 80.0
+is_heavy = false
+windup_time = 0.12
+lunge_speed = 200.0
+lunge_time = 0.06
+active_time = 0.08
+recovery_time = 0.22
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.6
+reach = 24.0
+radius = 8.0
+hitstop = 0.05
+shake = 1.5
+slash_arc_degrees = 0.0
+slash_radius = 20.0
+slash_color = Color(1.0, 1.0, 1.0, 0.9)
+sound = &"swing"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0
+parryable = false

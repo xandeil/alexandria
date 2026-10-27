@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/weapon_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/espada_grande_cobaia.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/arma_espada_grande_cobaia.png" id="3"]
+[ext_resource type="Resource" path="res://data/attacks/arma_espadao_descida.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "espada_grande_cobaia"
+display_name = "Espadão de Cobaia"
+description = "Pesado demais para quem acabou de acordar. Alguém achou que você ia precisar dele mesmo assim."
+kind = 0
+icon = ExtResource("2")
+max_stack = 2
+weapon_class = "Espada Grande"
+scaling = {"forca": "B", "destreza": "D"}
+special_attack = ExtResource("4")
+damage_scale = 1.25
+speed_scale = 1.25
+stamina_scale = 1.2
+hand_texture = ExtResource("3")
+forge_memories = 600
+forge_sucata = 2

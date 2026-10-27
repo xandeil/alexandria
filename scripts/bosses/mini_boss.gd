@@ -91,7 +91,7 @@ func _defeat(last_words: String = "") -> void:
 	if not last_words.is_empty():
 		speech.emit(last_words)
 	var reward := data.memory_reward if data else memory_reward
-	Game.add_memories(reward)
+	Game.earn_memories(reward)
 	if target:
 		Fx.memory_motes(global_position + Vector2(0, -10), target, 14)
 	if data:

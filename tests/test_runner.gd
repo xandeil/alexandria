@@ -234,6 +234,11 @@ func _ready() -> void:
 		"test_armor_in_world_and_menu",
 		"test_farm_calf_seven_hits",
 		"test_farm_minotaur_cycle",
+		"test_ng_weapon_on_the_floor",
+		"test_ng_difficulty",
+		"test_ng_new_journey",
+		"test_ng_guardian_fight",
+		"test_ng_ending_choices",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -4246,7 +4251,8 @@ func test_character_creation_screen() -> void:
 	var got: Array = []
 	creation.confirmed.connect(func(l): got.append(l))
 	creation._confirm()
-	check(got.size() == 1 and got[0] == creation.look, "Despertar devolve a aparência escolhida")
+	check(got.size() == 1 and Appearance.sanitized(got[0]) == creation.look and got[0].get("arma") == creation.weapon,
+		"Despertar devolve a aparência escolhida (e a arma)")
 	got[0]["sexo"] = 99
 	check(creation.look["sexo"] != 99, "devolve uma CÓPIA (mexer nela não muda a tela)")
 	creation.queue_free()
@@ -4310,7 +4316,7 @@ func test_weapon_forge_and_equip() -> void:
 	check(Game.try_forge_weapon("lamina_desolada"), "forjou")
 	check(Game.has_item("lembranca_helena"), "a Lembrança NÃO é gasta (ela abre o Núcleo)")
 	check(Game.memories == 8500 and Game.item_count("sucata_temperada") == 7, "cobrou memórias e sucata")
-	check(Game.owned_weapons() == ["espada", "lamina_desolada"], "armas: %s" % [Game.owned_weapons()])
+	check(Game.owned_weapons() == ["espada", "lamina_desolada", Game.FISTS], "armas (e os punhos, sempre): %s" % [Game.owned_weapons()])
 	check(Game.try_forge_weapon("lamina_desolada") and Game.weapon_count("lamina_desolada") == 2, "forja uma CÓPIA (uma para cada mão)")
 	check(Game.forge_block_reason("lamina_desolada") == "owned" and not Game.try_forge_weapon("lamina_desolada"), "mas não uma terceira")
 	Game.remove_item("lamina_desolada", 1)
@@ -4500,7 +4506,7 @@ func test_inventory_menu() -> void:
 	await frames(2)
 	check(menu.visible and get_tree().paused, "I/Tab: inventário abre e pausa")
 	var ids := menu.entries(0).map(func(e): return e["id"])
-	check(ids == ["espada", "pilar_estilhacada"], "aba Armas: %s" % [ids])
+	check(ids == ["espada", "pilar_estilhacada", Game.FISTS], "aba Armas (punhos no fim): %s" % [ids])
 	check(menu.entries(1).map(func(e): return e["id"]) == ["escudo_remendado"], "aba Escudos")
 	check(menu.entries(3).map(func(e): return e["id"]) == ["frasco_vida", "frasco_sanidade"], "aba Frascos")
 	check(menu.entries(4).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
@@ -4556,7 +4562,7 @@ func test_smith_forge_tab() -> void:
 	await frames(1)
 	menu.set_tab(1)
 	var ids := menu._slots.map(func(b): return b.get_meta("id"))
-	check(ids.size() == 9 and ids[0] == "espada", "aba Forjar: a espada (cópia) e as 8 de chefe")
+	check(ids.size() == Game.BASIC_WEAPONS.size() + 8 and ids[0] == "espada", "aba Forjar: as armas comuns (cópia) e as 8 de chefe")
 	menu.select("lamina_desolada")
 	check(menu.detail_name.text == "???" and not menu.forge("lamina_desolada"), "sem a Lembrança: arma desconhecida e não forja")
 	menu.select("arco_sono")
@@ -5484,6 +5490,277 @@ func test_farm_minotaur_cycle() -> void:
 	level = await open_level("res://scenes/world/montanha.tscn", "camara")
 	farm = level.get_node("Farm") as FarmSpot
 	check(is_instance_valid(farm.calf) and not farm.is_minotaur_active(), "fase nova: só o bezerro")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- NG+ (v0.27) ---------------------------------------------------------------------------
+
+func test_ng_weapon_on_the_floor() -> void:
+	Game.reset_progress()
+	# A criação devolve a arma escolhida junto com a aparência.
+	var creation := CharacterCreation.new()
+	add_child(creation)
+	await frames(2)
+	var got := []
+	creation.confirmed.connect(func(choice: Dictionary): got.append(choice))
+	check(creation.weapon == Game.START_WEAPON, "começa na Espada de Cobaia")
+	for i in 2:
+		creation.step_weapon(1)
+	creation._confirm()
+	check(got.size() == 1 and got[0]["arma"] == Game.BASIC_WEAPONS[2], "Confirmar leva a arma: %s" % [got])
+	creation.step_weapon(-3)
+	check(creation.weapon == Game.BASIC_WEAPONS[-1], "dá a volta na lista")
+	creation.queue_free()
+	# Novo jogo: mãos vazias, a arma está no chão do Prólogo.
+	Game.new_game({"arma": "lanca_cobaia"})
+	check(Game.equipped_weapon == Game.FISTS and not Game.owns_weapon("espada"), "acorda de punhos (sem a espada de graça)")
+	check(Game.chosen_weapon == "lanca_cobaia", "lembra a arma escolhida")
+	Game.scene_changes_enabled = false
+	var level := await open_level("res://scenes/world/prologo.tscn", "camara")
+	check(level.player.weapon.id == Game.FISTS, "o herói luta no soco")
+	var pickups := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "lanca_cobaia")
+	check(pickups.size() == 1, "a lança está no chão perto da cápsula")
+	if pickups.size() == 1:
+		check(pickups[0].global_position.distance_to(level.spawns["camara"]) < 220.0, "perto de onde acorda")
+		(pickups[0] as ItemPickup).take()
+		await frames(2)
+		check(Game.equipped_weapon == "lanca_cobaia" and level.player.weapon.id == "lanca_cobaia", "pegou: já está na mão")
+	level.player.stats.stamina = level.player.stats.max_stamina
+	check(level.player._start_attack(level.player.light_combo[0], 0), "a lança bate")
+	level.queue_free()
+	await frames(2)
+	# Todas as armas comuns existem e batem (golpes, ícone, desenho na mão).
+	for id in Game.BASIC_WEAPONS:
+		var weapon := Items.get_weapon(id)
+		check(weapon and weapon.icon and weapon.hand_texture and weapon.special_attack, "arma comum completa: %s" % id)
+	check(Items.get_weapon("arco_cobaia").ranged and WeaponSkills.create(Items.get_weapon("arco_cobaia")).fires_projectile(null), "o arco atira")
+	# Ferreiro: só copia a arma comum que você tem.
+	Game.memories = 9999
+	Game.add_item("sucata_temperada", 10, false)
+	check(Game.forge_block_reason("martelo_cobaia") == "basica", "não inventa arma comum")
+	check(Game.forge_block_reason("lanca_cobaia") == "", "copia a lança que você tem")
+	check(Game.sell_price(Game.FISTS) == 0, "punho não se vende")
+	# Save antigo: a espada continua vindo de graça.
+	Game._from_dict({"version": 3, "inventory": {}})
+	check(Game.owns_weapon("espada") and Game.equipped_weapon == "espada" and Game.cycle == 0, "save antigo: espada na mão, primeira jornada")
+	Game.reset_progress()
+
+
+func test_ng_difficulty() -> void:
+	Game.reset_progress()
+	var expected := {0: 1.0, 1: 1.5, 2: 1.75, 3: 2.0, 7: 3.0, 12: 3.0}
+	for n: int in expected:
+		Game.cycle = n
+		check(is_equal_approx(Game.difficulty(), expected[n]), "ciclo %d: ×%.2f (%.2f)" % [n, expected[n], Game.difficulty()])
+	check(Game.cycle_label(1) == "NG+" and Game.cycle_label(2) == "NG++" and Game.cycle_label(4) == "NG+4", "nomes dos ciclos")
+	Game.cycle = 1
+	Game.memories = 0
+	Game.earn_memories(100)
+	check(Game.memories == 150, "memórias dos inimigos ×1,5 no NG+")
+	Game.cycle = 2
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(300, 200))
+	await frames(2)
+	var plain := SOLDIER_SCENE.instantiate() as Enemy
+	var base: float = (plain.get_node("Stats") as StatsComponent).base_health
+	plain.free()
+	check(soldier.stats.max_health > base * 1.7, "vida do soldado ×1,75 no NG++ (%.0f)" % soldier.stats.max_health)
+	var player := spawn_player(Vector2(100, 100))
+	await frames(2)
+	var before := player.stats.health
+	var hit := HitInfo.create(10.0, Vector2(90, 100), player.global_position)
+	hit.source = soldier
+	player.hurtbox.receive_hit(hit)
+	check(is_equal_approx(before - player.stats.health, 17.5) and is_equal_approx(hit.damage, 10.0),
+		"o golpe dói ×1,75 (e o pacote original não muda)")
+	var child := (load("res://scenes/enemies/crianca.tscn") as PackedScene).instantiate() as Enemy
+	_world.add_child(child)
+	await frames(2)
+	check(is_equal_approx(child.stats.health_scale, 1.0), "as crianças do Prólogo não mudam")
+	Game.reset_progress()
+
+
+func test_ng_new_journey() -> void:
+	Game.reset_progress()
+	Game.scene_changes_enabled = false
+	Game.attributes["forca"] = 30
+	Game.attributes["vitalidade"] = 25
+	Game.memories = 8000
+	Game.weapon_level = 4
+	Game.add_item("pilar_estilhacada", 1, false)
+	Game.add_item("escudo_remendado", 1, false)
+	Game.equip_weapon("pilar_estilhacada")
+	Game.set_shield_equipped(true)
+	for id in ArmorSets.pieces("detentor"):
+		Game.add_item(id, 1, false)
+		Game.equip_armor(id)
+	Game.defeated_bosses.assign(Game.SEVEN + ["cavaleiro"])
+	# Proteger: este experimento vira o guardião do próximo ciclo.
+	Game.show_ending("proteger")
+	check(Game.journey_complete(), "a jornada terminou")
+	var g := Game.guardian
+	check(g.get("direita") == "pilar_estilhacada" and g.get("esquerda") == Game.SHIELD, "a foto guarda as mãos")
+	check((g.get("armadura", {}) as Dictionary).get("peitoral") == "peitoral_detentor", "...e a armadura")
+	check(int((g.get("atributos", {}) as Dictionary).get("forca", 0)) == 30, "...e os atributos")
+	var level := Game.level()
+	# Nova jornada: só o nível passa.
+	Game.start_new_journey({"sexo": 1, "arma": "adaga_cobaia"})
+	check(Game.cycle == 1 and Game.level() == level and Game.attributes["forca"] == 30, "herda o nível (NG+)")
+	check(Game.memories == 0 and Game.weapon_level == 0 and Game.owned_armor().is_empty(), "o resto recomeça")
+	check(not Game.owns_weapon("pilar_estilhacada") and not Game.has_shield() and Game.equipped_weapon == Game.FISTS, "corpo novo, mãos vazias")
+	check(Game.chosen_weapon == "adaga_cobaia" and Game.appearance["sexo"] == 1, "a aparência e a arma novas")
+	check(Game.defeated_bosses.is_empty() and not Game.journey_complete(), "os Pecados estão de volta")
+	check(Game.guardian.get("direita") == "pilar_estilhacada", "o anterior espera no Núcleo")
+	check(Game.flags.get("finais_vistos", []).has("proteger"), "os finais vistos continuam")
+	check(Game.last_scene_request == Game.START_SCENE, "acorda no Prólogo")
+	# Save e volta.
+	var data := Game._to_dict()
+	Game._from_dict(data)
+	check(Game.cycle == 1 and Game.guardian.get("direita") == "pilar_estilhacada" and not Game.starter_sword, "o save guarda o ciclo e o guardião")
+	check(Game.flags.get("finais_vistos", []).has("proteger"), "marcas de texto e lista sobrevivem ao save")
+	check(int(Game.slot_summary(Game.slot).get("ciclo", -1)) in [-1, 0, 1], "o cartão do save sabe o ciclo")
+	# Destruir: o próximo chefe volta a ser o Cavaleiro.
+	Game.show_ending("destruir")
+	check(Game.guardian.is_empty(), "Destruir: sem guardião (o Cavaleiro volta)")
+	Game.start_new_journey({})
+	check(Game.cycle == 2 and is_equal_approx(Game.difficulty(), 1.75), "NG++")
+	Game.reset_progress()
+
+
+func _guardian_build(right: String, left: String, armor_set: String) -> Dictionary:
+	var worn := {}
+	if not armor_set.is_empty():
+		for slot in ArmorData.SLOTS:
+			worn[slot] = ArmorSets.piece_id(slot, armor_set)
+	return {"aparencia": {"sexo": 1, "corpo": 1}, "direita": right, "esquerda": left, "duas_maos": false,
+		"armadura": worn, "atributos": {"forca": 25, "destreza": 20}, "frascos": 3, "ciclo": 0}
+
+
+func test_ng_guardian_fight() -> void:
+	Game.reset_progress()
+	Game.cycle = 1
+	Game.guardian = _guardian_build("lamina_desolada", Game.SHIELD, "vigilia")
+	Game.defeated_bosses.assign(Game.SEVEN)
+	var level := await open_level(CORACAO, "porta")
+	var boss := level.boss_arena.boss as ExperimentoAnterior
+	check(boss != null, "NG+ depois de Proteger: no lugar do Cavaleiro, o experimento anterior")
+	if boss == null:
+		level.queue_free()
+		await frames(2)
+		Game.reset_progress()
+		return
+	check(boss.right.id == "lamina_desolada" and boss.has_shield, "as mesmas mãos (Lâmina + escudo)")
+	check(is_equal_approx(boss.stats.max_health, 1700.0 * 1.3 * 1.5), "vida: base × Vigília (+30%%) × NG+ (%.0f)" % boss.stats.max_health)
+	var tuned := 1.0 + ExperimentoAnterior.WEAPON_DAMAGE_PER_LEVEL * Game.WEAPON_UPGRADES.size()
+	var light: AttackData = boss.right.light_combo[0] if not boss.right.light_combo.is_empty() else ExperimentoAnterior.BASE_COMBO[0]
+	var expected := light.damage * boss.right.damage_scale * boss.right.scaling_multiplier(boss.attributes) * ExperimentoAnterior.DAMAGE_RATIO * tuned
+	check(is_equal_approx(boss.attack_damage(light), expected), "a arma dele está no reforço máximo")
+	var said := []
+	boss.speech.connect(func(text: String): said.append(text))
+	level.player.global_position = boss.global_position + Vector2(0, 90)
+	level.player._iframes_left = 999.0
+	await seconds(0.8)
+	check(boss.active and said.has(ExperimentoAnterior.SPEECH_INTRO), "ele se levanta e fala")
+	check(level.hud._boss_bar.boss_name == "O Experimento Anterior", "a barra mostra quem ele é")
+	# Desvia: você começa um golpe perto dele.
+	boss.dodge_chance = 1.0
+	boss._go_decide(0.0)
+	boss._roll_cd = 0.0
+	level.player.global_position = boss.global_position + Vector2(0, 30)
+	level.player.stats.stamina = level.player.stats.max_stamina
+	level.player._start_attack(level.player.light_combo[0], 0)
+	await frames(2)
+	check(boss.mode == ExperimentoAnterior.Mode.ROLL and boss.hurtbox.invulnerable, "viu o golpe: rola (invencível)")
+	await seconds(0.6)
+	# Cura: pouca vida e longe de você.
+	boss._go_decide(0.0)
+	boss._heal_cd = 0.0
+	boss.stats.set_health(boss.stats.max_health * 0.6)
+	level.player.global_position = boss.global_position + Vector2(0, 120)
+	var flasks := boss.flasks
+	await seconds(1.4)
+	check(boss.flasks == flasks - 1 and boss.stats.health_ratio() > 0.8, "bebeu um frasco (%.2f)" % boss.stats.health_ratio())
+	# Metade da vida: o Núcleo o escolhe (não dá para pular a fase 2).
+	boss.stats.take_damage(999999.0)
+	await frames(2)
+	check(boss.phase == 2 and is_equal_approx(boss.stats.health_ratio(), 0.5), "metade da vida: fase 2")
+	check(boss.flasks == flasks, "o Núcleo devolve um frasco")
+	await seconds(2.4)
+	check(boss.phase_label() == "O Núcleo o escolhe" and boss.mode != ExperimentoAnterior.Mode.TRANSITION, "fase 2 começa")
+	boss._go_decide(99.0)
+	boss._rain_light()
+	check(get_tree().get_nodes_in_group("flesh_bursts").size() >= boss.stone_count, "pedras de luz caem")
+	await seconds(1.6)
+	boss.stats.take_damage(999999.0)
+	await seconds(1.0)
+	check(Game.is_boss_defeated("cavaleiro"), "vencido: a escolha diante dela se abre")
+	check(level._dialogue_variant("mulher_do_nucleo") == "a_escolha", "proteger ou destruir, de novo")
+	level.queue_free()
+	await frames(2)
+	# Cada tipo de mão funciona (arco atira; punhos e duas mãos).
+	for build in [_guardian_build("arco_cobaia", "", ""), _guardian_build(Game.FISTS, "", "caelis"),
+			_guardian_build("presas_voragem", "presas_voragem", "eco")]:
+		Game.guardian = build
+		Game.defeated_bosses.assign(Game.SEVEN)
+		level = await open_level(CORACAO, "porta")
+		var other := level.boss_arena.boss as ExperimentoAnterior
+		level.player.global_position = other.global_position + Vector2(0, 100)
+		level.player._iframes_left = 999.0
+		await seconds(3.0)
+		check(other.active and not other.dead, "luta com %s" % build["direita"])
+		level.queue_free()
+		await frames(2)
+	# Sem guardião (final Destruir): o Cavaleiro de sempre.
+	Game.guardian = {}
+	Game.defeated_bosses.assign(Game.SEVEN)
+	level = await open_level(CORACAO, "porta")
+	check(level.boss_arena.boss is CavaleiroDesolado, "sem guardião: o Cavaleiro")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_ng_ending_choices() -> void:
+	Game.reset_progress()
+	Game.scene_changes_enabled = false
+	Game.attributes["forca"] = 22
+	Game.flags["final"] = "proteger"
+	var ending := ENDING_SCENE.instantiate()
+	add_child(ending)
+	await frames(2)
+	for i in 900:
+		ending._skip = true
+		await frames(1)
+		if ending._done:
+			break
+	check(ending._done and ending.choices.visible, "depois dos créditos: as duas escolhas")
+	check(ending.new_journey_button.text.contains("nova jornada") and ending.explore_button.text.contains("Explorar"), "Iniciar nova jornada / Explorar o mundo atual")
+	ending.open_new_journey()
+	await frames(2)
+	check(is_instance_valid(ending.creation) and ending.creation.journey_cycle == 1, "vai direto para a criação do novo experimento")
+	ending.creation._cancel()
+	await frames(2)
+	check(ending.choices.visible, "Voltar: as escolhas de novo")
+	ending.open_new_journey()
+	await frames(2)
+	ending.creation._confirm()
+	await frames(2)
+	check(Game.cycle == 1 and Game.attributes["forca"] == 22 and Game.last_scene_request == Game.START_SCENE, "confirmou: NG+ no Prólogo")
+	ending.queue_free()
+	await frames(2)
+	# Explorar: volta para a última Câmara, e de lá dá para começar depois.
+	Game.reset_progress()
+	Game.flags["final"] = "destruir"
+	Game.rest_scene = "res://scenes/world/teatro.tscn"
+	Game.explore_after_ending()
+	check(Game.last_scene_request == Game.rest_scene, "Explorar: volta para a Câmara")
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	level.hud.rest_menu.run(level.scene_file_path)
+	await frames(2)
+	check(level.hud.rest_menu.journey_button.visible, "na Câmara: Iniciar nova jornada")
+	level.hud.rest_menu.journey_button.pressed.emit()
+	await frames(2)
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

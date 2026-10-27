@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Rajada da Adaga"
+stamina_cost = 20.0
+damage = 16.0
+poise_damage = 10.0
+knockback = 60.0
+is_heavy = false
+windup_time = 0.06
+lunge_speed = 260.0
+lunge_time = 0.1
+active_time = 0.12
+recovery_time = 0.2
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.6
+reach = 12.0
+radius = 10.0
+hitstop = 0.04
+shake = 1.0
+slash_arc_degrees = 0.0
+slash_radius = 14.0
+slash_color = Color(1.0, 1.0, 1.0, 0.9)
+sound = &"swing_small"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0
+parryable = false

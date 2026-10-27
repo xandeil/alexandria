@@ -91,6 +91,14 @@ const WEAPON_LEVEL_CAP_AFTER_DURGAN := 5
 
 ## Armas de chefe: o Ferreiro forja com a Lembrança do Pecado (que NÃO é gasta).
 const START_WEAPON := "espada"
+## Lutar sem arma (v0.27): sempre "na mão" — as duas, aliás.
+const FISTS := "punhos"
+## As armas comuns: dá para escolher uma na criação de personagem (ela fica
+## largada no chão do Prólogo) e o Ferreiro copia a que você já tem.
+const BASIC_WEAPONS: Array[String] = ["espada", "espada_grande_cobaia", "lanca_cobaia", "martelo_cobaia",
+	"adaga_cobaia", "arco_cobaia"]
+## NG+ (v0.27): a partir deste ciclo o mundo para de endurecer.
+const MAX_CYCLE := 7
 const SHIELD := "escudo_remendado"
 const FORGEABLE_WEAPONS: Array[String] = ["lamina_desolada", "pilar_estilhacada", "arco_sono", "presas_voragem",
 	"replicador_bronze", "presa_caelis", "fuso_arconte", "ancora_gravidade"]
@@ -146,6 +154,16 @@ var two_handing := false
 var equipped_weapon := START_WEAPON
 ## Armadura vestida: espaço do corpo ("capacete"...) → id da peça ("" = nada).
 var armor := {}
+## NG+ (v0.27): 0 = a primeira jornada; 1 = NG+, 2 = NG++...
+var cycle := 0
+## O experimento anterior que ficou no lugar do Cavaleiro (final Proteger):
+## a "foto" de como ele estava ao vencer o Núcleo. {} = o Cavaleiro de sempre.
+var guardian := {}
+## Saves de antes da v0.27: a Espada de Cobaia vinha na mão de graça. Quem
+## nasce pela criação nova começa de punhos e acha a arma no chão.
+var starter_sword := true
+## A arma escolhida na criação (fica largada no Prólogo).
+var chosen_weapon := ""
 ## Itens do chão que já foram pegos ("cidade@13,3") — não voltam ao descansar.
 var collected_pickups: Array[String] = []
 ## Câmaras onde você já descansou (dá para viajar entre elas).
@@ -253,6 +271,10 @@ func reset_progress() -> void:
 	left_hand = ""
 	two_handing = false
 	armor = _empty_armor()
+	cycle = 0
+	guardian = {}
+	starter_sword = true
+	chosen_weapon = ""
 	collected_pickups.clear()
 	capsules.clear()
 	play_seconds = 0.0
@@ -261,6 +283,25 @@ func reset_progress() -> void:
 
 
 # --- Memórias e nível ---------------------------------------------------------------
+
+## Memórias GANHAS no mundo (inimigos, chefes): crescem com o ciclo do NG+.
+## Comprar, vender e recuperar a mancha usam add_memories direto (preço é preço).
+func earn_memories(amount: int) -> void:
+	add_memories(int(round(amount * difficulty())))
+
+
+## NG+: vida, dano e memórias dos inimigos. ×1 na primeira jornada, ×1,5 no
+## NG+, +0,25 por ciclo e para no NG+7 (×3).
+func difficulty() -> float:
+	return 1.0 if cycle <= 0 else 1.25 + 0.25 * mini(cycle, MAX_CYCLE)
+
+
+## "NG+", "NG++"... (vazio na primeira jornada) — para a tela de saves.
+static func cycle_label(n: int) -> String:
+	if n <= 0:
+		return ""
+	return "NG+" if n == 1 else ("NG++" if n == 2 else "NG+%d" % n)
+
 
 func add_memories(amount: int) -> void:
 	if amount <= 0:
@@ -429,7 +470,7 @@ func sell_price(item_id: String) -> int:
 	if SELL_PRICES.has(item_id):
 		return int(SELL_PRICES[item_id])
 	var weapon := Items.get_weapon(item_id)
-	if weapon and item_id != START_WEAPON:
+	if weapon and item_id != START_WEAPON and item_id != FISTS:
 		return maxi(300, weapon.forge_memories / 3)
 	return 0
 
@@ -617,6 +658,9 @@ func add_item(item_id: String, count: int = 1, announce: bool = true) -> int:
 	var added := after - before
 	if item_id == SHIELD and before == 0 and left_hand.is_empty():
 		left_hand = SHIELD  # pegou o escudo com a mão livre: já vai para ela
+	if item is WeaponData and equipped_weapon == FISTS and item_id != FISTS:
+		equipped_weapon = item_id  # achou uma arma de mãos vazias: já empunha
+		weapon_changed.emit(equipped_weapon)
 	items_changed.emit()
 	if announce and added > 0:
 		item_added.emit(item_id, added)
@@ -825,19 +869,22 @@ func try_upgrade_weapon() -> bool:
 func weapon_count(id: String) -> int:
 	if Items.get_weapon(id) == null:
 		return 0
-	return (1 if id == START_WEAPON else 0) + item_count(id)
+	if id == FISTS:
+		return 2  # as duas mãos, sempre
+	return (1 if id == START_WEAPON and starter_sword else 0) + item_count(id)
 
 
 func owns_weapon(id: String) -> bool:
 	return weapon_count(id) > 0
 
 
-## A espada inicial e as forjadas, na ordem da forja.
+## As armas que você tem, na ordem da forja (os punhos no fim: sempre "tem").
 func owned_weapons() -> Array[String]:
 	var result: Array[String] = []
 	for id in smith_weapons():
 		if owns_weapon(id):
 			result.append(id)
+	result.append(FISTS)
 	return result
 
 
@@ -845,16 +892,16 @@ func forgeable_weapons() -> Array[String]:
 	return FORGEABLE_WEAPONS
 
 
-## O que aparece na forja: a espada inicial (cópia) e as 8 de chefe.
+## O que aparece na forja: as armas comuns (só cópia da que você tem) e as 8 de chefe.
 func smith_weapons() -> Array[String]:
-	var result: Array[String] = [START_WEAPON]
+	var result: Array[String] = BASIC_WEAPONS.duplicate()
 	result.append_array(FORGEABLE_WEAPONS)
 	return result
 
 
 func current_weapon() -> WeaponData:
 	var weapon := Items.get_weapon(equipped_weapon)
-	return weapon if weapon else Items.get_weapon(START_WEAPON)
+	return weapon if weapon else Items.get_weapon(FISTS)
 
 
 ## A arma da mão esquerda (null = escudo ou mão vazia).
@@ -874,6 +921,9 @@ func _copies_free(id: String, hand: String) -> int:
 func equip_weapon(id: String, hand: String = "direita") -> bool:
 	if not owns_weapon(id):
 		return false
+	if id == FISTS and hand == "esquerda":
+		clear_left_hand()  # punho na esquerda = mão vazia
+		return true
 	if hand == "esquerda":
 		if _copies_free(id, "esquerda") <= 0:
 			return false  # a única está na direita: forje uma cópia
@@ -925,6 +975,8 @@ func forge_block_reason(id: String) -> String:
 		return "lembranca"
 	if weapon_count(id) >= 2:
 		return "owned"  # já tem uma para cada mão
+	if BASIC_WEAPONS.has(id) and not owns_weapon(id):
+		return "basica"  # arma comum: ele copia, não inventa
 	if not weapon.memory_item.is_empty() and not has_item(weapon.memory_item):
 		return "lembranca"
 	if memories < weapon.forge_memories:
@@ -1052,6 +1104,7 @@ func slot_summary(n: int) -> Dictionary:
 		"tempo": float(data.get("play_seconds", 0.0)),
 		"aparencia": Appearance.sanitized(data.get("appearance", {})),
 		"pecados": SEVEN.filter(func(id): return (bosses as Array).has(id)).size() if bosses is Array else 0,
+		"ciclo": maxi(int(data.get("ciclo", 0)), 0),
 	}
 
 
@@ -1164,6 +1217,10 @@ func _to_dict() -> Dictionary:
 		"two_handing": two_handing,
 		"equipped_weapon": equipped_weapon,
 		"armor": armor.duplicate(),
+		"ciclo": cycle,
+		"guardiao": guardian.duplicate(true),
+		"espada_inicial": starter_sword,
+		"arma_escolhida": chosen_weapon,
 		"collected_pickups": collected_pickups.duplicate(),
 		"capsules": capsules.duplicate(),
 		"play_seconds": play_seconds,
@@ -1207,6 +1264,12 @@ func _from_dict(data: Dictionary) -> void:
 			if item:
 				inventory[item.id] = clampi(int(saved_items[item_id]), 0, item.max_stack)
 	weapon_level = clampi(int(data.get("weapon_level", 0)), 0, WEAPON_UPGRADES.size())
+	# NG+ (v0.27). Saves antigos: primeira jornada, espada inicial de graça.
+	cycle = maxi(int(data.get("ciclo", 0)), 0)
+	var saved_guardian: Variant = data.get("guardiao", {})
+	guardian = (saved_guardian as Dictionary).duplicate(true) if saved_guardian is Dictionary else {}
+	starter_sword = bool(data.get("espada_inicial", true))
+	chosen_weapon = str(data.get("arma_escolhida", ""))
 	# Itens-chave de chefes já vencidos que faltem no save (ex.: a Lembrança do
 	# Cavaleiro, que só existe desde a v0.20) são devolvidos. Como são únicos,
 	# repetir isto não duplica nada.
@@ -1231,7 +1294,7 @@ func _from_dict(data: Dictionary) -> void:
 	if prologue_done:
 		unlock_capsule(HUB_SCENE)
 	var saved_weapon := str(data.get("equipped_weapon", START_WEAPON))
-	equipped_weapon = saved_weapon if owns_weapon(saved_weapon) else START_WEAPON
+	equipped_weapon = saved_weapon if owns_weapon(saved_weapon) else (START_WEAPON if owns_weapon(START_WEAPON) else FISTS)
 	# MIGRAÇÃO v0.20 → v0.21: antes só existia "escudo equipado ou não".
 	var saved_left := str(data.get("left_hand", SHIELD if bool(data.get("shield_equipped", false)) else ""))
 	left_hand = ""
@@ -1255,9 +1318,10 @@ func _from_dict(data: Dictionary) -> void:
 	var saved_flags: Variant = data.get("flags", {})
 	if typeof(saved_flags) == TYPE_DICTIONARY:
 		for flag in saved_flags:
-			# "dicas" guarda uma lista de ids (tutorial_hints.gd); as demais são booleanas.
+			# Marcas não são só sim/não: "final" é um texto e "finais_vistos" uma
+			# lista. Converter tudo para bool quebrava o save de quem viu um final.
 			var value: Variant = saved_flags[flag]
-			flags[str(flag)] = value if typeof(value) == TYPE_ARRAY else bool(value)
+			flags[str(flag)] = value if value is bool or value is String or value is Array else bool(value)
 	# Saves de antes da criação de personagem não têm "appearance": ficam com
 	# a aparência padrão (Homem/Magro/Sereno/Curto), que é o visual antigo.
 	appearance = Appearance.sanitized(data.get("appearance", {}))
@@ -1281,10 +1345,63 @@ func _quarantine_broken_save() -> void:
 
 # --- Fluxo entre cenas -----------------------------------------------------------------------
 
-## `look`: a aparência escolhida na tela de criação (vazio = a padrão).
+## `look`: a aparência escolhida na tela de criação (vazio = a padrão) e,
+## na chave "arma", a arma comum escolhida (fica no chão do Prólogo).
 func new_game(look: Dictionary = {}) -> void:
 	reset_progress()
+	_awaken(look)
+
+
+## NG+: "Iniciar nova jornada". Outro experimento acorda num mundo mais duro.
+## Ele herda SÓ o nível (os atributos); o resto é de um corpo novo. O
+## guardião (se o final foi Proteger) e os finais já vistos continuam.
+func start_new_journey(look: Dictionary = {}) -> void:
+	var keep_attributes := attributes.duplicate()
+	var next_cycle := cycle + 1
+	var keep_guardian := guardian.duplicate(true)
+	var seen: Array = (flags.get("finais_vistos", []) as Array).duplicate()
+	reset_progress()
+	attributes = keep_attributes
+	cycle = next_cycle
+	guardian = keep_guardian
+	flags["finais_vistos"] = seen
+	_awaken(look)
+
+
+## A jornada já terminou (viu um final)? Libera "Nova jornada" na Câmara.
+func journey_complete() -> bool:
+	return flags.has("final")
+
+
+## "Explorar o mundo atual": volta para a última Câmara depois dos créditos.
+func explore_after_ending() -> void:
+	session_active = true
+	clear_carry()
+	pending_spawn = rest_spawn
+	_change_scene(rest_scene)
+
+
+## Como o experimento estava ao vencer o Núcleo: é assim que ele vai lutar
+## quando o próximo chegar (a arma "tunada" é decidida na luta).
+func _guardian_snapshot() -> Dictionary:
+	return {
+		"aparencia": appearance.duplicate(),
+		"direita": equipped_weapon,
+		"esquerda": left_hand,
+		"duas_maos": two_handing,
+		"armadura": armor.duplicate(),
+		"atributos": attributes.duplicate(),
+		"frascos": health_flasks_max,
+		"ciclo": cycle,
+	}
+
+
+func _awaken(look: Dictionary) -> void:
 	appearance = Appearance.sanitized(look)
+	var weapon_id := str(look.get("arma", START_WEAPON))
+	chosen_weapon = weapon_id if BASIC_WEAPONS.has(weapon_id) else START_WEAPON
+	starter_sword = false
+	equipped_weapon = FISTS  # a arma está no chão, perto da cápsula
 	session_active = true
 	save_game()
 	pending_spawn = START_SPAWN
@@ -1330,6 +1447,8 @@ func endings_seen() -> Array:
 ## A escolha no Núcleo: grava qual final (e quais já foram vistos) e mostra o final.
 func show_ending(kind: String) -> void:
 	flags["final"] = kind
+	# Proteger: este experimento fica no lugar do Cavaleiro no próximo ciclo.
+	guardian = _guardian_snapshot() if kind == "proteger" else {}
 	var seen: Array = flags.get("finais_vistos", [])
 	if not seen.has(kind):
 		seen.append(kind)

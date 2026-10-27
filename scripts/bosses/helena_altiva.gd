@@ -609,7 +609,7 @@ func _on_died() -> void:
 	set_deferred("collision_layer", 0)
 	speech.emit(SPEECH_DEFEAT_RING if Game.has_item("anel_do_guarda") else SPEECH_DEFEAT)
 	var reward := data.memory_reward if data else 1500
-	Game.add_memories(reward)
+	Game.earn_memories(reward)
 	if target:
 		Fx.memory_motes(global_position + Vector2(0, -10), target, 24)
 	Sfx.play(&"boss_phase")

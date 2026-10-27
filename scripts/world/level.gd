@@ -118,7 +118,9 @@ const THEME_ENTITIES := {
 			"freed_by": "curadora", "freed_texture": "res://assets/sprites/estudioso.png"}},
 	},
 	"nucleo": {
-		"/": {"boss": preload("res://scenes/bosses/cavaleiro.tscn")},
+		# NG+ depois do final Proteger: quem guarda o Núcleo é o experimento anterior.
+		"/": {"boss": preload("res://scenes/bosses/cavaleiro.tscn"),
+			"guardian": preload("res://scenes/bosses/experimento_anterior.tscn")},
 		# A mulher ligada ao núcleo: o Cavaleiro a acha pelo grupo "nucleo_core".
 		"U": {"npc": {"dialogue": "mulher_do_nucleo", "name": "A mulher do núcleo",
 			"texture": "res://assets/sprites/mulher_nucleo.png", "frames": 2, "group": "nucleo_core",
@@ -449,6 +451,7 @@ const PROPS := {
 ## Itens do chão: um por "@" do mapa, na ORDEM DE LEITURA (esquerda→direita,
 ## cima→baixo). Formato "id" ou "id:quantidade" — ex.: "sucata_temperada:2".
 ## "conjunto:<id>" larga as 5 peças de um conjunto de armadura (ArmorSets).
+## "arma_escolhida" é a arma comum escolhida na criação de personagem.
 ## Pegos uma vez, não voltam (ficam no save com a posição: "cidade@13,3").
 @export var item_points: Array[String] = []
 ## Marque no Inspector para reconstruir o mapa dentro do editor.
@@ -997,7 +1000,10 @@ func _build_theme_entity(spec: Dictionary, x: int, y: int, feet: Vector2) -> voi
 			npc_def["texture"] = npc_def["freed_texture"]
 		_place_object(npc_def, feet)
 	elif spec.has("boss"):
-		_boss = (spec["boss"] as PackedScene).instantiate()
+		var boss_scene: PackedScene = spec["boss"]
+		if spec.has("guardian") and not Game.guardian.is_empty() and not Engine.is_editor_hint():
+			boss_scene = spec["guardian"]
+		_boss = boss_scene.instantiate()
 		_boss.position = feet
 		entities.add_child(_boss)
 		_memorial_point = feet
@@ -1123,6 +1129,11 @@ func _add_item_pickup(x: int, y: int, feet: Vector2) -> void:
 	var spec := item_points[index].split(":")
 	var item_id := spec[0].strip_edges()
 	var key := "%s@%d,%d" % [layout_file.get_file().get_basename(), x, y]
+	if item_id == "arma_escolhida":
+		# A arma da criação de personagem (v0.27). Save antigo: não tem nenhuma.
+		item_id = Game.chosen_weapon
+		if item_id.is_empty():
+			return
 	if item_id == "conjunto":
 		_add_armor_set(spec[1].strip_edges() if spec.size() > 1 else "", key, feet)
 		return
@@ -1524,6 +1535,13 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 	await Fader.fade_in(0.6)
 	# Menu da Câmara: o herói desce na cápsula; dá para viajar para outra.
 	var destination := await hud.rest_menu.run(scene_file_path)
+	if destination == RestMenu.NEW_JOURNEY:
+		var choice := await hud.pick_new_journey()
+		if not choice.is_empty():
+			get_tree().paused = false
+			Game.start_new_journey(choice)  # troca de cena: o novo experimento acorda no Prólogo
+			return
+		destination = ""
 	if not destination.is_empty() and Game.is_capsule_unlocked(destination):
 		# Despausa (a troca de cena precisa do mundo andando), mas o herói segue
 		# travado e sem botões até a outra fase assumir.

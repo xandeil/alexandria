@@ -6,6 +6,11 @@ extends Control
 ## A tela NÃO mexe no save nem no Game: só devolve o dicionário escolhido no
 ## sinal `confirmed`. Quem decide o que fazer com ele é a tela de título — assim
 ## esta tela pode ser testada sozinha e reaproveitada (ex.: um "espelho" no jogo).
+##
+## v0.27: escolhe também a ARMA (uma das comuns). Ela não vem na mão: fica
+## largada no chão do Prólogo, perto da cápsula — quem não vê, começa no soco.
+## O dicionário devolvido leva a escolha na chave "arma".
+## No NG+ (`journey_cycle` > 0) o título muda: é outro experimento acordando.
 
 signal confirmed(look: Dictionary)
 signal cancelled
@@ -13,6 +18,11 @@ signal cancelled
 const PREVIEW_SCALE := 5.0
 
 var look := Appearance.default_data()
+## Uma das Game.BASIC_WEAPONS.
+var weapon := Game.START_WEAPON
+## 0 = primeira jornada; 1+ = NG+ (só muda os textos).
+var journey_cycle := 0
+var _weapon_icon: TextureRect
 var _preview: AnimatedSprite2D
 var _values := {}  # campo -> Label com o valor atual
 var _first_focus: Control
@@ -35,13 +45,23 @@ func _build() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 
-	var title := UIStyle.label("QUEM DESPERTA?", 16, Color(0.9, 0.88, 0.84), UIStyle.TITLE_FONT)
+	var heading := "QUEM DESPERTA?" if journey_cycle <= 0 else "OUTRO EXPERIMENTO DESPERTA"
+	var title := UIStyle.label(heading, 16, Color(0.9, 0.88, 0.84), UIStyle.TITLE_FONT)
 	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	title.offset_left = -200
 	title.offset_right = 200
 	title.offset_top = 18
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(title)
+	if journey_cycle > 0:
+		var note := UIStyle.label("%s · o mundo está mais duro · o corpo é novo, o nível é herdado" % Game.cycle_label(journey_cycle),
+			8, UIStyle.GOLD)
+		note.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		note.offset_left = -220
+		note.offset_right = 220
+		note.offset_top = 40
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		add_child(note)
 
 	# Prévia: um "palco" com luz fraca embaixo e o personagem andando.
 	var stage := Control.new()
@@ -76,6 +96,7 @@ func _build() -> void:
 	var titles := {"sexo": "Sexo", "corpo": "Corpo", "rosto": "Rosto", "cabelo": "Cabelo"}
 	for field in Appearance.FIELDS:
 		_add_row(box, field, titles[field])
+	_add_weapon_row(box)
 
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 8)
@@ -115,6 +136,45 @@ func _add_row(box: VBoxContainer, field: String, title: String) -> void:
 		_first_focus = plus
 
 
+## A arma: mesmo ‹ valor › das outras linhas, com o ícone ao lado.
+func _add_weapon_row(box: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	var name_label := UIStyle.label("Arma", 10, Color(0.8, 0.78, 0.74))
+	name_label.custom_minimum_size = Vector2(56, 0)
+	row.add_child(name_label)
+	var minus := DSMenuButton.make("‹", 14)
+	minus.custom_minimum_size = Vector2(24, 0)
+	minus.pressed.connect(func(): step_weapon(-1))
+	row.add_child(minus)
+	var value := UIStyle.label("", 9, UIStyle.GOLD, UIStyle.TITLE_FONT)
+	value.custom_minimum_size = Vector2(80, 0)
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	value.clip_text = true
+	row.add_child(value)
+	_weapon_icon = TextureRect.new()
+	_weapon_icon.custom_minimum_size = Vector2(14, 14)
+	_weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_weapon_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	row.add_child(_weapon_icon)
+	var plus := DSMenuButton.make("›", 14)
+	plus.custom_minimum_size = Vector2(24, 0)
+	plus.pressed.connect(func(): step_weapon(1))
+	row.add_child(plus)
+	box.add_child(row)
+	_values["arma"] = value
+	var hint := UIStyle.label("Ela vai estar no chão, perto de onde você acordar.", 7, UIStyle.TEXT_DIM)
+	box.add_child(hint)
+
+
+func step_weapon(direction: int) -> void:
+	var list := Game.BASIC_WEAPONS
+	weapon = list[posmod(list.find(weapon) + direction, list.size())]
+	Sfx.play(&"ui_click")
+	_refresh()
+
+
 ## Avança (+1) ou volta (-1) uma opção, dando a volta no fim da lista.
 func step(field: String, direction: int) -> void:
 	var count := Appearance.option_count(field, look["sexo"])
@@ -137,6 +197,9 @@ func _refresh() -> void:
 		_values[field].text = Appearance.option_name(field, look)
 	_preview.sprite_frames = Appearance.sprite_frames(look)
 	_preview.play(&"walk")
+	var data := Items.get_weapon(weapon)
+	_values["arma"].text = data.display_name.replace(" de Cobaia", "")
+	_weapon_icon.texture = data.icon
 
 
 func _process(delta: float) -> void:
@@ -150,7 +213,9 @@ func _process(delta: float) -> void:
 
 func _confirm() -> void:
 	Sfx.play(&"ui_open")
-	confirmed.emit(look.duplicate())
+	var choice := look.duplicate()
+	choice["arma"] = weapon
+	confirmed.emit(choice)
 
 
 func _cancel() -> void:

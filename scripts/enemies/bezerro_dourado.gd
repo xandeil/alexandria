@@ -114,3 +114,8 @@ func _count_hit(direction: Vector2) -> void:
 	Fx.float_text(global_position + Vector2(-6, -28), "%d/%d" % [hits, HITS_TO_KILL], Color(1.0, 0.86, 0.4), 7)
 	if hits >= HITS_TO_KILL:
 		stats.take_damage(stats.health)  # a "vida" de verdade é a contagem; aqui só fecha a conta
+
+
+## Morre por CONTAGEM (7 golpes): a vida dele não cresce no NG+.
+func scales_with_cycle() -> bool:
+	return false
