@@ -1,3 +1,4 @@
+class_name TitleScreen
 extends Control
 ## Tela de título no estilo dos soulslike: fundo preto, cinzas subindo devagar,
 ## o nome do jogo e "Pressione qualquer botão". Depois, o menu: só texto branco,
@@ -14,6 +15,9 @@ var _notice: Label
 var _press_any: Label
 var _options: OptionsMenu
 var _creation: CharacterCreation
+var _cutscene: CutscenePlayer
+## A abertura do "Novo jogo" (vídeo em Ogg Theora).
+const OPENING_VIDEO := "res://assets/cutscenes/abertura.ogv"
 var _slots: SlotMenu
 ## Em qual slot o novo jogo vai começar (escolhido antes da criação de personagem).
 var _new_slot := 0
@@ -194,7 +198,7 @@ func _on_continue() -> void:
 func _notification(what: int) -> void:
 	# Android: "voltar" na tela de título fecha o jogo (quit_on_go_back=false
 	# no projeto, então cada tela decide o que o botão faz).
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and _creation == null and _slots == null:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and _creation == null and _slots == null and _cutscene == null:
 		Game.quit_game()
 
 
@@ -229,7 +233,19 @@ func _on_slot_picked(mode: String, n: int) -> void:
 		_new_game_button.grab_focus()
 		return
 	_new_slot = n
+	await play_opening()
 	open_creation()
+
+
+## A abertura em vídeo (v0.29): toca antes da criação de personagem.
+## Para trocar o vídeo, basta substituir o arquivo OPENING_VIDEO (mesmo nome).
+func play_opening() -> void:
+	_cutscene = CutscenePlayer.create(OPENING_VIDEO)
+	add_child(_cutscene)
+	await _cutscene.finished
+	_cutscene.queue_free()
+	_cutscene = null
+	Sfx.play_ambience(&"tema_alexandria", -8.0)
 
 
 ## Novo jogo → criação de personagem → texto de abertura → Prólogo.
