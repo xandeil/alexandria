@@ -240,6 +240,7 @@ func _ready() -> void:
 		"test_ng_guardian_fight",
 		"test_ng_ending_choices",
 		"test_capsule_enter_and_exit",
+		"test_opening_video",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -4890,7 +4891,11 @@ func test_pad_menus_never_stuck() -> void:
 	await _pad_press(JOY_BUTTON_A)
 	check(title._slots != null, "✕ confirma: 'Novo jogo' abre a escolha de save")
 	await _pad_press(JOY_BUTTON_A)  # slot 1 (vazio)
-	check(title._creation != null, "✕ no slot vazio: criação de personagem")
+	check(title._cutscene != null and title._creation == null, "✕ no slot vazio: primeiro a abertura em vídeo")
+	await seconds(CutscenePlayer.SKIP_GRACE + 0.1)
+	await _pad_press(JOY_BUTTON_A)  # pula a abertura
+	await frames(2)
+	check(title._cutscene == null and title._creation != null, "✕ pula o vídeo: criação de personagem")
 	get_viewport().gui_release_focus()
 	await _pad_press(JOY_BUTTON_A)
 	await _pad_press(JOY_BUTTON_A)
@@ -5143,6 +5148,9 @@ func test_title_with_slots() -> void:
 	check(title._slots != null and title._creation == null and slots._hint.text.contains("APAGADO"), "slot ocupado: avisa que vai apagar")
 	slots._cards[1].pressed.emit()
 	await frames(2)
+	if title._cutscene:
+		title._cutscene.skip()
+		await frames(2)
 	check(title._creation != null and title._new_slot == 2, "apertou de novo: vai criar no slot 2")
 	title.queue_free()
 	await frames(2)
@@ -5802,3 +5810,34 @@ func test_capsule_enter_and_exit() -> void:
 	check(Game.wake_from_capsule, "renascer: sai da cápsula")
 	Game.wake_from_capsule = false
 	Game.reset_progress()
+
+
+# --- Abertura em vídeo (v0.29) ----------------------------------------------------------
+
+func test_opening_video() -> void:
+	check(ResourceLoader.exists(TitleScreen.OPENING_VIDEO), "o vídeo da abertura está no jogo")
+	var stream := load(TitleScreen.OPENING_VIDEO) as VideoStream
+	check(stream != null, "e o Godot consegue abrir (Ogg Theora)")
+	var cutscene := CutscenePlayer.create(TitleScreen.OPENING_VIDEO)
+	add_child(cutscene)
+	var ended := []
+	cutscene.finished.connect(func(): ended.append(true))
+	await seconds(1.0)
+	check(cutscene.video.is_playing() and ended.is_empty(), "toca (e não acaba sozinho num segundo)")
+	var tap := InputEventScreenTouch.new()
+	tap.pressed = true
+	cutscene._input(tap)
+	await frames(2)
+	check(ended.size() == 1 and not cutscene.video.is_playing(), "um toque pula")
+	cutscene._input(tap)
+	check(ended.size() == 1, "pular duas vezes não avisa duas vezes")
+	cutscene.queue_free()
+	# Arquivo que não existe: não trava o jogo, só segue em frente.
+	var missing := CutscenePlayer.create("res://assets/cutscenes/nao_existe.ogv")
+	add_child(missing)
+	var skipped := []
+	missing.finished.connect(func(): skipped.append(true))
+	await frames(3)
+	check(skipped.size() == 1, "vídeo faltando: pula direto")
+	missing.queue_free()
+	await frames(2)

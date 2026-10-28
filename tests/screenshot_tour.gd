@@ -89,6 +89,15 @@ func _ready() -> void:
 		await _tour_options()
 		Game.quit_game()
 		return
+	if only == "abertura":
+		var title := await open("res://scenes/ui/title_screen.tscn") as TitleScreen
+		title.play_opening()
+		await wait(3.0)
+		await shot("v01_abertura_3s")
+		await wait(17.0)
+		await shot("v02_abertura_20s")
+		Game.quit_game()
+		return
 	if only == "capsula":
 		await _tour_capsule()
 		Game.quit_game()

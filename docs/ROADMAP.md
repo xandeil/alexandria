@@ -5,7 +5,7 @@ ordem combinada e as regras que o Alexandre definiu, para não se perderem.
 
 ## Ordem combinada
 
-1. **Vídeo de abertura** — o Alexandre está editando os vídeos curtos (feitos
+1. ~~**Vídeo de abertura**~~ — FEITO na v0.29 (versão provisória; o Alexandre vai refazer melhor e é só trocar `assets/cutscenes/abertura.ogv`). Era: o Alexandre está editando os vídeos curtos (feitos
    em outro chat, pixel art no estilo do jogo). Quando chegarem: converter para
    Ogg Theora (`.ogv`, o formato que o Godot toca), legendas da narração,
    transição para a cena da cápsula, tocar só no "Novo jogo" (toque pula).
