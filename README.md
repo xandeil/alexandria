@@ -539,7 +539,11 @@ de referência — feita para ser substituída pela arte final mantendo os mesmo
 tamanhos de quadro (herói/soldado/crianças 24×24, Helena 32×32, Governanta
 32×40, tiles 16×16).
 
-## Próximos passos sugeridos (pela Bíblia)
+## Próximos passos
+
+O que foi combinado para depois (vídeo de abertura, navegador, coop local e online, invasões) está anotado em [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+### Sugestões da Bíblia
 
 1. **A história inteira está jogável, do Prólogo aos dois finais.** Falta balancear dano, vida e memórias jogando no celular de verdade (os números estão nos `.tres` de `data/` e em `tools/gen_resources.py`) e, se quiser, músicas para as áreas e as lutas.
 2. **Publicar:** criar a sua chave (`tools/criar_chave_release`), gerar o AAB (`build_release ... -Aab`), confirmar os direitos da arte do título e seguir o checklist de `docs/loja/LEIA-ME.md` — começando por um **teste interno** com amigos.
