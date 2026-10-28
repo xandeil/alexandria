@@ -16,15 +16,25 @@ extends Node
 ## menu fechado, o ✕ volta a ser "interagir" e o direcional volta a andar.
 
 const GROUP := &"pad_menu"
-const CONFIRM := JOY_BUTTON_A  # ✕ no PlayStation
+const CONFIRM := JOY_BUTTON_A  # o botão de BAIXO (✕ no PlayStation, A no Xbox, B no Nintendo)
 const NAV_BUTTONS := [JOY_BUTTON_A, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT]
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS  # menus quase sempre abrem com o jogo pausado
+	# Qual controle está ligado (PadStyle): ao abrir e a cada liga/desliga.
+	PadStyle.refresh()
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+
+
+func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
+	PadStyle.refresh()
+	Settings.changed.emit()  # legendas e menus redesenham com os botões certos
 
 
 func _input(event: InputEvent) -> void:
+	if (event is InputEventJoypadButton or event is InputEventJoypadMotion) and PadStyle.note_device(event.device):
+		Settings.changed.emit()  # outro controle assumiu: troca os desenhos
 	if not _is_pad_press(event):
 		return
 	var menu := active_menu()

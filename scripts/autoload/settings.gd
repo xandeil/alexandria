@@ -20,11 +20,15 @@ var vibration := true
 var button_size := "Médios"
 var hints := true
 ## Modo controle: some os botões de toque e aparecem, discretos, os botões do
-## controle (padrão PlayStation) no lugar deles.
+## controle (do jeito do controle ligado: PlayStation, Xbox, Nintendo...).
 var controller_mode := false
-## No modo controle: mostrar a legenda dos botões do PlayStation? false = modo
+## No modo controle: mostrar a legenda dos botões? false = modo
 ## LIMPO (nada de botão na tela; a tela fica só com o jogo).
 var pad_legend := true
+## Desenho dos botões do controle: "auto" (descobre pelo nome do controle) ou
+## uma família forçada ("playstation", "xbox", "nintendo", "generico").
+var pad_style := "auto"
+const PAD_STYLES: Array[String] = ["auto", "playstation", "xbox", "nintendo", "generico"]
 ## Testes e o passeio de fotos não gravam opções no aparelho.
 var persistence_enabled := true
 
@@ -61,6 +65,8 @@ func load_settings() -> void:
 	hints = bool(config.get_value("jogo", "dicas", hints))
 	controller_mode = bool(config.get_value("toque", "modo_controle", controller_mode))
 	pad_legend = bool(config.get_value("toque", "legenda_controle", pad_legend))
+	var style := str(config.get_value("toque", "estilo_botoes", pad_style))
+	pad_style = style if PAD_STYLES.has(style) else "auto"
 
 
 func save_settings() -> void:
@@ -74,6 +80,7 @@ func save_settings() -> void:
 	config.set_value("jogo", "dicas", hints)
 	config.set_value("toque", "modo_controle", controller_mode)
 	config.set_value("toque", "legenda_controle", pad_legend)
+	config.set_value("toque", "estilo_botoes", pad_style)
 	config.save(PATH)
 	_loaded_from_file = true
 
@@ -145,6 +152,12 @@ func controls_mode() -> String:
 	if not controller_mode:
 		return "toque"
 	return "controle" if pad_legend else "limpo"
+
+
+## Automático → PlayStation → Xbox → Nintendo → Genérico → Automático.
+func cycle_pad_style() -> void:
+	pad_style = PAD_STYLES[(PAD_STYLES.find(pad_style) + 1) % PAD_STYLES.size()]
+	_commit()
 
 
 func toggle_hints() -> void:

@@ -241,6 +241,7 @@ func _ready() -> void:
 		"test_ng_ending_choices",
 		"test_capsule_enter_and_exit",
 		"test_opening_video",
+		"test_pad_style",
 	]
 	# Filtro opcional: "... test_runner.tscn -- sono vigia" roda só os testes
 	# cujo nome contém alguma dessas palavras (útil enquanto se mexe numa coisa).
@@ -4149,7 +4150,7 @@ func test_controller_mode() -> void:
 	check(not touch.visible, "em cena/diálogo, nada aparece")
 	touch.set_enabled(true)
 	check(touch.visible and touch.pad_hints.visible, "e volta a legenda depois")
-	check(TutorialHints.text_for("esquivar").contains("○"), "as dicas falam dos botões do controle")
+	check(TutorialHints.text_for("esquivar").contains(PadStyle.face_long("circle")), "as dicas falam dos botões do controle (o que estiver ligado)")
 	Settings.controller_mode = saved
 	Settings.apply()
 	level.queue_free()
@@ -5246,7 +5247,7 @@ func test_clean_controls_mode() -> void:
 	check(Settings.controls_mode() == "limpo", "Limpo")
 	check(not touch._root.visible and not touch.pad_hints.visible, "Limpo: nem botões de toque nem legenda")
 	check(not level.hud.pause_button.visible, "Limpo: nem o botão de pausa")
-	check(Settings.controller_mode and TutorialHints.text_for("esquivar").contains("○"), "as dicas continuam falando do controle")
+	check(Settings.controller_mode and TutorialHints.text_for("esquivar").contains(PadStyle.face_long("circle")), "as dicas continuam falando do controle (com o botão dele)")
 	var options := OptionsMenu.new()
 	add_child(options)
 	await frames(1)
@@ -5841,3 +5842,62 @@ func test_opening_video() -> void:
 	check(skipped.size() == 1, "vídeo faltando: pula direto")
 	missing.queue_free()
 	await frames(2)
+
+
+# --- Botões de qualquer controle (v0.30) -----------------------------------------------------
+
+func test_pad_style() -> void:
+	var saved := Settings.pad_style
+	# O nome do controle diz a família (nomes reais que o SDL/Android entregam).
+	var names := {
+		"PS5 Controller": "playstation", "DualSense Wireless Controller": "playstation",
+		"Wireless Controller": "playstation", "Sony Interactive Entertainment Controller": "playstation",
+		"Xbox Series X Controller": "xbox", "XInput Controller": "xbox", "Microsoft X-Box 360 pad": "xbox",
+		"Nintendo Switch Pro Controller": "nintendo", "Joy-Con (L/R)": "nintendo",
+		"Generic USB Joystick": "generico", "8BitDo SN30": "generico", "": "generico",
+	}
+	for joy_name: String in names:
+		check(PadStyle.from_name(joy_name) == names[joy_name], "'%s' → %s (%s)" % [joy_name, names[joy_name], PadStyle.from_name(joy_name)])
+	# Botão de BAIXO em cada família (a mesma posição, nomes diferentes).
+	var bottom := {"playstation": "✕", "xbox": "A", "nintendo": "B", "generico": "↓"}
+	var right := {"playstation": "○", "xbox": "B", "nintendo": "A", "generico": "→"}
+	var l1 := {"playstation": "L1", "xbox": "LB", "nintendo": "L", "generico": "L1"}
+	for family: String in bottom:
+		Settings.pad_style = family
+		check(PadStyle.family() == family, "forçado: %s" % family)
+		check(PadStyle.face("cross") == bottom[family] and PadStyle.face("circle") == right[family], "%s: baixo %s, direita %s" % [family, PadStyle.face("cross"), PadStyle.face("circle")])
+		check(PadStyle.shoulder("L1") == l1[family], "%s: ombro %s" % [family, PadStyle.shoulder("L1")])
+		var line := PadStyle.text("{R1} ataca. {circle_long} esquiva. L1/R1 trocam a aba.")
+		check(not line.contains("{") and line.contains(PadStyle.shoulder("R1")), "%s: %s" % [family, line])
+	Settings.pad_style = "xbox"
+	check(PadStyle.text("{cross} pular") == "A pular", "texto da cutscene no Xbox")
+	Settings.pad_style = "playstation"
+	check(PadStyle.text("{circle_long}") == "○ (Bola)", "no PlayStation as frases dizem o nome do símbolo")
+	# Automático: segue o controle detectado.
+	Settings.pad_style = "auto"
+	PadStyle.detected = "nintendo"
+	check(PadStyle.family() == "nintendo" and PadStyle.face("cross") == "B", "automático: usa o controle detectado")
+	# Os desenhos das 4 famílias rodam sem erro (num Control de verdade).
+	var canvas := Control.new()
+	canvas.size = Vector2(80, 20)
+	add_child(canvas)
+	var drawn := []
+	canvas.draw.connect(func():
+		for family in PadStyle.FAMILIES:
+			Settings.pad_style = family
+			for kind in ["cross", "circle", "square", "triangle"]:
+				PadStyle.glyph(canvas, Vector2(10, 10), kind, 5.0)
+			drawn.append(family))
+	canvas.queue_redraw()
+	await frames(2)
+	check(drawn.size() == 4, "desenha PlayStation, Xbox, Nintendo e genérico")
+	canvas.queue_free()
+	# Opções: o ciclo passa por todas e volta ao automático.
+	Settings.pad_style = "auto"
+	var seen := []
+	for i in Settings.PAD_STYLES.size():
+		Settings.cycle_pad_style()
+		seen.append(Settings.pad_style)
+	check(seen.back() == "auto" and seen.size() == 5, "Opções: Automático → PlayStation → Xbox → Nintendo → Genérico → Automático")
+	Settings.pad_style = saved
+	PadStyle.detected = "generico"

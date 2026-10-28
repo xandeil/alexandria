@@ -2,8 +2,8 @@ class_name ButtonHintBar
 extends Control
 ## Barra de legenda no rodapé dos menus ("✕ Equipar   ○ Voltar   L1/R1 Categoria").
 ##
-## No modo controle desenha os símbolos do PlayStation (o mesmo desenho da
-## legenda do jogo, PadHints.glyph); fora dele, escreve a tecla. Desenhar o
+## No modo controle desenha os botões do controle ligado (PadStyle: PlayStation,
+## Xbox, Nintendo ou genérico); fora dele, escreve a tecla. Desenhar o
 ## símbolo em vez de usar um caractere ✕○ evita depender da fonte ter o glifo.
 
 ## Cada item: [botão do controle, tecla do teclado, texto]. Botões: "cross",
@@ -31,7 +31,7 @@ func _draw() -> void:
 			PadHints.glyph(self, Vector2(x + 5.0, y), pad, 4.5)
 			x += 13.0
 		else:
-			var label: String = pad if Settings.controller_mode else key
+			var label: String = PadStyle.text(pad) if Settings.controller_mode else key
 			draw_string(font, Vector2(x, y + 3.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.95, 0.9, 0.75))
 			x += font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x + 4.0
 		draw_string(font, Vector2(x, y + 3.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.7, 0.68, 0.64))

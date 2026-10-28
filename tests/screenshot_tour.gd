@@ -89,6 +89,26 @@ func _ready() -> void:
 		await _tour_options()
 		Game.quit_game()
 		return
+	if only == "botoes":
+		Settings.controller_mode = true
+		Settings.pad_legend = true
+		Game.reset_progress()
+		Game.prologue_done = true
+		Game.pending_spawn = "camara"
+		var lvl := await open("res://scenes/world/teatro.tscn") as Level
+		await wait(4.5)
+		for style in ["playstation", "xbox", "nintendo", "generico"]:
+			Settings.pad_style = style
+			Settings.changed.emit()
+			await wait(0.3)
+			await shot("b_%s" % style)
+		lvl.hud.open_inventory()
+		Settings.pad_style = "xbox"
+		Settings.changed.emit()
+		await wait(0.4)
+		await shot("b_inventario_xbox")
+		Game.quit_game()
+		return
 	if only == "abertura":
 		var title := await open("res://scenes/ui/title_screen.tscn") as TitleScreen
 		title.play_opening()
