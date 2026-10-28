@@ -106,6 +106,12 @@ func _set_bus_volume(bus: StringName, linear: float) -> void:
 	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(linear, 0.001)))
 
 
+## Aparelho de toque? (celular pelo APK OU celular pelo navegador). No
+## navegador o Godot não liga o "mobile": ele avisa com "web_android"/"web_ios".
+static func is_touch_device() -> bool:
+	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+
+
 func button_scale() -> float:
 	return BUTTON_SIZES.get(button_size, 1.0)
 

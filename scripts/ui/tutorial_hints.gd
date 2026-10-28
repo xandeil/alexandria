@@ -62,7 +62,7 @@ static func text_for(id: String) -> String:
 	var texts: Array = TEXTS.get(id, ["", ""])
 	if Settings.controller_mode and texts.size() > 2:
 		return PadStyle.text(texts[2])
-	return texts[0] if OS.has_feature("mobile") else texts[1]
+	return texts[0] if Settings.is_touch_device() else texts[1]
 
 
 func _process(delta: float) -> void:

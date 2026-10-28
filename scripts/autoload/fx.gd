@@ -73,7 +73,7 @@ func shake(strength: float, duration: float = 0.15) -> void:
 
 
 func vibrate(milliseconds: int) -> void:
-	if enabled and Settings.vibration and OS.has_feature("mobile"):
+	if enabled and Settings.vibration and Settings.is_touch_device():
 		Input.vibrate_handheld(milliseconds)
 
 

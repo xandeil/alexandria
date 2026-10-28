@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Alexandria"
 config/description="Soulslike psicológico 2D top-down em pixel art. O Prólogo das Cápsulas, o Teatro Alexandria, a Cidade Estilhaçada (Aldir), o Bosque do Sono Eterno (Nyssa), as Raízes da Fome (Mabel), as Forjas Ocas (Durgan) e Helena Altiva."
-config/version="0.30.0"
+config/version="0.30.1"
 run/main_scene="res://scenes/ui/title_screen.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "GL Compatibility")
