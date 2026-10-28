@@ -53,7 +53,7 @@ func _ready() -> void:
 	video.bus = Settings.AMBIENCE_BUS  # o volume de "Ambiente" nas Opções vale aqui
 	video.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(video)
-	_hint = UIStyle.label("✕ pular" if Settings.controller_mode else "Toque para pular", 8, UIStyle.TEXT_DIM)
+	_hint = UIStyle.label(PadStyle.text("{cross} pular") if Settings.controller_mode else "Toque para pular", 8, UIStyle.TEXT_DIM)
 	_hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_hint.offset_left = -110
 	_hint.offset_right = -8

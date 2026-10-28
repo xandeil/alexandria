@@ -1,7 +1,8 @@
 class_name PadHints
 extends Control
 ## No Modo controle, no lugar dos botões de toque: uma legenda DISCRETA com os
-## botões do controle (padrão PlayStation) e o que cada um faz agora.
+## botões do controle ligado (PlayStation, Xbox, Nintendo ou genérico — quem
+## sabe desenhar cada um é o PadStyle) e o que cada um faz agora.
 ##
 ##   L1 Escudo  L2 Aparar  R1 Ataque  R2 Forte   (L1/L2 mudam com as mãos)
 ##                    △ Humanidade (segurar: duas mãos)
@@ -11,10 +12,6 @@ extends Control
 ## Os símbolos são desenhados (não dependem de fonte) com as cores clássicas.
 
 const ALPHA := 0.62
-const CROSS := Color(0.55, 0.72, 1.0)
-const CIRCLE := Color(1.0, 0.5, 0.5)
-const SQUARE := Color(1.0, 0.6, 0.88)
-const TRIANGLE := Color(0.5, 0.95, 0.72)
 
 var interact_label := "Interagir"
 var flasks := 0
@@ -42,6 +39,7 @@ static func hand_labels(mode: String) -> Array[String]:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Settings.changed.connect(queue_redraw)  # trocou o controle (ou o estilo nas Opções): redesenha
 
 
 func _draw() -> void:
@@ -80,29 +78,18 @@ func _text(at: Vector2, text: String, font: Font, align: HorizontalAlignment) ->
 
 ## "L1 Escudo": a etiqueta do gatilho/ombro numa caixinha arredondada.
 func _shoulder(at: Vector2, button: String, label: String, font: Font) -> float:
+	var name := PadStyle.shoulder(button)  # L1 / LB / L...
 	var box := Rect2(at - Vector2(0, 7), Vector2(13, 9))
 	draw_rect(box, Color(0.08, 0.08, 0.1, ALPHA * 0.9))
 	draw_rect(box, Color(0.8, 0.8, 0.85, ALPHA), false, 1.0)
-	draw_string(font, at + Vector2(1.5, 0), button, HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color(1, 1, 1, ALPHA))
+	var inset := (13.0 - font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 6).x) * 0.5
+	draw_string(font, at + Vector2(inset, 0), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color(1, 1, 1, ALPHA))
 	var label_at := at + Vector2(16, 0)
 	_text(label_at, label, font, HORIZONTAL_ALIGNMENT_LEFT)
 	return label_at.x + font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 7).x
 
 
-## Desenha um botão de face do PlayStation em qualquer CanvasItem (reaproveitável:
-## o diálogo e os menus podem usar o mesmo desenho).
+## Desenha um botão de face (o estilo vem do PadStyle). Mantido aqui porque
+## a legenda, os menus e o diálogo já chamam PadHints.glyph.
 static func glyph(canvas: CanvasItem, at: Vector2, kind: String, radius: float, alpha: float = 1.0) -> void:
-	canvas.draw_circle(at, radius + 1.0, Color(0.05, 0.05, 0.07, alpha * 0.9))
-	canvas.draw_arc(at, radius + 1.0, 0.0, TAU, 20, Color(0.75, 0.75, 0.8, alpha * 0.8), 1.0)
-	var s := radius * 0.55
-	match kind:
-		"cross":
-			canvas.draw_line(at + Vector2(-s, -s), at + Vector2(s, s), Color(CROSS, alpha), 1.4)
-			canvas.draw_line(at + Vector2(-s, s), at + Vector2(s, -s), Color(CROSS, alpha), 1.4)
-		"circle":
-			canvas.draw_arc(at, s, 0.0, TAU, 16, Color(CIRCLE, alpha), 1.4)
-		"square":
-			canvas.draw_rect(Rect2(at - Vector2(s, s) * 0.9, Vector2(s, s) * 1.8), Color(SQUARE, alpha), false, 1.3)
-		"triangle":
-			var points := PackedVector2Array([at + Vector2(0, -s), at + Vector2(s, s * 0.75), at + Vector2(-s, s * 0.75), at + Vector2(0, -s)])
-			canvas.draw_polyline(points, Color(TRIANGLE, alpha), 1.3)
+	PadStyle.glyph(canvas, at, kind, radius, alpha)

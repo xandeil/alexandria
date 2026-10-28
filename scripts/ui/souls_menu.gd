@@ -39,6 +39,9 @@ var _selected := ""
 var _memories: Label
 var _line: Label
 var _hint: ButtonHintBar
+## "‹ L1" e "R1 ›" das abas: o nome muda com o controle (LB/RB, L/R...).
+var _l1_hint: Label
+var _r1_hint: Label
 var _close_button: Button
 
 # Ficha (a mesma anatomia da ficha do inventário).
@@ -56,6 +59,7 @@ func _ready() -> void:
 	layer = 30
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
+	Settings.changed.connect(_refresh_tab_hints)  # método (não lambda): o menu morre com a fase
 	visible = false
 
 
@@ -108,7 +112,8 @@ func _build() -> void:
 	tabs.size = Vector2(290, 16)
 	tabs.add_theme_constant_override("separation", 10)
 	root.add_child(tabs)
-	tabs.add_child(UIStyle.label("‹ L1", 7, UIStyle.TEXT_DIM))
+	_l1_hint = UIStyle.label("", 7, UIStyle.TEXT_DIM)
+	tabs.add_child(_l1_hint)
 	var names := _tabs()
 	for i in names.size():
 		var tab := DSMenuButton.make(names[i], 10)
@@ -117,7 +122,8 @@ func _build() -> void:
 		tab.pressed.connect(func(): set_tab(i))
 		tabs.add_child(tab)
 		_tab_buttons.append(tab)
-	tabs.add_child(UIStyle.label("R1 ›", 7, UIStyle.TEXT_DIM))
+	_r1_hint = UIStyle.label("", 7, UIStyle.TEXT_DIM)
+	tabs.add_child(_r1_hint)
 
 	# Grade.
 	var center := VBoxContainer.new()
@@ -274,7 +280,15 @@ func _notification(what: int) -> void:
 # --- Conteúdo -------------------------------------------------------------------------------
 
 ## Reconstrói a grade e a ficha (chame depois de comprar/vender/forjar).
+## "‹ L1" / "R1 ›" com o nome do controle ligado (LB/RB no Xbox, L/R no Nintendo).
+func _refresh_tab_hints() -> void:
+	if _l1_hint:
+		_l1_hint.text = "‹ " + PadStyle.shoulder("L1")
+		_r1_hint.text = PadStyle.shoulder("R1") + " ›"
+
+
 func refresh() -> void:
+	_refresh_tab_hints()
 	for i in _tab_buttons.size():
 		var on := i == _tab
 		_tab_buttons[i].add_theme_color_override("font_color", LIT if on else DSMenuButton.DIM)

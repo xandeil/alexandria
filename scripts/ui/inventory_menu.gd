@@ -35,6 +35,9 @@ var _scaling_box: HBoxContainer
 var _detail_skill: Label
 var _detail_text: Label
 var _hint: ButtonHintBar
+## "‹ L1" e "R1 ›" das abas: o nome muda com o controle (LB/RB, L/R...).
+var _l1_hint: Label
+var _r1_hint: Label
 var _empty: Label
 var _back_button: Button
 var _selected := ""
@@ -48,6 +51,7 @@ func _ready() -> void:
 	layer = 31  # por cima da pausa
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
+	Settings.changed.connect(_refresh_tab_hints)  # método (não lambda): o menu morre com a fase
 	Game.items_changed.connect(func():
 		if visible:
 			_rebuild())
@@ -79,15 +83,16 @@ func _build() -> void:
 	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
 	tabs.add_theme_constant_override("separation", 8)
 	root.add_child(tabs)
-	var left_hint := UIStyle.label("‹ L1", 8, UIStyle.TEXT_DIM)
-	tabs.add_child(left_hint)
+	_l1_hint = UIStyle.label("", 8, UIStyle.TEXT_DIM)
+	tabs.add_child(_l1_hint)
 	for i in TABS.size():
 		var tab := DSMenuButton.make(TABS[i], 10)
 		tab.focus_mode = Control.FOCUS_NONE  # aba muda com L1/R1 ou toque, não rouba o foco da grade
 		tab.pressed.connect(func(): set_tab(i))
 		tabs.add_child(tab)
 		_tab_buttons.append(tab)
-	tabs.add_child(UIStyle.label("R1 ›", 8, UIStyle.TEXT_DIM))
+	_r1_hint = UIStyle.label("", 8, UIStyle.TEXT_DIM)
+	tabs.add_child(_r1_hint)
 
 	# Coluna da esquerda: o que está equipado (como a tela de equipamento do DS3).
 	var equip := VBoxContainer.new()
@@ -344,7 +349,15 @@ func _health_flasks() -> int:
 	return _player.health_flasks if is_instance_valid(_player) else Game.health_flasks_max
 
 
+## "‹ L1" / "R1 ›" com o nome do controle ligado (LB/RB no Xbox, L/R no Nintendo).
+func _refresh_tab_hints() -> void:
+	if _l1_hint:
+		_l1_hint.text = "‹ " + PadStyle.shoulder("L1")
+		_r1_hint.text = PadStyle.shoulder("R1") + " ›"
+
+
 func _rebuild() -> void:
+	_refresh_tab_hints()
 	for i in _tab_buttons.size():
 		var on := i == _tab
 		_tab_buttons[i].add_theme_color_override("font_color", SLOT_LIT if on else DSMenuButton.DIM)

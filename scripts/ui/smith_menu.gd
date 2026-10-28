@@ -81,7 +81,7 @@ func _show_upgrade(weapon: WeaponData) -> void:
 		var sucata := int(cost["sucata_temperada"])
 		add_cost_line(ICON_SUCATA, "%d Sucata Temperada (tem %d)" % [sucata, Game.item_count("sucata_temperada")],
 			Game.has_item("sucata_temperada", sucata))
-	detail_status.text = REASONS.get(reason, "✕ para reforçar.")
+	detail_status.text = REASONS.get(reason, PadStyle.text("{cross} para reforçar.") if Settings.controller_mode else "Confirme para reforçar.")
 
 
 ## "◆◆◆◇◇": o nível do reforço em pedrinhas (até onde ele sabe ir hoje).
@@ -111,7 +111,8 @@ func _show_forge(weapon: WeaponData) -> void:
 	add_cost_line(ICON_MEMORY, "%d memórias" % weapon.forge_memories, Game.memories >= weapon.forge_memories)
 	if weapon.forge_sucata > 0:
 		add_cost_line(ICON_SUCATA, "%d Sucata Temperada" % weapon.forge_sucata, Game.has_item("sucata_temperada", weapon.forge_sucata))
-	detail_status.text = FORGE_REASONS.get(reason, "✕ para forjar%s." % (" a cópia" if copy else ""))
+	var action := PadStyle.text("{cross} para forjar") if Settings.controller_mode else "Confirme para forjar"
+	detail_status.text = FORGE_REASONS.get(reason, "%s%s." % [action, " a cópia" if copy else ""])
 
 
 func _activate(id: String) -> void:

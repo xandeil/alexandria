@@ -22,8 +22,8 @@ func _ready() -> void:
 	box.set_anchors_preset(Control.PRESET_CENTER)
 	box.offset_left = -120
 	box.offset_right = 120
-	box.offset_top = -112
-	box.offset_bottom = 112
+	box.offset_top = -122
+	box.offset_bottom = 122
 	box.add_theme_constant_override("separation", 5)
 	add_child(box)
 	var title := UIStyle.label("Opções", 16, UIStyle.TEXT, UIStyle.TITLE_FONT)
@@ -33,6 +33,7 @@ func _ready() -> void:
 	_add_stepper(box, "ambiente", "Música e ambiente", func(d): Settings.step_ambience(d))
 	_add_toggle(box, "vibracao", func(): Settings.toggle_vibration())
 	_add_toggle(box, "controle", func(): Settings.cycle_controls())
+	_add_toggle(box, "estilo", func(): Settings.cycle_pad_style())
 	_add_toggle(box, "botoes", func(): Settings.cycle_button_size())
 	_add_toggle(box, "dicas", func(): Settings.toggle_hints())
 	_back_button = DSMenuButton.make("Voltar")
@@ -104,9 +105,12 @@ func _refresh() -> void:
 	(_rows["vibracao"] as Button).text = "Vibração: %s" % ("ligada" if Settings.vibration else "desligada")
 	(_rows["controle"] as Button).text = "Controles: %s" % {
 		"toque": "Toque (botões na tela)",
-		"controle": "Controle (legenda do PlayStation)",
+		"controle": "Controle (com legenda)",
 		"limpo": "Limpo (nada na tela)",
 	}[Settings.controls_mode()]
+	var style := "Automático (%s)" % PadStyle.DISPLAY[PadStyle.detected] if Settings.pad_style == "auto" \
+		else str(PadStyle.DISPLAY.get(Settings.pad_style, Settings.pad_style))
+	(_rows["estilo"] as Button).text = "Botões do controle: %s" % style
 	(_rows["botoes"] as Button).text = "Botões de toque: %s" % Settings.button_size
 	(_rows["botoes"] as Button).disabled = Settings.controller_mode  # sem toque, o tamanho não importa
 	(_rows["dicas"] as Button).text = "Dicas: %s" % ("ligadas" if Settings.hints else "desligadas")
