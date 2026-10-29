@@ -144,6 +144,7 @@ func play_exit(player: Player) -> void:
 	# 4. O sprite de verdade volta, no mesmo lugar, e "se espreguiça".
 	sleeper.visible = false
 	player.global_position = front_point()
+	player.reset_physics_interpolation()  # aparece já no lugar (sem "arrastar")
 	player.facing = Vector2.DOWN
 	player.visual.visible = true
 	player.visual.scale = Vector2(1.15, 0.85)

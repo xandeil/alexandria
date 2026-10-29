@@ -34,6 +34,8 @@ var pad_style := "auto"
 ## no navegador). No navegador começa no leve (feedback: "lag absurdo").
 var graphics := "leve" if OS.has_feature("web") else "nitido"
 const GRAPHICS: Array[String] = ["nitido", "leve"]
+## Mostra o FPS no canto da tela (para quem testa contar quanto está rodando).
+var show_fps := false
 const PAD_STYLES: Array[String] = ["auto", "playstation", "xbox", "nintendo", "generico"]
 ## Testes e o passeio de fotos não gravam opções no aparelho.
 var persistence_enabled := true
@@ -75,6 +77,7 @@ func load_settings() -> void:
 	pad_style = style if PAD_STYLES.has(style) else "auto"
 	var look := str(config.get_value("video", "graficos", graphics))
 	graphics = look if GRAPHICS.has(look) else graphics
+	show_fps = bool(config.get_value("video", "mostrar_fps", show_fps))
 
 
 func save_settings() -> void:
@@ -90,6 +93,7 @@ func save_settings() -> void:
 	config.set_value("toque", "legenda_controle", pad_legend)
 	config.set_value("toque", "estilo_botoes", pad_style)
 	config.set_value("video", "graficos", graphics)
+	config.set_value("video", "mostrar_fps", show_fps)
 	config.save(PATH)
 	_loaded_from_file = true
 
@@ -185,6 +189,11 @@ func cycle_pad_style() -> void:
 
 func toggle_graphics() -> void:
 	graphics = GRAPHICS[(GRAPHICS.find(graphics) + 1) % GRAPHICS.size()]
+	_commit()
+
+
+func toggle_fps() -> void:
+	show_fps = not show_fps
 	_commit()
 
 

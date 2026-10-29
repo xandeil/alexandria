@@ -226,6 +226,7 @@ func _ready() -> void:
 		"test_rest_menu_pad_navigation",
 		"test_stepper_rows_on_pad",
 		"test_graphics_setting",
+		"test_grid_menus_on_pad",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -5117,6 +5118,55 @@ func test_stepper_rows_on_pad() -> void:
 	Settings.apply()
 	options.queue_free()
 	await frames(2)
+
+
+## v0.30.4 (feedback): na grade do inventário/loja o direcional não foge da grade.
+func test_grid_menus_on_pad() -> void:
+	Game.reset_progress()
+	Game.memories = 3000
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	level._on_dialogue_action("loja")
+	await frames(2)
+	var shop := level.hud.shop_menu
+	var slots: Array[Button] = shop._slots
+	check(slots.size() == 3, "loja: 3 itens numa linha (%d)" % slots.size())
+	slots[2].grab_focus()
+	await frames(1)
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == slots[0], "loja: → na última coluna volta para a 1ª (não vai para o Sair)")
+	await _pad_press(JOY_BUTTON_DPAD_UP)
+	check(get_viewport().gui_get_focus_owner() == slots[0], "loja: ↑ na 1ª linha fica parado")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(get_viewport().gui_get_focus_owner() == shop._close_button, "loja: ↓ sai para o Sair")
+	await _pad_press(JOY_BUTTON_DPAD_UP)
+	check(get_viewport().gui_get_focus_owner() == slots[0], "loja: ↑ no Sair volta para a grade")
+	shop.close()
+	await frames(3)
+	# Inventório com a aba Armadura cheia (várias linhas).
+	for id in ArmorSets.pieces("vigilia") + ArmorSets.pieces("detentor"):
+		Game.add_item(id)
+	level.hud.open_inventory()
+	await frames(2)
+	var menu := level.hud.inventory_menu
+	menu.set_tab(2)
+	await frames(2)
+	var grid: Array[Button] = menu._slots
+	var columns: int = menu.COLUMNS
+	check(grid.size() > columns, "inventário: mais de uma linha (%d itens)" % grid.size())
+	grid[columns - 1].grab_focus()
+	await frames(1)
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == grid[0], "inventário: → na última coluna dá a volta na linha")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(get_viewport().gui_get_focus_owner() == grid[columns], "inventário: ↓ desce uma linha")
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(get_viewport().gui_get_focus_owner() == menu._equip_rows["direita"], "inventário: ← na 1ª coluna vai para o EQUIPADO")
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == grid[0], "inventário: → no EQUIPADO volta para a grade")
+	menu.close()
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
 
 
 ## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).

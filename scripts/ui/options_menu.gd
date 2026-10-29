@@ -23,9 +23,9 @@ func _ready() -> void:
 	box.set_anchors_preset(Control.PRESET_CENTER)
 	box.offset_left = -120
 	box.offset_right = 120
-	box.offset_top = -132
-	box.offset_bottom = 132
-	box.add_theme_constant_override("separation", 5)
+	box.offset_top = -134
+	box.offset_bottom = 134
+	box.add_theme_constant_override("separation", 2)
 	add_child(box)
 	var title := UIStyle.label("Opções", 16, UIStyle.TEXT, UIStyle.TITLE_FONT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -38,6 +38,7 @@ func _ready() -> void:
 	_add_toggle(box, "botoes", func(): Settings.cycle_button_size())
 	_add_toggle(box, "dicas", func(): Settings.toggle_hints())
 	_add_toggle(box, "graficos", func(): Settings.toggle_graphics())
+	_add_toggle(box, "fps", func(): Settings.toggle_fps())
 	_back_button = DSMenuButton.make("Voltar")
 	_back_button.pressed.connect(close)
 	box.add_child(_back_button)
@@ -118,6 +119,7 @@ func _refresh() -> void:
 	(_rows["botoes"] as Button).text = "Botões de toque: %s" % Settings.button_size
 	(_rows["botoes"] as Button).disabled = Settings.controller_mode  # sem toque, o tamanho não importa
 	(_rows["dicas"] as Button).text = "Dicas: %s" % ("ligadas" if Settings.hints else "desligadas")
+	(_rows["fps"] as Button).text = "Mostrar FPS: %s" % ("sim" if Settings.show_fps else "não")
 	(_rows["graficos"] as Button).text = "Gráficos: %s" % ("Leve (mais rápido)" if Settings.graphics == "leve" else "Nítido")
 
 
