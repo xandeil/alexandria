@@ -6,7 +6,11 @@ extends CanvasLayer
 signal _advance
 signal _chosen(action: String)
 
-const CHARS_PER_SECOND := 45.0
+## v0.30.2: 45 → 32 letras por segundo (testes: "os diálogos estão rápidos").
+const CHARS_PER_SECOND := 32.0
+## Depois que a frase termina, um instante em que o toque NÃO avança: quem
+## aperta várias vezes seguidas (para completar o texto) não pula a fala sem ler.
+const ADVANCE_GRACE := 0.25
 
 var _panel: PanelContainer
 var _name_label: Label
@@ -17,6 +21,7 @@ var _catcher: Control
 var _typing := false
 var _waiting := false
 var _visible_chars := 0.0
+var _since_finished := 0.0
 
 
 func _ready() -> void:
@@ -103,11 +108,13 @@ func _process(delta: float) -> void:
 		if _visible_chars >= _text_label.text.length():
 			_finish_typing()
 	else:
+		_since_finished += delta
 		_hint.modulate.a = 0.4 + 0.6 * absf(sin(Time.get_ticks_msec() * 0.005))
 
 
 func _finish_typing() -> void:
 	_typing = false
+	_since_finished = 0.0
 	_text_label.visible_characters = -1
 	_hint.visible = true
 
@@ -117,7 +124,7 @@ func _tap() -> void:
 		return
 	if _typing:
 		_finish_typing()
-	elif _waiting:
+	elif _waiting and _since_finished >= ADVANCE_GRACE:
 		_waiting = false
 		Sfx.play(&"ui_click")
 		_advance.emit()

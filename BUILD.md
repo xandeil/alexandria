@@ -204,6 +204,12 @@ Detalhes técnicos (por que está configurado assim):
 - **Sem threads** (`variant/thread_support=false`): roda em qualquer site,
   sem precisar dos cabeçalhos especiais (COOP/COEP) que a versão com threads
   exige. O jogo não usa threads, então não perde nada.
+- **Som em modo "Stream"** (`audio/general/default_playback_type.web=0` no
+  `project.godot`): por padrão o Godot toca os efeitos na Web em modo
+  "Sample" (direto pelo navegador), e nesse modo os barramentos que o jogo
+  cria por código ("Efeitos" e "Ambiente") ficavam mudos — só o vídeo, que
+  já passa pelo mixer, tinha som (bug da v0.30.1). Em "Stream" tudo passa
+  pelo mixer do Godot, igual ao celular e ao PC.
 - O **save** fica guardado no próprio navegador (IndexedDB). Limpar os dados
   do site apaga o save.
 - Abrir o `index.html` direto do disco (duplo clique) **não funciona**: o

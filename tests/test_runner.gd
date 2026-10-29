@@ -948,7 +948,7 @@ func test_level_flow() -> void:
 	check(get_tree().paused, "diálogo pausa o mundo (soldados não batem em quem está lendo)")
 	check(level.player.state == Player.State.LOCKED, "herói travado durante o diálogo")
 	var guard := 0
-	while level.hud.dialogue.visible and guard < 80:
+	while level.hud.dialogue.visible and guard < 200:
 		Input.action_press(&"heal")  # E também avança o diálogo
 		level.hud.dialogue._tap()
 		await frames(2)
