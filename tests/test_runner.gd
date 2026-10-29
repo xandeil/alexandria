@@ -227,6 +227,7 @@ func _ready() -> void:
 		"test_stepper_rows_on_pad",
 		"test_graphics_setting",
 		"test_grid_menus_on_pad",
+		"test_starting_bow_and_spear_attacks",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -5166,6 +5167,50 @@ func test_grid_menus_on_pad() -> void:
 	menu.close()
 	level.queue_free()
 	await frames(2)
+	Game.reset_progress()
+
+
+## v0.30.6 (teste de um amigo): arco e lança escolhidos na criação. O arco tem
+## que ATIRAR (flecha de verdade) e nenhum dos dois pode "dar lapada" — a arma
+## fica apontada para o alvo, sem o balanço de lado dos cortes.
+func test_starting_bow_and_spear_attacks() -> void:
+	for id in ["arco_cobaia", "lanca_cobaia"]:
+		Game.reset_progress()
+		Game.new_game({"arma": id})
+		Game.scene_changes_enabled = false
+		var level := await open_level("res://scenes/world/prologo.tscn", "camara")
+		var player := level.player
+		await wait_for(func(): return player.state == Player.State.FREE, 900)  # acorda da cápsula
+		check(player.state == Player.State.FREE, "%s: herói livre depois de acordar" % id)
+		var pickups := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == id)
+		(pickups[0] as ItemPickup).take()
+		await frames(2)
+		check(player.weapon.id == id, "%s: pegou do chão e está na mão" % id)
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			enemy.queue_free()  # sem mira assistida puxando para outro lado
+		await frames(2)
+		player.facing = Vector2.RIGHT
+		player.stats.stamina = player.stats.max_stamina
+		var count_shots := func() -> int:
+			return level.find_children("*", "", true, false).filter(func(n): return n is PlayerShot).size()
+		var shots_before: int = count_shots.call()
+		Input.action_press(&"attack")
+		await frames(3)
+		Input.action_release(&"attack")
+		var worst_turn := 0.0
+		var shot_seen := false
+		for i in 50:
+			await frames(1)
+			if player.state == Player.State.ATTACK:
+				worst_turn = maxf(worst_turn, absf(angle_difference(player.weapon_pivot.rotation, player._swing_from)))
+			if count_shots.call() > shots_before:
+				shot_seen = true
+		check(worst_turn >= 0.0 and player._current_attack != null, "%s: o golpe saiu" % id)
+		check(worst_turn < 0.05, "%s: a arma não balança de lado (desvio máx %.2f rad)" % [id, worst_turn])
+		if id == "arco_cobaia":
+			check(shot_seen, "arco: o golpe solta uma FLECHA")
+		level.queue_free()
+		await frames(2)
 	Game.reset_progress()
 
 
