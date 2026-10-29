@@ -113,7 +113,8 @@ func _keep(delta: float) -> void:
 func _shoot(index: int) -> void:
 	var offset := deg_to_rad(spread_degrees) * (index - (shots - 1) * 0.5)
 	var muzzle := global_position + Vector2(0, -9) + _aim_dir * 10.0
-	Projectile.launch(get_parent(), muzzle, _aim_dir.rotated(offset), self, shot_damage, shot_speed, shot_range, Projectile.FIRE)
+	var shot := Projectile.launch(get_parent(), muzzle, _aim_dir.rotated(offset), self, shot_damage, shot_speed, shot_range, Projectile.FIRE)
+	shot.friendly_fire = true  # acerta quem estiver no caminho (inimigo também)
 	Sfx.play(&"fireball", -6.0, 0.15)
 
 

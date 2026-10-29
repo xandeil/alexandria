@@ -228,6 +228,8 @@ func _ready() -> void:
 		"test_graphics_setting",
 		"test_grid_menus_on_pad",
 		"test_starting_bow_and_spear_attacks",
+		"test_slain_enemies_stay_dead_until_rest",
+		"test_sniper_friendly_fire",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -1770,6 +1772,18 @@ func test_miniboss_resets_when_player_flees() -> void:
 	check(resets[0] == 1 and not sarge.active, "herói fugiu: ele desiste")
 	check(is_equal_approx(sarge.stats.health, sarge.stats.max_health), "volta com a vida cheia")
 	check(not sarge.is_in_group("enemies"), "fora da luta não é alvo")
+	# v0.30.7: herói parado na BEIRADA (logo além da distância de desistir). O
+	# chefe volta para casa passando perto dele — não pode acordar/desistir em loop.
+	var starts := [0]
+	sarge.fight_started.connect(func(_b): starts[0] += 1)
+	var home: Vector2 = sarge.home_position
+	player.global_position = home + Vector2(sarge.reset_distance + 20.0, 0)
+	sarge.global_position = player.global_position + Vector2(-30, 0)  # estava perseguindo até ali
+	await seconds(8.0)
+	check(starts[0] == 0, "na beirada ele volta para o posto sem acordar de novo (acordou %d vezes)" % starts[0])
+	player.global_position = home + Vector2(60, 0)
+	await seconds(1.0)
+	check(starts[0] == 1 and sarge.active, "chegou perto de verdade: a luta recomeça")
 
 
 ## "Só leva dano real pelas costas." Vira devagar; quem cola nas costas leva o giro.
@@ -5212,6 +5226,76 @@ func test_starting_bow_and_spear_attacks() -> void:
 		level.queue_free()
 		await frames(2)
 	Game.reset_progress()
+
+
+## v0.30.7 (feedback): inimigo morto fica morto ao trocar de área; volta ao
+## descansar ou ao morrer (regra do Dark Souls). E o save avisa na tela.
+func test_slain_enemies_stay_dead_until_rest() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "camara")
+	var enemies := get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not (n is Boss))
+	var total := enemies.size()
+	check(total >= 3, "a Cidade tem inimigos (%d)" % total)
+	for i in 2:
+		(enemies[i] as Enemy).stats.take_damage(99999.0)
+	await frames(3)
+	check((Game.slain.get(CIDADE, []) as Array).size() == 2, "o jogo anotou os 2 mortos")
+	var saves := [0]
+	var count_save := func(): saves[0] += 1
+	Game.saved.connect(count_save)
+	Game.persistence_enabled = true
+	var keep_path := Game.save_path
+	Game.save_path = "user://teste_abatidos.json"
+	Game.save_game()
+	check(saves[0] == 1, "salvar emite o aviso para o HUD")
+	Game.slain = {}
+	Game.load_game()
+	check((Game.slain.get(CIDADE, []) as Array).size() == 2, "os mortos ficam no save")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.save_path))
+	Game.save_path = keep_path
+	Game.persistence_enabled = false
+	Game.saved.disconnect(count_save)
+	level.queue_free()
+	await frames(3)
+	# Volta à área: os 2 continuam mortos.
+	level = await open_level(CIDADE, "camara")
+	var alive := get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not (n is Boss) and not n.is_queued_for_deletion()).size()
+	check(alive == total - 2, "voltou à área: os mortos não voltaram (%d de %d)" % [alive, total])
+	# Descansou: todo mundo de volta.
+	level._respawn_enemies()
+	await frames(2)
+	alive = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not (n is Boss) and not n.is_queued_for_deletion()).size()
+	check(alive == total and Game.slain.is_empty(), "descansou: os inimigos voltam (%d de %d)" % [alive, total])
+	level.queue_free()
+	await frames(2)
+	# Morrer também traz de volta.
+	Game.mark_slain(CIDADE, 0)
+	Game.respawn()
+	check(Game.slain.is_empty(), "morrer também traz os inimigos de volta")
+	Game.wake_from_capsule = false
+	Game.reset_progress()
+
+
+## v0.30.7 (ideia do testador): o tiro do atirador acerta inimigo no caminho.
+func test_sniper_friendly_fire() -> void:
+	var player := spawn_player(Vector2(400, 200))
+	player._iframes_left = 9999.0
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(300, 200))
+	await frames(2)
+	var hp := soldier.stats.health
+	var shot := Projectile.launch(self, Vector2(200, 200), Vector2.RIGHT, null, 20.0, 300.0, 400.0)
+	shot.friendly_fire = true
+	await seconds(0.8)
+	check(soldier.stats.health < hp, "tiro de atirador acerta o soldado no caminho (%.0f → %.0f)" % [hp, soldier.stats.health])
+	hp = soldier.stats.health
+	var boss_shot := Projectile.launch(self, Vector2(200, 200), Vector2.RIGHT, null, 20.0, 300.0, 400.0)
+	await seconds(0.8)
+	check(is_equal_approx(soldier.stats.health, hp), "tiro de chefe (sem fogo amigo) passa pelo inimigo")
+	if is_instance_valid(boss_shot):
+		boss_shot.queue_free()
+	soldier.queue_free()
+	player.queue_free()
+	await frames(2)
 
 
 ## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).
