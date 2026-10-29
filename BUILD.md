@@ -210,11 +210,12 @@ Detalhes técnicos (por que está configurado assim):
   cria por código ("Efeitos" e "Ambiente") ficavam mudos — só o vídeo, que
   já passa pelo mixer, tinha som (bug da v0.30.1). Em "Stream" tudo passa
   pelo mixer do Godot, igual ao celular e ao PC.
-- **Gráficos "Leve" por padrão no navegador** (Opções → Gráficos): o jogo
-  desenha na resolução dele (480x270) e só amplia a imagem pronta. No modo
-  "Nítido" ele pinta cada pixel da tela (Full HD = 16x mais pixels); medido
-  aqui, o Leve deixou o quadro ~4x mais barato. Era o "lag absurdo" fora do
-  Teatro (a Cidade tem mais luzes, inimigos e efeitos).
+- **Gráficos** (Opções → Gráficos): "Nítido" é o padrão em tudo. O "Leve"
+  desenha a 480x270 e amplia (bem mais barato), mas borra o texto e faz a
+  imagem tremer de pixel em pixel — fica só para aparelho fraco.
+- **Interpolação de física** (`physics/common/physics_interpolation=true`):
+  a física anda 60x por segundo, a tela pode ter 75/90/120/144 Hz; o Godot
+  desenha cada coisa na posição intermediária, então o movimento fica liso.
 - O **save** fica guardado no próprio navegador (IndexedDB). Limpar os dados
   do site apaga o save.
 - Abrir o `index.html` direto do disco (duplo clique) **não funciona**: o

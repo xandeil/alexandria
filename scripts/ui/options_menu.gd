@@ -120,7 +120,7 @@ func _refresh() -> void:
 	(_rows["botoes"] as Button).disabled = Settings.controller_mode  # sem toque, o tamanho não importa
 	(_rows["dicas"] as Button).text = "Dicas: %s" % ("ligadas" if Settings.hints else "desligadas")
 	(_rows["fps"] as Button).text = "Mostrar FPS: %s" % ("sim" if Settings.show_fps else "não")
-	(_rows["graficos"] as Button).text = "Gráficos: %s" % ("Leve (mais rápido)" if Settings.graphics == "leve" else "Nítido")
+	(_rows["graficos"] as Button).text = "Gráficos: %s" % ("Leve (para aparelho fraco)" if Settings.graphics == "leve" else "Nítido")
 
 
 func _unhandled_input(event: InputEvent) -> void:

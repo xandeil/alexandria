@@ -28,11 +28,13 @@ var pad_legend := true
 ## Desenho dos botões do controle: "auto" (descobre pelo nome do controle) ou
 ## uma família forçada ("playstation", "xbox", "nintendo", "generico").
 var pad_style := "auto"
-## Gráficos (v0.30.2): "nitido" desenha na resolução da tela (texto liso);
-## "leve" desenha a 480x270 do jogo e só AMPLIA a imagem pronta — 4x menos
-## pixels para pintar numa tela Full HD (bem mais rápido em PC/celular fraco e
-## no navegador). No navegador começa no leve (feedback: "lag absurdo").
-var graphics := "leve" if OS.has_feature("web") else "nitido"
+## Gráficos: "nitido" desenha na resolução da tela (texto liso, movimento
+## liso); "leve" desenha a 480x270 do jogo e só AMPLIA a imagem pronta —
+## bem mais barato, mas o texto fica borrado e a imagem "treme" de pixel em
+## pixel quando a câmera anda. Por isso é opção, nunca o padrão.
+## (v0.30.2 deixou o Leve como padrão no navegador; o "lag" era a tremida de
+## ritmo, não falta de placa de vídeo — v0.30.5 voltou o padrão para Nítido.)
+var graphics := "nitido"
 const GRAPHICS: Array[String] = ["nitido", "leve"]
 ## Mostra o FPS no canto da tela (para quem testa contar quanto está rodando).
 var show_fps := false
@@ -75,7 +77,8 @@ func load_settings() -> void:
 	pad_legend = bool(config.get_value("toque", "legenda_controle", pad_legend))
 	var style := str(config.get_value("toque", "estilo_botoes", pad_style))
 	pad_style = style if PAD_STYLES.has(style) else "auto"
-	var look := str(config.get_value("video", "graficos", graphics))
+	# "graficos2": quem ficou com o Leve automático da v0.30.2 volta ao Nítido.
+	var look := str(config.get_value("video", "graficos2", graphics))
 	graphics = look if GRAPHICS.has(look) else graphics
 	show_fps = bool(config.get_value("video", "mostrar_fps", show_fps))
 
@@ -92,7 +95,7 @@ func save_settings() -> void:
 	config.set_value("toque", "modo_controle", controller_mode)
 	config.set_value("toque", "legenda_controle", pad_legend)
 	config.set_value("toque", "estilo_botoes", pad_style)
-	config.set_value("video", "graficos", graphics)
+	config.set_value("video", "graficos2", graphics)
 	config.set_value("video", "mostrar_fps", show_fps)
 	config.save(PATH)
 	_loaded_from_file = true
