@@ -8,6 +8,7 @@ signal closed
 
 var _rows := {}
 var _back_button: Button
+var _focus_chain: Array[Control] = []
 
 
 func _ready() -> void:
@@ -22,8 +23,8 @@ func _ready() -> void:
 	box.set_anchors_preset(Control.PRESET_CENTER)
 	box.offset_left = -120
 	box.offset_right = 120
-	box.offset_top = -122
-	box.offset_bottom = 122
+	box.offset_top = -132
+	box.offset_bottom = 132
 	box.add_theme_constant_override("separation", 5)
 	add_child(box)
 	var title := UIStyle.label("Opções", 16, UIStyle.TEXT, UIStyle.TITLE_FONT)
@@ -36,38 +37,27 @@ func _ready() -> void:
 	_add_toggle(box, "estilo", func(): Settings.cycle_pad_style())
 	_add_toggle(box, "botoes", func(): Settings.cycle_button_size())
 	_add_toggle(box, "dicas", func(): Settings.toggle_hints())
+	_add_toggle(box, "graficos", func(): Settings.toggle_graphics())
 	_back_button = DSMenuButton.make("Voltar")
 	_back_button.pressed.connect(close)
 	box.add_child(_back_button)
+	_focus_chain.append(_back_button)
+	_link_focus()
 	Settings.changed.connect(_refresh)
 	visible = false
 
 
-## Uma linha "Nome  [−] 80% [+]": botões grandes o bastante para o dedo.
+## Uma linha "Nome  ‹ 80% ›": botões grandes o bastante para o dedo; no
+## controle, ←/→ mudam o valor (StepperRow).
 func _add_stepper(box: VBoxContainer, key: String, title: String, step: Callable) -> void:
-	var row := HBoxContainer.new()
+	var row := StepperRow.make(title, 110, 40, 12, UIStyle.FONT_NUMBERS)
 	row.add_theme_constant_override("separation", 6)
-	var name_label := UIStyle.label(title, 10, Color(0.8, 0.78, 0.74))
-	name_label.custom_minimum_size = Vector2(110, 0)
-	row.add_child(name_label)
-	var minus := DSMenuButton.make("‹", 14)
-	minus.custom_minimum_size = Vector2(24, 0)
-	minus.pressed.connect(func():
-		step.call(-0.1)
+	row.stepped.connect(func(direction: int):
+		step.call(0.1 * direction)
 		Sfx.play(&"ui_click"))
-	row.add_child(minus)
-	var value := UIStyle.label("", 12, UIStyle.GOLD, UIStyle.FONT_NUMBERS)
-	value.custom_minimum_size = Vector2(40, 0)
-	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(value)
-	var plus := DSMenuButton.make("›", 14)
-	plus.custom_minimum_size = Vector2(24, 0)
-	plus.pressed.connect(func():
-		step.call(0.1)
-		Sfx.play(&"ui_click"))
-	row.add_child(plus)
 	box.add_child(row)
-	_rows[key] = value
+	_rows[key] = row.value_label
+	_focus_chain.append(row.focus_target())
 
 
 func _add_toggle(box: VBoxContainer, key: String, action: Callable) -> void:
@@ -77,6 +67,20 @@ func _add_toggle(box: VBoxContainer, key: String, action: Callable) -> void:
 		Sfx.play(&"ui_click"))
 	box.add_child(button)
 	_rows[key] = button
+	_focus_chain.append(button)
+
+
+## ↑/↓ andam pela lista (dando a volta); ←/→ nunca pulam para outra linha.
+func _link_focus() -> void:
+	var chain := _focus_chain.filter(func(item: Control): return item.visible)
+	for i in chain.size():
+		var item: Control = chain[i]
+		item.focus_neighbor_top = item.get_path_to(chain[posmod(i - 1, chain.size())])
+		item.focus_neighbor_bottom = item.get_path_to(chain[posmod(i + 1, chain.size())])
+		item.focus_neighbor_left = item.get_path_to(item)
+		item.focus_neighbor_right = item.get_path_to(item)
+		item.focus_previous = item.focus_neighbor_top
+		item.focus_next = item.focus_neighbor_bottom
 
 
 func open() -> void:
@@ -114,6 +118,7 @@ func _refresh() -> void:
 	(_rows["botoes"] as Button).text = "Botões de toque: %s" % Settings.button_size
 	(_rows["botoes"] as Button).disabled = Settings.controller_mode  # sem toque, o tamanho não importa
 	(_rows["dicas"] as Button).text = "Dicas: %s" % ("ligadas" if Settings.hints else "desligadas")
+	(_rows["graficos"] as Button).text = "Gráficos: %s" % ("Leve (mais rápido)" if Settings.graphics == "leve" else "Nítido")
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -10,6 +10,10 @@ extends Button
 const DIM := Color(0.62, 0.6, 0.58)
 const LIT := Color(0.98, 0.96, 0.92)
 
+## Quem recebe o foco quando o mouse passa por cima (v0.30.2). Usado pela
+## seta "‹" das linhas ‹ valor ›: ela não é parada do controle, então o mouse
+## acende a linha inteira (o "›", que é o item focável da linha).
+var focus_proxy: Control
 var _glow: TextureRect
 var _tween: Tween
 
@@ -51,17 +55,26 @@ func _ready() -> void:
 	focus_entered.connect(func(): _light(true))
 	focus_exited.connect(func(): _light(false))
 	mouse_entered.connect(func():
-		if not disabled:
+		if disabled:
+			return
+		if focus_proxy:
+			focus_proxy.grab_focus()
+		elif focus_mode != Control.FOCUS_NONE:
 			grab_focus())
 
 
-func _light(on: bool) -> void:
+## Acende/apaga a faixa de luz (público: a StepperRow acende as duas setas juntas).
+func light(on: bool) -> void:
+	_light(on, false)
+
+
+func _light(on: bool, with_sound: bool = true) -> void:
 	if _tween and _tween.is_valid():
 		_tween.kill()
 	_tween = create_tween()
 	_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)  # funciona com o jogo pausado
 	_tween.tween_property(_glow, "modulate:a", 1.0 if on else 0.0, 0.18 if on else 0.3)
-	if on:
+	if on and with_sound:
 		Sfx.play(&"ui_click", -18.0, 0.02)
 
 

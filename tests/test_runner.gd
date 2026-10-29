@@ -224,6 +224,8 @@ func _ready() -> void:
 		"test_sprint_hold_circle",
 		"test_rest_menu_and_travel",
 		"test_rest_menu_pad_navigation",
+		"test_stepper_rows_on_pad",
+		"test_graphics_setting",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -5039,11 +5041,18 @@ func test_rest_menu_pad_navigation() -> void:
 		return f.get_meta("scene", "levantar") if f else ""
 	check(focused.call() == "res://scenes/world/cidade.tscn", "abre com a primeira Câmara de destino selecionada")
 	check(menu.cards()[0].focus_mode == Control.FOCUS_NONE, "'você está aqui' nem recebe foco")
+	# Grade (3 colunas): [Teatro(aqui) Cidade Bosque] / [Raízes].
 	var seen := []
 	for i in 3:
 		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
 		seen.append(focused.call().get_file().get_basename())
-	check(seen == ["bosque", "raizes", "cidade"], "→ passa por TODAS as Câmaras e dá a volta: %s" % [seen])
+	check(seen == ["bosque", "cidade", "bosque"], "→ dá a volta NA MESMA LINHA (não pula de linha): %s" % [seen])
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(focused.call().get_file().get_basename() == "cidade", "← também fica na linha")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call().get_file().get_basename() == "raizes", "↓ desce para a linha de baixo")
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(focused.call().get_file().get_basename() == "raizes", "sozinha na linha: → não sai dela")
 	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	check(focused.call() == "levantar", "↓ vai para o Levantar")
 	await _pad_press(JOY_BUTTON_DPAD_UP)
@@ -5058,6 +5067,69 @@ func test_rest_menu_pad_navigation() -> void:
 	Game.reset_progress()
 
 
+
+## v0.30.2 (feedback): nas linhas ‹ valor ›, ←/→ TROCAM o valor e o foco não pula.
+func test_stepper_rows_on_pad() -> void:
+	var creation := CharacterCreation.new()
+	add_child(creation)
+	await frames(2)
+	var first := get_viewport().gui_get_focus_owner()
+	var before: int = creation.look["sexo"]
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(creation.look["sexo"] != before, "→ troca o valor da linha")
+	check(get_viewport().gui_get_focus_owner() == first, "e o foco fica na mesma linha")
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(creation.look["sexo"] == before and get_viewport().gui_get_focus_owner() == first, "← volta o valor, foco parado")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	var cabelo_antes: int = creation.look["corpo"]
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(creation.look["corpo"] != cabelo_antes, "↓ desce para a próxima linha (Corpo) e → muda ela")
+	var stick := InputEventJoypadMotion.new()
+	stick.axis = JOY_AXIS_LEFT_X
+	var corpo: int = creation.look["corpo"]
+	for value in [0.7, 0.8, 0.9, 0.85]:  # o analógico parado para o lado manda vários eventos
+		stick.axis_value = value
+		Input.parse_input_event(stick)
+		await frames(1)
+	stick.axis_value = 0.0
+	Input.parse_input_event(stick)
+	await frames(2)
+	check(creation.look["corpo"] == posmod(corpo + 1, Appearance.option_count("corpo", creation.look["sexo"])),
+		"analógico inclinado conta UMA vez (não dispara sozinho)")
+	creation.queue_free()
+	await frames(2)
+	var options := OptionsMenu.new()
+	add_child(options)
+	options.open()
+	await frames(2)
+	var saved := Settings.sfx_volume
+	Settings.sfx_volume = 0.5
+	options._focus_chain[0].grab_focus()
+	await frames(1)
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(is_equal_approx(Settings.sfx_volume, 0.6), "Opções: → aumenta o volume (%.1f)" % Settings.sfx_volume)
+	check(get_viewport().gui_get_focus_owner() == options._focus_chain[0], "Opções: o foco não pulou de linha")
+	var toggle: Control = options._rows["dicas"]
+	toggle.grab_focus()
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == toggle, "Opções: → num botão comum não leva para outra linha")
+	Settings.sfx_volume = saved
+	Settings.apply()
+	options.queue_free()
+	await frames(2)
+
+
+## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).
+func test_graphics_setting() -> void:
+	var saved := Settings.graphics
+	Settings.graphics = "leve"
+	Settings.apply()
+	check(get_window().content_scale_mode == Window.CONTENT_SCALE_MODE_VIEWPORT, "leve: desenha na resolução do jogo")
+	Settings.toggle_graphics()
+	check(Settings.graphics == "nitido" and get_window().content_scale_mode == Window.CONTENT_SCALE_MODE_CANVAS_ITEMS,
+		"nítido: desenha na resolução da tela")
+	Settings.graphics = saved
+	Settings.apply()
 
 # --- v0.23: 3 saves, armas no chão, loja e Ferreiro novos -------------------------------------
 

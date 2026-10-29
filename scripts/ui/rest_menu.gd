@@ -150,21 +150,43 @@ func _rebuild_travel() -> void:
 ## Navegação do controle feita À MÃO. Antes, o Godot escolhia o vizinho pela
 ## geometria — e o "Levantar" (largo, logo abaixo) "roubava" o direcional:
 ## com 2 ou 3 Câmaras numa linha, apertar → pulava para ele em vez da próxima.
-## Regra agora: ←/→ andam entre as Câmaras (dando a volta), ↑/↓ trocam de
-## linha, e de qualquer Câmara da última linha ↓ vai para o "Levantar".
+## Regra agora: ←/→ andam entre as Câmaras DA MESMA LINHA (dando a volta
+## nela), ↑/↓ trocam de linha, e de qualquer Câmara da última linha ↓ vai para
+## o "Levantar". (v0.30.2: antes ←/→ davam a volta na lista inteira — no fim da
+## linha, → pulava para a linha de baixo e ← para a de cima. Teste: "coloco
+## pro lado e ele vai pra cima".)
 func _link_focus() -> void:
-	var travel := cards().filter(func(c: Button): return c.focus_mode != Control.FOCUS_NONE)
+	# Conta pela GRADE que aparece na tela (a Câmara onde você está ocupa um
+	# lugar mas não recebe foco — ela é pulada, sem bagunçar linhas e colunas).
+	var all := cards()
 	var columns := _grid.columns
-	for i in travel.size():
-		var card: Button = travel[i]
-		var left: Button = travel[posmod(i - 1, travel.size())]
-		var right: Button = travel[posmod(i + 1, travel.size())]
+	var rows := ceili(all.size() / float(columns))
+	var travel := all.filter(func(c: Button): return c.focus_mode != Control.FOCUS_NONE)
+	for card: Button in travel:
+		var index := all.find(card)
+		var row := floori(index / float(columns))
+		var column := index - row * columns
+		var same_row := _focusable_in_row(all, row)
+		var at := same_row.find(card)
+		var left: Button = same_row[posmod(at - 1, same_row.size())]
+		var right: Button = same_row[posmod(at + 1, same_row.size())]
 		card.focus_neighbor_left = card.get_path_to(left)
 		card.focus_neighbor_right = card.get_path_to(right)
-		card.focus_previous = card.get_path_to(left)
-		card.focus_next = card.get_path_to(right)
-		var up: Button = travel[i - columns] if i - columns >= 0 else card
-		var down: Control = travel[i + columns] if i + columns < travel.size() else _leave_button
+		var order := travel.find(card)
+		card.focus_previous = card.get_path_to(travel[posmod(order - 1, travel.size())])
+		card.focus_next = card.get_path_to(travel[posmod(order + 1, travel.size())])
+		var up: Control = card
+		for other in range(row - 1, -1, -1):
+			var found := _closest_in_row(all, other, column)
+			if found:
+				up = found
+				break
+		var down: Control = _leave_button
+		for other in range(row + 1, rows):
+			var found := _closest_in_row(all, other, column)
+			if found:
+				down = found
+				break
 		card.focus_neighbor_top = card.get_path_to(up)
 		card.focus_neighbor_bottom = card.get_path_to(down)
 	var first: Control = travel[0] if not travel.is_empty() else _leave_button
@@ -178,6 +200,27 @@ func _link_focus() -> void:
 	journey_button.focus_neighbor_right = journey_button.get_path_to(journey_button)
 	_leave_button.focus_neighbor_left = _leave_button.get_path_to(_leave_button)
 	_leave_button.focus_neighbor_right = _leave_button.get_path_to(_leave_button)
+
+
+func _focusable_in_row(all: Array[Button], row: int) -> Array[Button]:
+	var result: Array[Button] = []
+	var columns := _grid.columns
+	for index in range(row * columns, mini((row + 1) * columns, all.size())):
+		if all[index].focus_mode != Control.FOCUS_NONE:
+			result.append(all[index])
+	return result
+
+
+## Na linha pedida, a Câmara focável de coluna mais perto (null se nenhuma).
+func _closest_in_row(all: Array[Button], row: int, column: int) -> Button:
+	var best: Button = null
+	var best_gap := 1 << 30
+	for card in _focusable_in_row(all, row):
+		var gap := absi(all.find(card) - row * _grid.columns - column)
+		if gap < best_gap:
+			best = card
+			best_gap = gap
+	return best
 
 
 ## O que recebe o foco ao abrir: a primeira Câmara para onde dá para ir.
