@@ -32,6 +32,10 @@ var max_distance := 320.0
 var hit_radius := 7.0
 var source: Node2D
 var element := PLAIN
+## Fogo amigo (v0.30.7, ideia de um testador): o tiro dos ATIRADORES também
+## acerta outros inimigos no caminho. Vira estratégia: ponha um inimigo entre
+## você e o atirador. Chefes não usam (o tiro deles é só para o herói).
+var friendly_fire := false
 
 var _traveled := 0.0
 var _done := false
@@ -94,6 +98,8 @@ func _physics_process(delta: float) -> void:
 	if element == TOME:
 		_sprite.rotation += delta * 12.0  # livro girando no ar
 	_try_hit_player()
+	if not _done and friendly_fire:
+		_try_hit_enemies()
 	if _traveled >= max_distance:
 		_impact(false)
 
@@ -112,6 +118,22 @@ func _try_hit_player() -> void:
 		if element == FROST:
 			player.apply_chill(FROST_CHILL)
 		_impact(true)
+
+
+func _try_hit_enemies() -> void:
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy == null or enemy == source or enemy.dead or enemy is Boss:
+			continue
+		if enemy.global_position.distance_to(global_position) > hit_radius + 3.0:
+			continue
+		var info := HitInfo.create(damage, global_position - direction * 6.0, enemy.global_position)
+		info.knockback = knockback
+		info.source = source
+		info.attack_name = "Tiro"
+		if enemy.hurtbox.receive_hit(info):
+			_impact(true)
+			return
 
 
 func _impact(spark: bool) -> void:

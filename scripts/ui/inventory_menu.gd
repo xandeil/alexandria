@@ -370,6 +370,9 @@ func _rebuild() -> void:
 	for entry in list:
 		_grid.add_child(_make_slot(entry))
 	_empty.visible = list.is_empty()
+	GridFocus.link(_slots, COLUMNS, _back_button, _equip_rows["direita"])
+	for row: Button in _equip_rows.values():  # → no "Equipado" volta para a grade
+		row.focus_neighbor_right = row.get_path_to(_slots[0]) if not _slots.is_empty() else NodePath()
 	_refresh_equipped()
 	_hint.items = _hint_items()
 	var keep := _selected

@@ -28,6 +28,16 @@ var pad_legend := true
 ## Desenho dos botões do controle: "auto" (descobre pelo nome do controle) ou
 ## uma família forçada ("playstation", "xbox", "nintendo", "generico").
 var pad_style := "auto"
+## Gráficos: "nitido" desenha na resolução da tela (texto liso, movimento
+## liso); "leve" desenha a 480x270 do jogo e só AMPLIA a imagem pronta —
+## bem mais barato, mas o texto fica borrado e a imagem "treme" de pixel em
+## pixel quando a câmera anda. Por isso é opção, nunca o padrão.
+## (v0.30.2 deixou o Leve como padrão no navegador; o "lag" era a tremida de
+## ritmo, não falta de placa de vídeo — v0.30.5 voltou o padrão para Nítido.)
+var graphics := "nitido"
+const GRAPHICS: Array[String] = ["nitido", "leve"]
+## Mostra o FPS no canto da tela (para quem testa contar quanto está rodando).
+var show_fps := false
 const PAD_STYLES: Array[String] = ["auto", "playstation", "xbox", "nintendo", "generico"]
 ## Testes e o passeio de fotos não gravam opções no aparelho.
 var persistence_enabled := true
@@ -67,6 +77,10 @@ func load_settings() -> void:
 	pad_legend = bool(config.get_value("toque", "legenda_controle", pad_legend))
 	var style := str(config.get_value("toque", "estilo_botoes", pad_style))
 	pad_style = style if PAD_STYLES.has(style) else "auto"
+	# "graficos2": quem ficou com o Leve automático da v0.30.2 volta ao Nítido.
+	var look := str(config.get_value("video", "graficos2", graphics))
+	graphics = look if GRAPHICS.has(look) else graphics
+	show_fps = bool(config.get_value("video", "mostrar_fps", show_fps))
 
 
 func save_settings() -> void:
@@ -81,6 +95,8 @@ func save_settings() -> void:
 	config.set_value("toque", "modo_controle", controller_mode)
 	config.set_value("toque", "legenda_controle", pad_legend)
 	config.set_value("toque", "estilo_botoes", pad_style)
+	config.set_value("video", "graficos2", graphics)
+	config.set_value("video", "mostrar_fps", show_fps)
 	config.save(PATH)
 	_loaded_from_file = true
 
@@ -95,7 +111,15 @@ func import_legacy_vibration(value: bool) -> void:
 func apply() -> void:
 	_set_bus_volume(SFX_BUS, sfx_volume)
 	_set_bus_volume(AMBIENCE_BUS, ambience_volume)
+	_apply_graphics()
 	changed.emit()
+
+
+func _apply_graphics() -> void:
+	if not is_inside_tree():
+		return
+	get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT if graphics == "leve" \
+		else Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 
 
 func _set_bus_volume(bus: StringName, linear: float) -> void:
@@ -104,6 +128,12 @@ func _set_bus_volume(bus: StringName, linear: float) -> void:
 		return
 	AudioServer.set_bus_mute(index, linear <= 0.001)
 	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(linear, 0.001)))
+
+
+## Aparelho de toque? (celular pelo APK OU celular pelo navegador). No
+## navegador o Godot não liga o "mobile": ele avisa com "web_android"/"web_ios".
+static func is_touch_device() -> bool:
+	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
 
 
 func button_scale() -> float:
@@ -157,6 +187,16 @@ func controls_mode() -> String:
 ## Automático → PlayStation → Xbox → Nintendo → Genérico → Automático.
 func cycle_pad_style() -> void:
 	pad_style = PAD_STYLES[(PAD_STYLES.find(pad_style) + 1) % PAD_STYLES.size()]
+	_commit()
+
+
+func toggle_graphics() -> void:
+	graphics = GRAPHICS[(GRAPHICS.find(graphics) + 1) % GRAPHICS.size()]
+	_commit()
+
+
+func toggle_fps() -> void:
+	show_fps = not show_fps
 	_commit()
 
 

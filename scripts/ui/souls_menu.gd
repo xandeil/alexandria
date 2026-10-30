@@ -303,6 +303,7 @@ func refresh() -> void:
 	for entry in list:
 		_grid.add_child(_make_slot(entry))
 	_empty.visible = list.is_empty()
+	GridFocus.link(_slots, COLUMNS, _close_button)
 	_hint.items = _hint_items()
 	_selected = ""
 	if list.is_empty():

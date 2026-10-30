@@ -186,6 +186,41 @@ desenvolvedor → Depuração USB*. Então:
 | Celular muito antigo (32 bits) | O preset já exporta `armeabi-v7a` e `arm64-v8a`. Para um APK menor só para celulares novos, desmarque `armeabi-v7a` em `export_presets.cfg`. |
 | Jogo lento ou esquentando no celular | Troque o modo de esticar a tela para `viewport` (veja "Desempenho em celular fraco" no README): o jogo passa a ser desenhado em 480×270 e só ampliado. |
 
+## Versão para navegador (itch.io)
+
+O jogo também roda no navegador (Chrome, Edge, Firefox), sem instalar nada.
+
+1. Instale os modelos de exportação **Web** da mesma versão do Godot (4.7.2):
+   no editor, *Editor → Gerenciar modelos de exportação → Baixar*. (São os
+   mesmos do Android; se já baixou para o APK, já estão lá.)
+2. Gere a versão:
+   - Linux/macOS: `bash build_web.sh` (ou `bash build_web.sh --testar` para
+     jogar em http://localhost:8060 antes de publicar);
+   - no editor: *Projeto → Exportar → Web → Exportar projeto* para `build/web/index.html`.
+3. O arquivo para o itch.io é `build/alexandria-web.zip` (o `index.html` fica
+   na raiz do zip — o itch.io exige assim).
+
+Detalhes técnicos (por que está configurado assim):
+- **Sem threads** (`variant/thread_support=false`): roda em qualquer site,
+  sem precisar dos cabeçalhos especiais (COOP/COEP) que a versão com threads
+  exige. O jogo não usa threads, então não perde nada.
+- **Som em modo "Stream"** (`audio/general/default_playback_type.web=0` no
+  `project.godot`): por padrão o Godot toca os efeitos na Web em modo
+  "Sample" (direto pelo navegador), e nesse modo os barramentos que o jogo
+  cria por código ("Efeitos" e "Ambiente") ficavam mudos — só o vídeo, que
+  já passa pelo mixer, tinha som (bug da v0.30.1). Em "Stream" tudo passa
+  pelo mixer do Godot, igual ao celular e ao PC.
+- **Gráficos** (Opções → Gráficos): "Nítido" é o padrão em tudo. O "Leve"
+  desenha a 480x270 e amplia (bem mais barato), mas borra o texto e faz a
+  imagem tremer de pixel em pixel — fica só para aparelho fraco.
+- **Interpolação de física** (`physics/common/physics_interpolation=true`):
+  a física anda 60x por segundo, a tela pode ter 75/90/120/144 Hz; o Godot
+  desenha cada coisa na posição intermediária, então o movimento fica liso.
+- O **save** fica guardado no próprio navegador (IndexedDB). Limpar os dados
+  do site apaga o save.
+- Abrir o `index.html` direto do disco (duplo clique) **não funciona**: o
+  navegador bloqueia. Precisa de um servidor (o `--testar` faz isso) ou do itch.io.
+
 ## Versão "release" (para publicar)
 
 O APK de depuração serve para testar. Para a Play Store você precisa de uma

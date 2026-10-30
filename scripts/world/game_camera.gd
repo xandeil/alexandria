@@ -16,11 +16,20 @@ var _shake_duration := 0.0
 
 
 func _ready() -> void:
+	# Com a interpolação de física ligada (project.godot), a câmera também é
+	# desenhada "entre" um passo e outro — então ela anda no passo da física.
+	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	if not Engine.is_editor_hint():
 		Fx.camera = self
 
 
-func _process(delta: float) -> void:
+## v0.30.4: a câmera anda no MESMO ritmo da física (60x por segundo), junto
+## com o herói e os inimigos. Antes ela andava a cada quadro da tela: num
+## monitor de 75 Hz ela se mexia 75x por segundo, mas o herói só 60x — o herói
+## e a multidão "tremiam" na tela (parece lag, mas o jogo não está lento).
+## E a INTERPOLAÇÃO DE FÍSICA (project.godot → physics/common) desenha tudo na
+## posição intermediária entre dois passos: liso em 60, 75, 90, 120, 144 Hz.
+func _physics_process(delta: float) -> void:
 	if is_instance_valid(target):
 		var goal := _goal()
 		global_position = global_position.lerp(goal, 1.0 - exp(-follow_speed * delta))
@@ -31,6 +40,10 @@ func snap_to_target() -> void:
 	if is_instance_valid(target):
 		global_position = _goal()
 		reset_smoothing()
+		# Teleporte (porta, Câmara, renascer): sem isto, a interpolação
+		# "arrastaria" a imagem do lugar antigo até o novo por um instante.
+		target.reset_physics_interpolation()
+		reset_physics_interpolation()
 
 
 func shake(strength: float, duration: float) -> void:

@@ -118,7 +118,8 @@ func _aim(delta: float) -> void:
 
 func _fire() -> void:
 	var muzzle := global_position + _aim_dir * 14.0
-	Projectile.launch(get_parent(), muzzle, _aim_dir, self, shot_damage, shot_speed, shot_range)
+	var shot := Projectile.launch(get_parent(), muzzle, _aim_dir, self, shot_damage, shot_speed, shot_range)
+	shot.friendly_fire = true  # acerta quem estiver no caminho (inimigo também)
 	Sfx.play(&"shot", -2.0)
 	Fx.sparks(muzzle + Vector2(0, -8), _aim_dir, Color(1.0, 0.8, 0.45), 5, 90.0)
 	velocity = -_aim_dir * 40.0  # coice

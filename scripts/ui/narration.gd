@@ -21,8 +21,12 @@ enum Style {
 	SUBTITLE,  ## legenda: o jogo continua visível, texto embaixo (lembranças)
 }
 
-## Quanto tempo cada frase fica na tela (segundos reais).
+## Tempo MÍNIMO de cada frase na tela (segundos reais).
 @export var hold_time := 3.2
+## v0.30.2: frase longa fica mais tempo — o tempo vem do tamanho do texto
+## (cerca de 14 letras por segundo, um ritmo de leitura confortável).
+const READ_BASE := 1.5
+const READ_CHARS_PER_SECOND := 14.0
 @export var fade_time := 0.7
 
 var _backdrop: ColorRect
@@ -76,7 +80,8 @@ func play(lines: Array, style: Style = Style.SCREEN, backdrop: Color = Color(0.0
 		fade_in.tween_property(_label, "modulate:a", 1.0, fade_time)
 		var start := Time.get_ticks_msec()
 		# Tempo REAL: câmera lenta (Engine.time_scale) não estica a leitura.
-		while (Time.get_ticks_msec() - start) < int(hold_time * 1000.0) and not _skip:
+		var hold := reading_time(_label.text)
+		while (Time.get_ticks_msec() - start) < int(hold * 1000.0) and not _skip:
 			await get_tree().process_frame
 		var fade_out := create_tween()
 		fade_out.tween_property(_label, "modulate:a", 0.0, fade_time * 0.6)
@@ -87,6 +92,11 @@ func play(lines: Array, style: Style = Style.SCREEN, backdrop: Color = Color(0.0
 		await band_out.finished
 	_playing = false
 	finished.emit()
+
+
+## Quanto tempo uma frase fica na tela: nunca menos que hold_time.
+func reading_time(text: String) -> float:
+	return maxf(hold_time, READ_BASE + text.length() / READ_CHARS_PER_SECOND)
 
 
 ## Pula a frase atual (toque, Ataque ou Confirmar; os testes também usam).

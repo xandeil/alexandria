@@ -224,6 +224,12 @@ func _ready() -> void:
 		"test_sprint_hold_circle",
 		"test_rest_menu_and_travel",
 		"test_rest_menu_pad_navigation",
+		"test_stepper_rows_on_pad",
+		"test_graphics_setting",
+		"test_grid_menus_on_pad",
+		"test_starting_bow_and_spear_attacks",
+		"test_slain_enemies_stay_dead_until_rest",
+		"test_sniper_friendly_fire",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -948,7 +954,7 @@ func test_level_flow() -> void:
 	check(get_tree().paused, "diálogo pausa o mundo (soldados não batem em quem está lendo)")
 	check(level.player.state == Player.State.LOCKED, "herói travado durante o diálogo")
 	var guard := 0
-	while level.hud.dialogue.visible and guard < 80:
+	while level.hud.dialogue.visible and guard < 200:
 		Input.action_press(&"heal")  # E também avança o diálogo
 		level.hud.dialogue._tap()
 		await frames(2)
@@ -1766,6 +1772,18 @@ func test_miniboss_resets_when_player_flees() -> void:
 	check(resets[0] == 1 and not sarge.active, "herói fugiu: ele desiste")
 	check(is_equal_approx(sarge.stats.health, sarge.stats.max_health), "volta com a vida cheia")
 	check(not sarge.is_in_group("enemies"), "fora da luta não é alvo")
+	# v0.30.7: herói parado na BEIRADA (logo além da distância de desistir). O
+	# chefe volta para casa passando perto dele — não pode acordar/desistir em loop.
+	var starts := [0]
+	sarge.fight_started.connect(func(_b): starts[0] += 1)
+	var home: Vector2 = sarge.home_position
+	player.global_position = home + Vector2(sarge.reset_distance + 20.0, 0)
+	sarge.global_position = player.global_position + Vector2(-30, 0)  # estava perseguindo até ali
+	await seconds(8.0)
+	check(starts[0] == 0, "na beirada ele volta para o posto sem acordar de novo (acordou %d vezes)" % starts[0])
+	player.global_position = home + Vector2(60, 0)
+	await seconds(1.0)
+	check(starts[0] == 1 and sarge.active, "chegou perto de verdade: a luta recomeça")
 
 
 ## "Só leva dano real pelas costas." Vira devagar; quem cola nas costas leva o giro.
@@ -5039,11 +5057,18 @@ func test_rest_menu_pad_navigation() -> void:
 		return f.get_meta("scene", "levantar") if f else ""
 	check(focused.call() == "res://scenes/world/cidade.tscn", "abre com a primeira Câmara de destino selecionada")
 	check(menu.cards()[0].focus_mode == Control.FOCUS_NONE, "'você está aqui' nem recebe foco")
+	# Grade (3 colunas): [Teatro(aqui) Cidade Bosque] / [Raízes].
 	var seen := []
 	for i in 3:
 		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
 		seen.append(focused.call().get_file().get_basename())
-	check(seen == ["bosque", "raizes", "cidade"], "→ passa por TODAS as Câmaras e dá a volta: %s" % [seen])
+	check(seen == ["bosque", "cidade", "bosque"], "→ dá a volta NA MESMA LINHA (não pula de linha): %s" % [seen])
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(focused.call().get_file().get_basename() == "cidade", "← também fica na linha")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call().get_file().get_basename() == "raizes", "↓ desce para a linha de baixo")
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(focused.call().get_file().get_basename() == "raizes", "sozinha na linha: → não sai dela")
 	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	check(focused.call() == "levantar", "↓ vai para o Levantar")
 	await _pad_press(JOY_BUTTON_DPAD_UP)
@@ -5058,6 +5083,232 @@ func test_rest_menu_pad_navigation() -> void:
 	Game.reset_progress()
 
 
+
+## v0.30.2 (feedback): nas linhas ‹ valor ›, ←/→ TROCAM o valor e o foco não pula.
+func test_stepper_rows_on_pad() -> void:
+	var creation := CharacterCreation.new()
+	add_child(creation)
+	await frames(2)
+	var first := get_viewport().gui_get_focus_owner()
+	var before: int = creation.look["sexo"]
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(creation.look["sexo"] != before, "→ troca o valor da linha")
+	check(get_viewport().gui_get_focus_owner() == first, "e o foco fica na mesma linha")
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(creation.look["sexo"] == before and get_viewport().gui_get_focus_owner() == first, "← volta o valor, foco parado")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	var cabelo_antes: int = creation.look["corpo"]
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(creation.look["corpo"] != cabelo_antes, "↓ desce para a próxima linha (Corpo) e → muda ela")
+	var stick := InputEventJoypadMotion.new()
+	stick.axis = JOY_AXIS_LEFT_X
+	var corpo: int = creation.look["corpo"]
+	for value in [0.7, 0.8, 0.9, 0.85]:  # o analógico parado para o lado manda vários eventos
+		stick.axis_value = value
+		Input.parse_input_event(stick)
+		await frames(1)
+	stick.axis_value = 0.0
+	Input.parse_input_event(stick)
+	await frames(2)
+	check(creation.look["corpo"] == posmod(corpo + 1, Appearance.option_count("corpo", creation.look["sexo"])),
+		"analógico inclinado conta UMA vez (não dispara sozinho)")
+	creation.queue_free()
+	await frames(2)
+	var options := OptionsMenu.new()
+	add_child(options)
+	options.open()
+	await frames(2)
+	var saved := Settings.sfx_volume
+	Settings.sfx_volume = 0.5
+	options._focus_chain[0].grab_focus()
+	await frames(1)
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(is_equal_approx(Settings.sfx_volume, 0.6), "Opções: → aumenta o volume (%.1f)" % Settings.sfx_volume)
+	check(get_viewport().gui_get_focus_owner() == options._focus_chain[0], "Opções: o foco não pulou de linha")
+	var toggle: Control = options._rows["dicas"]
+	toggle.grab_focus()
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == toggle, "Opções: → num botão comum não leva para outra linha")
+	Settings.sfx_volume = saved
+	Settings.apply()
+	options.queue_free()
+	await frames(2)
+
+
+## v0.30.4 (feedback): na grade do inventário/loja o direcional não foge da grade.
+func test_grid_menus_on_pad() -> void:
+	Game.reset_progress()
+	Game.memories = 3000
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
+	level._on_dialogue_action("loja")
+	await frames(2)
+	var shop := level.hud.shop_menu
+	var slots: Array[Button] = shop._slots
+	check(slots.size() == 3, "loja: 3 itens numa linha (%d)" % slots.size())
+	slots[2].grab_focus()
+	await frames(1)
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == slots[0], "loja: → na última coluna volta para a 1ª (não vai para o Sair)")
+	await _pad_press(JOY_BUTTON_DPAD_UP)
+	check(get_viewport().gui_get_focus_owner() == slots[0], "loja: ↑ na 1ª linha fica parado")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(get_viewport().gui_get_focus_owner() == shop._close_button, "loja: ↓ sai para o Sair")
+	await _pad_press(JOY_BUTTON_DPAD_UP)
+	check(get_viewport().gui_get_focus_owner() == slots[0], "loja: ↑ no Sair volta para a grade")
+	shop.close()
+	await frames(3)
+	# Inventório com a aba Armadura cheia (várias linhas).
+	for id in ArmorSets.pieces("vigilia") + ArmorSets.pieces("detentor"):
+		Game.add_item(id)
+	level.hud.open_inventory()
+	await frames(2)
+	var menu := level.hud.inventory_menu
+	menu.set_tab(2)
+	await frames(2)
+	var grid: Array[Button] = menu._slots
+	var columns: int = menu.COLUMNS
+	check(grid.size() > columns, "inventário: mais de uma linha (%d itens)" % grid.size())
+	grid[columns - 1].grab_focus()
+	await frames(1)
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == grid[0], "inventário: → na última coluna dá a volta na linha")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(get_viewport().gui_get_focus_owner() == grid[columns], "inventário: ↓ desce uma linha")
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(get_viewport().gui_get_focus_owner() == menu._equip_rows["direita"], "inventário: ← na 1ª coluna vai para o EQUIPADO")
+	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+	check(get_viewport().gui_get_focus_owner() == grid[0], "inventário: → no EQUIPADO volta para a grade")
+	menu.close()
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.30.6 (teste de um amigo): arco e lança escolhidos na criação. O arco tem
+## que ATIRAR (flecha de verdade) e nenhum dos dois pode "dar lapada" — a arma
+## fica apontada para o alvo, sem o balanço de lado dos cortes.
+func test_starting_bow_and_spear_attacks() -> void:
+	for id in ["arco_cobaia", "lanca_cobaia"]:
+		Game.reset_progress()
+		Game.new_game({"arma": id})
+		Game.scene_changes_enabled = false
+		var level := await open_level("res://scenes/world/prologo.tscn", "camara")
+		var player := level.player
+		await wait_for(func(): return player.state == Player.State.FREE, 900)  # acorda da cápsula
+		check(player.state == Player.State.FREE, "%s: herói livre depois de acordar" % id)
+		var pickups := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == id)
+		(pickups[0] as ItemPickup).take()
+		await frames(2)
+		check(player.weapon.id == id, "%s: pegou do chão e está na mão" % id)
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			enemy.queue_free()  # sem mira assistida puxando para outro lado
+		await frames(2)
+		player.facing = Vector2.RIGHT
+		player.stats.stamina = player.stats.max_stamina
+		var count_shots := func() -> int:
+			return level.find_children("*", "", true, false).filter(func(n): return n is PlayerShot).size()
+		var shots_before: int = count_shots.call()
+		Input.action_press(&"attack")
+		await frames(3)
+		Input.action_release(&"attack")
+		var worst_turn := 0.0
+		var shot_seen := false
+		for i in 50:
+			await frames(1)
+			if player.state == Player.State.ATTACK:
+				worst_turn = maxf(worst_turn, absf(angle_difference(player.weapon_pivot.rotation, player._swing_from)))
+			if count_shots.call() > shots_before:
+				shot_seen = true
+		check(worst_turn >= 0.0 and player._current_attack != null, "%s: o golpe saiu" % id)
+		check(worst_turn < 0.05, "%s: a arma não balança de lado (desvio máx %.2f rad)" % [id, worst_turn])
+		if id == "arco_cobaia":
+			check(shot_seen, "arco: o golpe solta uma FLECHA")
+		level.queue_free()
+		await frames(2)
+	Game.reset_progress()
+
+
+## v0.30.7 (feedback): inimigo morto fica morto ao trocar de área; volta ao
+## descansar ou ao morrer (regra do Dark Souls). E o save avisa na tela.
+func test_slain_enemies_stay_dead_until_rest() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "camara")
+	var enemies := get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not (n is Boss))
+	var total := enemies.size()
+	check(total >= 3, "a Cidade tem inimigos (%d)" % total)
+	for i in 2:
+		(enemies[i] as Enemy).stats.take_damage(99999.0)
+	await frames(3)
+	check((Game.slain.get(CIDADE, []) as Array).size() == 2, "o jogo anotou os 2 mortos")
+	var saves := [0]
+	var count_save := func(): saves[0] += 1
+	Game.saved.connect(count_save)
+	Game.persistence_enabled = true
+	var keep_path := Game.save_path
+	Game.save_path = "user://teste_abatidos.json"
+	Game.save_game()
+	check(saves[0] == 1, "salvar emite o aviso para o HUD")
+	Game.slain = {}
+	Game.load_game()
+	check((Game.slain.get(CIDADE, []) as Array).size() == 2, "os mortos ficam no save")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.save_path))
+	Game.save_path = keep_path
+	Game.persistence_enabled = false
+	Game.saved.disconnect(count_save)
+	level.queue_free()
+	await frames(3)
+	# Volta à área: os 2 continuam mortos.
+	level = await open_level(CIDADE, "camara")
+	var alive := get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not (n is Boss) and not n.is_queued_for_deletion()).size()
+	check(alive == total - 2, "voltou à área: os mortos não voltaram (%d de %d)" % [alive, total])
+	# Descansou: todo mundo de volta.
+	level._respawn_enemies()
+	await frames(2)
+	alive = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not (n is Boss) and not n.is_queued_for_deletion()).size()
+	check(alive == total and Game.slain.is_empty(), "descansou: os inimigos voltam (%d de %d)" % [alive, total])
+	level.queue_free()
+	await frames(2)
+	# Morrer também traz de volta.
+	Game.mark_slain(CIDADE, 0)
+	Game.respawn()
+	check(Game.slain.is_empty(), "morrer também traz os inimigos de volta")
+	Game.wake_from_capsule = false
+	Game.reset_progress()
+
+
+## v0.30.7 (ideia do testador): o tiro do atirador acerta inimigo no caminho.
+func test_sniper_friendly_fire() -> void:
+	var player := spawn_player(Vector2(400, 200))
+	player._iframes_left = 9999.0
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(300, 200))
+	await frames(2)
+	var hp := soldier.stats.health
+	var shot := Projectile.launch(self, Vector2(200, 200), Vector2.RIGHT, null, 20.0, 300.0, 400.0)
+	shot.friendly_fire = true
+	await seconds(0.8)
+	check(soldier.stats.health < hp, "tiro de atirador acerta o soldado no caminho (%.0f → %.0f)" % [hp, soldier.stats.health])
+	hp = soldier.stats.health
+	var boss_shot := Projectile.launch(self, Vector2(200, 200), Vector2.RIGHT, null, 20.0, 300.0, 400.0)
+	await seconds(0.8)
+	check(is_equal_approx(soldier.stats.health, hp), "tiro de chefe (sem fogo amigo) passa pelo inimigo")
+	if is_instance_valid(boss_shot):
+		boss_shot.queue_free()
+	soldier.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).
+func test_graphics_setting() -> void:
+	var saved := Settings.graphics
+	Settings.graphics = "leve"
+	Settings.apply()
+	check(get_window().content_scale_mode == Window.CONTENT_SCALE_MODE_VIEWPORT, "leve: desenha na resolução do jogo")
+	Settings.toggle_graphics()
+	check(Settings.graphics == "nitido" and get_window().content_scale_mode == Window.CONTENT_SCALE_MODE_CANVAS_ITEMS,
+		"nítido: desenha na resolução da tela")
+	Settings.graphics = saved
+	Settings.apply()
 
 # --- v0.23: 3 saves, armas no chão, loja e Ferreiro novos -------------------------------------
 

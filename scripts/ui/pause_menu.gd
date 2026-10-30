@@ -40,7 +40,7 @@ func _ready() -> void:
 	_options_button = DSMenuButton.make("Opções")
 	_options_button.pressed.connect(_open_options)
 	box.add_child(_options_button)
-	var title_button := DSMenuButton.make("Voltar ao título")
+	var title_button := DSMenuButton.make("Salvar e sair")
 	title_button.pressed.connect(func():
 		close()
 		Game.go_to_title())

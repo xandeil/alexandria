@@ -62,6 +62,7 @@ func _ready() -> void:
 	_build_boss_bar()
 	_build_texts()
 	_build_overlay()
+	_build_save_notice()
 	touch = TouchControls.new()
 	add_child(touch)
 	dialogue = DialogueBox.new()
@@ -421,6 +422,38 @@ func _toast_after_title(text: String) -> void:
 	if _area_tween and _area_tween.is_running():
 		await _area_tween.finished
 	toast(text)
+
+
+# --- Aviso de "jogo salvo" -------------------------------------------------------
+## Embaixo, no meio (os cantos são do joystick e dos botões de toque), discreto, como nos soulslike: o jogo salva sozinho (descanso,
+## itens, chefes, troca de área) — o aviso deixa isso visível.
+
+var _save_notice: Label
+var _save_tween: Tween
+
+
+func _build_save_notice() -> void:
+	_save_notice = UIStyle.label("◆ Jogo salvo", 7, UIStyle.GOLD)
+	_save_notice.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_save_notice.offset_left = -45
+	_save_notice.offset_right = 45
+	_save_notice.offset_top = -14
+	_save_notice.offset_bottom = -4
+	_save_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_save_notice.modulate.a = 0.0
+	_save_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_save_notice)
+	Game.saved.connect(_on_game_saved)  # método (não lambda): o HUD é liberado a cada troca de fase
+
+
+func _on_game_saved() -> void:
+	if _save_tween and _save_tween.is_valid():
+		_save_tween.kill()
+	_save_tween = create_tween()
+	_save_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_save_tween.tween_property(_save_notice, "modulate:a", 0.85, 0.2)
+	_save_tween.tween_interval(1.4)
+	_save_tween.tween_property(_save_notice, "modulate:a", 0.0, 0.5)
 
 
 func toast(text: String) -> void:

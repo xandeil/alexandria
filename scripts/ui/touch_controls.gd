@@ -139,7 +139,7 @@ func _layout() -> void:
 
 ## Margens esquerda/direita da área segura, convertidas para coordenadas do jogo.
 func _safe_margins(view: Vector2) -> Vector2:
-	if not OS.has_feature("mobile"):
+	if not Settings.is_touch_device():
 		return Vector2(8, 8)
 	var window := Vector2(DisplayServer.window_get_size())
 	var safe_rect := DisplayServer.get_display_safe_area()

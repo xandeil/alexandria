@@ -36,6 +36,8 @@ signal items_changed
 ## Item GANHO — o HUD mostra "+ Sucata Temperada x2" no canto.
 signal item_added(id: String, count: int)
 signal weapon_upgraded(level: int)
+## Gravou o save no disco (o HUD mostra um aviso discreto).
+signal saved
 ## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
 signal weapon_changed(id: String)
 ## Vestiu ou tirou uma peça de armadura (o herói recalcula vida e velocidade).
@@ -172,6 +174,10 @@ var capsules: Array[String] = []
 ## Um dicionário de marcas é mais simples que uma variável por escolha — e o
 ## save não precisa mudar de versão a cada marca nova.
 var flags := {}
+## Inimigos comuns já mortos, por fase: {"res://...cidade.tscn": [3, 7, ...]}
+## (o número é a ordem do inimigo no mapa). Eles NÃO voltam ao trocar de área —
+## só ao descansar numa Câmara ou ao morrer (regra do Dark Souls, v0.30.7).
+var slain := {}
 ## Aparência escolhida na criação de personagem (ver Appearance).
 var appearance := Appearance.default_data()
 ## Id do ponto onde o herói aparece na próxima área carregada.
@@ -256,6 +262,7 @@ func reset_progress() -> void:
 	for attribute in StatsComponent.ATTRIBUTE_NAMES:
 		attributes[attribute] = StatsComponent.BASE_ATTRIBUTE
 	defeated_bosses.clear()
+	slain = {}
 	appearance = Appearance.default_data()
 	rest_scene = START_SCENE
 	rest_spawn = START_SPAWN
@@ -554,6 +561,24 @@ func requirement_met(requires: String) -> bool:
 	if requires == "sete":
 		return seven_memories() == SEVEN.size()
 	return is_boss_defeated(requires)
+
+
+# --- Inimigos abatidos (só voltam ao descansar ou morrer) -------------------------------
+
+func mark_slain(scene_path: String, index: int) -> void:
+	var list: Array = slain.get(scene_path, [])
+	if not list.has(index):
+		list.append(index)
+	slain[scene_path] = list
+
+
+func is_slain(scene_path: String, index: int) -> bool:
+	return (slain.get(scene_path, []) as Array).has(index)
+
+
+## Descansou (ou morreu): o mundo inteiro volta a se encher.
+func clear_slain() -> void:
+	slain = {}
 
 
 func set_rest_point(scene_path: String, spawn_id: String) -> void:
@@ -1151,6 +1176,8 @@ func save_game() -> void:
 	var error := DirAccess.rename_absolute(_absolute(tmp_path), _absolute(save_path))
 	if error != OK:
 		push_warning("Não foi possível trocar o save: %s" % error_string(error))
+		return
+	saved.emit()  # o HUD mostra o aviso "Jogo salvo" (feedback: "não dá pra salvar?")
 
 
 ## Carrega o save; se ele estiver corrompido, tenta a cópia de segurança (.bak).
@@ -1225,6 +1252,7 @@ func _to_dict() -> Dictionary:
 		"capsules": capsules.duplicate(),
 		"play_seconds": play_seconds,
 		"flags": flags.duplicate(),
+		"abatidos": slain.duplicate(true),
 		"shop_bought": shop_bought.duplicate(),
 		"appearance": appearance.duplicate(),
 	}
@@ -1270,6 +1298,12 @@ func _from_dict(data: Dictionary) -> void:
 	guardian = (saved_guardian as Dictionary).duplicate(true) if saved_guardian is Dictionary else {}
 	starter_sword = bool(data.get("espada_inicial", true))
 	chosen_weapon = str(data.get("arma_escolhida", ""))
+	slain = {}
+	var saved_slain: Variant = data.get("abatidos", {})
+	if saved_slain is Dictionary:
+		for scene: Variant in saved_slain:
+			if saved_slain[scene] is Array:
+				slain[str(scene)] = (saved_slain[scene] as Array).map(func(i): return int(i))
 	# Itens-chave de chefes já vencidos que faltem no save (ex.: a Lembrança do
 	# Cavaleiro, que só existe desde a v0.20) são devolvidos. Como são únicos,
 	# repetir isto não duplica nada.
@@ -1429,7 +1463,9 @@ func travel(scene_path: String, spawn_id: String) -> void:
 
 
 ## Depois da morte: renasce na Câmara com tudo cheio (nada é carregado pela porta).
+## Morrer também traz os inimigos de volta (como descansar).
 func respawn() -> void:
+	clear_slain()
 	clear_carry()
 	wake_from_capsule = true  # renasce saindo da cápsula (a mesma cena do despertar)
 	pending_spawn = rest_spawn

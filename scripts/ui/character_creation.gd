@@ -26,6 +26,8 @@ var _weapon_icon: TextureRect
 var _preview: AnimatedSprite2D
 var _values := {}  # campo -> Label com o valor atual
 var _first_focus: Control
+## Os itens focáveis, de cima para baixo (a ordem do ↑/↓ no controle).
+var _focus_chain: Array[Control] = []
 var _walk_timer := 0.0
 
 
@@ -110,62 +112,48 @@ func _build() -> void:
 	var back := DSMenuButton.make("Voltar", 11)
 	back.pressed.connect(_cancel)
 	box.add_child(back)
+	_focus_chain.append_array([random, confirm, back])
+	_link_focus()
 
 
 func _add_row(box: VBoxContainer, field: String, title: String) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
-	var name_label := UIStyle.label(title, 10, Color(0.8, 0.78, 0.74))
-	name_label.custom_minimum_size = Vector2(56, 0)
-	row.add_child(name_label)
-	var minus := DSMenuButton.make("‹", 14)
-	minus.custom_minimum_size = Vector2(24, 0)
-	minus.pressed.connect(func(): step(field, -1))
-	row.add_child(minus)
-	var value := UIStyle.label("", 10, UIStyle.GOLD, UIStyle.TITLE_FONT)
-	value.custom_minimum_size = Vector2(96, 0)
-	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(value)
-	var plus := DSMenuButton.make("›", 14)
-	plus.custom_minimum_size = Vector2(24, 0)
-	plus.pressed.connect(func(): step(field, 1))
-	row.add_child(plus)
+	var row := StepperRow.make(title, 56, 96)
+	row.stepped.connect(func(direction: int): step(field, direction))
 	box.add_child(row)
-	_values[field] = value
+	_values[field] = row.value_label
+	_focus_chain.append(row.focus_target())
 	if _first_focus == null:
-		_first_focus = plus
+		_first_focus = row.focus_target()
 
 
 ## A arma: mesmo ‹ valor › das outras linhas, com o ícone ao lado.
 func _add_weapon_row(box: VBoxContainer) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
-	var name_label := UIStyle.label("Arma", 10, Color(0.8, 0.78, 0.74))
-	name_label.custom_minimum_size = Vector2(56, 0)
-	row.add_child(name_label)
-	var minus := DSMenuButton.make("‹", 14)
-	minus.custom_minimum_size = Vector2(24, 0)
-	minus.pressed.connect(func(): step_weapon(-1))
-	row.add_child(minus)
-	var value := UIStyle.label("", 9, UIStyle.GOLD, UIStyle.TITLE_FONT)
-	value.custom_minimum_size = Vector2(80, 0)
-	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	value.clip_text = true
-	row.add_child(value)
 	_weapon_icon = TextureRect.new()
 	_weapon_icon.custom_minimum_size = Vector2(14, 14)
 	_weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_weapon_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	row.add_child(_weapon_icon)
-	var plus := DSMenuButton.make("›", 14)
-	plus.custom_minimum_size = Vector2(24, 0)
-	plus.pressed.connect(func(): step_weapon(1))
-	row.add_child(plus)
+	var row := StepperRow.make("Arma", 56, 80, 9, UIStyle.TITLE_FONT, _weapon_icon)
+	row.stepped.connect(step_weapon)
 	box.add_child(row)
-	_values["arma"] = value
+	_values["arma"] = row.value_label
+	_focus_chain.append(row.focus_target())
 	var hint := UIStyle.label("Ela vai estar no chão, perto de onde você acordar.", 7, UIStyle.TEXT_DIM)
 	box.add_child(hint)
+
+
+## Navegação do controle feita À MÃO, de cima para baixo (dando a volta):
+## ↑/↓ andam pelas linhas; ←/→ só trocam valores (StepperRow) — nos botões
+## de baixo (Aleatório, Despertar, Voltar) ←/→ não fazem nada.
+func _link_focus() -> void:
+	for i in _focus_chain.size():
+		var item: Control = _focus_chain[i]
+		item.focus_neighbor_top = item.get_path_to(_focus_chain[posmod(i - 1, _focus_chain.size())])
+		item.focus_neighbor_bottom = item.get_path_to(_focus_chain[posmod(i + 1, _focus_chain.size())])
+		item.focus_neighbor_left = item.get_path_to(item)
+		item.focus_neighbor_right = item.get_path_to(item)
+		item.focus_previous = item.focus_neighbor_top
+		item.focus_next = item.focus_neighbor_bottom
 
 
 func step_weapon(direction: int) -> void:

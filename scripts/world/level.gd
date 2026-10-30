@@ -1098,14 +1098,29 @@ func _add_enemy_spawn(spawn: Dictionary) -> void:
 		_spawn_enemy(spawn)  # pré-visualização no editor
 
 
-func _spawn_enemy(spawn: Dictionary) -> Node2D:
+func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 	var enemy := (spawn["scene"] as PackedScene).instantiate() as Node2D
 	enemy.position = spawn["at"]
 	if spawn.has("variant"):
 		enemy.set("variant", spawn["variant"])
 	enemy.add_to_group("respawnable")
 	entities.add_child(enemy)
+	# Inimigo comum morto fica morto até descansar (Game.slain). Chefes e
+	# mini-chefes já têm a regra deles (Game.defeated_bosses).
+	if index >= 0 and enemy is Enemy and not (enemy is Boss):
+		(enemy as Enemy).defeated.connect(_on_enemy_slain.bind(index))
 	return enemy
+
+
+## Spawna os inimigos do mapa, pulando os que já foram mortos desde o último descanso.
+func _spawn_living_enemies() -> void:
+	for i in _enemy_spawns.size():
+		if not Game.is_slain(scene_file_path, i):
+			_spawn_enemy(_enemy_spawns[i], i)
+
+
+func _on_enemy_slain(_enemy: Enemy, index: int) -> void:
+	Game.mark_slain(scene_file_path, index)
 
 
 ## Ponto de inspeção (lore pelo cenário): invisível, não bloqueia, "Examinar".
@@ -1180,8 +1195,7 @@ func _start_runtime() -> void:
 	Game.session_active = true  # vale também ao rodar a fase direto pelo editor (F6)
 	hud = HUD_SCENE.instantiate()
 	add_child(hud)
-	for spawn in _enemy_spawns:
-		_spawn_enemy(spawn)
+	_spawn_living_enemies()
 	var spawn_id := _spawn_player()
 	# Ao ar livre a câmera pode passar um pouco da borda: mostra o céu sob a ilha.
 	var margin := TILE * 4 if outdoor else 0
@@ -1561,8 +1575,8 @@ func _respawn_enemies() -> void:
 		node.queue_free()
 	for farm in get_tree().get_nodes_in_group("farm_spots"):
 		(farm as FarmSpot).reset_cycle()
-	for spawn in _enemy_spawns:
-		_spawn_enemy(spawn)
+	Game.clear_slain()  # descansar enche o mundo de novo (todas as áreas)
+	_spawn_living_enemies()
 
 
 func _on_player_died() -> void:

@@ -18,6 +18,12 @@ signal fight_reset(boss: Boss)
 ## Longe do posto por mais que isso (ou o herói longe demais): desiste e volta.
 @export var reset_distance := 260.0
 @export var reset_time := 2.5
+## Margem para acordar DE NOVO: o herói precisa estar este tanto mais perto do
+## posto do que a distância de desistir. Sem ela, quem ficava na beirada (um
+## pouco além do reset_distance) via o chefe acordar, desistir, voltar com a
+## vida cheia e acordar de novo em loop — a barra "piscava" e enchia sozinha
+## (v0.30.7, feedback: "a barra do Sargento bugou quando me afastei").
+const WAKE_MARGIN := 50.0
 
 var _away_time := 0.0
 
@@ -52,7 +58,9 @@ func _dormant(delta: float) -> void:
 		velocity = velocity.move_toward(to_home.normalized() * move_speed, acceleration * delta)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, acceleration * delta)
-	if target and global_position.distance_to(target.global_position) <= wake_distance and can_see(target.global_position):
+	if target and global_position.distance_to(target.global_position) <= wake_distance \
+			and target.global_position.distance_to(home_position) <= reset_distance - WAKE_MARGIN \
+			and can_see(target.global_position):
 		start_fight()
 		_on_wake()
 

@@ -199,7 +199,9 @@ func _rest_time() -> float:
 		1:
 			return lerpf(0.9, 0.4, 1.0 - armor)
 		2:
-			return lerpf(0.45, 0.2, 1.0 - armor)
+			# v0.30.2: no fim da fase 2 (pouca armadura) sobrava pouco tempo para
+			# reagir — feedback de teste. Continua agressiva, mas com respiro.
+			return lerpf(0.5, 0.32, 1.0 - armor)
 	return 0.75
 
 
@@ -209,7 +211,7 @@ func _windup_scale() -> float:
 		1:
 			return lerpf(1.0, 0.8, 1.0 - armor)
 		2:
-			return lerpf(0.8, 0.62, 1.0 - armor)
+			return lerpf(0.8, 0.7, 1.0 - armor)
 	return 1.0
 
 

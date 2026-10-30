@@ -13,7 +13,7 @@ ordem combinada e as regras que o Alexandre definiu, para não se perderem.
    cápsula → o preço (corredor, porta arranhada, cápsula quebrada) → os que
    ficaram → o Cavaleiro ativa as Âncoras → a ilha sobe → a ilha hoje → a
    cápsula verde (corta para o jogo). No NG+ a última frase muda.
-2. **Lançamento** e depois a **versão para navegador** (export Web do Godot +
+2. **Lançamento** e a ~~**versão para navegador**~~ (FEITA na v0.30.1: preset "Web", `build_web.sh`, zip para o itch.io) (export Web do Godot +
    itch.io). Junto com ela, estudar a parte de servidor.
 3. **Coop** (abaixo).
 4. **Invasões** (abaixo) — por último.

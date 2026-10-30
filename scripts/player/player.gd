@@ -1573,18 +1573,22 @@ func _update_weapon(side: float, delta: float) -> void:
 		weapon_pivot.rotation = target_angle
 	elif state == State.ATTACK and _current_attack and _attack_hand != &"esquerda":
 		target_pos = Vector2(0, -8)
-		var pull := -0.5 if not _swing_reverse else 0.5
+		# Corte puxa a arma para o lado antes de varrer. ESTOCADA (lança) e TIRO
+		# (arco, besta) não: a arma fica apontada para o alvo e só recua/avança.
+		# (v0.30.6 — teste: "o arco deu lapada em vez de atirar; a lança também".)
+		var straight := _swing_from == _swing_to
+		var pull := 0.0 if straight else (-0.5 if not _swing_reverse else 0.5)
 		match _runner.phase:
 			AttackRunner.Phase.WINDUP:
 				target_angle = _swing_from + pull * _runner.phase_progress()
-				if _swing_from == _swing_to:  # estocada: recolhe a espada
+				if straight:  # estocada/tiro: recolhe a arma (puxa a corda)
 					target_pos -= Vector2.from_angle(_swing_from) * 3.0 * _runner.phase_progress()
 			AttackRunner.Phase.LUNGE:
 				target_angle = _swing_from
 			AttackRunner.Phase.ACTIVE:
 				target_angle = lerp_angle(_swing_from, _swing_to, _runner.phase_progress())
-				if _swing_from == _swing_to:
-					target_pos += Vector2.from_angle(_swing_from) * 5.0
+				if straight:
+					target_pos += Vector2.from_angle(_swing_from) * (1.0 if _weapon_of(_attack_hand) and _weapon_of(_attack_hand).ranged else 5.0)
 			_:
 				target_angle = _swing_to
 		weapon_pivot.rotation = target_angle  # durante o golpe a arma é exata
@@ -1754,7 +1758,8 @@ func _update_off_hand(side: float, delta: float) -> void:
 		target_pos = Vector2(0, -8)
 		match _runner.phase:
 			AttackRunner.Phase.WINDUP:
-				target_angle = _swing_to - 0.5 * progress  # a esquerda corta pelo outro lado
+				# a esquerda corta pelo outro lado (estocada/tiro: fica apontada)
+				target_angle = _swing_to - (0.0 if _swing_from == _swing_to else 0.5) * progress
 			AttackRunner.Phase.LUNGE:
 				target_angle = _swing_to
 			AttackRunner.Phase.ACTIVE:
