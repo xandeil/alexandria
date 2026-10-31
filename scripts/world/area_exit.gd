@@ -6,6 +6,8 @@ extends Area2D
 
 @export_file("*.tscn") var target_scene := ""
 @export var target_spawn := ""
+## Atalho (v0.31): passar por aqui liga esta flag — o outro lado se abre.
+@export var opens_flag := ""
 
 var _armed := false
 
@@ -42,5 +44,7 @@ func _on_body_entered(body: Node2D) -> void:
 	_armed = false
 	player.lock_input(true)
 	Sfx.play(&"door")
+	if not opens_flag.is_empty() and not Game.has_flag(opens_flag):
+		Game.set_flag(opens_flag)  # o atalho fica aberto para sempre
 	Game.carry(player.stats.health, player.health_flasks)  # vida e frascos atravessam a porta com você
 	Game.travel(target_scene, target_spawn)

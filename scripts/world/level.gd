@@ -451,6 +451,9 @@ const PROPS := {
 ## "requires" aceita tudo que Game.requirement_met entende (chefe, flag, item, estado...).
 ## "arrival" é o nome do ponto onde quem CHEGA por esta saída aparece.
 @export var exits: Array[Dictionary] = []
+## Força dos inimigos comuns desta área (vida e dano). Mapa livre: as áreas
+## difíceis ficam difíceis mesmo para quem chega cedo. 1.0 = normal.
+@export var enemy_power := 1.0
 ## v0.31 — ZONAS: retângulos do mapa (em tiles) com regras para os inimigos de dentro.
 ## {"id": "alarme_quartel", "rect": Rect2i(10, 4, 8, 6),
 ##  "requires": "!flag:corneteiro_morto",   (o grupo só nasce se a condição valer)
@@ -462,6 +465,10 @@ const PROPS := {
 ## v0.31 — ARMADILHAS PERIÓDICAS (PeriodicTrap): marteletes, fendas de lava...
 ## {"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}
 @export var traps: Array[Dictionary] = []
+## v0.31 — ENFEITES soltos (sem caractere no mapa): {"cell": Vector2i(x, y),
+## "texture": "res://assets/props/x.png"} e, se der para Examinar,
+## "dialogue": "id" e "name": "Nome". Ex.: os avisos sem texto do mapa livre.
+@export var decor: Array[Dictionary] = []
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -551,7 +558,8 @@ func _build_listed() -> void:
 	for def in exits:
 		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
 		_add_side_exit(cell.x, cell.y, str(def.get("scene", "")), str(def.get("spawn", "")),
-			str(def.get("requires", "")), str(def.get("locked_dialogue", "")), str(def.get("arrival", "saida_%d,%d" % [cell.x, cell.y])))
+			str(def.get("requires", "")), str(def.get("locked_dialogue", "")), str(def.get("arrival", "saida_%d,%d" % [cell.x, cell.y])),
+			str(def.get("opens", "")))
 	if Engine.is_editor_hint():
 		return
 	for def in objects:
@@ -559,6 +567,18 @@ func _build_listed() -> void:
 		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
 	for def in traps:
 		PeriodicTrap.spawn(entities, def)
+	for def in decor:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		var at := _cell_feet(cell.x, cell.y)
+		if def.has("dialogue"):
+			_place_object({"dialogue": def["dialogue"], "name": def.get("name", ""), "texture": def["texture"],
+				"prompt": "Examinar"}, at)
+		else:
+			var sprite := Sprite2D.new()
+			sprite.texture = load(str(def["texture"]))
+			sprite.offset = Vector2(0, -sprite.texture.get_height() * 0.5 + 1)
+			sprite.position = at
+			entities.add_child(sprite)
 	for zone in zones:
 		for cell: Vector2i in zone.get("triggers", []):
 			ZoneTrigger.spawn(entities, str(zone.get("id", "")), _cell_center(cell.x, cell.y))
@@ -976,16 +996,19 @@ func _build_entity(x: int, y: int, c: String) -> void:
 
 
 ## Saída extra: trancada (vira um ponto "Examinar") até vencer o chefe pedido.
-func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: String, locked_dialogue: String, arrival: String) -> void:
+## opens: atalho — passar por esta saída liga a flag que destranca o outro lado.
+func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: String, locked_dialogue: String, arrival: String,
+		opens: String = "") -> void:
 	if not Engine.is_editor_hint() and not Game.requirement_met(requires):
 		var lock := _make_npc(locked_dialogue, "", "", 1, _cell_feet(x, y), "Examinar")
 		_locked_exits.append({"npc": lock, "x": x, "y": y, "scene": scene, "spawn": spawn, "requires": requires,
-			"arrival": arrival})
+			"arrival": arrival, "opens": opens})
 		return
 	var side_exit := EXIT_SCENE.instantiate() as AreaExit
 	side_exit.position = _cell_center(x, y)
 	side_exit.target_scene = scene
 	side_exit.target_spawn = spawn
+	side_exit.opens_flag = opens
 	entities.add_child(side_exit)
 	spawns[arrival] = _inward_of(x, y)
 
@@ -1158,6 +1181,8 @@ func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 	enemy.position = spawn["at"]
 	if spawn.has("variant"):
 		enemy.set("variant", spawn["variant"])
+	if enemy is Enemy and not (enemy is Boss):
+		(enemy as Enemy).area_power = enemy_power  # antes do _ready (vida já nasce maior)
 	enemy.add_to_group("respawnable")
 	entities.add_child(enemy)
 	# Inimigo comum morto fica morto até descansar (Game.slain). Chefes e
@@ -1824,7 +1849,7 @@ func unlock_exits() -> void:
 		_locked_exits.remove_at(i)
 		if is_instance_valid(lock["npc"]):
 			(lock["npc"] as Node).queue_free()
-		_add_side_exit(lock["x"], lock["y"], lock["scene"], lock["spawn"], "", "", lock["arrival"])
+		_add_side_exit(lock["x"], lock["y"], lock["scene"], lock["spawn"], "", "", lock["arrival"], lock.get("opens", ""))
 		Sfx.play(&"door", -4.0)
 		if hud:
 			hud.toast("Uma passagem se abriu.")

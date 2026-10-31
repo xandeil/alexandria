@@ -12,6 +12,11 @@ extends CharacterBody2D
 
 signal defeated(enemy: Enemy)
 
+## Força da ÁREA (v0.31, Etapa 2 — mapa livre): Raízes, Montanha e Domínio
+## podem ser visitados cedo, então os inimigos de lá são mais fortes de
+## verdade. Multiplica a vida (aqui) e o dano (no herói, Player._on_hit_received).
+## Quem define é a fase (Level.enemy_power), antes do inimigo entrar na cena.
+var area_power := 1.0
 ## Alarme (gatilho de zona): o alcance de antes de ser chamado (-1 = não está).
 var _alert_base_range := -1.0
 var _alert_token := 0
@@ -79,7 +84,7 @@ func _ready() -> void:
 ## Quem não é "inimigo de verdade" (crianças do Prólogo, o bezerro que morre
 ## por contagem) devolve false em scales_with_cycle().
 func _apply_cycle() -> void:
-	var factor := Game.difficulty()
+	var factor := Game.difficulty() * area_power
 	if factor <= 1.0 or not scales_with_cycle():
 		return
 	stats.health_scale *= factor
@@ -88,6 +93,13 @@ func _apply_cycle() -> void:
 
 func scales_with_cycle() -> bool:
 	return true
+
+
+## Quanto o golpe de quem bateu é multiplicado pela força da área (1 = normal).
+## Serve para golpes diretos e para projéteis (o "source" do tiro é o atirador).
+static func power_of(source: Variant) -> float:
+	var enemy := source as Enemy if is_instance_valid(source) else null
+	return enemy.area_power if enemy and enemy.scales_with_cycle() else 1.0
 
 
 ## A mira assistida do herói ignora quem não é alvo válido.

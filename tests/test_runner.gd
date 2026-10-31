@@ -237,6 +237,8 @@ func _ready() -> void:
 		"test_periodic_trap",
 		"test_dialogue_conditions_and_name",
 		"test_ally_base_levels_and_arena",
+		"test_free_map_layout",
+		"test_area_power",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -786,7 +788,7 @@ func test_levels_build() -> void:
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
 			# 4 de lore + a trilha das Forjas (trancada até vencer Mabel).
-			check(lore == 5, "Bosque: 5 pontos de inspeção (%d)" % lore)
+			check(lore == 6, "Bosque: 6 pontos de inspeção, com o galho e a espinha trancados (%d)" % lore)
 			var items := 0
 			for node in level.entities.get_children():
 				if node is ItemPickup:
@@ -2304,17 +2306,14 @@ func test_spore_mother() -> void:
 
 
 func test_forest_gate() -> void:
+	# v0.31 (mapa livre): a porta do Bosque já começa aberta.
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
-	check(find_npc("porta_bosque_fechada") != null, "antes do Aldir: a porta do Bosque está trancada")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("aldir")
-	level = await open_level("res://scenes/world/teatro.tscn", "camara")
+	check(find_npc("porta_bosque_fechada") == null, "mapa livre: a porta do Bosque não tem trava")
 	var exits := []
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("bosque"):
 			exits.append(node)
-	check(exits.size() == 2 and level.spawns.has("lateral"), "depois do Aldir: a porta abre (e há chegada 'lateral')")
+	check(exits.size() == 2 and level.spawns.has("lateral"), "a porta do Bosque está aberta (e há chegada 'lateral')")
 	check(level.spawns["lateral"].x < 34 * 16, "quem volta do Bosque aparece para DENTRO do Teatro")
 	level.queue_free()
 	await frames(2)
@@ -2710,19 +2709,14 @@ func test_ninhada_splits_and_engulfs() -> void:
 
 
 func test_roots_gate() -> void:
-	Game.defeated_bosses.assign(["aldir"])
-	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
-	check(find_npc("raizes_fechadas") != null, "antes de Nyssa: raízes fecham a porta oeste")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("nyssa")
-	level = await open_level("res://scenes/world/teatro.tscn", "camara")
-	var exits := 0
+	# v0.31 (mapa livre): as Raízes ficam embaixo das Forjas (descida) e o
+	# túnel de raízes leva à Cidade. A porta oeste do Teatro vai às Forjas.
+	var level := await open_level(FORJAS, "porta")
+	var down := 0
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("raizes"):
-			exits += 1
-	check(exits == 2 and level.spawns.has("oeste"), "depois de Nyssa: a porta oeste abre")
-	check(level.spawns["oeste"].x > 16, "quem volta das Raízes aparece para dentro")
+			down += 1
+	check(down == 1 and level.spawns.has("descida"), "das Forjas, a descida para as Raízes")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(RAIZES, "porta")
@@ -2735,9 +2729,9 @@ func test_roots_gate() -> void:
 	check(find_npc("porta_cozinha") != null, "antes do Banqueteiro: a porta dos fundos está trancada")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "oeste":
+		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas") and (node as AreaExit).target_spawn == "descida":
 			back = true
-	check(back, "volta para a porta oeste do Teatro")
+	check(back, "as Raízes sobem de volta para a descida das Forjas")
 	level.queue_free()
 	await frames(2)
 	Game.defeated_bosses.append("banqueteiro")
@@ -3096,26 +3090,21 @@ func test_anchor_guardian() -> void:
 
 
 func test_forge_gate_and_smith() -> void:
-	Game.defeated_bosses.assign(["aldir", "nyssa"])
-	var level := await open_level(BOSQUE, "porta")
-	check(find_npc("trilha_forjas") != null, "antes de Mabel: a trilha das Forjas está presa pelas raízes")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("mabel")
-	level = await open_level(BOSQUE, "porta")
+	# v0.31 (mapa livre): as Forjas ficam a uma porta do Teatro (a oeste).
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var to_forge := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas"):
 			to_forge = true
-	check(to_forge and level.spawns.has("oeste"), "depois de Mabel: a trilha abre")
+	check(to_forge and level.spawns.has("oeste"), "a porta oeste do Teatro leva às Forjas")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(FORJAS, "porta")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("bosque") and (node as AreaExit).target_spawn == "oeste":
+		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "oeste":
 			back = true
-	check(back, "as Forjas levam de volta à trilha do Bosque")
+	check(back, "as Forjas levam de volta à porta oeste do Teatro")
 	check(find_npc("porta_ancora") != null, "antes do Guardião: a porta da Forja do Eco está presa")
 	check(level._dialogue_variant("ferreiro") == "ferreiro", "o Ferreiro só lembra do irmão depois")
 	Game.defeated_bosses.append("durgan")
@@ -3374,18 +3363,15 @@ func test_beast_matriarch() -> void:
 
 
 func test_mountain_gate() -> void:
+	# v0.31 (mapa livre): a escalada no fim do Viaduto já começa livre.
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
 	var level := await open_level(CIDADE, "porta")
-	check(find_npc("ponte_levadica") != null, "antes de Durgan: a ponte levadiça está erguida")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("durgan")
-	level = await open_level(CIDADE, "porta")
+	check(find_npc("ponte_levadica") == null, "mapa livre: nada trava a subida para a Montanha")
 	var to_mountain := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha"):
 			to_mountain = true
-	check(to_mountain and level.spawns.has("lateral"), "depois de Durgan: a ponte baixa")
+	check(to_mountain and level.spawns.has("lateral"), "a subida para a Montanha está aberta")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(MONTANHA, "porta")
@@ -3679,26 +3665,22 @@ func test_archive_golem() -> void:
 
 
 func test_frozen_domain_gate() -> void:
+	# v0.31 (mapa livre): o Domínio fica no alto das Forjas (cascata de gelo).
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan"])
-	var level := await open_level(MONTANHA, "porta")
-	check(find_npc("tunel_de_gelo") != null, "antes de Rachel: o túnel de gelo está fechado")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("rachel")
-	level = await open_level(MONTANHA, "porta")
+	var level := await open_level(FORJAS, "porta")
 	var to_ice := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("dominio"):
 			to_ice = true
-	check(to_ice and level.spawns.has("oeste"), "depois de Rachel: o túnel abre")
+	check(to_ice and level.spawns.has("cascata"), "a cascata de gelo das Forjas sobe ao Domínio")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(DOMINIO, "porta")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha") and (node as AreaExit).target_spawn == "oeste":
+		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas") and (node as AreaExit).target_spawn == "cascata":
 			back = true
-	check(back, "o Domínio leva de volta ao túnel da Montanha")
+	check(back, "do Domínio, a queda leva de volta às Forjas")
 	check(find_npc("porta_arconte") != null, "antes do Golem: a porta do Arconte está fechada")
 	check(level._dialogue_variant("estudioso") == "estudioso", "o Estudioso ainda está congelado")
 	Game.defeated_bosses.append("curadora")
@@ -5352,7 +5334,6 @@ func test_listed_exits_open_by_flag() -> void:
 	Game.set_flag("atalho_teste")
 	await frames(2)
 	check(mine.call() == 0 and level.spawns.has("atalho_teste"), "ligou a flag: abre NA HORA")
-	check(level._locked_exits.size() == 1, "a ponte da Montanha (chefe) continua trancada")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
@@ -5503,6 +5484,85 @@ func test_ally_base_levels_and_arena() -> void:
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
+
+
+# --- v0.31 · Etapa 2: mapa livre e atalhos ------------------------------------------------
+
+## Os destinos abertos de uma fase: cena → número de saídas para ela.
+func _open_destinations() -> Array:
+	var result: Array = []
+	for exit in _world.find_children("*", "AreaExit", true, false):
+		result.append((exit as AreaExit).target_scene.get_file().get_basename())
+	return result
+
+
+func test_free_map_layout() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(TEATRO, "camara")
+	var open := _open_destinations()
+	for area in ["cidade", "bosque", "forjas"]:
+		check(open.has(area), "Teatro: o caminho para %s já começa aberto (%s)" % [area, open])
+	check(not open.has("nucleo"), "o Núcleo continua pedindo as sete memórias")
+	level.queue_free()
+	await frames(2)
+	var expected := {
+		"cidade": ["teatro", "montanha"], "forjas": ["teatro", "dominio", "raizes"],
+		"raizes": ["forjas", "cidade"], "dominio": ["forjas", "bosque"], "montanha": ["cidade", "bosque"],
+		"bosque": ["teatro"],
+	}
+	for area: String in expected:
+		level = await open_level("res://scenes/world/%s.tscn" % area, "camara")
+		open = _open_destinations()
+		for target: String in expected[area]:
+			check(open.has(target), "%s → %s livre (%s)" % [area, target, open])
+		level.queue_free()
+		await frames(2)
+	# Atalhos: trancados do lado de cá, abertos para sempre por quem passa do lado de lá.
+	level = await open_level("res://scenes/world/bosque.tscn", "camara")
+	open = _open_destinations()
+	check(not open.has("dominio") and not open.has("montanha"), "Bosque: galho e espinha começam trancados")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/montanha.tscn", "camara")
+	var spine: AreaExit = _world.find_children("*", "AreaExit", true, false).filter(
+		func(e): return e.target_scene.ends_with("bosque.tscn"))[0]
+	check(spine.opens_flag == "atalho_espinha", "a espinha, do lado da Montanha, abre o atalho")
+	Game.scene_changes_enabled = false
+	spine._armed = true
+	spine._on_body_entered(level.player)
+	check(Game.has_flag("atalho_espinha"), "passou pela espinha: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/bosque.tscn", "camara")
+	open = _open_destinations()
+	check(open.has("montanha") and not open.has("dominio"), "no Bosque, a espinha abriu e o galho continua trancado")
+	level.queue_free()
+	await frames(2)
+	Game.respawn()
+	Game.wake_from_capsule = false
+	check(Game.has_flag("atalho_espinha"), "atalho aberto nunca fecha (nem morrendo)")
+	Game.reset_progress()
+
+
+## As áreas difíceis batem e aguentam mais, mesmo para quem chega cedo.
+func test_area_power() -> void:
+	var expected := {"cidade": 1.0, "raizes": 1.15, "montanha": 1.3, "dominio": 1.45}
+	for area: String in expected:
+		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
+		var enemies := get_tree().get_nodes_in_group("respawnable").filter(func(e): return e is Enemy and not (e is Boss))
+		check(not enemies.is_empty() and is_equal_approx((enemies[0] as Enemy).area_power, expected[area]),
+			"%s: força %.2f" % [area, expected[area]])
+		if area == "dominio" and not enemies.is_empty():
+			var enemy := enemies[0] as Enemy
+			var info := HitInfo.create(10.0, enemy.global_position, level.player.global_position)
+			info.source = enemy
+			var hp := level.player.stats.health
+			level.player._iframes_left = 0.0
+			level.player._on_hit_received(info)
+			check(is_equal_approx(hp - level.player.stats.health, 14.5), "Domínio: golpe de 10 vira 14,5 (%.1f)" % (hp - level.player.stats.health))
+		level.queue_free()
+		await frames(2)
 
 
 ## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).

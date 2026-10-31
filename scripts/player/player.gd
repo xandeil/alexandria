@@ -1319,8 +1319,9 @@ func _deny_stamina() -> void:
 func _on_hit_received(info: HitInfo) -> void:
 	if state == State.DEAD:
 		return
-	if Game.difficulty() > 1.0 and info.source != self:
-		info = info.scaled(Game.difficulty())  # NG+: o mundo bate mais forte
+	var harder := Game.difficulty() * Enemy.power_of(info.source)
+	if harder > 1.0 and info.source != self:
+		info = info.scaled(harder)  # NG+ e áreas difíceis: o mundo bate mais forte
 	if state == State.BLOCK and _can_block(info):
 		_absorb_hit(info)
 		return

@@ -15,9 +15,10 @@ darkness = Color(0.86, 0.8, 0.82, 1)
 outdoor = true
 exit_scene = "res://scenes/world/teatro.tscn"
 exit_spawn = "porta"
+exits = Array[Dictionary]([{"cell": Vector2i(0, 24), "scene": "res://scenes/world/raizes.tscn", "spawn": "tunel", "requires": "flag:atalho_tunel", "locked_dialogue": "tunel_trancado", "arrival": "tunel"}])
 exit2_scene = "res://scenes/world/montanha.tscn"
 exit2_spawn = "porta"
-exit2_requires = "durgan"
+exit2_requires = ""
 exit2_locked_dialogue = "ponte_levadica"
 item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo", "conjunto:detentor"])
 

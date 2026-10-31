@@ -54,6 +54,13 @@ governo subiram com a ilha e ainda estão nela ✅ (Soldados Remendados).
 | 7 | O Núcleo ✅ | Chefe final — o Cavaleiro Desolado ✅ | ilha mais alta, jardim com ruínas | final |
 
 Conexão entre ilhas: elevadores e túneis longos (escondem o carregamento).
+
+**v0.31 — Mapa livre (Etapa 2 do Pacote de Expansão):** sem travas de chefe ENTRE áreas.
+Do Teatro saem três caminhos: Cidade (a mais fácil), Bosque (cachoeiras) e Forjas (porta oeste).
+Cidade → Montanha (escalada do Viaduto) · Forjas → Domínio (cascata de gelo) · Forjas → Raízes (descida).
+Atalhos que abrem só do lado de lá e nunca fecham: galho congelado (Domínio → Bosque, `atalho_galho`),
+espinha de dragão (Montanha → Bosque, `atalho_espinha`), túnel de raízes (Raízes → Cidade, `atalho_tunel`).
+Força dos inimigos por área (`Level.enemy_power`): Raízes ×1,15 · Montanha ×1,3 · Domínio ×1,45.
 Nesta versão: transição com fade (`AreaExit` + `Fader`) ✅.
 
 ## 4. Prólogo: o Complexo das Cápsulas ✅

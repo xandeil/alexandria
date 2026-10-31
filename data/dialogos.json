@@ -921,5 +921,26 @@
 			"Um elmo amassado e uma espada cravada no assoalho, de pé.",
 			"Desta vez, ele não saiu do lugar."
 		]
+	},
+	"galho_trancado": {
+		"nome": "Galho congelado",
+		"falas": [
+			"Um galho enorme, coberto de gelo, atravessa o vazio até a ilha vizinha.",
+			"A ponta de lá está presa no gelo. Daqui, ele não se mexe."
+		]
+	},
+	"espinha_trancada": {
+		"nome": "Espinha de dragão",
+		"falas": [
+			"Uma espinha de dragão faz ponte sobre o vazio. As vértebras deste lado caíram.",
+			"Lá do outro lado, ainda dá para descer por ela."
+		]
+	},
+	"tunel_trancado": {
+		"nome": "Túnel de raízes",
+		"falas": [
+			"Raízes vermelhas fecham um túnel que desce para baixo do Teatro.",
+			"Elas pulsam do outro lado. É de lá que se abre."
+		]
 	}
 }
