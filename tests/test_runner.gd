@@ -239,6 +239,10 @@ func _ready() -> void:
 		"test_ally_base_levels_and_arena",
 		"test_free_map_layout",
 		"test_area_power",
+		"test_second_capsule_per_island",
+		"test_chests_open_and_break",
+		"test_mimic",
+		"test_lab_capsule_after_prologue",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -742,7 +746,7 @@ func test_levels_build() -> void:
 			for npc in level.get_tree().get_nodes_in_group("npcs"):
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
-			check(lore == 7, "Prólogo: 7 pontos de inspeção (%d)" % lore)
+			check(lore == 8, "Prólogo: 7 pontos de inspeção + a placa da cápsula (%d)" % lore)
 		elif path.contains("nyssa"):
 			check(level.boss_arena != null and level.boss_arena.boss is NyssaLumevel, "Clareira: Nyssa deitada no ar")
 			check(level.boss_arena.state == BossArena.State.ARMED, "Clareira: névoa armada ao chegar")
@@ -788,12 +792,12 @@ func test_levels_build() -> void:
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
 			# 4 de lore + a trilha das Forjas (trancada até vencer Mabel).
-			check(lore == 6, "Bosque: 6 pontos de inspeção, com o galho e a espinha trancados (%d)" % lore)
+			check(lore == 8, "Bosque: 4 de lore, galho e espinha trancados e as 2 placas das cápsulas (%d)" % lore)
 			var items := 0
 			for node in level.entities.get_children():
 				if node is ItemPickup:
 					items += 1
-			check(items == 8, "Bosque: 3 itens + as 5 peças do Sono Leve no chão (%d)" % items)
+			check(items == 9, "Bosque: 3 itens + as 5 peças do Sono Leve + o pertence da 2ª cápsula (%d)" % items)
 		elif path.contains("teatro"):
 			check(level.rest_chamber != null, "Teatro: tem a Câmara de descanso")
 			check(level.spawns.has("camara"), "Teatro: spawn na Câmara")
@@ -1947,7 +1951,7 @@ func test_pickups_and_drops() -> void:
 	for node in level.entities.get_children():
 		if node is ItemPickup:
 			pickups.append(node)
-	check(pickups.size() == 9, "4 itens + as 5 peças do Detentor no chão da Cidade (%d)" % pickups.size())
+	check(pickups.size() == 10, "4 itens + as 5 peças do Detentor + o pertence da 2ª Câmara (%d)" % pickups.size())
 	var shield: ItemPickup = null
 	for pickup in pickups:
 		if pickup.item_id == "escudo_remendado":
@@ -1964,7 +1968,7 @@ func test_pickups_and_drops() -> void:
 		if node is ItemPickup:
 			left += 1
 			check((node as ItemPickup).item_id != "escudo_remendado", "o escudo não volta")
-	check(left == 8, "sobram 8 itens (%d)" % left)
+	check(left == 9, "sobram 9 itens (%d)" % left)
 	level.queue_free()
 	await frames(2)
 	# Drop de inimigo.
@@ -4978,7 +4982,7 @@ func test_sprint_hold_circle() -> void:
 func test_rest_menu_and_travel() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
-	check(Game.unlocked_capsules().map(func(c): return c["thumb"]) == ["teatro"], "depois do Prólogo: só o Teatro")
+	check(Game.unlocked_capsules().map(func(c): return c["thumb"]) == ["teatro", "prologo"], "depois do Prólogo: Teatro e laboratório")
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
 	level._on_rest_requested(level.rest_chamber)  # o que acontece ao apertar ✕ na cápsula
@@ -4989,7 +4993,8 @@ func test_rest_menu_and_travel() -> void:
 	await seconds(1.5)
 	check(menu._hero.position.y > start_y + 40.0, "o herói desce para dentro da cápsula")
 	check(menu._capsule.texture == RestMenu.CAPSULE_CLOSED, "e a tampa fecha")
-	check(menu.cards().size() == 1 and menu.cards()[0].disabled, "só a Câmara de onde está (marcada 'você está aqui')")
+	var real := func() -> Array: return menu.cards().filter(func(c): return not c.has_meta("gap"))
+	check(real.call().size() == 2 and real.call()[0].disabled, "a Câmara de onde está (marcada 'você está aqui') e a do laboratório")
 	check(Game.rest_scene == "res://scenes/world/teatro.tscn", "descansar salvou o ponto")
 	# ○ = Levantar.
 	var cancel := InputEventAction.new()
@@ -5001,12 +5006,15 @@ func test_rest_menu_and_travel() -> void:
 	await wait_for(func(): return level.player.state == Player.State.FREE, 300)  # sai da cápsula
 	# Desbloqueia a Cidade e viaja até ela.
 	Game.unlock_capsule("res://scenes/world/cidade.tscn")
-	Game.unlock_capsule("res://scenes/world/prologo.tscn")  # o Prólogo não é destino
+	Game.unlock_capsule("res://scenes/world/cidade.tscn", "camara_2")
 	level._on_rest_requested(level.rest_chamber)
 	await wait_for(func(): return menu.visible, 420)
-	var names: Array = menu.cards().map(func(c): return c.get_meta("scene"))
-	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn"], "Câmaras na ordem da jornada (sem o Prólogo)")
-	var city: Button = menu.cards()[1]
+	var names: Array = real.call().map(func(c): return c.get_meta("scene"))
+	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/prologo.tscn", "res://scenes/world/cidade.tscn",
+		"res://scenes/world/cidade.tscn#camara_2"], "uma linha por ilha, na ordem do mapa (%s)" % [names])
+	check(menu.cards()[1].has_meta("gap") and menu.cards()[4].get_meta("scene") == "res://scenes/world/cidade.tscn",
+		"o Teatro sozinho na linha: um espaço completa, a Cidade começa na esquerda")
+	var city: Button = real.call()[2]
 	check(not city.disabled and city.icon != null, "a Cidade tem miniatura e dá para escolher")
 	Game.last_scene_request = ""
 	city.pressed.emit()
@@ -5020,6 +5028,7 @@ func test_rest_menu_and_travel() -> void:
 	Game.reset_progress()
 	Game._from_dict(data)
 	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn"), "Câmaras desbloqueadas ficam no save")
+	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn#camara_2"), "a 2ª Câmara da Cidade também")
 	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/forjas.tscn", "rest_spawn": "camara"})
 	check(Game.is_capsule_unlocked("res://scenes/world/forjas.tscn") and Game.is_capsule_unlocked(Game.HUB_SCENE), "migração: a última Câmara e o Teatro")
 	Game.wake_from_capsule = false
@@ -5034,8 +5043,9 @@ func test_rest_menu_and_travel() -> void:
 func test_rest_menu_pad_navigation() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
-	for scene in ["cidade", "bosque", "raizes"]:
-		Game.unlock_capsule("res://scenes/world/%s.tscn" % scene)
+	Game.unlock_capsule("res://scenes/world/cidade.tscn")
+	Game.unlock_capsule("res://scenes/world/cidade.tscn", "camara_2")
+	Game.unlock_capsule("res://scenes/world/bosque.tscn")
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
 	level._on_rest_requested(level.rest_chamber)
@@ -5044,28 +5054,33 @@ func test_rest_menu_pad_navigation() -> void:
 	var focused := func() -> String:
 		var f := get_viewport().gui_get_focus_owner() as Button
 		return f.get_meta("scene", "levantar") if f else ""
-	check(focused.call() == "res://scenes/world/cidade.tscn", "abre com a primeira Câmara de destino selecionada")
+	# Grade (uma linha por ilha): [Teatro(aqui) -] / [Laboratório -] / [Cidade Cidade2] / [Bosque -].
+	check(focused.call() == "res://scenes/world/prologo.tscn", "abre com a primeira Câmara de destino selecionada (%s)" % focused.call())
 	check(menu.cards()[0].focus_mode == Control.FOCUS_NONE, "'você está aqui' nem recebe foco")
-	# Grade (3 colunas): [Teatro(aqui) Cidade Bosque] / [Raízes].
-	var seen := []
-	for i in 3:
-		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
-		seen.append(focused.call().get_file().get_basename())
-	check(seen == ["bosque", "cidade", "bosque"], "→ dá a volta NA MESMA LINHA (não pula de linha): %s" % [seen])
-	await _pad_press(JOY_BUTTON_DPAD_LEFT)
-	check(focused.call().get_file().get_basename() == "cidade", "← também fica na linha")
-	await _pad_press(JOY_BUTTON_DPAD_DOWN)
-	check(focused.call().get_file().get_basename() == "raizes", "↓ desce para a linha de baixo")
 	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
-	check(focused.call().get_file().get_basename() == "raizes", "sozinha na linha: → não sai dela")
+	check(focused.call() == "res://scenes/world/prologo.tscn", "sozinha na linha: → não sai dela")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call() == "res://scenes/world/cidade.tscn", "↓ desce para a linha da Cidade")
+	var seen := []
+	for i in 2:
+		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+		seen.append(focused.call())
+	check(seen == ["res://scenes/world/cidade.tscn#camara_2", "res://scenes/world/cidade.tscn"],
+		"→ dá a volta NA MESMA LINHA (as duas Câmaras da ilha): %s" % [seen])
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(focused.call() == "res://scenes/world/cidade.tscn#camara_2", "← também fica na linha")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call() == "res://scenes/world/bosque.tscn", "↓ desce para a linha do Bosque")
 	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	check(focused.call() == "levantar", "↓ vai para o Levantar")
 	await _pad_press(JOY_BUTTON_DPAD_UP)
-	check(focused.call() == "res://scenes/world/cidade.tscn", "↑ volta para as Câmaras")
+	check(focused.call() == "res://scenes/world/prologo.tscn", "↑ volta para as Câmaras")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
 	Game.last_scene_request = ""
 	await _pad_press(JOY_BUTTON_A)
-	check(Game.last_scene_request == "res://scenes/world/bosque.tscn", "✕ viaja para a Câmara escolhida")
+	check(Game.last_scene_request == "res://scenes/world/cidade.tscn" and Game.rest_spawn == "camara_2",
+		"✕ viaja para a 2ª Câmara da Cidade (%s, %s)" % [Game.last_scene_request, Game.rest_spawn])
 	Game.wake_from_capsule = false
 	level.queue_free()
 	await frames(2)
@@ -5563,6 +5578,129 @@ func test_area_power() -> void:
 			check(is_equal_approx(hp - level.player.stats.health, 14.5), "Domínio: golpe de 10 vira 14,5 (%.1f)" % (hp - level.player.stats.health))
 		level.queue_free()
 		await frames(2)
+
+
+# --- v0.33 · Etapa 3: cápsulas, baús e mímicos ---------------------------------------------
+
+func test_second_capsule_per_island() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	for area in ["cidade", "bosque", "forjas", "raizes", "montanha", "dominio"]:
+		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
+		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
+		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
+		check(plaques.size() == 2, "%s: cada Câmara tem a sua placa" % area)
+		var keepsake := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES[area])
+		check(keepsake.size() == 1, "%s: o pertence do antigo dono ao lado da 2ª" % area)
+		level.queue_free()
+		await frames(2)
+	check(Game.capsule_info("res://scenes/world/forjas.tscn#camara_2")["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
+	check(Game.CAPSULES.size() == 15, "15 Câmaras no jogo (%d)" % Game.CAPSULES.size())
+	# Descansar na 2ª e morrer: renasce NELA (e sai dela).
+	Game.wake_from_capsule = true
+	var level := await open_level("res://scenes/world/cidade.tscn", "camara_2")
+	var second := level.chamber_for("camara_2")
+	await wait_for(func(): return level.player.state == Player.State.FREE, 600)
+	check(level.player.global_position.distance_to(second.front_point()) < 12.0, "acorda saindo da 2ª Câmara")
+	Game.set_rest_point(level.scene_file_path, "camara_2")
+	check(Game.rest_spawn == "camara_2" and Game.is_capsule_unlocked("res://scenes/world/cidade.tscn#camara_2"),
+		"a 2ª vira ponto de renascer e destino de viagem")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_chests_open_and_break() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "camara")
+	var chests := get_tree().get_nodes_in_group("world_objects").filter(func(o): return o.kind == "bau")
+	check(chests.size() == 2, "a Cidade tem 2 baús (%d)" % chests.size())
+	var first: WorldObject = chests[0]
+	var second: WorldObject = chests[1]
+	first.activate()
+	check(Game.item_count(first.item) >= 1 and first.chest_state() == "aberto", "abriu: o item e o estado")
+	check(not first.interactable.enabled, "aberto fica aberto (sem botão)")
+	var lost := second.item
+	for i in WorldObject.HITS_TO_BREAK:
+		second.hurtbox.receive_hit(HitInfo.create(10.0, second.global_position + Vector2(10, 0), second.global_position))
+	await frames(2)
+	check(second.chest_state() == "quebrado" and Game.item_count(lost) == 0, "3 golpes: quebrou e o que tinha dentro se perdeu")
+	var broken := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "algo_quebrado")
+	check(broken.size() == 1, "no lugar, cai o Algo Quebrado")
+	check(second.interactable.prompt == "Examinar" and Game.world_count("quebrado") == 1 and Game.world_count("aberto") == 1,
+		"o baú quebrado vira Examinar; o jogo conta abertos e quebrados")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "camara")
+	chests = get_tree().get_nodes_in_group("world_objects").filter(func(o): return o.kind == "bau")
+	check(chests.all(func(o): return not o.chest_state().is_empty()), "voltando à área, os dois continuam como ficaram")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_mimic() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "camara")
+	var mimics := level.entities.get_children().filter(func(n): return n is Mimico)
+	check(mimics.size() == 1, "um mímico na Cidade")
+	var mimic: Mimico = mimics[0]
+	var chest: WorldObject = get_tree().get_nodes_in_group("world_objects").filter(func(o): return o.kind == "bau")[0]
+	check(mimic.body_sprite.flip_h and mimic.body_sprite.sprite_frames.get_frame_texture(&"fechado", 0) == WorldObject.CHEST_CLOSED,
+		"o mímico é o baú comum ESPELHADO")
+	check(not mimic.is_in_group("enemies") and mimic.interactable.prompt == chest.interactable.prompt, "dormindo: parece um baú (\"Abrir\")")
+	# Abrir = agarrão + mordida.
+	var player := level.player
+	await wait_for(func(): return player.state == Player.State.FREE, 300)
+	await seconds(1.0)
+	player._iframes_left = 0.0
+	player.hurtbox.invulnerable = false
+	var hp := player.stats.health
+	mimic.global_position = player.global_position + Vector2(14, 0)
+	mimic._on_opened(player)
+	check(player.is_grabbed_by(mimic) and player.stats.health < hp, "abriu: ele agarra e morde")
+	player.release_grab()
+	await frames(3)
+	check(mimic.ai == Mimico.AI.AWAKE and mimic.is_in_group("enemies"), "solto: ele está acordado")
+	mimic.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.world_state.get("mimico_cidade", "") == "morto", "vencido fica vencido (no save)")
+	var dropped := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "fragmento_turvo")
+	check(dropped.size() >= 1, "deixa o que guardava")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "camara")
+	check(level.entities.get_children().filter(func(n): return n is Mimico).is_empty(), "não volta, nem descansando")
+	level.queue_free()
+	await frames(2)
+	# Um golpe basta para acordar.
+	Game.reset_progress()
+	level = await open_level(CIDADE, "camara")
+	mimic = level.entities.get_children().filter(func(n): return n is Mimico)[0]
+	mimic.hurtbox.receive_hit(HitInfo.create(5.0, mimic.global_position + Vector2(10, 0), mimic.global_position))
+	await frames(2)
+	check(mimic.ai == Mimico.AI.AWAKE, "um golpe e ele acorda")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_lab_capsule_after_prologue() -> void:
+	Game.reset_progress()
+	check(not Game.is_capsule_unlocked(Game.START_SCENE), "antes do Prólogo acabar, o laboratório não é destino")
+	Game.prologue_done = true
+	check(Game.is_capsule_unlocked(Game.START_SCENE), "depois, a cápsula do laboratório vira destino")
+	Game.scene_changes_enabled = false
+	var level := await open_level(Game.START_SCENE, "camara") as Prologo
+	await wait_for(func(): return level.player.state == Player.State.FREE, 600)
+	Game.last_scene_request = ""
+	level.start_fall()
+	await wait_for(func(): return not Game.last_scene_request.is_empty(), 300)
+	check(Game.last_scene_request == Game.HUB_SCENE and Game.prologue_done, "cair de novo leva ao Teatro, sem refazer o fim do prólogo")
+	Game.wake_from_capsule = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
 
 
 ## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).

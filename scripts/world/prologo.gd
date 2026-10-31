@@ -274,6 +274,13 @@ func start_fall() -> void:
 	player.plunge(pit.global_position + Vector2(0, 2), 0.9)
 	await _wait(1.0)
 	Sfx.stop_ambience(1.0)
+	if Game.prologue_done:
+		# v0.33: o laboratório virou destino de viagem. Quem volta e cai de novo
+		# só acorda no Teatro — sem repetir o fim do prólogo.
+		Game.wake_from_capsule = true
+		Game.clear_carry()
+		Game.travel(Game.HUB_SCENE, Game.HUB_SPAWN)
+		return
 	var narration := Narration.new()
 	add_child(narration)
 	await narration.play(DialogueData.get_entry("queda").get("falas", []), Narration.Style.SCREEN)

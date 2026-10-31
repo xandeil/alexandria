@@ -942,5 +942,116 @@
 			"Raízes vermelhas fecham um túnel que desce para baixo do Teatro.",
 			"Elas pulsam do outro lado. É de lá que se abre."
 		]
+	},
+	"bau_quebrado": {
+		"nome": "Baú quebrado",
+		"falas": [
+			"Você queria saber o que tinha dentro. Agora sabe."
+		]
+	},
+	"um_bau": {
+		"nome": "Baú",
+		"falas": [
+			"Um baú."
+		]
+	},
+	"placa_cidade_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 112. Vazia. Ainda morna."
+		]
+	},
+	"placa_cidade_2": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 347. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"placa_bosque_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 58. Vazia. Ainda morna."
+		]
+	},
+	"placa_bosque_2": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1203. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"placa_forjas_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 406. Vazia. Ainda morna."
+		]
+	},
+	"placa_forjas_2": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 771. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"placa_raizes_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 23. Vazia. Ainda morna."
+		]
+	},
+	"placa_raizes_2": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 911. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"placa_montanha_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 264. Vazia. Ainda morna."
+		]
+	},
+	"placa_montanha_2": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 630. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"placa_dominio_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 9. Vazia. Ainda morna."
+		]
+	},
+	"placa_dominio_2": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1487. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"placa_teatro_1": {
+		"nome": "Placa",
+		"falas": [
+			"O número foi raspado com a unha.",
+			"A cápsula ainda está morna. É a sua."
+		]
+	},
+	"placa_prologo_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº —. Ninguém escreveu nada.",
+			"É aqui que você acordou."
+		]
+	},
+	"placa_nucleo_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1.",
+			"Ela nunca foi aberta. Até agora."
+		]
 	}
 }

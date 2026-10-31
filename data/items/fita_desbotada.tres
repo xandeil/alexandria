@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/fita_desbotada.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "fita_desbotada"
+display_name = "Fita Desbotada"
+description = "Uma fita de cabelo que já foi vermelha.
+O nó só se desata puxando a ponta certa. Ninguém puxou."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

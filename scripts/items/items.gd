@@ -27,6 +27,15 @@ const CATALOG := {
 	"lembranca_cassian": preload("res://data/items/lembranca_cassian.tres"),
 	"anel_do_guarda": preload("res://data/items/anel_do_guarda.tres"),
 	"lembranca_cavaleiro": preload("res://data/items/lembranca_cavaleiro.tres"),
+	# v0.33 (Etapa 3): o que cai de um baú quebrado, e os pertences dos antigos
+	# donos das cápsulas (um por ilha, ao lado da segunda Câmara).
+	"algo_quebrado": preload("res://data/items/algo_quebrado.tres"),
+	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
+	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
+	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),
+	"dente_de_leite": preload("res://data/items/dente_de_leite.tres"),
+	"bolinha_de_gude": preload("res://data/items/bolinha_de_gude.tres"),
+	"bilhete_dobrado": preload("res://data/items/bilhete_dobrado.tres"),
 	# Armas básicas (v0.27): a escolhida na criação fica no chão do Prólogo.
 	"punhos": preload("res://data/items/punhos.tres"),
 	"espada_grande_cobaia": preload("res://data/items/espada_grande_cobaia.tres"),

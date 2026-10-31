@@ -469,6 +469,9 @@ const PROPS := {
 ## "texture": "res://assets/props/x.png"} e, se der para Examinar,
 ## "dialogue": "id" e "name": "Nome". Ex.: os avisos sem texto do mapa livre.
 @export var decor: Array[Dictionary] = []
+## v0.33 — Câmaras EXTRAS (a "C" do mapa é sempre a 1ª, ponto "camara"; estas
+## viram "camara_2", "camara_3"... na ordem da lista). Em tiles.
+@export var extra_capsules: Array[Vector2i] = []
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -496,6 +499,9 @@ var hud: HUD
 var spawns := {}
 var boss_arena: BossArena
 var rest_chamber: RestChamber
+## Todas as Câmaras desta área, na ordem de leitura do mapa (v0.33: até duas
+## por ilha). A 1ª é o ponto "camara"; a 2ª, "camara_2".
+var rest_chambers: Array[RestChamber] = []
 
 var _grid: Array[String] = []
 var _width := 0
@@ -555,6 +561,8 @@ func build() -> void:
 
 ## As listas do Inspector (v0.31): saídas extras, objetos, armadilhas, alarmes.
 func _build_listed() -> void:
+	for cell in extra_capsules:
+		_add_rest_chamber(cell.x, cell.y, _cell_feet(cell.x, cell.y))
 	for def in exits:
 		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
 		_add_side_exit(cell.x, cell.y, str(def.get("scene", "")), str(def.get("spawn", "")),
@@ -564,6 +572,11 @@ func _build_listed() -> void:
 		return
 	for def in objects:
 		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		if str(def.get("kind", "")) == "mimico":
+			# O mímico é um INIMIGO com cara de baú; vencido, não volta nunca.
+			if not Game.world_flag(str(def.get("key", ""))):
+				Mimico.spawn(entities, def, _cell_feet(cell.x, cell.y))
+			continue
 		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
 	for def in traps:
 		PeriodicTrap.spawn(entities, def)
@@ -610,6 +623,8 @@ func _clear() -> void:
 	plate_cells.clear()
 	ice_cells.clear()
 	_locked_exits.clear()
+	rest_chambers.clear()
+	rest_chamber = null
 	var sky := get_node_or_null("Sky")
 	if sky:
 		sky.free()
@@ -866,10 +881,7 @@ func _build_entity(x: int, y: int, c: String) -> void:
 		"P":
 			spawns["inicio"] = feet
 		"C":
-			rest_chamber = REST_SCENE.instantiate()
-			rest_chamber.position = feet + Vector2(8, 0)
-			entities.add_child(rest_chamber)
-			spawns["camara"] = feet + Vector2(8, 22)
+			_add_rest_chamber(x, y, feet)
 		"D":
 			var exit := EXIT_SCENE.instantiate() as AreaExit
 			exit.position = _cell_center(x, y)
@@ -993,6 +1005,46 @@ func _build_entity(x: int, y: int, c: String) -> void:
 		"e":
 			var edge := _make_npc("borda", "Borda da ilha", "", 1, feet, "Examinar")
 			edge.get_node("CollisionShape2D").disabled = true
+
+
+## O pertence do antigo dono, ao lado da 2ª Câmara de cada ilha (Etapa 3).
+const KEEPSAKES := {
+	"cidade": "botao_de_casaco", "bosque": "fita_desbotada", "forjas": "oculos_rachados",
+	"raizes": "dente_de_leite", "montanha": "bolinha_de_gude", "dominio": "bilhete_dobrado",
+}
+
+
+## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
+## (Examinar "placa_<área>_<n>" no dialogos.json). A 2ª da ilha guarda o
+## pertence de quem dormia nela.
+func _add_rest_chamber(x: int, y: int, feet: Vector2) -> void:
+	var index := rest_chambers.size() + 1
+	var spawn_id := "camara" if index == 1 else "camara_%d" % index
+	var chamber := REST_SCENE.instantiate() as RestChamber
+	chamber.spawn_id = spawn_id
+	chamber.position = feet + Vector2(8, 0)
+	entities.add_child(chamber)
+	rest_chambers.append(chamber)
+	if rest_chamber == null:
+		rest_chamber = chamber
+	spawns[spawn_id] = feet + Vector2(8, 22)
+	if Engine.is_editor_hint():
+		return
+	var area := layout_file.get_file().get_basename()
+	var plaque := "placa_%s_%d" % [area, index]
+	if not DialogueData.get_entry(plaque).is_empty():
+		_place_object({"dialogue": plaque, "name": "Placa", "texture": "res://assets/props/placa_capsula.png",
+			"prompt": "Examinar"}, feet + Vector2(-12, 2))
+	if index == 2 and KEEPSAKES.has(area):
+		_place_pickup(KEEPSAKES[area], 1, "%s#pertence" % area, feet + Vector2(30, 4))
+
+
+## A Câmara de um ponto ("camara", "camara_2"...) — null se não houver.
+func chamber_for(spawn_id: String) -> RestChamber:
+	for chamber in rest_chambers:
+		if chamber.spawn_id == spawn_id:
+			return chamber
+	return null
 
 
 ## Saída extra: trancada (vira um ponto "Examinar") até vencer o chefe pedido.
@@ -1307,8 +1359,9 @@ func _start_runtime() -> void:
 	# Novo jogo / depois da queda: o herói sai da cápsula (a Câmara).
 	if Game.wake_from_capsule:
 		Game.wake_from_capsule = false
-		if spawn_id == "camara" and rest_chamber:
-			_play_wake_up()
+		var chamber := chamber_for(spawn_id)
+		if chamber:
+			_play_wake_up(chamber)
 
 
 ## Os aliados (base Ally) que estão com você aparecem nas ilhas — mas não no
@@ -1410,8 +1463,8 @@ func _connect_world() -> void:
 			if not (node as NPC).talked.is_connected(_on_npc_talked):
 				(node as NPC).talked.connect(_on_npc_talked)
 			node.add_to_group("npcs")
-	if rest_chamber:
-		rest_chamber.rest_requested.connect(_on_rest_requested)
+	for chamber in rest_chambers:
+		chamber.rest_requested.connect(_on_rest_requested)
 	for node in entities.get_children():
 		if node is MiniBoss:
 			register_miniboss(node as MiniBoss)
@@ -1560,14 +1613,17 @@ func end_cutscene() -> void:
 
 
 ## A cápsula se abre "com um som baixo, quase respeitoso" e o herói sai dela.
-func _play_wake_up() -> void:
+func _play_wake_up(chamber: RestChamber = null) -> void:
+	if chamber == null:
+		chamber = rest_chamber
 	begin_cutscene()
-	player.global_position = rest_chamber.front_point()
-	rest_chamber.show_sleeping()
+	player.global_position = chamber.front_point()
+	player.reset_physics_interpolation()
+	chamber.show_sleeping()
 	player.visual.visible = false
 	camera.snap_to_target()
 	await _wait(0.6)
-	await rest_chamber.play_exit(player)
+	await chamber.play_exit(player)
 	if not player.is_dead():
 		end_cutscene()
 
@@ -1707,7 +1763,7 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 	await _wait(0.3)
 	await Fader.fade_in(0.6)
 	# Menu da Câmara: o herói desce na cápsula; dá para viajar para outra.
-	var destination := await hud.rest_menu.run(scene_file_path)
+	var destination := await hud.rest_menu.run(Game.capsule_key(scene_file_path, chamber.spawn_id))
 	if destination == RestMenu.NEW_JOURNEY:
 		var choice := await hud.pick_new_journey()
 		if not choice.is_empty():
@@ -1771,8 +1827,8 @@ func _on_fight_started(boss: Boss) -> void:
 	hud.show_boss(boss)
 	camera.focus = boss
 	Sfx.play_ambience(&"amb_boss", -12.0)
-	if rest_chamber:
-		rest_chamber.set_available(false)
+	for chamber in rest_chambers:
+		chamber.set_available(false)
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		(npc as NPC).interactable.enabled = false
 
@@ -1791,8 +1847,8 @@ func _on_fight_ended(victory: bool) -> void:
 		await _celebrate_victory(subtitle)
 		unlock_exits()
 	Sfx.play_ambience(ambience, -12.0)
-	if rest_chamber:
-		rest_chamber.set_available(true)
+	for chamber in rest_chambers:
+		chamber.set_available(true)
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		(npc as NPC).interactable.enabled = true
 

@@ -608,15 +608,24 @@ func requirement_met(requires: String) -> bool:
 		"item":
 			return has_item(value)
 		"estado":
-			return bool(world_state.get(value, false))
+			return world_flag(value)
 	push_warning("Condição desconhecida: %s" % text)
 	return false
 
 
 # --- Estado dos objetos do mundo (alavancas, baús, atalhos) -------------------------
 
+## Acionado? (true, ou um estado com nome: "aberto", "quebrado"...).
 func world_flag(key: String) -> bool:
-	return bool(world_state.get(key, false))
+	var value: Variant = world_state.get(key, false)
+	if value is String:
+		return not (value as String).is_empty()
+	return value == true
+
+
+## Quantos objetos do mundo estão num estado (ex.: baús "aberto" / "quebrado").
+func world_count(state: Variant) -> int:
+	return world_state.values().filter(func(v): return v == state).size()
 
 
 func set_world_state(key: String, value: Variant = true) -> void:
@@ -669,61 +678,92 @@ func clear_slain() -> void:
 func set_rest_point(scene_path: String, spawn_id: String) -> void:
 	rest_scene = scene_path
 	rest_spawn = spawn_id
-	unlock_capsule(scene_path)
+	unlock_capsule(scene_path, spawn_id)
 	save_game()
 
 
 # --- Viagem entre Câmaras (menu de descanso) ------------------------------------------------
-## Todas as Câmaras para onde dá para viajar, na ordem da jornada.
-## O Prólogo fica de fora: ele é um caminho só de ida.
+## v0.33 (Etapa 3): 15 Câmaras — duas por ilha, mais Teatro, laboratório e Núcleo.
+## Cada uma é (cena, ponto): a 1ª "C" do mapa é o ponto "camara" (como sempre);
+## a 2ª é "camara_2". A CHAVE de uma Câmara (no save e no menu) é o caminho da
+## cena para a 1ª — exatamente como nos saves antigos — e "cena#camara_2" para a 2ª.
+## "island" agrupa no menu de viagem; "place" é o nome do lugar dentro da ilha.
 const CAPSULES := [
-	{"scene": "res://scenes/world/teatro.tscn", "name": "Teatro Alexandria", "thumb": "teatro"},
-	{"scene": "res://scenes/world/cidade.tscn", "name": "Cidade Estilhaçada", "thumb": "cidade"},
-	{"scene": "res://scenes/world/bosque.tscn", "name": "Bosque do Sono Eterno", "thumb": "bosque"},
-	{"scene": "res://scenes/world/raizes.tscn", "name": "Raízes da Fome", "thumb": "raizes"},
-	{"scene": "res://scenes/world/forjas.tscn", "name": "Forjas Ocas", "thumb": "forjas"},
-	{"scene": "res://scenes/world/montanha.tscn", "name": "Montanha Carbonizada", "thumb": "montanha"},
-	{"scene": "res://scenes/world/dominio.tscn", "name": "Domínio Congelado", "thumb": "dominio"},
-	{"scene": "res://scenes/world/nucleo.tscn", "name": "O Núcleo", "thumb": "nucleo"},
+	{"scene": "res://scenes/world/teatro.tscn", "spawn": "camara", "name": "Teatro Alexandria", "place": "Diante do palco", "island": "Teatro", "thumb": "teatro"},
+	{"scene": "res://scenes/world/prologo.tscn", "spawn": "camara", "name": "Complexo das Cápsulas", "place": "A sua cápsula", "island": "Laboratório", "thumb": "prologo"},
+	{"scene": "res://scenes/world/cidade.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Avenida em Chamas", "island": "Cidade", "thumb": "cidade"},
+	{"scene": "res://scenes/world/cidade.tscn", "spawn": "camara_2", "name": "Cidade Estilhaçada", "place": "Quartel Desabado", "island": "Cidade", "thumb": "cidade"},
+	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Margem do Lago", "island": "Bosque", "thumb": "bosque"},
+	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara_2", "name": "Bosque do Sono Eterno", "place": "Dormitório", "island": "Bosque", "thumb": "bosque"},
+	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Salão das Estátuas", "island": "Forjas", "thumb": "forjas"},
+	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara_2", "name": "Forjas Ocas", "place": "Fornalha", "island": "Forjas", "thumb": "forjas"},
+	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Estufa 3", "island": "Raízes", "thumb": "raizes"},
+	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara_2", "name": "Raízes da Fome", "place": "Despensa", "island": "Raízes", "thumb": "raizes"},
+	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Floresta de Carvão", "island": "Montanha", "thumb": "montanha"},
+	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara_2", "name": "Montanha Carbonizada", "place": "Ossário", "island": "Montanha", "thumb": "montanha"},
+	{"scene": "res://scenes/world/dominio.tscn", "spawn": "camara", "name": "Domínio Congelado", "place": "Lago da Mesa de Chá", "island": "Domínio", "thumb": "dominio"},
+	{"scene": "res://scenes/world/dominio.tscn", "spawn": "camara_2", "name": "Domínio Congelado", "place": "Arquivo", "island": "Domínio", "thumb": "dominio"},
+	{"scene": "res://scenes/world/nucleo.tscn", "spawn": "camara", "name": "O Núcleo", "place": "O Jardim", "island": "Núcleo", "thumb": "nucleo"},
 ]
 
 
-static func capsule_info(scene_path: String) -> Dictionary:
+## A chave de uma Câmara: "cena" para a 1ª ("camara"), "cena#ponto" para as outras.
+static func capsule_key(scene_path: String, spawn_id: String = "camara") -> String:
+	return scene_path if spawn_id == "camara" or spawn_id.is_empty() else "%s#%s" % [scene_path, spawn_id]
+
+
+static func _split_key(key: String) -> Array:
+	return [key.get_slice("#", 0), key.get_slice("#", 1) if key.contains("#") else "camara"]
+
+
+## A ficha de uma Câmara pela chave (ou pelo caminho da cena = a 1ª dela).
+static func capsule_info(key: String) -> Dictionary:
+	var parts := _split_key(key)
 	for info: Dictionary in CAPSULES:
-		if info["scene"] == scene_path:
-			return info
+		if info["scene"] == parts[0] and info["spawn"] == parts[1]:
+			var result := info.duplicate()
+			result["key"] = capsule_key(info["scene"], info["spawn"])
+			return result
 	return {}
 
 
 ## Descansou numa Câmara: ela passa a aparecer no menu de viagem.
-func unlock_capsule(scene_path: String) -> void:
-	if not capsule_info(scene_path).is_empty() and not capsules.has(scene_path):
-		capsules.append(scene_path)
+func unlock_capsule(scene_path: String, spawn_id: String = "camara") -> void:
+	var key := capsule_key(scene_path, spawn_id) if not scene_path.contains("#") else scene_path
+	if not capsule_info(key).is_empty() and not capsules.has(key):
+		capsules.append(key)
 
 
-## As Câmaras desbloqueadas, na ordem da jornada (não na ordem em que você achou).
+## As Câmaras desbloqueadas, na ordem do mapa (agrupadas por ilha), não na ordem em que você achou.
 func unlocked_capsules() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for info: Dictionary in CAPSULES:
-		if is_capsule_unlocked(info["scene"]):
-			result.append(info)
+		var key := capsule_key(info["scene"], info["spawn"])
+		if is_capsule_unlocked(key):
+			var entry := info.duplicate()
+			entry["key"] = key
+			result.append(entry)
 	return result
 
 
 ## O Teatro é a casa: depois do Prólogo, a Câmara dele está sempre aberta.
-func is_capsule_unlocked(scene_path: String) -> bool:
-	return capsules.has(scene_path) or (scene_path == HUB_SCENE and prologue_done)
+## A do laboratório também vira destino depois do Prólogo (Etapa 3).
+func is_capsule_unlocked(key: String) -> bool:
+	if capsules.has(key):
+		return true
+	return prologue_done and (key == HUB_SCENE or key == START_SCENE)
 
 
 ## Viaja para outra Câmara: a próxima vez que morrer, renasce lá; e o herói
 ## sai de dentro da cápsula (a mesma animação do despertar).
-func travel_to_capsule(scene_path: String) -> bool:
-	if not is_capsule_unlocked(scene_path):
+func travel_to_capsule(key: String) -> bool:
+	if not is_capsule_unlocked(key):
 		return false
-	set_rest_point(scene_path, "camara")
+	var parts := _split_key(key)
+	set_rest_point(parts[0], parts[1])
 	clear_carry()
 	wake_from_capsule = true
-	travel(scene_path, "camara")
+	travel(parts[0], parts[1])
 	return true
 
 
@@ -1428,7 +1468,7 @@ func _from_dict(data: Dictionary) -> void:
 			unlock_capsule(str(scene_path))
 	# MIGRAÇÃO (saves de antes da v0.22): a Câmara onde você descansou por último
 	# e a do Teatro (depois do Prólogo) já contam como desbloqueadas.
-	unlock_capsule(rest_scene)
+	unlock_capsule(rest_scene, rest_spawn)
 	if prologue_done:
 		unlock_capsule(HUB_SCENE)
 	var saved_weapon := str(data.get("equipped_weapon", START_WEAPON))

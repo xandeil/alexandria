@@ -122,3 +122,8 @@ célula (x, y) em tiles. Assim não faltam caracteres e não há conflito entre 
 | `zones` | retângulo com regra para os inimigos de dentro e fio de alarme | `{"id": "quartel", "rect": Rect2i(10, 4, 8, 6), "requires": "!flag:corneteiro_morto", "triggers": [Vector2i(12, 9)]}` |
 | `objects` | alavanca, baú, porta de atalho (lembram o estado para sempre) | `{"kind": "atalho", "cell": Vector2i(12, 5), "key": "atalho_galho", "abre_de": "oeste", "locked_dialogue": "galho_trancado"}` |
 | `traps` | armadilha que dispara num ritmo | `{"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}` |
+| `extra_capsules` | Câmaras extras (a `C` do mapa é a 1ª, ponto `camara`; estas viram `camara_2`...) | `[Vector2i(32, 18)]` |
+| `decor` | enfeite solto (com `dialogue` vira Examinar) | `{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}` |
+
+`objects` também aceita `{"kind": "mimico", "cell": ..., "key": "mimico_cidade", "item": "fragmento_turvo"}`
+— o mímico é o baú comum espelhado; vencido, não volta nunca.

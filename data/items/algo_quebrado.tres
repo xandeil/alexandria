@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/algo_quebrado.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "algo_quebrado"
+display_name = "Algo Quebrado"
+description = "Já foi alguma coisa. Ninguém lembra o quê."
+kind = 2
+icon = ExtResource("2_icon")
+max_stack = 99
