@@ -12,6 +12,10 @@ extends CharacterBody2D
 
 signal defeated(enemy: Enemy)
 
+## Alarme (gatilho de zona): o alcance de antes de ser chamado (-1 = não está).
+var _alert_base_range := -1.0
+var _alert_token := 0
+
 @export_group("Recompensa")
 ## Memórias ganhas ao derrotar (moeda + XP).
 @export var memory_reward := 40
@@ -98,8 +102,30 @@ func find_target() -> Player:
 	return player
 
 
+## ALARME (v0.31): um gatilho de zona chamou. Por alguns segundos o inimigo
+## "vê" o herói de qualquer lugar (alcance enorme, sem precisar de linha de
+## visão) — a IA de cada um continua a mesma, só a percepção muda.
+func alert(seconds: float = 8.0) -> void:
+	if _alert_base_range < 0.0:
+		_alert_base_range = aggro_range
+	aggro_range = maxf(_alert_base_range, 2000.0)
+	_alert_token += 1
+	var token := _alert_token
+	await get_tree().create_timer(seconds, false).timeout
+	if is_instance_valid(self) and token == _alert_token:
+		aggro_range = _alert_base_range
+		_alert_base_range = -1.0
+
+
+func is_alerted() -> bool:
+	return _alert_base_range >= 0.0
+
+
 ## Linha de visão: um raio contra a camada "mundo" (paredes/obstáculos).
+## Alarmado, enxerga através de tudo (alguém gritou onde você está).
 func can_see(point: Vector2) -> bool:
+	if is_alerted():
+		return true
 	var query := PhysicsRayQueryParameters2D.create(global_position + Vector2(0, -6), point + Vector2(0, -6), 1)
 	query.exclude = [get_rid()]
 	return get_world_2d().direct_space_state.intersect_ray(query).is_empty()

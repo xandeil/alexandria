@@ -83,7 +83,7 @@ func run(entry: Dictionary, fallback_name: String = "") -> String:
 		_show_line(str(line))
 		await _advance
 	var action := ""
-	var options: Array = entry.get("opcoes", [])
+	var options: Array = expand_options(entry.get("opcoes", []))
 	if not options.is_empty():
 		action = await _ask(options)
 	visible = false
@@ -91,7 +91,7 @@ func run(entry: Dictionary, fallback_name: String = "") -> String:
 
 
 func _show_line(text: String) -> void:
-	_text_label.text = text
+	_text_label.text = DialogueData.fill(text)
 	_visible_chars = 0.0
 	_text_label.visible_characters = 0
 	_typing = true
@@ -143,12 +143,34 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Opções especiais viram botões comuns (v0.31):
+##   {"tipo": "nome", "personagem": "lucia", "sim": "falar:lucia_nome_sim", "nao": "falar:lucia_nome_nao"}
+##   → "Não lembro"  e  "<o nome do herói>"  (este liga nome_dito_<personagem>).
+## Sem nome ainda, só aparece "Não lembro". "quando" esconde uma opção que não vale.
+static func expand_options(options: Array) -> Array:
+	var result: Array = []
+	for option: Variant in options:
+		var data: Dictionary = option
+		if not Game.requirement_met(str(data.get("quando", ""))):
+			continue
+		if str(data.get("tipo", "")) == "nome":
+			var who := str(data.get("personagem", ""))
+			result.append({"texto": "Não lembro", "acao": str(data.get("nao", ""))})
+			if not Game.player_name.is_empty():
+				var said := "nome:%s:sim" % who
+				var then := str(data.get("sim", ""))
+				result.append({"texto": Game.player_name, "acao": said + (";" + then if not then.is_empty() else "")})
+			continue
+		result.append(data)
+	return result
+
+
 func _ask(options: Array) -> String:
 	_waiting = false
 	_hint.visible = false
 	for option in options:
 		var data: Dictionary = option
-		var button := UIStyle.button(str(data.get("texto", "...")), 10)
+		var button := UIStyle.button(DialogueData.fill(str(data.get("texto", "..."))), 10)
 		var action := str(data.get("acao", ""))
 		button.pressed.connect(func():
 			Sfx.play(&"ui_click")

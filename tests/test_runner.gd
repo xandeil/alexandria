@@ -230,6 +230,13 @@ func _ready() -> void:
 		"test_starting_bow_and_spear_attacks",
 		"test_slain_enemies_stay_dead_until_rest",
 		"test_sniper_friendly_fire",
+		"test_conditions_language",
+		"test_listed_exits_open_by_flag",
+		"test_world_objects_remember",
+		"test_zones_alarm_and_spawn_rules",
+		"test_periodic_trap",
+		"test_dialogue_conditions_and_name",
+		"test_ally_base_levels_and_arena",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -5296,6 +5303,206 @@ func test_sniper_friendly_fire() -> void:
 	soldier.queue_free()
 	player.queue_free()
 	await frames(2)
+
+
+# --- v0.31 · Etapa 1 do Pacote de Expansão: ajustes de base ----------------------------
+
+## Abre uma fase com as listas novas do Inspector (saídas, zonas, objetos,
+## armadilhas) montadas em volta da Câmara. 1ª passada só para achar a Câmara.
+func _open_level_with(path: String, build_defs: Callable) -> Level:
+	Game.pending_spawn = "camara"
+	var probe := (load(path) as PackedScene).instantiate() as Level
+	_world.add_child(probe)
+	await frames(2)
+	var home := Level.cell_at(probe.spawns["camara"])
+	probe.free()
+	await frames(2)
+	Game.pending_spawn = "camara"
+	var level := (load(path) as PackedScene).instantiate() as Level
+	build_defs.call(level, home)
+	_world.add_child(level)
+	await frames(5)
+	return level
+
+
+func test_conditions_language() -> void:
+	Game.reset_progress()
+	check(Game.requirement_met("") and not Game.requirement_met("aldir"), "vazio = sempre; chefe não vencido = não")
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	check(Game.requirement_met("aldir") and Game.requirement_met("chefe:nyssa"), "chefe (jeito antigo e por extenso)")
+	check(Game.requirement_met("memorias:2") and not Game.requirement_met("memorias:3"), "memorias:N conta as memórias de chefe")
+	check(not Game.requirement_met("flag:atalho_galho") and Game.requirement_met("!flag:atalho_galho"), "flag e o contrário (!)")
+	Game.set_flag("atalho_galho")
+	check(Game.requirement_met("flag:atalho_galho"), "flag ligada")
+	check(not Game.requirement_met("item:flor_de_pedra") and Game.requirement_met("memorias:6|chefe:aldir"), "item que não tem; OU (|)")
+	check(not Game.requirement_met("chefe:aldir+item:flor_de_pedra"), "E (+) exige todas")
+	Game.set_world_state("bau_teste")
+	check(Game.requirement_met("estado:bau_teste"), "estado de objeto do mundo")
+	Game.reset_progress()
+
+
+func test_listed_exits_open_by_flag() -> void:
+	Game.reset_progress()
+	var level := await _open_level_with(CIDADE, func(l: Level, home: Vector2i):
+		l.exits = [{"cell": home + Vector2i(2, 0), "scene": TEATRO, "spawn": "porta",
+			"requires": "flag:atalho_teste", "locked_dialogue": "borda", "arrival": "atalho_teste"}])
+	var mine := func() -> int:
+		return level._locked_exits.filter(func(lock): return lock["requires"] == "flag:atalho_teste").size()
+	check(mine.call() == 1 and not level.spawns.has("atalho_teste"), "saída da lista começa trancada (flag desligada)")
+	Game.set_flag("atalho_teste")
+	await frames(2)
+	check(mine.call() == 0 and level.spawns.has("atalho_teste"), "ligou a flag: abre NA HORA")
+	check(level._locked_exits.size() == 1, "a ponte da Montanha (chefe) continua trancada")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_world_objects_remember() -> void:
+	Game.reset_progress()
+	var level := await _open_level_with(CIDADE, func(l: Level, home: Vector2i):
+		l.objects = [
+			{"kind": "bau", "cell": home + Vector2i(2, -1), "key": "bau_teste", "item": "sucata_temperada", "count": 2},
+			{"kind": "atalho", "cell": home + Vector2i(-2, -1), "key": "atalho_teste", "abre_de": "oeste", "locked_dialogue": "borda"},
+		])
+	var found := get_tree().get_nodes_in_group("world_objects")
+	check(found.size() == 2, "baú e porta de atalho no mapa")
+	var chest: WorldObject = found.filter(func(o): return o.kind == "bau")[0]
+	var door: WorldObject = found.filter(func(o): return o.kind == "atalho")[0]
+	chest.activate()
+	check(Game.item_count("sucata_temperada") == 2 and Game.world_flag("bau_teste"), "abriu o baú: item e estado")
+	check(not door.can_open_from(door.global_position + Vector2(20, -8)), "atalho: do lado de lá não abre")
+	check(door.can_open_from(door.global_position + Vector2(-20, -8)), "atalho: do lado certo (oeste) abre")
+	door.activate()
+	check(Game.has_flag("atalho_teste"), "atalho aberto liga a flag de mesmo nome")
+	level._respawn_enemies()  # descansar
+	Game.respawn()  # morrer
+	Game.wake_from_capsule = false
+	check(Game.world_flag("bau_teste") and Game.world_flag("atalho_teste"), "nem descanso nem morte fecham")
+	var keep_path := Game.save_path
+	Game.persistence_enabled = true
+	Game.save_path = "user://teste_mundo.json"
+	Game.save_game()
+	Game.world_state = {}
+	Game.load_game()
+	check(Game.world_flag("bau_teste") and Game.world_flag("atalho_teste"), "o estado vai no save")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.save_path))
+	Game.save_path = keep_path
+	Game.persistence_enabled = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_zones_alarm_and_spawn_rules() -> void:
+	Game.reset_progress()
+	var probe := await _open_level_with(CIDADE, func(_l: Level, _home: Vector2i): pass)
+	var points: Array = probe._enemy_spawns.map(func(sp): return Level.cell_at(sp["at"]))
+	probe.queue_free()
+	await frames(2)
+	var first: Vector2i = points[0]
+	var rect := Rect2i(first - Vector2i(1, 1), Vector2i(3, 3))
+	var inside := points.filter(func(c): return rect.has_point(c)).size()
+	var level := await _open_level_with(CIDADE, func(l: Level, home: Vector2i):
+		l.zones = [{"id": "alarme_teste", "rect": rect, "triggers": [home + Vector2i(1, 1)]}])
+	var tagged := get_tree().get_nodes_in_group("respawnable").filter(func(e): return e.get_meta(&"zona", "") == "alarme_teste")
+	check(tagged.size() == inside and inside >= 1, "inimigos da zona levam a marca (%d)" % tagged.size())
+	var trigger := get_tree().get_first_node_in_group("zone_triggers") as ZoneTrigger
+	var called := trigger.fire()
+	check(called == inside and (tagged[0] as Enemy).is_alerted(), "o alarme chama a zona inteira (%d)" % called)
+	check((tagged[0] as Enemy).can_see(Vector2(-9999, -9999)), "alarmado: enxerga você de qualquer lugar")
+	check(trigger.fire() == 0, "o alarme toca uma vez por visita")
+	level.queue_free()
+	await frames(2)
+	# Grupo que some para sempre depois de uma flag.
+	Game.set_flag("corneteiro_teste")
+	level = await _open_level_with(CIDADE, func(l: Level, _home: Vector2i):
+		l.zones = [{"id": "grupo_teste", "rect": rect, "requires": "!flag:corneteiro_teste"}])
+	var still := get_tree().get_nodes_in_group("respawnable").filter(func(e): return e.get_meta(&"zona", "") == "grupo_teste")
+	check(still.is_empty(), "flag ligada: o grupo da zona não nasce mais")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_periodic_trap() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var cell := Level.cell_at(player.global_position)
+	var trap := PeriodicTrap.spawn(self, {"kind": "pilao", "cells": [cell], "period": 1.0, "warning": 0.4, "damage": 15})
+	check(trap.phase() == "descanso", "começa em descanso")
+	var hp := player.stats.health
+	await seconds(1.05)
+	check(player.stats.health < hp, "no golpe, quem está em cima leva dano (%.0f → %.0f)" % [hp, player.stats.health])
+	hp = player.stats.health
+	player.global_position += Vector2(48, 0)
+	await seconds(1.0)
+	check(is_equal_approx(player.stats.health, hp), "fora da armadilha: nada")
+	trap.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+func test_dialogue_conditions_and_name() -> void:
+	Game.reset_progress()
+	DialogueData.get_entry("fada")  # carrega o arquivo
+	DialogueData._entries["teste_base"] = {"falas": ["Oi, {nome}."], "variantes": [{"quando": "flag:teste_v", "usar": "teste_outra"}],
+		"opcoes": [{"tipo": "nome", "personagem": "teste", "sim": "flag:teste_disse", "nao": ""}, {"texto": "Sair", "acao": "", "quando": "!flag:teste_v"}]}
+	DialogueData._entries["teste_outra"] = {"falas": ["Outra."]}
+	check(DialogueData.variant("teste_base") == "teste_base", "sem a flag: a fala de sempre")
+	check(DialogueData.fill("Oi, {nome}.") == "Oi, ....", "sem nome: \"...\"")
+	Game.set_player_name("  Alexandre  ")
+	check(DialogueData.fill("Oi, {nome}.") == "Oi, Alexandre.", "{nome} vira o nome do herói")
+	var options := DialogueBox.expand_options(DialogueData.get_entry("teste_base")["opcoes"])
+	check(options.size() == 3 and options[0]["texto"] == "Não lembro" and options[1]["texto"] == "Alexandre",
+		"opção de nome: \"Não lembro\" e o nome")
+	Game.set_flag("teste_v")
+	check(DialogueData.variant("teste_base") == "teste_outra", "flag ligada: a variante do .json")
+	check(DialogueBox.expand_options(DialogueData.get_entry("teste_base")["opcoes"]).size() == 2, "\"quando\" esconde opção")
+	var level := await open_level(TEATRO, "camara")
+	await level._on_dialogue_action(options[1]["acao"])
+	check(Game.has_flag("nome_dito_teste") and Game.has_flag("teste_disse"), "disse o nome: nome_dito_<personagem> + a ação junto")
+	check(level.resolve_dialogue("teste_base") == "teste_outra" and level.resolve_dialogue("fada") == "fada",
+		"Level usa as variantes do .json e mantém as antigas")
+	level.queue_free()
+	await frames(2)
+	DialogueData._entries.erase("teste_base")
+	DialogueData._entries.erase("teste_outra")
+	Game.reset_progress()
+
+
+func test_ally_base_levels_and_arena() -> void:
+	Game.reset_progress()
+	Game.flags["guarda_conhecido"] = true
+	Game.flags["guarda_acompanha"] = true
+	var level := await open_level(CIDADE, "porta")
+	var guard := get_tree().get_first_node_in_group(&"allies") as Ally
+	check(guard is GuardaAliado and guard.ally_id == "guarda", "o Guarda agora é um Ally")
+	var base_hp := guard.max_health
+	level._reward_allies(true)
+	check(Game.ally_level("guarda") == 2, "venceram juntos: nível 2")
+	guard.fall()
+	check(Game.ally_level("guarda") == 2, "cair não tira nível")
+	level.queue_free()
+	await frames(2)
+	Game.flags["guarda_acompanha"] = true
+	level = await open_level(CIDADE, "porta")
+	guard = get_tree().get_first_node_in_group(&"allies") as Ally
+	check(is_equal_approx(guard.max_health, base_hp * (1.0 + Ally.LEVEL_BONUS)), "nível 2: mais vida (%.0f)" % guard.max_health)
+	level.queue_free()
+	await frames(2)
+	Game.flags["guarda_acompanha"] = false
+	level = await open_level(TEATRO, "camara")
+	await level._on_dialogue_action("lute_comigo:guarda")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
+	var in_arena := get_tree().get_nodes_in_group(&"allies").filter(func(a): return not a.is_queued_for_deletion())
+	check(in_arena.size() == 1, "\"Lute comigo\": ele entra na arena do Pecado")
+	level._reward_allies(false)
+	check(not Game.flags.has("guarda_na_arena"), "a chamada vale para uma luta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
 
 
 ## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).

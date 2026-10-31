@@ -38,6 +38,8 @@ signal item_added(id: String, count: int)
 signal weapon_upgraded(level: int)
 ## Gravou o save no disco (o HUD mostra um aviso discreto).
 signal saved
+## Uma flag de história mudou (portas e NPCs que dependem dela se atualizam).
+signal flags_changed
 ## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
 signal weapon_changed(id: String)
 ## Vestiu ou tirou uma peça de armadura (o herói recalcula vida e velocidade).
@@ -178,6 +180,13 @@ var flags := {}
 ## (o número é a ordem do inimigo no mapa). Eles NÃO voltam ao trocar de área —
 ## só ao descansar numa Câmara ou ao morrer (regra do Dark Souls, v0.30.7).
 var slain := {}
+## Nome do herói (v0.31): ele acorda sem nome; a Governanta pergunta. "" = ainda sem nome.
+var player_name := ""
+## Objetos do mundo que LEMBRAM o estado (alavanca puxada, baú aberto, atalho
+## aberto): {"chave": valor}. Não voltam ao descansar nem ao morrer.
+var world_state := {}
+## Nível de cada aliado ({"guarda": 2}): sobe ao vencer um chefe com ele junto.
+var ally_levels := {}
 ## Aparência escolhida na criação de personagem (ver Appearance).
 var appearance := Appearance.default_data()
 ## Id do ponto onde o herói aparece na próxima área carregada.
@@ -263,6 +272,9 @@ func reset_progress() -> void:
 		attributes[attribute] = StatsComponent.BASE_ATTRIBUTE
 	defeated_bosses.clear()
 	slain = {}
+	player_name = ""
+	world_state = {}
+	ally_levels = {}
 	appearance = Appearance.default_data()
 	rest_scene = START_SCENE
 	rest_spawn = START_SPAWN
@@ -554,13 +566,86 @@ func seven_memories() -> int:
 	return SEVEN.filter(func(id): return defeated_bosses.has(id)).size()
 
 
-## Uma condição de porta: o id de um chefe, ou "sete" (as sete memórias juntas).
+## Uma CONDIÇÃO (de porta, de NPC, de fala). Um lugar só entende todas:
+##   ""                 sempre
+##   "aldir"            chefe vencido (o jeito antigo continua valendo)
+##   "chefe:aldir"      o mesmo, escrito por extenso
+##   "sete"             as sete memórias juntas
+##   "memorias:3"       pelo menos 3 memórias de chefe (0 a 7)
+##   "flag:atalho_galho"   uma flag de história ligada
+##   "item:flor_de_pedra"  ter o item
+##   "estado:bau_cidade_1" um objeto do mundo já acionado (world_state)
+##   "!flag:x"          o contrário de qualquer uma acima (o "!" na frente)
+##   "a+b"              todas juntas (E)    ·    "a|b"  qualquer uma (OU)
+## Ex.: "memorias:6|item:flor_de_pedra"  (como a Helena acorda, na Etapa 8).
 func requirement_met(requires: String) -> bool:
-	if requires.is_empty():
+	var text := requires.strip_edges()
+	if text.is_empty():
 		return true
-	if requires == "sete":
-		return seven_memories() == SEVEN.size()
-	return is_boss_defeated(requires)
+	if text.contains("|"):
+		for part in text.split("|"):
+			if requirement_met(part):
+				return true
+		return false
+	if text.contains("+"):
+		for part in text.split("+"):
+			if not requirement_met(part):
+				return false
+		return true
+	if text.begins_with("!"):
+		return not requirement_met(text.substr(1))
+	var kind := text.get_slice(":", 0) if text.contains(":") else ""
+	var value := text.get_slice(":", 1) if text.contains(":") else text
+	match kind:
+		"":
+			return seven_memories() == SEVEN.size() if value == "sete" else is_boss_defeated(value)
+		"chefe":
+			return is_boss_defeated(value)
+		"memorias":
+			return seven_memories() >= int(value)
+		"flag":
+			return has_flag(value)
+		"item":
+			return has_item(value)
+		"estado":
+			return bool(world_state.get(value, false))
+	push_warning("Condição desconhecida: %s" % text)
+	return false
+
+
+# --- Estado dos objetos do mundo (alavancas, baús, atalhos) -------------------------
+
+func world_flag(key: String) -> bool:
+	return bool(world_state.get(key, false))
+
+
+func set_world_state(key: String, value: Variant = true) -> void:
+	world_state[key] = value
+	flags_changed.emit()
+	save_game()
+
+
+# --- Aliados ------------------------------------------------------------------------
+
+func ally_level(ally_id: String) -> int:
+	return int(ally_levels.get(ally_id, 1))
+
+
+## Venceram um chefe juntos: o aliado fica mais forte (cair não tira nível).
+func raise_ally(ally_id: String) -> void:
+	ally_levels[ally_id] = ally_level(ally_id) + 1
+
+
+# --- Nome do herói --------------------------------------------------------------------
+
+## O nome nas falas: "{nome}" vira o nome digitado (ou "..." se ainda não tem).
+func spoken_name() -> String:
+	return player_name if not player_name.is_empty() else "..."
+
+
+func set_player_name(new_name: String) -> void:
+	player_name = new_name.strip_edges().left(16)
+	save_game()
 
 
 # --- Inimigos abatidos (só voltam ao descansar ou morrer) -------------------------------
@@ -716,6 +801,14 @@ func remove_item(item_id: String, count: int = 1) -> bool:
 func set_flag(flag: String) -> void:
 	if not flags.get(flag, false):
 		flags[flag] = true
+		flags_changed.emit()
+		save_game()
+
+
+func clear_flag(flag: String) -> void:
+	if flags.get(flag, false):
+		flags[flag] = false
+		flags_changed.emit()
 		save_game()
 
 
@@ -1253,6 +1346,9 @@ func _to_dict() -> Dictionary:
 		"play_seconds": play_seconds,
 		"flags": flags.duplicate(),
 		"abatidos": slain.duplicate(true),
+		"nome": player_name,
+		"estado_mundo": world_state.duplicate(true),
+		"aliados": ally_levels.duplicate(),
 		"shop_bought": shop_bought.duplicate(),
 		"appearance": appearance.duplicate(),
 	}
@@ -1298,6 +1394,14 @@ func _from_dict(data: Dictionary) -> void:
 	guardian = (saved_guardian as Dictionary).duplicate(true) if saved_guardian is Dictionary else {}
 	starter_sword = bool(data.get("espada_inicial", true))
 	chosen_weapon = str(data.get("arma_escolhida", ""))
+	player_name = str(data.get("nome", ""))
+	var saved_state: Variant = data.get("estado_mundo", {})
+	world_state = (saved_state as Dictionary).duplicate(true) if saved_state is Dictionary else {}
+	ally_levels = {}
+	var saved_allies: Variant = data.get("aliados", {})
+	if saved_allies is Dictionary:
+		for ally_id: Variant in saved_allies:
+			ally_levels[str(ally_id)] = maxi(int(saved_allies[ally_id]), 1)
 	slain = {}
 	var saved_slain: Variant = data.get("abatidos", {})
 	if saved_slain is Dictionary:

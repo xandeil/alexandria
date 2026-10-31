@@ -445,6 +445,23 @@ const PROPS := {
 @export var exit4_spawn := ""
 @export var exit4_requires := ""
 @export var exit4_locked_dialogue := ""
+## v0.31 — SAÍDAS EM LISTA (sem o limite de 4 do exit2/3/4, que continuam valendo).
+## Cada uma: {"cell": Vector2i(x, y), "scene": "res://...", "spawn": "porta",
+##   "requires": "flag:atalho_tunel", "locked_dialogue": "tunel_trancado", "arrival": "tunel"}
+## "requires" aceita tudo que Game.requirement_met entende (chefe, flag, item, estado...).
+## "arrival" é o nome do ponto onde quem CHEGA por esta saída aparece.
+@export var exits: Array[Dictionary] = []
+## v0.31 — ZONAS: retângulos do mapa (em tiles) com regras para os inimigos de dentro.
+## {"id": "alarme_quartel", "rect": Rect2i(10, 4, 8, 6),
+##  "requires": "!flag:corneteiro_morto",   (o grupo só nasce se a condição valer)
+##  "triggers": [Vector2i(12, 9)]}         (fio de alarme: chama a zona inteira)
+@export var zones: Array[Dictionary] = []
+## v0.31 — OBJETOS COM ESTADO (WorldObject): alavanca, baú, porta de atalho.
+## {"kind": "bau", "cell": Vector2i(5, 3), "key": "bau_cidade_1", "item": "anel_x"}
+@export var objects: Array[Dictionary] = []
+## v0.31 — ARMADILHAS PERIÓDICAS (PeriodicTrap): marteletes, fendas de lava...
+## {"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}
+@export var traps: Array[Dictionary] = []
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -523,9 +540,38 @@ func build() -> void:
 	for y in range(-1, _height + 2):
 		for x in range(-1, _width + 1):
 			_build_cell(x, y, _char_at(x, y), tiles)
+	_build_listed()
 	canvas_modulate.color = darkness
 	if outdoor:
 		_add_sky()
+
+
+## As listas do Inspector (v0.31): saídas extras, objetos, armadilhas, alarmes.
+func _build_listed() -> void:
+	for def in exits:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		_add_side_exit(cell.x, cell.y, str(def.get("scene", "")), str(def.get("spawn", "")),
+			str(def.get("requires", "")), str(def.get("locked_dialogue", "")), str(def.get("arrival", "saida_%d,%d" % [cell.x, cell.y])))
+	if Engine.is_editor_hint():
+		return
+	for def in objects:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
+	for def in traps:
+		PeriodicTrap.spawn(entities, def)
+	for zone in zones:
+		for cell: Vector2i in zone.get("triggers", []):
+			ZoneTrigger.spawn(entities, str(zone.get("id", "")), _cell_center(cell.x, cell.y))
+
+
+## A zona (Level.zones) que contém este ponto do mundo ({} = nenhuma).
+func zone_at(point: Vector2) -> Dictionary:
+	var cell := Level.cell_at(point)
+	for zone in zones:
+		var rect: Rect2i = zone.get("rect", Rect2i())
+		if rect.has_point(cell):
+			return zone
+	return {}
 
 
 func _clear() -> void:
@@ -992,6 +1038,15 @@ func _build_theme_entity(spec: Dictionary, x: int, y: int, feet: Vector2) -> voi
 		# "unless_flag" (some se...; no lugar, o "instead", se houver).
 		if npc_def.has("if_flag") and not Game.flags.get(npc_def["if_flag"], false):
 			return
+		# v0.31: qualquer condição (chefe, flag, item...) — no def do tema OU no
+		# próprio dialogos.json ("aparece_quando" / "some_quando" da fala do NPC).
+		var entry := DialogueData.get_entry(str(npc_def.get("dialogue", "")))
+		var show_when := str(npc_def.get("requires", entry.get("aparece_quando", "")))
+		var hide_when := str(entry.get("some_quando", ""))
+		if not Game.requirement_met(show_when) or (not hide_when.is_empty() and Game.requirement_met(hide_when)):
+			if npc_def.has("instead"):
+				_place_object(npc_def["instead"], feet)
+			return
 		if npc_def.has("unless_flag") and Game.flags.get(npc_def["unless_flag"], false):
 			if npc_def.has("instead"):
 				_place_object(npc_def["instead"], feet)
@@ -1113,10 +1168,19 @@ func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 
 
 ## Spawna os inimigos do mapa, pulando os que já foram mortos desde o último descanso.
+## Zonas (v0.31): um grupo cuja zona pede uma condição só nasce se ela valer
+## (ex.: "!flag:corneteiro_morto" — vencido o Corneteiro, o grupo some para sempre),
+## e cada inimigo leva a marca da zona (o alarme chama só os dela).
 func _spawn_living_enemies() -> void:
 	for i in _enemy_spawns.size():
-		if not Game.is_slain(scene_file_path, i):
-			_spawn_enemy(_enemy_spawns[i], i)
+		if Game.is_slain(scene_file_path, i):
+			continue
+		var zone := zone_at(_enemy_spawns[i]["at"])
+		if not Game.requirement_met(str(zone.get("requires", ""))):
+			continue
+		var enemy := _spawn_enemy(_enemy_spawns[i], i)
+		if not zone.is_empty():
+			enemy.set_meta(&"zona", str(zone.get("id", "")))
 
 
 func _on_enemy_slain(_enemy: Enemy, index: int) -> void:
@@ -1193,6 +1257,9 @@ func _add_sky() -> void:
 
 func _start_runtime() -> void:
 	Game.session_active = true  # vale também ao rodar a fase direto pelo editor (F6)
+	# Portas que abrem por flag, item ou alavanca (v0.31) abrem NA HORA.
+	Game.flags_changed.connect(_on_progress_changed)
+	Game.items_changed.connect(_on_progress_changed)
 	hud = HUD_SCENE.instantiate()
 	add_child(hud)
 	_spawn_living_enemies()
@@ -1219,14 +1286,34 @@ func _start_runtime() -> void:
 			_play_wake_up()
 
 
-## O Guarda, se você o chamou, aparece ao seu lado nas ilhas — mas não no Teatro
-## (lá ele é a pessoa de conversa) nem nas arenas dos Pecados (essas lutas são suas).
+## Os aliados (base Ally) que estão com você aparecem nas ilhas — mas não no
+## Teatro nem no laboratório (lá eles são gente de conversa). Nas arenas dos
+## Pecados só entra quem foi chamado com "Lute comigo" ("<id>_na_arena") ou
+## quem pode sempre (can_enter_arenas).
 func _spawn_companion() -> void:
-	if not Game.flags.get("guarda_acompanha", false) or Game.flags.get("guarda_sacrificado", false):
+	if theme == "teatro" or theme == "laboratorio":
 		return
-	if theme == "teatro" or theme == "laboratorio" or _boss != null:
-		return
-	GuardaAliado.spawn(entities, player)
+	for ally_id: String in Ally.REGISTRY:
+		var called := bool(Game.flags.get("%s_na_arena" % ally_id, false))
+		if not called and not Game.flags.get("%s_acompanha" % ally_id, false):
+			continue
+		if ally_id == "guarda" and Game.flags.get("guarda_sacrificado", false):
+			continue
+		var ally := Ally.spawn_by_id(ally_id, entities, player)
+		if _boss != null and not called and not ally.can_enter_arenas:
+			ally.queue_free()
+
+
+## Venceram juntos: quem estava de pé sobe de nível. A chamada para a arena
+## ("Lute comigo") vale para UMA luta.
+func _reward_allies(victory: bool) -> void:
+	for node in get_tree().get_nodes_in_group(&"allies"):
+		var ally := node as Ally
+		if ally == null:
+			continue
+		if victory and not ally.fallen:
+			Game.raise_ally(ally.ally_id)
+		Game.flags.erase("%s_na_arena" % ally.ally_id)
 
 
 ## Antes da luta de Helena, ele se põe na frente do golpe (Bíblia: "ele se
@@ -1334,7 +1421,7 @@ func _on_npc_talked(npc: NPC) -> void:
 	var ids := npc.dialogue_id.split(",")
 	var talk_count: int = npc.get_meta("talks", 0)
 	npc.set_meta("talks", talk_count + 1)
-	var entry := DialogueData.get_entry(_dialogue_variant(ids[talk_count % ids.size()].strip_edges()))
+	var entry := DialogueData.get_entry(resolve_dialogue(ids[talk_count % ids.size()].strip_edges()))
 	if entry.is_empty():
 		entry = DialogueData.get_entry(ids[0].strip_edges())
 	var action: String = await hud.dialogue.run(entry, npc.display_name)
@@ -1348,6 +1435,26 @@ func _on_npc_talked(npc: NPC) -> void:
 func _after_talk(dialogue_id: String) -> void:
 	if dialogue_id == "guarda_cidade":
 		Game.flags["guarda_conhecido"] = true  # da próxima vez, ele está no Teatro
+
+
+## Qual versão da fala usar. Primeiro as regras escritas no dialogos.json
+## ("variantes": [{"quando": "flag:x", "usar": "outra_fala"}], a 1ª que valer),
+## depois as regras antigas daqui de baixo. Assim, história nova entra só
+## editando o .json, sem mexer neste match (v0.31).
+func resolve_dialogue(dialogue_id: String) -> String:
+	var from_json := DialogueData.variant(dialogue_id)
+	return from_json if from_json != dialogue_id else _dialogue_variant(dialogue_id)
+
+
+## Abre uma fala solta (Examinar de um objeto, fala encadeada "falar:<id>").
+func examine(dialogue_id: String, display_name: String) -> void:
+	if _talking:
+		return
+	_begin_modal()
+	var action: String = await hud.dialogue.run(DialogueData.get_entry(resolve_dialogue(dialogue_id)), display_name)
+	await _on_dialogue_action(action)
+	if not _leaving:
+		_end_modal()
 
 
 ## Algumas falas dependem do estado do jogo. Um ponto só decide qual versão
@@ -1441,6 +1548,36 @@ func _play_wake_up() -> void:
 
 
 func _on_dialogue_action(action: String) -> void:
+	# v0.31 — ações genéricas, escritas direto no dialogos.json:
+	#   "flag:<nome>"            liga uma flag de história
+	#   "falar:<id>"             emenda outra fala (conversa em várias partes)
+	#   "lute_comigo:<aliado>"   o aliado entra na próxima luta de chefe
+	#   "nome:<personagem>:sim"  você disse o seu nome a ele (nome_dito_<personagem>)
+	#   várias de uma vez, separadas por ";"  ("flag:x;falar:y")
+	if action.contains(";"):
+		for part in action.split(";"):
+			await _on_dialogue_action(part.strip_edges())
+		return
+	if action.contains(":"):
+		var kind := action.get_slice(":", 0)
+		var value := action.get_slice(":", 1)
+		match kind:
+			"flag":
+				Game.set_flag(value)
+				return
+			"falar":
+				var entry := DialogueData.get_entry(resolve_dialogue(value))
+				var next: String = await hud.dialogue.run(entry, str(entry.get("nome", "")))
+				await _on_dialogue_action(next)
+				return
+			"lute_comigo":
+				Game.flags["%s_na_arena" % value] = true
+				hud.toast("Na próxima luta, vocês entram juntos.")
+				return
+			"nome":
+				if action.get_slice(":", 2) == "sim":
+					Game.set_flag("nome_dito_%s" % value)
+				return
 	match action:
 		"subir_nivel":
 			await hud.level_up_menu.run(player)
@@ -1616,6 +1753,7 @@ func _on_fight_started(boss: Boss) -> void:
 
 
 func _on_fight_ended(victory: bool) -> void:
+	_reward_allies(victory)
 	camera.focus = null
 	var subtitle := ""
 	if is_instance_valid(boss_arena.boss):
@@ -1661,6 +1799,8 @@ func _on_miniboss_started(mini: Boss) -> void:
 
 
 func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
+	if victory:
+		_reward_allies(true)
 	hud.hide_boss()
 	Sfx.play_ambience(ambience, -12.0)
 	if victory:
@@ -1668,6 +1808,11 @@ func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
 		unlock_exits()
 		if mini.has_meta(&"memorial"):
 			_place_object(mini.get_meta(&"memorial"), mini.global_position)
+
+
+func _on_progress_changed() -> void:
+	if not _locked_exits.is_empty():
+		unlock_exits()
 
 
 ## Abre as saídas cujo chefe acabou de cair (sem precisar sair e voltar).

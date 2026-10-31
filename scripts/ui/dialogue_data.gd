@@ -14,6 +14,24 @@ static func get_entry(id: String) -> Dictionary:
 	return entry if entry is Dictionary else {}
 
 
+## Qual fala usar de verdade (v0.31). Uma entrada pode trazer as suas variantes:
+##   "ferreiro": {"falas": [...], "variantes": [
+##       {"quando": "chefe:durgan", "usar": "ferreiro_irmao"}, ...]}
+## A primeira cuja condição valer (Game.requirement_met) ganha. Sem nenhuma, a própria.
+static func variant(id: String) -> String:
+	var entry := get_entry(id)
+	for rule: Variant in entry.get("variantes", []):
+		if rule is Dictionary and Game.requirement_met(str((rule as Dictionary).get("quando", ""))):
+			var target := str((rule as Dictionary).get("usar", id))
+			return target if target == id else variant(target)
+	return id
+
+
+## Troca os marcadores do texto: "{nome}" vira o nome do herói.
+static func fill(text: String) -> String:
+	return text.replace("{nome}", Game.spoken_name())
+
+
 static func _load() -> void:
 	if not FileAccess.file_exists(PATH):
 		push_error("Arquivo de falas não encontrado: %s" % PATH)
