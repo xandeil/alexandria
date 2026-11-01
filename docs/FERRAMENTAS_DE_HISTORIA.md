@@ -57,6 +57,7 @@ As ações antigas continuam valendo: `loja`, `subir_nivel`, `desafiar_helena`..
 | `dar:caixa_musica_bronze` | entrega um item (sai da bolsa e liga `dado_<item>`) |
 | `comer:mesa_1` | mesa posta: cura, mas a sineta chama todos os inimigos da zona `mesa_1` |
 | `pedir_nome` | abre a tela de digitar o nome (obrigatório) e salva em `player_name` |
+| `lucia_final` | o final da Lúcia no Teatro: três nomes embaralhados (uma vez por jogo) |
 | `a;b` | várias ações em sequência (ex.: `flag:x;falar:y`) |
 
 ## 4. Aliados (base `Ally`)
@@ -78,3 +79,11 @@ São quatro listas: `exits`, `zones`, `objects` e `traps`. Os exemplos estão em
 - **Terminal do laboratório:** entradas com `"escrito": true` são texto lido, não fala: podem usar `{nome}` e `{tentativa}` (mortes + 1). Com `nome_violento`, o nome aparece riscado duas vezes.
 - **Reações** (`<quem>_nome_sim` / `<quem>_nome_nao`): Lúcia, Galeno, Helena, Amaro e o Experimento Anterior. Ninguém diz o nome em voz alta.
 - **NG+:** o nome antigo vai junto com o guardião; a barra mostra "{nome antigo}, O Experimento Anterior".
+
+## 7. Gente no mapa e contadores (Etapa 7)
+
+- **`people`** (lista no nó da fase): NPCs por célula, sem gastar letra do mapa. Mesmas chaves dos NPCs de tema:
+  `{"cell": Vector2i(46, 6), "dialogue": "lucia_ponte", "name": "Lúcia", "texture": "res://assets/sprites/lucia_npc.png", "frames": 2}`.
+  Quando aparecem e somem: `aparece_quando` / `some_quando` da fala no `dialogos.json`.
+- **Condição `conta:<contador>:<n>`**: o contador chegou a n (ex.: `conta:lucia_quedas:3`).
+- **Lúcia**: ponte do Viaduto → Borda (Nyssa) → Galeria (Cassian, "Vá"/"Fique") → final no Teatro. Cada queda soma 1 em `lucia_quedas`.

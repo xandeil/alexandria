@@ -27,6 +27,7 @@ const LEVEL_BONUS := 0.15
 ## acompanhando ("<id>_acompanha") ou foi chamado para a arena ("<id>_na_arena").
 const REGISTRY := {
 	"guarda": "res://scripts/allies/guarda_aliado.gd",
+	"lucia": "res://scripts/allies/lucia_aliada.gd",
 }
 
 ## Quem é (o id do save: "guarda", "lucia"...).

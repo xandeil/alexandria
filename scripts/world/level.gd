@@ -499,6 +499,11 @@ const PROPS := {
 ## v0.35 — VITRINES QUE FECHAM (Domínio): parado por estes segundos, o gelo
 ## fecha em volta (StillTrap). 0 = desligado.
 @export var still_trap := 0.0
+## v0.42 — GENTE no mapa sem gastar letra (Etapa 7): NPCs por célula, com as
+## mesmas chaves dos NPCs de tema. Ex.: {"cell": Vector2i(30, 4),
+## "dialogue": "lucia_ponte", "name": "Lúcia", "texture": "res://...png", "frames": 2}
+## (aparece_quando / some_quando vêm do dialogos.json, como sempre).
+@export var people: Array[Dictionary] = []
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -607,6 +612,11 @@ func _build_listed() -> void:
 		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
 	if still_trap > 0.0:
 		StillTrap.attach(self, still_trap)
+	for def in people:
+		var person_cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		var person := def.duplicate()
+		person.erase("cell")
+		_build_theme_entity({"npc": person}, person_cell.x, person_cell.y, _cell_feet(person_cell.x, person_cell.y))
 	for def in traps:
 		if str(def.get("kind", "")) == "flor":
 			BreathingFlower.spawn_all(entities, def)  # v0.35: dispara por movimento, não por ritmo
@@ -1327,6 +1337,39 @@ func _on_arena_fight_started(boss: Boss) -> void:
 		await examine("experimento_pergunta", "O Experimento Anterior")
 
 
+## LÚCIA, o final no Teatro (v0.42, Etapa 7): "Qual é o meu nome?" — três
+## nomes, embaralhados uma vez por jogo; nada no menu marca o certo.
+const LUCIA_NAMES := ["Lúcia", "Luzia", "Lívia"]
+
+
+func lucia_name_order() -> Array:
+	var saved: Variant = Game.flags.get("lucia_nomes", [])
+	if saved is Array and (saved as Array).size() == LUCIA_NAMES.size():
+		return saved
+	var order := LUCIA_NAMES.duplicate()
+	order.shuffle()
+	Game.flags["lucia_nomes"] = order
+	return order
+
+
+func lucia_final() -> void:
+	if Game.has_flag("irmaos_avelar_reencontrados"):
+		# O irmão responde por você (Etapa 10).
+		await hud.dialogue.run({"nome": "Damião", "falas": ["Lúcia."]}, "Damião")
+		await _on_dialogue_action("flag:lucia_lembrada;falar:lucia_certo")
+		await _on_dialogue_action("falar:lucia_e_o_seu")
+		return
+	var options: Array = []
+	for name_option: String in lucia_name_order():
+		var right := name_option == LUCIA_NAMES[0]
+		options.append({"texto": name_option,
+			"acao": "flag:lucia_lembrada;falar:lucia_certo" if right else "flag:lucia_esquecida;falar:lucia_errado"})
+	var entry := {"nome": "Lúcia", "falas": ["Qual é o meu nome?"], "opcoes": options}
+	var action: String = await hud.dialogue.run(entry, "Lúcia")
+	await _on_dialogue_action(action)
+	await _on_dialogue_action("falar:lucia_e_o_seu")
+
+
 ## O NOME (v0.41, Etapa 5): a tela de digitar, obrigatória. Salva em
 ## Game.player_name. O texto da pergunta é ESCRITO; a fala dublada fica no
 ## diálogo de quem pergunta (ninguém diz o nome em voz alta).
@@ -1755,6 +1798,9 @@ func _on_dialogue_action(action: String) -> void:
 				return
 			"comer":
 				eat_at_table(value)
+				return
+			"lucia_final":
+				await lucia_final()
 				return
 			"dar":
 				if Game.remove_item(value, 1):

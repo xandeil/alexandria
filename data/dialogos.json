@@ -1399,5 +1399,189 @@
 				"nao": "falar:experimento_nome_nao"
 			}
 		]
+	},
+	"lucia_ponte": {
+		"nome": "Lúcia",
+		"some_quando": "aldir",
+		"falas": [
+			"Não olhe para o meu rosto. Ele está virando de outra pessoa.",
+			"Eu tinha um irmão. Combinamos de nos encontrar. Agora só tenho o combinado.",
+			"Meu nome é Lúcia. Repita. ...De novo. Pronto. Agora somos dois guardando."
+		],
+		"variantes": [
+			{
+				"quando": "flag:lucia_quedas",
+				"usar": "lucia_depois_de_cair"
+			},
+			{
+				"quando": "flag:lucia_conhecida",
+				"usar": "lucia_de_novo"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "flag:lucia_conhecida;lute_comigo:lucia"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:lucia_conhecida"
+			}
+		]
+	},
+	"lucia_de_novo": {
+		"nome": "Lúcia",
+		"falas": [
+			"Se eu esquecer, você lembra por mim? ...É pedir muito. Eu sei."
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:lucia"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"lucia_depois_de_cair": {
+		"nome": "Lúcia",
+		"falas": [
+			"Quem... Desculpe. Você tem cara de alguém que eu devia conhecer."
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:lucia"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"lucia_bosque": {
+		"nome": "Lúcia",
+		"aparece_quando": "flag:lucia_conhecida",
+		"some_quando": "nyssa",
+		"falas": [
+			"Se eu dormir, acordo menos."
+		],
+		"variantes": [
+			{
+				"quando": "flag:lucia_quedas",
+				"usar": "lucia_depois_de_cair"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:lucia"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"lucia_dominio": {
+		"nome": "Lúcia",
+		"aparece_quando": "flag:lucia_conhecida",
+		"some_quando": "cassian|flag:lucia_congelada",
+		"falas": [
+			"Ele disse que, no gelo, ninguém esquece. Nunca mais."
+		],
+		"opcoes": [
+			{
+				"texto": "Vá",
+				"acao": "flag:lucia_congelada"
+			},
+			{
+				"texto": "Fique",
+				"acao": "lute_comigo:lucia"
+			}
+		]
+	},
+	"vitrine_lucia": {
+		"nome": "Vitrine",
+		"aparece_quando": "flag:lucia_congelada",
+		"falas": [
+			"Mulher que lembrava. Peça rara. Não exibir."
+		]
+	},
+	"lucia_teatro": {
+		"nome": "Lúcia",
+		"aparece_quando": "cassian+flag:lucia_conhecida",
+		"some_quando": "flag:lucia_lembrada|flag:lucia_esquecida|flag:lucia_congelada",
+		"falas": [
+			"Ela tirou a máscara. Os olhos estão brancos."
+		],
+		"variantes": [
+			{
+				"quando": "conta:lucia_quedas:3",
+				"usar": "lucia_teatro_esqueceu"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Ficar",
+				"acao": "lucia_final"
+			}
+		]
+	},
+	"lucia_teatro_esqueceu": {
+		"nome": "Lúcia",
+		"falas": [
+			"Ela tirou a máscara. Os olhos estão brancos.",
+			"Ela olha para você. Não pergunta nada."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:lucia_esquecida"
+			}
+		]
+	},
+	"lucia_certo": {
+		"nome": "Lúcia",
+		"falas": [
+			"...É isso. Obrigada por guardar."
+		]
+	},
+	"lucia_errado": {
+		"nome": "Lúcia",
+		"falas": [
+			"...Também não lembro mais."
+		]
+	},
+	"lucia_e_o_seu": {
+		"nome": "Lúcia",
+		"falas": [
+			"E o seu? ...Ainda lembra?"
+		],
+		"opcoes": [
+			{
+				"tipo": "nome",
+				"personagem": "lucia",
+				"sim": "falar:lucia_nome_sim",
+				"nao": "falar:lucia_nome_nao"
+			}
+		]
+	},
+	"lucia_mascara": {
+		"nome": "Máscara e espada",
+		"aparece_quando": "flag:lucia_lembrada",
+		"falas": [
+			"Uma máscara de pano dobrada sobre uma espada.",
+			"Quem usava foi embora em paz."
+		]
+	},
+	"lucia_cinzenta": {
+		"nome": "Mulher cinzenta",
+		"aparece_quando": "flag:lucia_esquecida",
+		"falas": [
+			"Ela anda devagar entre as poltronas. Não olha para ninguém."
+		]
 	}
 }

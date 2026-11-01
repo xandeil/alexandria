@@ -24,6 +24,7 @@ exit2_spawn = "porta"
 exit2_requires = "curadora"
 exit2_locked_dialogue = "porta_arconte"
 lore_points = {"4": "porta_do_arconte"}
+people = Array[Dictionary]([{"cell": Vector2i(50, 6), "dialogue": "lucia_dominio", "name": "Lúcia", "texture": "res://assets/sprites/lucia_npc.png", "frames": 2}, {"cell": Vector2i(42, 3), "dialogue": "vitrine_lucia", "name": "Vitrine", "texture": "res://assets/props/display_case.png", "prompt": "Examinar"}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

@@ -633,6 +633,8 @@ func requirement_met(requires: String) -> bool:
 			return has_item(value)
 		"estado":
 			return world_flag(value)
+		"conta":  # v0.42: "conta:lucia_quedas:3" = o contador chegou a 3
+			return int(flags.get(value, 0)) >= int(text.get_slice(":", 2))
 	push_warning("Condição desconhecida: %s" % text)
 	return false
 

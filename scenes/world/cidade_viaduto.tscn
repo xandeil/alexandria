@@ -17,6 +17,7 @@ exit_scene = "res://scenes/world/cidade_quartel.tscn"
 exit_spawn = "lateral"
 exits = Array[Dictionary]([{"cell": Vector2i(57, 5), "scene": "res://scenes/world/montanha.tscn", "spawn": "porta", "arrival": "escalada"}, {"cell": Vector2i(55, 10), "scene": "res://scenes/world/cidade_quartel.tscn", "spawn": "atalho", "arrival": "portao_atalho", "opens": "atalho_viaduto"}])
 collapse_fights = Array[Dictionary]([{"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}])
+people = Array[Dictionary]([{"cell": Vector2i(46, 6), "dialogue": "lucia_ponte", "name": "Lúcia", "texture": "res://assets/sprites/lucia_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

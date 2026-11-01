@@ -172,6 +172,9 @@ func _ready() -> void:
 		"test_name_entry_screen",
 		"test_name_in_anger_and_terminal",
 		"test_name_reactions_and_ng_plus",
+		"test_lucia_journey",
+		"test_lucia_ally_falls_and_sleeps",
+		"test_lucia_final",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -7647,6 +7650,111 @@ func test_name_reactions_and_ng_plus() -> void:
 	await frames(2)
 	check(guardian.display_name() == "Tito, O Experimento Anterior", "a barra: \"{nome antigo}, O Experimento Anterior\" (%s)" % guardian.display_name())
 	guardian.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.42 · Etapa 7: Lúcia ---------------------------------------------------------------
+
+func test_lucia_journey() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(VIADUTO, "porta")
+	check(find_npc("lucia_ponte") != null, "Cidade: Lúcia sentada na ponte do Viaduto")
+	var entry := DialogueData.get_entry("lucia_ponte")
+	check(str(entry["falas"][2]).begins_with("Meu nome é Lúcia. Repita."), "ela pede que você repita o nome dela")
+	await level._on_dialogue_action("flag:lucia_conhecida;lute_comigo:lucia")
+	check(Game.has_flag("lucia_na_arena"), "\"Lute comigo\": ela vai na próxima luta")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
+	var allies := get_tree().get_nodes_in_group(&"allies").filter(func(a): return a is LuciaAliada)
+	check(allies.size() == 1, "na Praça do Detentor, Lúcia luta ao seu lado")
+	level._reward_allies(true)
+	check(Game.ally_level("lucia") == 2 and not Game.has_flag("lucia_na_arena"), "venceram juntos: ela sobe de nível")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("aldir")
+	level = await open_level(VIADUTO, "porta")
+	check(find_npc("lucia_ponte") == null, "depois do Aldir, ela sai da ponte")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BORDA, "porta")
+	check(find_npc("lucia_bosque") != null, "Bosque: \"Se eu dormir, acordo menos.\"")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(GALERIA, "porta")
+	check(find_npc("lucia_dominio") != null and find_npc("vitrine_lucia") == null, "Domínio: ela espera na antessala do Cassian")
+	await level._on_dialogue_action("flag:lucia_congelada")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(GALERIA, "porta")
+	check(find_npc("lucia_dominio") == null and find_npc("vitrine_lucia") != null, "\"Vá\": ela vira peça de vitrine")
+	check(str(DialogueData.get_entry("vitrine_lucia")["falas"][0]) == "Mulher que lembrava. Peça rara. Não exibir.", "a placa da vitrine")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_lucia_ally_falls_and_sleeps() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var lucia := Ally.spawn_by_id("lucia", _world, player) as LuciaAliada
+	await frames(2)
+	check(lucia != null and lucia.display_name.contains("Lúcia"), "a Lúcia é uma aliada (base Ally)")
+	player.add_drowsiness(60.0)
+	player.add_drowsiness(45.0)
+	await frames(2)
+	check(lucia.is_asleep(), "o sono que chega em você chega nela: dormiu")
+	await seconds(LuciaAliada.SLEEP_TIME + 0.2)
+	check(not lucia.is_asleep(), "e acorda depois")
+	lucia.fall()
+	check(int(Game.flags.get("lucia_quedas", 0)) == 1 and Game.ally_level("lucia") == 1, "caiu: perde memória (lucia_quedas), não força")
+	check(DialogueData.variant("lucia_ponte") == "lucia_depois_de_cair", "\"Quem... Desculpe.\"")
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_lucia_final() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.defeated_bosses.assign(["cassian"])
+	Game.set_flag("lucia_conhecida")
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("lucia_teatro") != null, "depois do Cassian: Lúcia no Teatro, sem máscara")
+	var order := level.lucia_name_order()
+	check(order.size() == 3 and order.has("Lúcia") and level.lucia_name_order() == order, "três nomes, embaralhados uma vez por jogo")
+	var run := func(): await level.lucia_final()
+	run.call()
+	await frames(2)
+	check(level.hud.dialogue.visible, "\"Qual é o meu nome?\"")
+	level.hud.dialogue._advance.emit()
+	await frames(2)
+	var right: Button = null
+	for button in level.hud.dialogue.find_children("*", "Button", true, false):
+		if (button as Button).text == "Lúcia":
+			right = button
+	check(right != null, "o nome certo está entre as opções")
+	right.pressed.emit()
+	for i in 10:
+		await frames(2)
+		if level.hud.dialogue.visible:
+			level.hud.dialogue._advance.emit()
+	check(Game.has_flag("lucia_lembrada") and not Game.has_flag("lucia_esquecida"), "certo: \"...É isso. Obrigada por guardar.\"")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("lucia_teatro") == null and find_npc("lucia_mascara") != null, "ela some em paz; ficam a máscara e a espada")
+	level.queue_free()
+	await frames(2)
+	Game.clear_flag("lucia_lembrada")
+	Game.flags["lucia_quedas"] = 3
+	check(DialogueData.variant("lucia_teatro") == "lucia_teatro_esqueceu", "caiu demais: ela nem pergunta")
+	Game.set_flag("lucia_esquecida")
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("lucia_cinzenta") != null and find_npc("lucia_teatro") == null, "esquecida: vira uma Civil Cinzenta no Teatro")
+	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
 
