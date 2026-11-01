@@ -1583,5 +1583,221 @@
 		"falas": [
 			"Ela anda devagar entre as poltronas. Não olha para ninguém."
 		]
+	},
+	"galeno_forjas": {
+		"nome": "Galeno",
+		"some_quando": "durgan",
+		"falas": [
+			"Ha! Outro andarilho! Esta ilha tem mais gente perdida do que pedra.",
+			"Procuro força! Ou uma coisa que precisava de força. Uma das duas.",
+			"Coitado. Nem cara tem. Eu pelo menos tenho barba!",
+			"Ha! E você, amigo? Como se chama?"
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_caiu",
+				"usar": "galeno_depois_de_cair"
+			},
+			{
+				"quando": "flag:galeno_conhecido",
+				"usar": "galeno_de_novo"
+			}
+		],
+		"opcoes": [
+			{
+				"tipo": "nome",
+				"personagem": "galeno",
+				"sim": "flag:galeno_conhecido;falar:galeno_nome_sim",
+				"nao": "flag:galeno_conhecido;falar:galeno_nome_nao"
+			}
+		]
+	},
+	"galeno_de_novo": {
+		"nome": "Galeno",
+		"falas": [
+			"Não lembro o que eu protegia. Mas olha estes braços! Alguma coisa valia a pena."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_fragmentos",
+				"usar": "galeno_giz"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_giz": {
+		"nome": "Galeno",
+		"falas": [
+			"...Giz. Por que eu lembro de giz?"
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_depois_de_cair": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Já nos conhecemos? Que ótimo!"
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "desliga:galeno_caiu;lute_comigo:galeno"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "desliga:galeno_caiu"
+			}
+		]
+	},
+	"galeno_raizes": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_conhecido",
+		"some_quando": "mabel",
+		"falas": [
+			"Comida ruim também é comida!"
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_caiu",
+				"usar": "galeno_depois_de_cair"
+			},
+			{
+				"quando": "conta:galeno_fragmentos:2",
+				"usar": "galeno_raizes_depois"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_raizes_depois": {
+		"nome": "Galeno",
+		"falas": [
+			"...Alguém fazia comida pra mim. Ou eu fazia pra alguém. Pequeno. Era pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_montanha": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_conhecido",
+		"some_quando": "rachel",
+		"falas": [
+			"Um dragão? Ha! Vamos ver quem é mais teimoso."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_caiu",
+				"usar": "galeno_depois_de_cair"
+			},
+			{
+				"quando": "conta:galeno_fragmentos:2",
+				"usar": "galeno_giz"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_espadinha": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Que espadinha! Alguém fez isso com carinho."
+		]
+	},
+	"galeno_teatro": {
+		"nome": "Galeno",
+		"aparece_quando": "conta:galeno_fragmentos:3",
+		"some_quando": "flag:galeno_lembrou|flag:galeno_esqueceu|flag:tito_morto",
+		"falas": [
+			"Você vive esquecendo, não é? ...Vale a pena lembrar?"
+		],
+		"opcoes": [
+			{
+				"texto": "Lembre",
+				"acao": "flag:galeno_lembrou;falar:galeno_lembrou"
+			},
+			{
+				"texto": "Esqueça",
+				"acao": "flag:galeno_esqueceu;ganhar:desenho_a_giz;falar:galeno_esqueceu"
+			}
+		]
+	},
+	"galeno_lembrou": {
+		"nome": "Galeno",
+		"falas": [
+			"(Ele vira o escudo e olha o desenho por dentro.)",
+			"Eu ria porque não lembrava. Agora lembro. ...Me dá um tempo sem rir, amigo."
+		]
+	},
+	"galeno_esqueceu": {
+		"nome": "",
+		"falas": [
+			"Ele te entrega um papel dobrado e sai rindo, sem rumo."
+		]
 	}
 }

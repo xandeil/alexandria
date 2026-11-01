@@ -175,6 +175,7 @@ func _ready() -> void:
 		"test_lucia_journey",
 		"test_lucia_ally_falls_and_sleeps",
 		"test_lucia_final",
+		"test_galeno_journey",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -7754,6 +7755,63 @@ func test_lucia_final() -> void:
 	Game.set_flag("lucia_esquecida")
 	level = await open_level(TEATRO, "camara")
 	check(find_npc("lucia_cinzenta") != null and find_npc("lucia_teatro") == null, "esquecida: vira uma Civil Cinzenta no Teatro")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.42 · Etapa 7: Galeno --------------------------------------------------------------
+
+func test_galeno_journey() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(FORJAS, "porta")
+	check(find_npc("galeno_forjas") != null, "Forjas: Galeno diante da estátua sem rosto")
+	check(str(DialogueData.get_entry("galeno_forjas")["falas"][2]) == "Coitado. Nem cara tem. Eu pelo menos tenho barba!", "\"Nem cara tem.\"")
+	var options := DialogueBox.expand_options(DialogueData.get_entry("galeno_forjas")["opcoes"])
+	check(options[0]["texto"] == "Não lembro", "ele pergunta o nome (\"Não lembro\" / o nome)")
+	await level._on_dialogue_action(options[0]["acao"].get_slice(";", 0))
+	check(DialogueData.variant("galeno_forjas") == "galeno_de_novo", "depois de conhecer: \"Não lembro o que eu protegia...\"")
+	await level._on_dialogue_action("lute_comigo:galeno")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ARENA_DURGAN, "porta")
+	var galeno := get_tree().get_nodes_in_group(&"allies").filter(func(a): return a is GalenoAliado)
+	check(galeno.size() == 1, "na Forja do Eco, Galeno luta ao seu lado")
+	level._reward_allies(true)
+	check(int(Game.flags.get("galeno_fragmentos", 0)) == 1, "venceram: um fragmento volta")
+	check(DialogueData.variant("galeno_de_novo") == "galeno_giz", "\"...Giz. Por que eu lembro de giz?\"")
+	level.queue_free()
+	await frames(2)
+	# Cair: esquece um fragmento e fica mais feliz.
+	var player := spawn_player(Vector2(200, 200))
+	var big := Ally.spawn_by_id("galeno", _world, player) as GalenoAliado
+	await frames(2)
+	var hp := big.health
+	var hit := HitInfo.create(40.0, Vector2(180, 200), big.global_position)
+	big._on_hit(hit)
+	check(is_equal_approx(hp - big.health, 40.0 * 0.5 * 0.7), "o escudo gigante segura metade")
+	big.fall()
+	check(int(Game.flags.get("galeno_fragmentos", 0)) == 0 and Game.has_flag("galeno_caiu"), "caiu: esqueceu um fragmento")
+	check(DialogueData.variant("galeno_raizes") == "galeno_depois_de_cair", "\"Ha! Já nos conhecemos? Que ótimo!\"")
+	player.queue_free()
+	await frames(2)
+	Game.clear_flag("galeno_caiu")
+	Game.flags["galeno_fragmentos"] = 2
+	check(DialogueData.variant("galeno_raizes") == "galeno_raizes_depois", "Raízes, mais fragmentos: \"Pequeno. Era pequeno.\"")
+	Game.add_item("espada_madeira_pequena")
+	var sword := DialogueBox.expand_options(DialogueData.get_entry("galeno_raizes_depois")["opcoes"])
+	check(sword.any(func(o): return str(o.get("acao", "")) == "falar:galeno_espadinha"), "a espadinha de madeira tem resposta")
+	# O final: Lembre / Esqueça.
+	Game.flags["galeno_fragmentos"] = 3
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("galeno_teatro") != null, "o último fragmento: Galeno no Teatro, sem rir")
+	await level._on_dialogue_action("flag:galeno_esqueceu;ganhar:desenho_a_giz")
+	check(Game.has_item("desenho_a_giz"), "\"Esqueça\": ele entrega o Desenho a Giz")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("galeno_teatro") == null, "e volta a andar sem rumo")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

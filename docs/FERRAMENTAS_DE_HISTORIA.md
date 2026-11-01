@@ -58,6 +58,8 @@ As ações antigas continuam valendo: `loja`, `subir_nivel`, `desafiar_helena`..
 | `comer:mesa_1` | mesa posta: cura, mas a sineta chama todos os inimigos da zona `mesa_1` |
 | `pedir_nome` | abre a tela de digitar o nome (obrigatório) e salva em `player_name` |
 | `lucia_final` | o final da Lúcia no Teatro: três nomes embaralhados (uma vez por jogo) |
+| `ganhar:<item>` | o personagem te dá um item |
+| `desliga:<flag>` | apaga uma flag (ex.: o Galeno esquece que caiu depois de falar com você) |
 | `a;b` | várias ações em sequência (ex.: `flag:x;falar:y`) |
 
 ## 4. Aliados (base `Ally`)
@@ -87,3 +89,4 @@ São quatro listas: `exits`, `zones`, `objects` e `traps`. Os exemplos estão em
   Quando aparecem e somem: `aparece_quando` / `some_quando` da fala no `dialogos.json`.
 - **Condição `conta:<contador>:<n>`**: o contador chegou a n (ex.: `conta:lucia_quedas:3`).
 - **Lúcia**: ponte do Viaduto → Borda (Nyssa) → Galeria (Cassian, "Vá"/"Fique") → final no Teatro. Cada queda soma 1 em `lucia_quedas`.
+- **Galeno**: Forjas (estátua sem rosto) → Raízes → Montanha; cada chefe vencido com ele soma 1 em `galeno_fragmentos`, cada queda tira 1. Com 3, o final no Teatro: "Lembre" / "Esqueça" (Desenho a Giz). Gancho `_on_victory()` na base `Ally`.

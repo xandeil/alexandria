@@ -33,6 +33,8 @@ const CATALOG := {
 	"caixa_musica_bronze": preload("res://data/items/caixa_musica_bronze.tres"),
 	"botao_socorro": preload("res://data/items/botao_socorro.tres"),
 	"gelo_perpetuo": preload("res://data/items/gelo_perpetuo.tres"),
+	"desenho_a_giz": preload("res://data/items/desenho_a_giz.tres"),
+	"espada_madeira_pequena": preload("res://data/items/espada_madeira_pequena.tres"),
 	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
 	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
 	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),

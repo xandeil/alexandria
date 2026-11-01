@@ -28,6 +28,7 @@ const LEVEL_BONUS := 0.15
 const REGISTRY := {
 	"guarda": "res://scripts/allies/guarda_aliado.gd",
 	"lucia": "res://scripts/allies/lucia_aliada.gd",
+	"galeno": "res://scripts/allies/galeno_aliado.gd",
 }
 
 ## Quem é (o id do save: "guarda", "lucia"...).
@@ -214,6 +215,12 @@ func fall() -> void:
 
 ## Aparência e números (ally_id, display_name, frames, max_health, strike_damage...).
 func _setup() -> void:
+	pass
+
+
+## Venceram juntos (chefe ou mini-chefe, ele de pé). O nível sobe na base;
+## aqui cada aliado soma o que é dele (os fragmentos do Galeno...).
+func _on_victory() -> void:
 	pass
 
 

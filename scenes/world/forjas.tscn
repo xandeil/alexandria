@@ -25,6 +25,7 @@ exit2_requires = ""
 exit2_locked_dialogue = ""
 lore_points = {"2": "galeria_estatuas", "3": "oficina_durgan"}
 item_points = Array[String](["sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2"])
+people = Array[Dictionary]([{"cell": Vector2i(12, 23), "dialogue": "galeno_forjas", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

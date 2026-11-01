@@ -1528,6 +1528,7 @@ func _reward_allies(victory: bool) -> void:
 			continue
 		if victory and not ally.fallen:
 			Game.raise_ally(ally.ally_id)
+			ally._on_victory()
 		Game.flags.erase("%s_na_arena" % ally.ally_id)
 
 
@@ -1801,6 +1802,12 @@ func _on_dialogue_action(action: String) -> void:
 				return
 			"lucia_final":
 				await lucia_final()
+				return
+			"desliga":
+				Game.clear_flag(value)
+				return
+			"ganhar":
+				Game.add_item(value, 1)
 				return
 			"dar":
 				if Game.remove_item(value, 1):
