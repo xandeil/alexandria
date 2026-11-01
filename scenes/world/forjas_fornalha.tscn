@@ -21,6 +21,7 @@ exit2_spawn = "porta"
 exit2_requires = "prototipo"
 exit2_locked_dialogue = "fornalha_porta_fechada"
 lore_points = {"1": "martelo_de_crianca"}
+people = Array[Dictionary]([{"cell": Vector2i(20, 12), "dialogue": "bastiao_forjas_fornalha", "name": "Bastião", "texture": "res://assets/sprites/bastiao_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

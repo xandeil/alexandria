@@ -34,6 +34,8 @@ var _health_flask_label: Label
 var _sanity_label: Label
 var _memory_label: Label
 var _boss_bar: BossBar
+## A segunda barra (luta em dupla: Os Sebastiões), logo abaixo da primeira.
+var _partner_bar: BossBar
 var _speech: Label
 var _area_title: Label
 var _area_subtitle: Label
@@ -132,6 +134,13 @@ func _process(delta: float) -> void:
 		_vision_material.set_shader_parameter("aspect", view.x / view.y)
 	if is_instance_valid(_boss) and _boss_bar.visible:
 		_boss_bar.set_ratio(_boss.stats.health_ratio())
+		var partner := _boss.partner_bar()
+		_partner_bar.visible = not partner.is_empty()
+		if _partner_bar.visible:
+			_partner_bar.boss_name = str(partner.get("name", ""))
+			_partner_bar.set_ratio(float(partner.get("ratio", 0.0)))
+	elif _partner_bar.visible:
+		_partner_bar.visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -278,6 +287,15 @@ func _build_boss_bar() -> void:
 	_boss_bar.offset_bottom = 40
 	_boss_bar.visible = false
 	add_child(_boss_bar)
+	_partner_bar = BossBar.new()
+	_partner_bar.anchor_left = 0.5
+	_partner_bar.anchor_right = 0.5
+	_partner_bar.offset_left = -92
+	_partner_bar.offset_right = 92
+	_partner_bar.offset_top = 30
+	_partner_bar.offset_bottom = 64
+	_partner_bar.visible = false
+	add_child(_partner_bar)
 	_speech = UIStyle.label("", 9, Color(0.95, 0.88, 0.85))
 	_speech.anchor_left = 0.5
 	_speech.anchor_right = 0.5
@@ -500,6 +518,8 @@ func show_boss(boss: Boss) -> void:
 	_boss_bar.trail = 1.0
 	_boss_bar.armor = boss.armor_ratio()
 	_boss_bar.visible = true
+	_partner_bar.ratio = 1.0
+	_partner_bar.trail = 1.0
 	_boss_bar.modulate.a = 0.0
 	create_tween().tween_property(_boss_bar, "modulate:a", 1.0, 0.6)
 	if boss.has_meta("hud_bound"):

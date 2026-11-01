@@ -22,6 +22,7 @@ exit2_scene = "res://scenes/world/raizes_varanda.tscn"
 exit2_spawn = "porta"
 exit2_requires = "banqueteiro"
 exit2_locked_dialogue = "porta_cozinha"
+people = Array[Dictionary]([{"cell": Vector2i(27, 11), "dialogue": "tiao_raizes_despensa", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

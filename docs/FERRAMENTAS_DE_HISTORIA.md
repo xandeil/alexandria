@@ -60,6 +60,8 @@ As ações antigas continuam valendo: `loja`, `subir_nivel`, `desafiar_helena`..
 | `lucia_final` | o final da Lúcia no Teatro: três nomes embaralhados (uma vez por jogo) |
 | `ganhar:<item>` | o personagem te dá um item |
 | `desliga:<flag>` | apaga uma flag (ex.: o Galeno esquece que caiu depois de falar com você) |
+| `chama:<tiao/bastiao>` | o brigão entra na hora e luta com você (com `brigoes_juntos`, vêm os dois) |
+| `duelo_sebastioes` | a briga da ponte, "Entrar no meio": os dois viram o mini-chefe em dupla |
 | `a;b` | várias ações em sequência (ex.: `flag:x;falar:y`) |
 
 ## 4. Aliados (base `Ally`)
@@ -90,3 +92,4 @@ São quatro listas: `exits`, `zones`, `objects` e `traps`. Os exemplos estão em
 - **Condição `conta:<contador>:<n>`**: o contador chegou a n (ex.: `conta:lucia_quedas:3`).
 - **Lúcia**: ponte do Viaduto → Borda (Nyssa) → Galeria (Cassian, "Vá"/"Fique") → final no Teatro. Cada queda soma 1 em `lucia_quedas`.
 - **Galeno**: Forjas (estátua sem rosto) → Raízes → Montanha; cada chefe vencido com ele soma 1 em `galeno_fragmentos`, cada queda tira 1. Com 3, o final no Teatro: "Lembre" / "Esqueça" (Desenho a Giz). Gancho `_on_victory()` na base `Ally`.
+- **Tião e Bastião**: um NPC ao lado de cada mini-chefe que eles ajudam (tabela da Etapa 7, lista `people`). Falar liga `<id>_conversou`; com os dois e o Capitão vencido, a **briga da ponte** aparece na espinha de dragão (Encosta): ajudar um (o outro vira `<id>_cinzento`) ou entrar no meio (mini-chefe "Os Sebastiões": dois corpos, uma vida → `brigoes_juntos`).

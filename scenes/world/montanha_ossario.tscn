@@ -22,6 +22,7 @@ exit2_spawn = "porta"
 exit2_requires = "matriarca"
 exit2_locked_dialogue = "ossario_porta_fechada"
 lore_points = {"1": "ossario"}
+people = Array[Dictionary]([{"cell": Vector2i(20, 11), "dialogue": "bastiao_montanha_ossario", "name": "Bastião", "texture": "res://assets/sprites/bastiao_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

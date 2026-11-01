@@ -21,6 +21,7 @@ exit2_spawn = "porta"
 exit2_requires = "sargento"
 exit2_locked_dialogue = "quartel_portao_fechado"
 lore_points = {"1": "escala_de_guarda"}
+people = Array[Dictionary]([{"cell": Vector2i(15, 21), "dialogue": "tiao_cidade_quartel", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

@@ -1337,6 +1337,43 @@ func _on_arena_fight_started(boss: Boss) -> void:
 		await examine("experimento_pergunta", "O Experimento Anterior")
 
 
+## TIÃO E BASTIÃO (v0.43, Etapa 7): chamado ao lado de um mini-chefe, o brigão
+## entra AGORA e luta com você (e acompanha até a luta acabar). Com
+## "brigoes_juntos", quem chama um ganha os dois. Devolve quem veio.
+func call_brawler(id: String) -> Array[Ally]:
+	var ids: Array[String] = [id]
+	if Game.has_flag("brigoes_juntos"):
+		ids = ["tiao", "bastiao"]
+	var came: Array[Ally] = []
+	for who in ids:
+		if Game.has_flag("%s_cinzento" % who):
+			continue
+		var already := get_tree().get_nodes_in_group(&"allies").any(func(a): return (a as Ally).ally_id == who and not (a as Ally).fallen)
+		if already:
+			continue
+		Game.flags["%s_acompanha" % who] = true
+		came.append(Ally.spawn_by_id(who, entities, player))
+	return came
+
+
+## A briga da ponte, opção 3: entrar no meio. Os dois viram um mini-chefe em
+## dupla bem ali (os NPCs saem de cena enquanto isso).
+const SEBASTIOES_SCENE := "res://scenes/bosses/sebastioes.tscn"
+
+
+func start_sebastioes_duel() -> Sebastioes:
+	var at := player.global_position + Vector2(0, -40)
+	for npc in get_tree().get_nodes_in_group("npcs"):
+		if str((npc as NPC).dialogue_id).begins_with("briga_"):
+			at = (npc as Node2D).global_position
+			npc.queue_free()
+	var duo := (load(SEBASTIOES_SCENE) as PackedScene).instantiate() as Sebastioes
+	duo.position = at
+	entities.add_child(duo)
+	register_miniboss(duo)
+	return duo
+
+
 ## LÚCIA, o final no Teatro (v0.42, Etapa 7): "Qual é o meu nome?" — três
 ## nomes, embaralhados uma vez por jogo; nada no menu marca o certo.
 const LUCIA_NAMES := ["Lúcia", "Luzia", "Lívia"]
@@ -1808,6 +1845,12 @@ func _on_dialogue_action(action: String) -> void:
 				return
 			"ganhar":
 				Game.add_item(value, 1)
+				return
+			"chama":
+				call_brawler(value)
+				return
+			"duelo_sebastioes":
+				start_sebastioes_duel()
 				return
 			"dar":
 				if Game.remove_item(value, 1):

@@ -23,6 +23,7 @@ exit2_spawn = "porta"
 exit2_requires = "golem_arquivo"
 exit2_locked_dialogue = "arquivo_porta_fechada"
 lore_points = {"1": "catalogo_eco"}
+people = Array[Dictionary]([{"cell": Vector2i(20, 11), "dialogue": "tiao_dominio_arquivo", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

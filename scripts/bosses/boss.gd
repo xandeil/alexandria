@@ -90,6 +90,12 @@ func clamp_to_arena(point: Vector2, margin: float = 12.0) -> Vector2:
 
 ## Muda a arena para a fase N (se o chefe tiver uma config para ela).
 ## Cada chefe chama no seu _enter_phase_N. Devolve o ArenaShift (ou null).
+## Luta em DUPLA (estilo Dark Souls, duas barras uma em cima da outra): o
+## chefe devolve {"name": ..., "ratio": 0..1} do parceiro. {} = luta sozinho.
+func partner_bar() -> Dictionary:
+	return {}
+
+
 func shift_arena(phase_number: int) -> ArenaShift:
 	var settings: Variant = phase_arena.get(phase_number, {})
 	if not settings is Dictionary or (settings as Dictionary).is_empty() or arena_rect.size == Vector2.ZERO:

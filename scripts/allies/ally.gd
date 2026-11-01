@@ -29,6 +29,8 @@ const REGISTRY := {
 	"guarda": "res://scripts/allies/guarda_aliado.gd",
 	"lucia": "res://scripts/allies/lucia_aliada.gd",
 	"galeno": "res://scripts/allies/galeno_aliado.gd",
+	"tiao": "res://scripts/allies/tiao_aliado.gd",
+	"bastiao": "res://scripts/allies/bastiao_aliado.gd",
 }
 
 ## Quem é (o id do save: "guarda", "lucia"...).

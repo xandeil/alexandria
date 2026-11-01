@@ -176,6 +176,9 @@ func _ready() -> void:
 		"test_lucia_ally_falls_and_sleeps",
 		"test_lucia_final",
 		"test_galeno_journey",
+		"test_brawlers_help",
+		"test_bridge_fight_choices",
+		"test_sebastioes_duel",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -7812,6 +7815,97 @@ func test_galeno_journey() -> void:
 	await frames(2)
 	level = await open_level(TEATRO, "camara")
 	check(find_npc("galeno_teatro") == null, "e volta a andar sem rumo")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.43 · Etapa 7: Tião e Bastião ------------------------------------------------------
+
+func test_brawlers_help() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(QUARTEL, "porta")
+	check(find_npc("tiao_cidade_quartel") != null, "Cidade: o Tião ajuda contra o Sargento")
+	var came := level.call_brawler("tiao")
+	check(came.size() == 1 and came[0] is TiaoAliado, "\"Me ajuda aqui?\": ele entra na hora")
+	level._reward_allies(true)
+	check(int(Game.flags.get("tiao_ajudas", 0)) == 1 and not Game.flags.get("tiao_acompanha", false), "venceram: conta a ajuda, e ele volta para o canto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DORMITORIO, "porta")
+	check(str(DialogueData.get_entry("tiao_bosque_dormitorio")["falas"][0]).begins_with("AH! Caramba"), "o Tião dormindo no Dormitório")
+	level.queue_free()
+	await frames(2)
+	for spot in ["bastiao_cidade_viaduto", "bastiao_bosque_borda", "tiao_raizes_despensa", "bastiao_forjas_fornalha",
+			"tiao_montanha_encosta", "bastiao_montanha_ossario", "tiao_dominio_arquivo", "bastiao_dominio_galeria"]:
+		check(not DialogueData.get_entry(spot).is_empty(), "%s: pronto ao lado do mini-chefe" % spot)
+	Game.set_flag("brigoes_juntos")
+	level = await open_level(QUARTEL, "porta")
+	came = level.call_brawler("tiao")
+	check(came.size() == 2, "juntos: chamar um traz os dois")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_bridge_fight_choices() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.defeated_bosses.assign(["matriarca", "capitao"])
+	var level := await open_level(ENCOSTA, "porta")
+	check(find_npc("briga_ponte") == null, "sem conversar com os dois: nada de briga")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("tiao_conversou")
+	Game.set_flag("bastiao_conversou")
+	level = await open_level(ENCOSTA, "porta")
+	check(find_npc("briga_ponte") != null, "conversou com os dois: a briga na espinha de dragão")
+	await level._on_dialogue_action("flag:bastiao_cinzento")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ENCOSTA, "porta")
+	check(find_npc("briga_ponte") == null and find_npc("bastiao_cinzento_ponte") != null, "ajudou o Tião: o Bastião vira cinzento na ponte")
+	level.queue_free()
+	await frames(2)
+	check(DialogueData.variant("tiao_cidade_quartel") == "tiao_quieto", "o Tião, mais quieto: \"Pesa mais.\"")
+	level = await open_level(VIADUTO, "porta")
+	check(find_npc("bastiao_cidade_viaduto") == null, "o Bastião não ajuda mais ninguém")
+	check(level.call_brawler("bastiao").is_empty(), "nem se chamar")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_sebastioes_duel() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.defeated_bosses.assign(["matriarca", "capitao"])
+	Game.set_flag("tiao_conversou")
+	Game.set_flag("bastiao_conversou")
+	var level := await open_level(ENCOSTA, "porta")
+	var duo := level.start_sebastioes_duel()
+	await frames(3)
+	check(find_npc("briga_ponte") == null, "entrou no meio: os dois viram um só mini-chefe")
+	check(duo.partner != null and is_instance_valid(duo.partner), "dois corpos (Tião e Bastião)")
+	duo.target = level.player
+	duo.start_fight()
+	duo._on_wake()
+	level._on_miniboss_started(duo)
+	await frames(2)
+	check(level.hud._boss_bar.visible and level.hud._partner_bar.visible, "duas barras, uma em cima da outra (Dark Souls)")
+	check(level.hud._boss_bar.boss_name == "Tião" and level.hud._partner_bar.boss_name == "Bastião", "uma do Tião, outra do Bastião")
+	var hp := duo.stats.health
+	duo.partner._on_hit(HitInfo.create(30.0, level.player.global_position, duo.partner.global_position))
+	await frames(2)
+	check(duo.stats.health == hp and duo.partner.health_ratio() < 1.0, "bater no Bastião desce a barra DELE")
+	duo.stats.take_damage(99999.0)
+	await frames(3)
+	check(duo.downed and not duo.dead and not Game.has_flag("brigoes_juntos"), "o Tião caiu, mas o Bastião ainda luta")
+	check(duo.partner.speed > duo.partner_speed, "e o Bastião fica com raiva")
+	duo.partner._on_hit(HitInfo.create(99999.0, level.player.global_position, duo.partner.global_position))
+	await frames(3)
+	check(Game.has_flag("brigoes_juntos") and Game.is_boss_defeated("sebastioes"), "os dois no chão: \"Sebastião e Sebastião.\" (brigoes_juntos)")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

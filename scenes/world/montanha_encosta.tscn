@@ -25,6 +25,7 @@ exit2_spawn = "porta"
 exit2_requires = "capitao"
 exit2_locked_dialogue = "porta_ninho"
 lore_points = {"4": "trilha_ninho"}
+people = Array[Dictionary]([{"cell": Vector2i(26, 7), "dialogue": "tiao_montanha_encosta", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}, {"cell": Vector2i(5, 3), "dialogue": "briga_ponte", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}, {"cell": Vector2i(7, 3), "dialogue": "briga_ponte", "name": "Bastião", "texture": "res://assets/sprites/bastiao_npc.png", "frames": 2}, {"cell": Vector2i(6, 4), "dialogue": "tiao_cinzento_ponte", "name": "Homem cinzento", "texture": "res://assets/sprites/civil.png", "frames": 5, "prompt": "Examinar"}, {"cell": Vector2i(6, 4), "dialogue": "bastiao_cinzento_ponte", "name": "Homem cinzento", "texture": "res://assets/sprites/civil.png", "frames": 5, "prompt": "Examinar"}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

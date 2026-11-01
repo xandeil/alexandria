@@ -1799,5 +1799,329 @@
 		"falas": [
 			"Ele te entrega um papel dobrado e sai rindo, sem rumo."
 		]
+	},
+	"tiao_cidade_quartel": {
+		"nome": "Tião",
+		"some_quando": "sargento|flag:tiao_cinzento",
+		"falas": [
+			"Vou te contar um segredo: eu não sou muito esperto. Mas sou MUITO forte. ...Não. Também não."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_cidade_viaduto": {
+		"nome": "Bastião",
+		"some_quando": "couraca|flag:bastiao_cinzento",
+		"falas": [
+			"Você viu um baixinho com uma panela na cabeça? Não? Ótimo. Se vir, diga que eu não estou."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_bosque_dormitorio": {
+		"nome": "Tião",
+		"some_quando": "vigia|flag:tiao_cinzento",
+		"falas": [
+			"AH! Caramba, cara, que susto! Achei que fosse aquele cara!",
+			"Que cara? O Bastião! Comprido, magro, cara de colher torta!",
+			"...Não que eu tenha medo dele. Eu durmo de olho aberto. Só que fecho."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_bosque_borda": {
+		"nome": "Bastião",
+		"some_quando": "mae_esporos|flag:bastiao_cinzento",
+		"falas": [
+			"A gente briga desde... desde ontem? Desde sempre? É a mesma coisa."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_raizes_despensa": {
+		"nome": "Tião",
+		"some_quando": "banqueteiro|flag:tiao_cinzento",
+		"falas": [
+			"Dizem que esta ilha não cai. Eu caí três vezes hoje. Mentirosos."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_forjas_fornalha": {
+		"nome": "Bastião",
+		"some_quando": "prototipo|flag:bastiao_cinzento",
+		"falas": [
+			"Eu tenho um plano. Não sei qual é. Mas eu tenho."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_montanha_encosta": {
+		"nome": "Tião",
+		"some_quando": "capitao|flag:tiao_cinzento",
+		"falas": [
+			"Vou te contar um segredo: eu não sou muito esperto. Mas sou MUITO forte. ...Não. Também não."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_montanha_ossario": {
+		"nome": "Bastião",
+		"some_quando": "matriarca|flag:bastiao_cinzento",
+		"falas": [
+			"Você bate bem! Quase igual a mim. Quase. Não conta pra ele."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_dominio_arquivo": {
+		"nome": "Tião",
+		"some_quando": "golem_arquivo|flag:tiao_cinzento",
+		"falas": [
+			"Ele disse que minha mãe era uma pedra. Eu não lembro da minha mãe. Mas não era pedra! ...Era?"
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_dominio_galeria": {
+		"nome": "Bastião",
+		"some_quando": "curadora|flag:bastiao_cinzento",
+		"falas": [
+			"Você viu um baixinho com uma panela na cabeça? Não? Ótimo. Se vir, diga que eu não estou."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_quieto": {
+		"nome": "Tião",
+		"falas": [
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_quieto": {
+		"nome": "Bastião",
+		"falas": [
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"briga_ponte": {
+		"nome": "Tião e Bastião",
+		"aparece_quando": "flag:tiao_conversou+flag:bastiao_conversou+capitao",
+		"some_quando": "flag:tiao_cinzento|flag:bastiao_cinzento|flag:brigoes_juntos",
+		"falas": [
+			"Meu nome é Sebastião!",
+			"Mentira! EU sou o Sebastião!",
+			"Então por que te chamam de Bastião?",
+			"E a ti de Tião?! Metade de nome! Ladrão de nome!"
+		],
+		"opcoes": [
+			{
+				"texto": "Ajudar o Tião",
+				"acao": "flag:bastiao_cinzento;falar:briga_tiao_fica"
+			},
+			{
+				"texto": "Ajudar o Bastião",
+				"acao": "flag:tiao_cinzento;falar:briga_bastiao_fica"
+			},
+			{
+				"texto": "Entrar no meio",
+				"acao": "falar:briga_meio;duelo_sebastioes"
+			}
+		]
+	},
+	"briga_tiao_fica": {
+		"nome": "Tião",
+		"falas": [
+			"(O Bastião cai. Quando levanta, não lembra do Tião. Não lembra de nada.)",
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		]
+	},
+	"briga_bastiao_fica": {
+		"nome": "Bastião",
+		"falas": [
+			"(O Tião cai. Quando levanta, não lembra do Bastião. Não lembra de nada.)",
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		]
+	},
+	"briga_meio": {
+		"nome": "Tião e Bastião",
+		"falas": [
+			"Quem é esse?",
+			"Sei lá. Mas não fui com a cara dele."
+		]
+	},
+	"tiao_cinzento_ponte": {
+		"nome": "Homem cinzento",
+		"aparece_quando": "flag:tiao_cinzento",
+		"falas": [
+			"Ele anda devagar pela ponte. Não lembra de ninguém."
+		]
+	},
+	"bastiao_cinzento_ponte": {
+		"nome": "Homem cinzento",
+		"aparece_quando": "flag:bastiao_cinzento",
+		"falas": [
+			"Ele anda devagar pela ponte. Não lembra de ninguém."
+		]
 	}
 }
