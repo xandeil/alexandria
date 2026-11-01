@@ -139,3 +139,4 @@ Chefe com a arena mudando de fase: `phase_arena` no nó do chefe (`ArenaShift`),
 que fecha a arena. Também há `"escuro": 0.4` (a luz cai), `"sono": 1.5` (a barra
 de sono enche mais rápido) e `"luz_flores": true` (as Flores de Pólen brilham).
 
+Montanha (v0.35): `E` = Couraça Queimada (inimiga comum, renasce), `N` = O Último Igual (opcional, `montanha_fosso.txt`).

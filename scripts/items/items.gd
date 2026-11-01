@@ -31,7 +31,7 @@ const CATALOG := {
 	# donos das cápsulas (um por ilha, ao lado da segunda Câmara).
 	"algo_quebrado": preload("res://data/items/algo_quebrado.tres"),
 	"caixa_musica_bronze": preload("res://data/items/caixa_musica_bronze.tres"),
-	"funil_socorro": preload("res://data/items/funil_socorro.tres"),
+	"botao_socorro": preload("res://data/items/botao_socorro.tres"),
 	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
 	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
 	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),
@@ -42,6 +42,7 @@ const CATALOG := {
 	"punhos": preload("res://data/items/punhos.tres"),
 	"espada_grande_cobaia": preload("res://data/items/espada_grande_cobaia.tres"),
 	"lanca_cobaia": preload("res://data/items/lanca_cobaia.tres"),
+	"corrente_igual": preload("res://data/items/corrente_igual.tres"),
 	"martelo_cobaia": preload("res://data/items/martelo_cobaia.tres"),
 	"adaga_cobaia": preload("res://data/items/adaga_cobaia.tres"),
 	"arco_cobaia": preload("res://data/items/arco_cobaia.tres"),

@@ -1,5 +1,6 @@
-"""Raízes expandidas (v0.35, Etapa 6): Socorro, a Enfermeira da Estufa, e o
-Funil de Socorro (a recompensa).
+"""Raízes expandidas (v0.35, Etapa 6): Socorro, a Enfermeira da Estufa.
+(O ícone do Botão de Socorro, a recompensa, foi desenhado à parte: o
+documento trocou o Funil por um botão.)
 
 Rode:  python3 tools/art/raizes_extra.py
 """
@@ -78,9 +79,6 @@ FUNNEL = [
 def main() -> None:
     frames = [from_grid(g, KEY, outline=P.OUTLINE) for g in (IDLE, walk(), spin())]
     hstrip(frames).save(os.path.join(SPRITES, "socorro.png"))
-    icon = canvas(16, 16)
-    paste(icon, from_grid(FUNNEL, KEY, outline=P.OUTLINE), 1, 2)
-    icon.save(os.path.join(ITEMS, "funil_socorro.png"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/montanha_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Fosso" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/montanha_fosso.txt"
+area_name = "Fosso das Correntes"
+area_subtitle = "Uma corrente presa na rocha. Na outra ponta, alguém velho."
+theme = "montanha"
+ambience = &"amb_volcano"
+darkness = Color(0.62, 0.56, 0.56, 1)
+exit_scene = "res://scenes/world/montanha.tscn"
+exit_spawn = "fosso"
+enemy_power = 1.3
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

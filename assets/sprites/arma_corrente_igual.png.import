@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://p1ers0ptaiy2"
-path="res://.godot/imported/funil_socorro.png-beac08c8de44b94ec03491bad8ad920f.ctex"
+uid="uid://deet0trojagdh"
+path="res://.godot/imported/arma_corrente_igual.png-eec62d06eeedb8c055a2c62514ee8c23.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/items/funil_socorro.png"
-dest_files=["res://.godot/imported/funil_socorro.png-beac08c8de44b94ec03491bad8ad920f.ctex"]
+source_file="res://assets/sprites/arma_corrente_igual.png"
+dest_files=["res://.godot/imported/arma_corrente_igual.png-eec62d06eeedb8c055a2c62514ee8c23.ctex"]
 
 [params]
 

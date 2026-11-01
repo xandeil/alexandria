@@ -7,8 +7,6 @@
 [node name="Montanha" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/montanha.txt"
-farm_route = Array[Vector2i]([Vector2i(27, 20), Vector2i(60, 20), Vector2i(60, 26), Vector2i(34, 26), Vector2i(33, 23), Vector2i(27, 22)])
-farm_field_tiles = Rect2i(20, 20, 43, 8)
 area_name = "Montanha Carbonizada"
 area_subtitle = "Florestas queimadas, ossos de dragões e cinza no ar. No topo, alguém dorme sobre as ruínas."
 theme = "montanha"
@@ -17,18 +15,17 @@ darkness = Color(0.9, 0.74, 0.68, 1)
 outdoor = true
 exit_scene = "res://scenes/world/cidade_viaduto.tscn"
 exit_spawn = "escalada"
-pickups = Array[Dictionary]([{"cell": Vector2i(37, 27), "item": "botas_detentor"}, {"cell": Vector2i(3, 18), "item": "botas_caelis"}])
-extra_capsules = Array[Vector2i]([Vector2i(57, 7)])
+pickups = Array[Dictionary]([{"cell": Vector2i(37, 27), "item": "botas_detentor"}])
 objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(5, 20), "key": "bau_montanha_1", "item": "capacete_caelis"}, {"kind": "bau", "cell": Vector2i(40, 21), "key": "bau_montanha_2", "item": "luvas_caelis"}, {"kind": "mimico", "cell": Vector2i(64, 13), "key": "mimico_montanha", "item": "peitoral_caelis"}])
-decor = Array[Dictionary]([{"cell": Vector2i(35, 27), "texture": "res://assets/props/aviso_soldado_queimado.png"}])
-exits = Array[Dictionary]([{"cell": Vector2i(1, 18), "scene": "res://scenes/world/bosque.tscn", "spawn": "oeste", "arrival": "espinha", "opens": "atalho_espinha"}])
+decor = Array[Dictionary]([{"cell": Vector2i(35, 27), "dialogue": "soldado_queimado", "name": "Soldado queimado", "texture": "res://assets/props/aviso_soldado_queimado.png"}])
+exits = Array[Dictionary]([{"cell": Vector2i(10, 3), "scene": "res://scenes/world/montanha_fosso.tscn", "spawn": "porta", "arrival": "fosso"}])
 enemy_power = 1.3
-exit2_scene = "res://scenes/world/arena_rachel.tscn"
+exit2_scene = "res://scenes/world/montanha_ossario.tscn"
 exit2_spawn = "porta"
-exit2_requires = "matriarca"
-exit2_locked_dialogue = "porta_ninho"
+exit2_requires = ""
+exit2_locked_dialogue = ""
 
-lore_points = {"1": "sope_queimado", "2": "ossario", "3": "acampamento_capitao", "4": "trilha_ninho"}
+lore_points = {"1": "sope_queimado", "3": "acampamento_capitao"}
 item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2", "sucata_temperada:3"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]

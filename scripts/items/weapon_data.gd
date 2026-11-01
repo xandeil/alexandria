@@ -81,7 +81,7 @@ func letter(attribute: String) -> String:
 ## que não diz o próprio peso usa o da classe.
 const CLASS_WEIGHT := {
 	"Punhos": 0.0, "Adaga": 1.5, "Adagas": 2.5, "Arco": 2.5, "Espada": 3.0, "Lança": 4.0,
-	"Besta": 5.0, "Machado": 6.0, "Espada Grande": 8.0, "Martelo": 9.0,
+	"Besta": 5.0, "Machado": 6.0, "Chicote": 7.0, "Espada Grande": 8.0, "Martelo": 9.0,
 }
 
 

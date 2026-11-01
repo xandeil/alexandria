@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/bosses/mae_faminta.gd" id="1_s"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/mae_esporos_frames.tres" id="2_frames"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
 [ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
-[ext_resource type="Resource" path="res://data/bosses/mae_faminta.tres" id="10_data"]
 [ext_resource type="Script" path="res://scripts/bosses/telegraph_drawer.gd" id="20_tel"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
@@ -27,9 +26,9 @@ collision_layer = 4
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_s")
-data = ExtResource("10_data")
+shows_boss_bar = false
 wake_distance = 120.0
-memory_reward = 550
+memory_reward = 220
 move_speed = 0.0
 max_poise = 120.0
 stagger_time = 1.4
@@ -78,5 +77,5 @@ shape = SubResource("RectangleShape2D_hurt")
 
 [node name="Stats" type="Node" parent="."]
 script = ExtResource("5_stats")
-base_health = 420.0
+base_health = 300.0
 health_per_vitalidade = 0.0

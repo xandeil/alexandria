@@ -560,7 +560,7 @@
 		"nome": "Trilha do Ninho",
 		"falas": [
 			"Uma trilha estreita sobe para o topo, entre paredes de rocha derretida.",
-			"Algo enorme está deitado atravessado no caminho, respirando fumaça: a Matriarca guarda a subida."
+			"Dragonoides acampam no caminho, de lança em pé: o Capitão guarda a subida."
 		]
 	},
 	"sope_queimado": {
@@ -1006,13 +1006,6 @@
 			"Nº 264. Vazia. Ainda morna."
 		]
 	},
-	"placa_montanha_2": {
-		"nome": "Placa",
-		"falas": [
-			"Nº 630. Vazia. Ainda morna.",
-			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
-		]
-	},
 	"placa_dominio_1": {
 		"nome": "Placa",
 		"falas": [
@@ -1228,6 +1221,33 @@
 		"falas": [
 			"Uma porta de madeira, fechada por fios de seiva.",
 			"Atrás dela, cheiro de banquete. Algo se mexe nos fios."
+		]
+	},
+	"placa_montanha_ossario_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 630. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"soldado_queimado": {
+		"nome": "Soldado queimado",
+		"falas": [
+			"Ele não recuou. O escudo também não."
+		]
+	},
+	"trilha_trancada": {
+		"nome": "Trilha estreita",
+		"falas": [
+			"Uma trilha sobe pela rocha, fechada por pedras soltas.",
+			"Lá de cima dá para empurrar. Daqui, não."
+		]
+	},
+	"ossario_porta_fechada": {
+		"nome": "Saída do Ossário",
+		"falas": [
+			"Ossos empilhados fecham a passagem.",
+			"Alguma coisa grande dorme em cima deles."
 		]
 	}
 }

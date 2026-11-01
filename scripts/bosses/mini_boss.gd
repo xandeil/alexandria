@@ -24,6 +24,10 @@ signal fight_reset(boss: Boss)
 ## vida cheia e acordar de novo em loop — a barra "piscava" e enchia sozinha
 ## (v0.30.7, feedback: "a barra do Sargento bugou quando me afastei").
 const WAKE_MARGIN := 50.0
+## v0.35: falso = INIMIGO COMUM forte feito de um mini-chefe reaproveitado
+## (Mãe Faminta, Couraça Queimada...): sem barra de chefe, sem registro no
+## save, renasce ao descansar como qualquer inimigo.
+@export var shows_boss_bar := true
 
 var _away_time := 0.0
 
@@ -104,6 +108,8 @@ func _defeat(last_words: String = "") -> void:
 		Fx.memory_motes(global_position + Vector2(0, -10), target, 14)
 	if data:
 		Game.mark_boss_defeated(data.id)
+	if not shows_boss_bar:
+		defeated.emit(self)  # inimigo comum: a fase anota a morte (renasce ao descansar)
 	Sfx.play(&"boss_phase", -4.0)
 	Fx.slow_motion(0.3, 0.5)
 	fight_won.emit(self)

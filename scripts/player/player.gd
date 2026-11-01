@@ -1186,8 +1186,8 @@ func _on_hit_landed(target: Hurtbox, info: HitInfo) -> void:
 		if _attack_hand == &"ambas":
 			_left_skill.on_hit(self, target, info, _current_attack)
 	make_noise(noise_hit)
-	if Game.has_item("funil_socorro"):  # v0.35: o Funil de Socorro devolve um pouco de vida
-		stats.heal(stats.max_health * Game.FUNNEL_HEAL_RATIO)
+	if Game.has_item("botao_socorro"):  # v0.35: o Botão de Socorro devolve um pouco de vida
+		stats.heal(stats.max_health * Game.SOCORRO_HEAL_RATIO)
 	Fx.hitstop(_current_attack.hitstop)
 	Fx.shake(_current_attack.shake, 0.12)
 	Fx.vibrate(35 if _current_attack.is_heavy else 18)

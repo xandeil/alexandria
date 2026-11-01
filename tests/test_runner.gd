@@ -59,6 +59,9 @@ const SALA_DANCARINA := "res://scenes/world/forjas_dancarina.tscn"
 const DESPENSA := "res://scenes/world/raizes_despensa.tscn"
 const VARANDA := "res://scenes/world/raizes_varanda.tscn"
 const ENFERMARIA := "res://scenes/world/raizes_enfermaria.tscn"
+const OSSARIO := "res://scenes/world/montanha_ossario.tscn"
+const ENCOSTA := "res://scenes/world/montanha_encosta.tscn"
+const FOSSO := "res://scenes/world/montanha_fosso.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -156,6 +159,9 @@ func _ready() -> void:
 		"test_feast_tables",
 		"test_socorro",
 		"test_mabel_inhale",
+		"test_montanha_expansion",
+		"test_ultimo_igual",
+		"test_rachel_dive",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -2908,7 +2914,7 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, DESPENSA, VARANDA, ENFERMARIA, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
+	for path in [RAIZES, DESPENSA, VARANDA, ENFERMARIA, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, OSSARIO, ENCOSTA, FOSSO, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
 		if path == NUCLEO:
 			Game.defeated_bosses.assign(Game.SEVEN)
 		if path == MONTANHA:
@@ -2935,7 +2941,8 @@ func test_new_areas_build() -> void:
 			for node in level.entities.get_children():
 				if node.get_script():
 					found[(node.get_script() as Script).get_global_name()] = true
-			for name in ["DragonoideAtirador", "DragaoBestial", "DragaoAlado", "BrasaViva", "CapitaoDragonoide", "MatriarcaBestial", "RestChamber"]:
+			# v0.35: a Matriarca mudou para o Ossário e o Capitão para a Encosta.
+			for name in ["DragonoideAtirador", "DragaoBestial", "DragaoAlado", "BrasaViva", "CouracaAndante", "RestChamber"]:
 				check(found.has(name), "Montanha: tem %s" % name)
 		if path == DOMINIO:
 			check(level.ice_cells.size() > 300, "Domínio: gelo registrado (%d)" % level.ice_cells.size())
@@ -3428,7 +3435,10 @@ func test_mountain_gate() -> void:
 		if node is AreaExit and (node as AreaExit).target_scene == VIADUTO and (node as AreaExit).target_spawn == "escalada":
 			back = true
 	check(back, "a Montanha leva de volta à ponte da Cidade")
-	check(find_npc("porta_ninho") != null, "antes da Matriarca: a trilha do Ninho está fechada")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ENCOSTA, "porta")  # v0.35: a trilha do Ninho sai da Encosta
+	check(find_npc("porta_ninho") != null, "antes do Capitão: a trilha do Ninho está fechada")
 	check(level._dialogue_variant("vendedor") == "vendedor_mabel", "o Vendedor ainda fala de Mabel")
 	Game.defeated_bosses.append("capitao")
 	check(level._dialogue_variant("vendedor") == "vendedor_capitao", "depois do Capitão: o Vendedor lembra da tropa")
@@ -5584,7 +5594,7 @@ func test_free_map_layout() -> void:
 	var expected := {
 		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
 		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "forjas_fornalha", "forjas_dancarina"],
-		"raizes": ["forjas_passarela", "raizes_despensa", "raizes_enfermaria"], "dominio": ["forjas_passarela", "bosque_borda"], "montanha": ["cidade_viaduto", "bosque"],
+		"raizes": ["forjas_passarela", "raizes_despensa", "raizes_enfermaria"], "dominio": ["forjas_passarela", "bosque_borda"], "montanha": ["cidade_viaduto", "montanha_ossario", "montanha_fosso"],
 		"bosque": ["teatro", "bosque_dormitorio", "bosque_sino"],
 	}
 	for area: String in expected:
@@ -5597,10 +5607,10 @@ func test_free_map_layout() -> void:
 	# Atalhos: trancados do lado de cá, abertos para sempre por quem passa do lado de lá.
 	level = await open_level("res://scenes/world/bosque.tscn", "camara")
 	open = _open_destinations()
-	check(not open.has("dominio") and not open.has("montanha"), "Bosque: galho e espinha começam trancados")
+	check(not open.has("dominio") and not open.has("montanha_encosta"), "Bosque: galho e espinha começam trancados")
 	level.queue_free()
 	await frames(2)
-	level = await open_level("res://scenes/world/montanha.tscn", "camara")
+	level = await open_level(ENCOSTA, "porta")  # v0.35: a espinha fica na Encosta
 	var spine: AreaExit = _world.find_children("*", "AreaExit", true, false).filter(
 		func(e): return e.target_scene.ends_with("bosque.tscn"))[0]
 	check(spine.opens_flag == "atalho_espinha", "a espinha, do lado da Montanha, abre o atalho")
@@ -5612,7 +5622,7 @@ func test_free_map_layout() -> void:
 	await frames(2)
 	level = await open_level("res://scenes/world/bosque.tscn", "camara")
 	open = _open_destinations()
-	check(open.has("montanha") and not open.has("dominio"), "no Bosque, a espinha abriu e o galho continua trancado")
+	check(open.has("montanha_encosta") and not open.has("dominio"), "no Bosque, a espinha abriu e o galho continua trancado")
 	level.queue_free()
 	await frames(2)
 	Game.respawn()
@@ -5647,7 +5657,7 @@ func test_second_capsule_per_island() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
 	# A Cidade e o Bosque (v0.35) guardam a 2ª Câmara numa fase anexa: testadas à parte.
-	for area in ["montanha", "dominio"]:
+	for area in ["dominio"]:
 		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
 		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
 		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
@@ -5657,6 +5667,12 @@ func test_second_capsule_per_island() -> void:
 		level.queue_free()
 		await frames(2)
 	check(Game.capsule_info(FORNALHA)["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
+	var bones := await open_level(OSSARIO, "camara")
+	check(bones.chamber_for("camara") != null and find_npc("placa_montanha_ossario_1") != null, "Ossário: a 2ª Câmara da Montanha, com placa")
+	check(bones.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["montanha"]).size() == 1,
+		"Ossário: o pertence da Montanha")
+	bones.queue_free()
+	await frames(2)
 	var pantry := await open_level(DESPENSA, "camara")
 	check(pantry.chamber_for("camara") != null and find_npc("placa_raizes_despensa_1") != null, "Despensa: a 2ª Câmara das Raízes, com placa")
 	check(pantry.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["raizes"]).size() == 1,
@@ -6185,7 +6201,9 @@ func test_armor_in_world_and_menu() -> void:
 	# v0.34 (Etapa 4): cada peça dos 6 conjuntos de chefe está em UM lugar só —
 	# baú (capacete, luvas), mímico (peitoral), 1º mini-chefe (calça) e outra
 	# ilha (botas). A Vigília continua inteira no Teatro.
-	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio"]
+	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio",
+		"cidade_quartel", "cidade_viaduto", "bosque_dormitorio", "bosque_borda", "forjas_fornalha", "forjas_passarela",
+		"raizes_despensa", "raizes_varanda", "montanha_ossario", "montanha_encosta"]  # v0.35: as fases anexas também
 	var found := {}
 	for region in regions:
 		var level := (load("res://scenes/world/%s.tscn" % region) as PackedScene).instantiate() as Level
@@ -6257,7 +6275,7 @@ func _kill_calf(calf: BezerroDourado) -> void:
 
 func test_farm_calf_seven_hits() -> void:
 	Game.reset_progress()
-	var level := await open_level("res://scenes/world/montanha.tscn", "camara")
+	var level := await open_level(ENCOSTA, "porta")  # v0.35: o farm fica na Encosta
 	var farm := level.get_node_or_null("Farm") as FarmSpot
 	check(farm != null and is_instance_valid(farm.calf), "a Montanha tem o farm, com o Bezerro pastando")
 	var calf := farm.calf
@@ -6295,8 +6313,9 @@ func test_farm_calf_seven_hits() -> void:
 
 func test_farm_minotaur_cycle() -> void:
 	Game.reset_progress()
-	var level := await open_level("res://scenes/world/montanha.tscn", "camara")
+	var level := await open_level(ENCOSTA, "porta")
 	var farm := level.get_node("Farm") as FarmSpot
+	level.player.global_position = farm.field.get_center()  # v0.35: o campo fica do outro lado do rio, na Encosta
 	_kill_calf(farm.calf)
 	var came := await wait_for(func(): return farm.is_minotaur_active() and farm.minotaur.active, 300)
 	check(came, "o bezerro caiu: o Minotauro despenca e a luta começa")
@@ -6332,7 +6351,7 @@ func test_farm_minotaur_cycle() -> void:
 	level.queue_free()
 	await frames(2)
 	# Morreu? A fase recarrega e começa com o bezerro.
-	level = await open_level("res://scenes/world/montanha.tscn", "camara")
+	level = await open_level(ENCOSTA, "porta")
 	farm = level.get_node("Farm") as FarmSpot
 	check(is_instance_valid(farm.calf) and not farm.is_minotaur_active(), "fase nova: só o bezerro")
 	level.queue_free()
@@ -7162,7 +7181,15 @@ func test_raizes_expansion() -> void:
 	Game.defeated_bosses.append("banqueteiro")
 	level = await open_level(VARANDA, "porta")
 	check(_minis_named("Ninhada").size() == 1, "Varanda: a Ninhada")
-	check(_minis_named("MaeFaminta").size() == 1, "Varanda: a Mãe Faminta")
+	var hungry: Array = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is MaeFaminta)
+	check(hungry.size() == 1 and not (hungry[0] as MiniBoss).shows_boss_bar, "Varanda: a Mãe Faminta, inimiga comum (sem barra de chefe)")
+	check(_minis_named("MaeFaminta").is_empty(), "ela não entra na lista de mini-chefes")
+	var hungry_index: int = ((hungry[0] as Enemy).defeated.get_connections()[0]["callable"] as Callable).get_bound_arguments()[0]
+	(hungry[0] as Enemy).stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_slain(VARANDA, hungry_index) and not Game.is_boss_defeated("mae_faminta"), "morta: fica morta até descansar (e não vira 'chefe vencido')")
+	Game.slain = {}
+	check(not Game.is_slain(VARANDA, hungry_index), "descansou: ela volta")
 	check(find_npc("varanda_porta_fechada") != null and _exit_to(ARENA_MABEL) == null, "o salão de Mabel fecha até a Ninhada cair")
 	var tunnel := false
 	var vein: AreaExit = null
@@ -7231,11 +7258,11 @@ func test_socorro() -> void:
 	check(nurse.phase == 2, "Ronda da Noite")
 	nurse.stats.take_damage(99999.0)
 	await frames(3)
-	check(Game.is_boss_defeated("socorro") and Game.has_item("funil_socorro"), "vencida: o Funil de Socorro")
-	# O Funil: cada golpe devolve vida; a morte cobra mais memórias.
+	check(Game.is_boss_defeated("socorro") and Game.has_item("botao_socorro"), "vencida: o Botão de Socorro")
+	# O Botão de Socorro: cada golpe devolve vida; a morte cobra mais memórias.
 	Game.memories = 1000
 	var lost := Game.register_death()
-	check(lost == int(floor(1000 * Game.MEMORY_LOSS_RATIO * Game.FUNNEL_LOSS_MULTIPLIER)), "com o Funil, a morte cobra mais (%d)" % lost)
+	check(lost == int(floor(1000 * Game.MEMORY_LOSS_RATIO * Game.SOCORRO_LOSS_MULTIPLIER)), "com o Botão de Socorro, a morte cobra mais (%d)" % lost)
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
@@ -7269,3 +7296,103 @@ func test_mabel_inhale() -> void:
 	await frames(2)
 	Game.reset_progress()
 
+
+# --- v0.35 · Etapa 6: a Montanha expandida --------------------------------------------
+
+func test_montanha_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(MONTANHA, "porta")
+	check(_exit_to(OSSARIO) != null, "Floresta: a descida para o Ossário está aberta")
+	check(_exit_to(FOSSO) != null and level.spawns.has("fosso"), "Floresta: o Fosso das Correntes")
+	check(find_npc("soldado_queimado") != null, "o soldado queimado, com o escudo")
+	var burnt: Array = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n.get_script().get_global_name() == "CouracaAndante")
+	check(burnt.size() == 2 and burnt.all(func(c): return not (c as MiniBoss).shows_boss_bar), "duas Couraças Queimadas, inimigas comuns (%d)" % burnt.size())
+	level.queue_free()
+	await frames(2)
+	level = await open_level(OSSARIO, "porta")
+	check(_minis_named("MatriarcaBestial").size() == 1, "Ossário: a Matriarca")
+	var cracks := get_tree().get_nodes_in_group("traps").filter(func(t): return t is PeriodicTrap and t.kind == "lava")
+	check(cracks.size() == 3, "Ossário: três fileiras de fendas de lava (%d)" % cracks.size())
+	check(find_npc("ossario_porta_fechada") != null and _exit_to(ENCOSTA) == null, "a Encosta fecha até a Matriarca cair")
+	check(find_npc("trilha_trancada") != null, "a trilha abre do outro lado")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("matriarca")
+	level = await open_level(ENCOSTA, "porta")
+	check(_minis_named("CapitaoDragonoide").size() == 1, "Encosta: o Capitão")
+	check(level.get_node_or_null("Farm") != null, "Encosta: o Bezerro e o Minotauro")
+	check(level.entities.get_children().any(func(n): return n is ItemPickup and n.item_id == "botas_caelis"), "as botas de Caelis, na espinha")
+	var trail: AreaExit = null
+	var spine := false
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_trilha":
+			trail = node
+		if (node as AreaExit).opens_flag == "atalho_espinha":
+			spine = true
+	check(spine and trail != null, "Encosta: a espinha de dragão e a trilha até o Ossário")
+	Game.scene_changes_enabled = false
+	trail._armed = true
+	trail._on_body_entered(level.player)
+	check(Game.has_flag("atalho_trilha"), "desceu pela trilha: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(OSSARIO, "trilha")
+	check(find_npc("trilha_trancada") == null and level.spawns.has("trilha"), "o Ossário sobe pela trilha até a Encosta")
+	level.queue_free()
+	await frames(2)
+	check((load(ARENA_RACHEL) as PackedScene).instantiate().get("exit_scene") == ENCOSTA, "o Ninho volta para a Encosta")
+	Game.reset_progress()
+
+
+func test_ultimo_igual() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(FOSSO, "porta")
+	var dragons := _minis_named("UltimoIgual")
+	check(dragons.size() == 1, "o Fosso, com O Último Igual")
+	var dragon := dragons[0] as UltimoIgual
+	dragon.target = level.player
+	dragon.start_fight()
+	check(dragon.chained, "acorrentado")
+	dragon.global_position = dragon.home_position + Vector2(dragon.chain_radius + 60.0, 0)
+	dragon.clamp_to_chain()
+	check(dragon.global_position.distance_to(dragon.home_position) <= dragon.chain_radius + 0.5, "não passa do raio da corrente")
+	dragon.stats.take_damage(dragon.stats.max_health * 0.55)
+	dragon._fight(0.016)
+	check(not dragon.chained, "metade da vida: a corrente arrebenta")
+	dragon.global_position = dragon.home_position + Vector2(dragon.chain_radius + 60.0, 0)
+	dragon.clamp_to_chain()
+	check(dragon.global_position.distance_to(dragon.home_position) > dragon.chain_radius + 30.0, "livre: vai aonde quiser")
+	dragon.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("ultimo_igual") and Game.has_item("corrente_igual"), "vencido: a Corrente do Igual")
+	var whip := Items.get_weapon("corrente_igual")
+	check(whip != null and whip.weapon_class == "Chicote" and whip.weight() >= 7.0, "uma arma-chicote pesada")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_rachel_dive() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "capitao"])
+	var level := await open_level(ARENA_RACHEL, "porta")
+	var rachel := level.boss_arena.boss as RachelCaelis
+	level.player.global_position = rachel.global_position + Vector2(0, 90)
+	await seconds(0.6)
+	rachel.stats.take_damage(rachel.stats.max_health * 0.55)
+	await frames(3)
+	check(rachel.phase == 2 and rachel.crumbled >= 2, "metade da vida: fase 2 (e a borda já cedeu)")
+	level.player.hurtbox.invulnerable = true
+	rachel.start_dive()
+	await seconds(rachel.dive_fly_time + 0.2)
+	check(rachel.mode == RachelCaelis.Mode.UNDER and not rachel.visual.visible and rachel.hurtbox.invulnerable, "mergulhou pela borda: some")
+	var near_edge := rachel.edge_pits.any(func(p): return is_instance_valid(p) and p.global_position.distance_to(rachel.emerge_at) < 1.0)
+	check(near_edge, "vai sair por uma beirada desabada")
+	check(rachel.telegraph.circle_visible, "o círculo no chão avisa onde")
+	await seconds(rachel.dive_under_time + 0.1)
+	check(rachel.visual.visible and not rachel.hurtbox.invulnerable and rachel.global_position.distance_to(rachel.emerge_at) < 1.0, "irrompe de baixo")
+	level.player.hurtbox.invulnerable = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()

@@ -79,7 +79,7 @@ const THEME_ENTITIES := {
 		"U": {"miniboss": "banqueteiro", "scene": preload("res://scenes/bosses/banqueteiro.tscn")},
 		"0": {"miniboss": "ninhada", "scene": preload("res://scenes/bosses/ninhada.tscn")},
 		# v0.35: a Mãe Faminta (a Mãe dos Esporos reaproveitada) e Socorro, opcional.
-		"E": {"miniboss": "mae_faminta", "scene": preload("res://scenes/bosses/mae_faminta.tscn")},
+		"E": {"enemy": preload("res://scenes/bosses/mae_faminta.tscn")},  # inimiga comum forte (renasce)
 		"N": {"miniboss": "socorro", "scene": preload("res://scenes/bosses/socorro.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/mabel.tscn"), "memorial": {"dialogue": "mesa_de_mabel",
 			"name": "Mesa posta", "texture": "res://assets/props/mabel_table.png"}},
@@ -104,6 +104,9 @@ const THEME_ENTITIES := {
 		"?": {"enemy": preload("res://scenes/enemies/brasa_viva.tscn"), "swarm": 2},
 		"U": {"miniboss": "capitao", "scene": preload("res://scenes/bosses/capitao_dragonoide.tscn")},
 		"0": {"miniboss": "matriarca", "scene": preload("res://scenes/bosses/matriarca_bestial.tscn")},
+		# v0.35: a Couraça Queimada (inimiga comum forte) e O Último Igual (opcional).
+		"E": {"enemy": preload("res://scenes/bosses/couraca_queimada.tscn")},
+		"N": {"miniboss": "ultimo_igual", "scene": preload("res://scenes/bosses/ultimo_igual.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/rachel.tscn"), "memorial": {"dialogue": "escama_de_rachel",
 			"name": "Escama do Orgulho", "texture": "res://assets/props/scale_memorial.png", "at_death": true}},
 	},
@@ -1046,7 +1049,7 @@ const KEEPSAKES := {
 }
 ## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
 ## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
-const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas", "raizes_despensa": "raizes"}
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas", "raizes_despensa": "raizes", "montanha_ossario": "montanha"}
 
 
 ## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
@@ -1271,7 +1274,9 @@ func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 	enemy.position = spawn["at"]
 	if spawn.has("variant"):
 		enemy.set("variant", spawn["variant"])
-	if enemy is Enemy and not (enemy is Boss):
+	# Comum = inimigo de verdade OU mini-chefe reaproveitado sem barra (v0.35).
+	var common := enemy is Enemy and (not (enemy is Boss) or (enemy is MiniBoss and not (enemy as MiniBoss).shows_boss_bar))
+	if common:
 		(enemy as Enemy).area_power = enemy_power  # antes do _ready (vida já nasce maior)
 		if theme == "bosque":  # v0.35: o Sino de Despertar ainda toca?
 			(enemy as Enemy).aggro_range *= SinoDespertar.bosque_aggro_scale()
@@ -1279,7 +1284,7 @@ func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 	entities.add_child(enemy)
 	# Inimigo comum morto fica morto até descansar (Game.slain). Chefes e
 	# mini-chefes já têm a regra deles (Game.defeated_bosses).
-	if index >= 0 and enemy is Enemy and not (enemy is Boss):
+	if index >= 0 and common:
 		(enemy as Enemy).defeated.connect(_on_enemy_slain.bind(index))
 	return enemy
 
@@ -1530,7 +1535,7 @@ func _connect_world() -> void:
 	for chamber in rest_chambers:
 		chamber.rest_requested.connect(_on_rest_requested)
 	for node in entities.get_children():
-		if node is MiniBoss:
+		if node is MiniBoss and (node as MiniBoss).shows_boss_bar:
 			register_miniboss(node as MiniBoss)
 		if node is VigiaQueDormiu:
 			(node as VigiaQueDormiu).sneaked_past.connect(func(): hud.toast("O Vigia não acordou. Você passou em silêncio."))

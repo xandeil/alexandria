@@ -22,7 +22,7 @@ extends Boss
 ##     pedras da arena — o esconderijo de agora não é o de daqui a pouco.
 ##   • A cada quarto da vida perdida, a borda da arena desaba.
 
-enum Mode { SLEEP, DECIDE, APPROACH, ATTACK, BREATH, TAIL, ROAR, DEAD }
+enum Mode { SLEEP, DECIDE, APPROACH, ATTACK, BREATH, TAIL, ROAR, DEAD, DIVE, UNDER }
 
 const SPEECH_WAKE := "Quem ousa acordar a dona deste mundo?"
 const SPEECH_CRUMBLE := ["Ajoelhe-se. O chão já está aprendendo.", "Tudo isto é meu. Até o abismo.", "Você ainda está de pé? Que insolência."]
@@ -59,6 +59,16 @@ const SPEECH_DEFEAT := "...Lá embaixo... ninguém olhava para mim. Aqui... tudo
 @export var crumble_step := 28.0
 @export var crumble_spacing := 22.0
 
+@export_group("Fase 2 — O mergulho (v0.35)")
+## Na metade da vida ("Tudo isto é meu. Até o abismo."), ela mergulha pela
+## borda e passa a atacar DE BAIXO: some, o círculo no chão mostra por qual
+## beirada desabada ela vai sair, e ela irrompe dali.
+@export var dive_every := 8.0
+@export var dive_fly_time := 0.6
+@export var dive_under_time := 1.5
+@export var emerge_radius := 46.0
+@export var emerge_damage := 38.0
+
 @onready var telegraph: TelegraphDrawer = $Telegraph
 
 var mode := Mode.SLEEP
@@ -78,6 +88,11 @@ var _patch_timer := 0.0
 var _burn_timer := 0.0
 var _tail_at := Vector2.ZERO
 var _combo: Array[AttackData] = []
+var phase := 1
+var emerge_at := Vector2.ZERO
+var _dive_timer := 0.0
+var _dive_from := Vector2.ZERO
+var _dive_edge := Vector2.ZERO
 
 
 func enter_arena(_landing: Vector2) -> void:
@@ -120,9 +135,13 @@ func _physics_process(delta: float) -> void:
 	target = find_target()
 	if active:
 		_check_crumble()
+		if phase == 1 and stats.health_ratio() <= 0.5:
+			phase = 2
+			_dive_timer = 2.5
 	if active and target and not target.is_dead():
 		_breath_timer -= delta
 		_roar_timer -= delta
+		_dive_timer -= delta
 		match mode:
 			Mode.DECIDE:
 				_decide(delta)
@@ -136,6 +155,10 @@ func _physics_process(delta: float) -> void:
 				_tail(delta)
 			Mode.ROAR:
 				_roar(delta)
+			Mode.DIVE:
+				_dive(delta)
+			Mode.UNDER:
+				_under(delta)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, acceleration * delta)
 	move_and_slide()
@@ -155,6 +178,9 @@ func _decide(delta: float) -> void:
 		_start_tail()
 		return
 	facing = to_target.normalized()
+	if phase == 2 and _dive_timer <= 0.0 and arena_rect.size != Vector2.ZERO:
+		start_dive()
+		return
 	if _roar_timer <= 0.0:
 		_start_roar()
 		return
@@ -326,6 +352,92 @@ func roar() -> void:
 			cover.smash()
 
 
+# --- Fase 2: mergulho pela borda e ataque de baixo -------------------------------------
+
+func start_dive() -> void:
+	_dive_timer = dive_every
+	_combo.clear()
+	_runner.cancel()
+	hitbox.deactivate()
+	_dive_from = global_position
+	_dive_edge = _nearest_edge(global_position)
+	_set_mode(Mode.DIVE)
+	Sfx.play(&"roar", -2.0)
+
+
+func _dive(_delta: float) -> void:
+	velocity = Vector2.ZERO
+	var t := clampf(_mode_time / dive_fly_time, 0.0, 1.0)
+	global_position = _dive_from.lerp(_dive_edge, t)
+	if t >= 1.0:
+		# Sumiu pela borda (some o corpo; o aviso no chão continua visível).
+		_set_body_hidden(true)
+		hurtbox.invulnerable = true
+		set_collision_layer_value(3, false)
+		emerge_at = choose_emerge_point()
+		Sfx.play(&"crumble", 0.0)
+		_set_mode(Mode.UNDER)
+
+
+func _under(_delta: float) -> void:
+	velocity = Vector2.ZERO
+	if _mode_time >= dive_under_time:
+		emerge()
+
+
+## Por onde ela sai: a beirada desabada mais perto de você (ou a borda, se
+## nada desabou ainda).
+func choose_emerge_point() -> Vector2:
+	var best := _nearest_edge(target.global_position if target else global_position)
+	var best_distance := INF
+	for pit in edge_pits:
+		if is_instance_valid(pit) and target:
+			var d := pit.global_position.distance_to(target.global_position)
+			if d < best_distance:
+				best_distance = d
+				best = pit.global_position
+	return best
+
+
+func emerge() -> void:
+	global_position = emerge_at
+	_set_body_hidden(false)
+	hurtbox.invulnerable = false
+	set_collision_layer_value(3, true)
+	Sfx.play(&"roar", 2.0)
+	Sfx.play(&"quake", -2.0)
+	Fx.shake(6.0, 0.5)
+	Fx.dust(emerge_at, 14)
+	if target and not target.is_dead() and target.global_position.distance_to(emerge_at) <= emerge_radius:
+		var info := HitInfo.create(emerge_damage, emerge_at, target.global_position)
+		info.knockback = 240.0
+		info.unblockable = true
+		info.attack_name = "Do abismo"
+		target.hurtbox.receive_hit(info)
+	_go_decide(0.6)
+
+
+func _set_body_hidden(hidden: bool) -> void:
+	visual.visible = not hidden
+	var shadow := get_node_or_null("Shadow") as CanvasItem
+	if shadow:
+		shadow.visible = not hidden
+
+
+func is_under() -> bool:
+	return mode == Mode.UNDER or (mode == Mode.DIVE and not visual.visible)
+
+
+func _nearest_edge(point: Vector2) -> Vector2:
+	var r := arena_rect.grow(-14.0)
+	var candidates := [Vector2(r.position.x, point.y), Vector2(r.end.x, point.y), Vector2(point.x, r.position.y), Vector2(point.x, r.end.y)]
+	var best: Vector2 = candidates[0]
+	for c: Vector2 in candidates:
+		if c.distance_to(point) < best.distance_to(point):
+			best = c
+	return Vector2(clampf(best.x, r.position.x, r.end.x), clampf(best.y, r.position.y, r.end.y))
+
+
 # --- A arena desmorona ------------------------------------------------------------------
 
 func _check_crumble() -> void:
@@ -446,6 +558,11 @@ func _update_telegraph() -> void:
 		telegraph.circle_center = _tail_at
 		telegraph.circle_radius = tail_radius
 		telegraph.circle_progress = _mode_time / tail_windup
+	elif mode == Mode.UNDER:
+		telegraph.circle_visible = true
+		telegraph.circle_center = emerge_at
+		telegraph.circle_radius = emerge_radius
+		telegraph.circle_progress = _mode_time / dive_under_time
 	elif mode == Mode.ROAR and _mode_time < roar_windup:
 		telegraph.circle_visible = true
 		telegraph.circle_center = global_position
