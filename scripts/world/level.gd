@@ -78,6 +78,9 @@ const THEME_ENTITIES := {
 		"?": {"enemy": preload("res://scenes/enemies/larva_seiva.tscn"), "swarm": 3},
 		"U": {"miniboss": "banqueteiro", "scene": preload("res://scenes/bosses/banqueteiro.tscn")},
 		"0": {"miniboss": "ninhada", "scene": preload("res://scenes/bosses/ninhada.tscn")},
+		# v0.35: a Mãe Faminta (a Mãe dos Esporos reaproveitada) e Socorro, opcional.
+		"E": {"miniboss": "mae_faminta", "scene": preload("res://scenes/bosses/mae_faminta.tscn")},
+		"N": {"miniboss": "socorro", "scene": preload("res://scenes/bosses/socorro.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/mabel.tscn"), "memorial": {"dialogue": "mesa_de_mabel",
 			"name": "Mesa posta", "texture": "res://assets/props/mabel_table.png"}},
 	},
@@ -609,13 +612,17 @@ func _build_listed() -> void:
 			var spot := _make_npc(str(def["dialogue"]), str(def.get("name", "")), "", 1, at, "Examinar")
 			spot.get_node("CollisionShape2D").disabled = true
 		elif def.has("dialogue"):
-			_place_object({"dialogue": def["dialogue"], "name": def.get("name", ""), "texture": def["texture"],
-				"prompt": "Examinar"}, at)
+			var placed := _place_object({"dialogue": def["dialogue"], "name": def.get("name", ""), "texture": def["texture"],
+				"prompt": str(def.get("prompt", "Examinar"))}, at)
+			if def.has("group"):
+				placed.add_to_group(StringName(str(def["group"])))
 		else:
 			var sprite := Sprite2D.new()
 			sprite.texture = load(str(def["texture"]))
 			sprite.offset = Vector2(0, -sprite.texture.get_height() * 0.5 + 1)
 			sprite.position = at
+			if def.has("group"):
+				sprite.add_to_group(StringName(str(def["group"])))  # ex.: "mesas" (somem na fase 2 da Mabel)
 			entities.add_child(sprite)
 	for zone in zones:
 		for cell: Vector2i in zone.get("triggers", []):
@@ -1039,7 +1046,7 @@ const KEEPSAKES := {
 }
 ## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
 ## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
-const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas"}
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas", "raizes_despensa": "raizes"}
 
 
 ## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
@@ -1297,6 +1304,28 @@ func _on_enemy_slain(enemy: Enemy, index: int) -> void:
 	# O Corneteiro vencido (v0.35): os soldados da Cidade não voltam mais.
 	var forever := theme == "cidade" and enemy is SoldadoRemendado and Game.has_flag("corneteiro_morto")
 	Game.mark_slain(scene_file_path, index, forever)
+
+
+## MESA POSTA (v0.35, Etapa 6 — Raízes): comer cura bem, mas a sineta toca e
+## todos os inimigos da zona vêm (os Inchados). Uma vez por visita: o prato
+## enche de novo quando a fase recarrega. Devolve quanto curou.
+const TABLE_HEAL := 0.4
+var _tables_eaten := {}
+
+
+func eat_at_table(zone_id: String) -> float:
+	if _tables_eaten.has(zone_id) or player == null:
+		hud.toast("O prato está vazio.")
+		return 0.0
+	_tables_eaten[zone_id] = true
+	var before := player.stats.health
+	player.stats.heal(player.stats.max_health * TABLE_HEAL)
+	Sfx.play(&"gulp", -4.0)
+	Sfx.play(&"bell", -2.0)
+	Fx.float_text(player.global_position + Vector2(-10, -30), "plim!", Color(1.0, 0.95, 0.7), 8)
+	ZoneTrigger.alert_zone(get_tree(), zone_id, 10.0)
+	player.make_noise(400.0)
+	return player.stats.health - before
 
 
 ## Ponto de inspeção (lore pelo cenário): invisível, não bloqueia, "Examinar".
@@ -1670,6 +1699,7 @@ func _on_dialogue_action(action: String) -> void:
 	#   "lute_comigo:<aliado>"   o aliado entra na próxima luta de chefe
 	#   "nome:<personagem>:sim"  você disse o seu nome a ele (nome_dito_<personagem>)
 	#   "dar:<item>"             entrega um item (sai da bolsa; liga a flag "dado_<item>")
+	#   "comer:<zona>"           MESA POSTA: cura, mas a sineta chama a zona (Raízes)
 	#   várias de uma vez, separadas por ";"  ("flag:x;falar:y")
 	if action.contains(";"):
 		for part in action.split(";"):
@@ -1690,6 +1720,9 @@ func _on_dialogue_action(action: String) -> void:
 			"lute_comigo":
 				Game.flags["%s_na_arena" % value] = true
 				hud.toast("Na próxima luta, vocês entram juntos.")
+				return
+			"comer":
+				eat_at_table(value)
 				return
 			"dar":
 				if Game.remove_item(value, 1):

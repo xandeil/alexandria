@@ -31,6 +31,7 @@ const CATALOG := {
 	# donos das cápsulas (um por ilha, ao lado da segunda Câmara).
 	"algo_quebrado": preload("res://data/items/algo_quebrado.tres"),
 	"caixa_musica_bronze": preload("res://data/items/caixa_musica_bronze.tres"),
+	"funil_socorro": preload("res://data/items/funil_socorro.tres"),
 	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
 	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
 	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),

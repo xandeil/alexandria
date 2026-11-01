@@ -1,0 +1,96 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/socorro.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://assets/sprites/socorro.png" id="2_tex"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/bosses/socorro.tres" id="8_data"]
+[ext_resource type="Resource" path="res://data/attacks/socorro_agulha.tres" id="9_a"]
+[ext_resource type="Resource" path="res://data/attacks/socorro_giro.tres" id="10_g"]
+
+[sub_resource type="AtlasTexture" id="Atlas_idle"]
+atlas = ExtResource("2_tex")
+region = Rect2(0, 0, 18, 20)
+
+[sub_resource type="AtlasTexture" id="Atlas_walk"]
+atlas = ExtResource("2_tex")
+region = Rect2(18, 0, 18, 20)
+
+[sub_resource type="AtlasTexture" id="Atlas_giro"]
+atlas = ExtResource("2_tex")
+region = Rect2(36, 0, 18, 20)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_s"]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_idle")}], "loop": true, "name": &"idle", "speed": 5.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_idle")}, {"duration": 1.0, "texture": SubResource("Atlas_walk")}], "loop": true, "name": &"walk", "speed": 6.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_giro")}, {"duration": 1.0, "texture": SubResource("Atlas_idle")}], "loop": true, "name": &"giro", "speed": 12.0}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 5.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 11.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(12, 18)
+
+[node name="Socorro" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+agulha = ExtResource("9_a")
+giro = ExtResource("10_g")
+data = ExtResource("8_data")
+wake_distance = 100.0
+memory_reward = 600
+move_speed = 62.0
+max_poise = 50.0
+stagger_time = 0.7
+knockback_taken = 0.4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("4_shadow")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = SubResource("SpriteFrames_s")
+animation = &"idle"
+offset = Vector2(0, -10)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -7)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+position = Vector2(13, 0)
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -9)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 360.0
+health_per_vitalidade = 0.0

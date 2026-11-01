@@ -55,6 +55,7 @@ As ações antigas continuam valendo: `loja`, `subir_nivel`, `desafiar_helena`..
 | `lute_comigo:lucia` | o aliado entra na próxima luta de chefe |
 | `nome:lucia:sim` | marca que você disse o seu nome a ele |
 | `dar:caixa_musica_bronze` | entrega um item (sai da bolsa e liga `dado_<item>`) |
+| `comer:mesa_1` | mesa posta: cura, mas a sineta chama todos os inimigos da zona `mesa_1` |
 | `a;b` | várias ações em sequência (ex.: `flag:x;falar:y`) |
 
 ## 4. Aliados (base `Ally`)

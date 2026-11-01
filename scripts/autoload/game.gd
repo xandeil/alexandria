@@ -119,6 +119,8 @@ const BOSS_REWARDS := {
 	"corneteiro": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"sino": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"dancarina": {"caixa_musica_bronze": 1, "sucata_temperada": 5},
+	"socorro": {"funil_socorro": 1, "sucata_temperada": 5},
+	"mae_faminta": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"governanta": {"lembranca_governanta": 1},
 	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
@@ -388,10 +390,18 @@ func try_level_up(attribute: String) -> bool:
 ## Registra uma morte e devolve quantas memórias foram perdidas.
 ## É chamada NO INSTANTE da morte (e salva na hora): fechar o app ou voltar ao
 ## título durante a animação não pode apagar a punição.
+## Funil de Socorro: quanto da vida máxima cada golpe seu devolve, e quanto
+## a morte cobra a mais.
+const FUNNEL_HEAL_RATIO := 0.02
+const FUNNEL_LOSS_MULTIPLIER := 1.5
+
+
 func register_death() -> int:
 	deaths += 1
 	vision_loss = mini(vision_loss + 1, MAX_VISION_LOSS)
-	var lost := int(floor(memories * MEMORY_LOSS_RATIO))
+	# Funil de Socorro (v0.35): cura a cada golpe, mas a morte cobra mais.
+	var ratio := MEMORY_LOSS_RATIO * (FUNNEL_LOSS_MULTIPLIER if has_item("funil_socorro") else 1.0)
+	var lost := int(floor(memories * minf(ratio, 1.0)))
 	memories -= lost
 	deaths_changed.emit(deaths)
 	vision_changed.emit(vision_loss)
@@ -710,7 +720,7 @@ const CAPSULES := [
 	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Salão das Estátuas", "island": "Forjas", "thumb": "forjas"},
 	{"scene": "res://scenes/world/forjas_fornalha.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Fornalha", "island": "Forjas", "thumb": "forjas"},
 	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Estufa 3", "island": "Raízes", "thumb": "raizes"},
-	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara_2", "name": "Raízes da Fome", "place": "Despensa", "island": "Raízes", "thumb": "raizes"},
+	{"scene": "res://scenes/world/raizes_despensa.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Despensa", "island": "Raízes", "thumb": "raizes"},
 	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Floresta de Carvão", "island": "Montanha", "thumb": "montanha"},
 	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara_2", "name": "Montanha Carbonizada", "place": "Ossário", "island": "Montanha", "thumb": "montanha"},
 	{"scene": "res://scenes/world/dominio.tscn", "spawn": "camara", "name": "Domínio Congelado", "place": "Lago da Mesa de Chá", "island": "Domínio", "thumb": "dominio"},
@@ -753,6 +763,7 @@ const MOVED_CAPSULES := {
 	"res://scenes/world/cidade.tscn#camara_2": "res://scenes/world/cidade_quartel.tscn",
 	"res://scenes/world/bosque.tscn#camara_2": "res://scenes/world/bosque_dormitorio.tscn",
 	"res://scenes/world/forjas.tscn#camara_2": "res://scenes/world/forjas_fornalha.tscn",
+	"res://scenes/world/raizes.tscn#camara_2": "res://scenes/world/raizes_despensa.tscn",
 }
 const NEW_CITY_SECOND := "res://scenes/world/cidade_quartel.tscn"
 

@@ -413,8 +413,8 @@
 	"placa_estufa": {
 		"nome": "Placa da estufa",
 		"falas": [
-			"ESTUFA 3 — Cultivo de proteína. Responsável: M. Vorágine.",
-			"Embaixo, a giz: “Ninguém sai da minha mesa com fome.”"
+			"ESTUFA 3 — cultivo de proteína.",
+			"\"Proteína\" está riscado. Por cima, à mão: \"gente\"."
 		]
 	},
 	"cardapio": {
@@ -1000,13 +1000,6 @@
 			"Nº 23. Vazia. Ainda morna."
 		]
 	},
-	"placa_raizes_2": {
-		"nome": "Placa",
-		"falas": [
-			"Nº 911. Vazia. Ainda morna.",
-			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
-		]
-	},
 	"placa_montanha_1": {
 		"nome": "Placa",
 		"falas": [
@@ -1182,6 +1175,59 @@
 		"nome": "Ferreiro Anão",
 		"falas": [
 			"Ele fez para mim. E eu nunca fui lá ver."
+		]
+	},
+	"placa_raizes_despensa_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 911. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"mesa_posta_1": {
+		"nome": "Mesa posta",
+		"falas": [
+			"Ainda quente. Ninguém sabe de quem é."
+		],
+		"opcoes": [
+			{
+				"texto": "Comer",
+				"acao": "comer:mesa_1"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"mesa_posta_2": {
+		"nome": "Mesa posta",
+		"falas": [
+			"Ainda quente. Ninguém sabe de quem é."
+		],
+		"opcoes": [
+			{
+				"texto": "Comer",
+				"acao": "comer:mesa_2"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"veia_trancada": {
+		"nome": "Veia grossa",
+		"falas": [
+			"Uma veia grossa desce pela parede, apertada como um nó.",
+			"Do outro lado, ela pulsa. É de lá que se solta."
+		]
+	},
+	"varanda_porta_fechada": {
+		"nome": "Porta do salão",
+		"falas": [
+			"Uma porta de madeira, fechada por fios de seiva.",
+			"Atrás dela, cheiro de banquete. Algo se mexe nos fios."
 		]
 	}
 }

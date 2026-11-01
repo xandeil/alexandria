@@ -51,6 +51,7 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `(` `)` `[` `]` | raiz retorcida, fruto de carne, canteiro da estufa (2 células), fogão | raiz/canteiro/fogão |
 | `z` `s` `^` `?` | Boca de Raiz, Inchado, Colhedor, Larvas de Seiva (um enxame de 3) | — |
 | `U` `0` | mini-chefes: O Banqueteiro, A Ninhada | — |
+| `E` `N` | a Mãe Faminta (reaproveitada) e Socorro, a Enfermeira (opcional) | — |
 | `/` | Mabel Vorágine (`arena_mabel.txt`) | — |
 | **Forjas Ocas** (tema "forjas") | | |
 | `.` `,` `:` `;` | laje de pedra, cinza, grade da fábrica, entulho | não |
@@ -127,6 +128,7 @@ célula (x, y) em tiles. Assim não faltam caracteres e não há conflito entre 
 | `extra_capsules` | Câmaras extras (a `C` do mapa é a 1ª, ponto `camara`; estas viram `camara_2`...) | `[Vector2i(32, 18)]` |
 | `collapse_fights` | chão que desaba durante a luta de um mini-chefe (o entulho tapa no fim) | `{"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}` |
 | `traps` com `"kind": "flor"` | flores que respiram (Bosque): soltam pólen se você corre ou rola perto | `{"kind": "flor", "cells": [Vector2i(8, 10)]}` |
+| `decor` com `"group"` | o enfeite entra num grupo (ex.: `"mesas"`, que somem na fase 2 da Mabel) | `{"cell": Vector2i(10, 8), "texture": "...", "group": "mesas"}` |
 | `decor` | enfeite solto (com `dialogue` vira Examinar) | `{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}` |
 
 `objects` também aceita `{"kind": "mimico", "cell": ..., "key": "mimico_cidade", "item": "fragmento_turvo"}`

@@ -15,6 +15,9 @@ extends Node2D
 ##   "escuro": 0.4     — a luz da arena cai para esta fração (CanvasModulate).
 ##   "dps": 14         — dano por segundo do fogo (padrão 12).
 ##   "sono": 1.5       — a Barra de Sonolência enche 1,5× mais rápido (Nyssa).
+##   "borda": "raizes" — o anel da borda é de raízes (dano físico, cor de
+##                       carne) em vez de fogo. Padrão: "fogo".
+##   "some": "mesas"   — tudo no grupo "mesas" some (as mesas da Mabel).
 ##   "luz_flores": true — as Flores de Pólen da arena passam a brilhar: no
 ##                       escuro, é a única luz no chão.
 ##
@@ -53,7 +56,14 @@ func _ready() -> void:
 			var dark := float(config["escuro"])
 			create_tween().tween_property(level.canvas_modulate, "color", level.canvas_modulate.color * Color(dark, dark, dark, 1.0), 1.5)
 	if border_tiles > 0.0:
-		Sfx.play(&"fire_breath", -4.0)
+		Sfx.play(&"fire_breath" if not is_roots() else &"slurp", -4.0)
+	if config.has("some"):
+		for node in get_tree().get_nodes_in_group(StringName(str(config["some"]))):
+			var item := node as CanvasItem
+			if item:
+				var fade := item.create_tween()
+				fade.tween_property(item, "modulate:a", 0.0, 0.8)
+				fade.tween_callback(item.queue_free)
 	var player := get_tree().get_first_node_in_group("player") as Player
 	if player and config.has("sono"):
 		player.drowsiness_scale = float(config["sono"])
@@ -81,6 +91,10 @@ func _light_flowers() -> void:
 			(node as Node2D).add_child(light)
 
 
+func is_roots() -> bool:
+	return str(config.get("borda", "fogo")) == "raizes"
+
+
 ## A área ainda segura (fora do anel de fogo).
 func safe_rect() -> Rect2:
 	return arena.grow(-border_tiles * TILE)
@@ -103,7 +117,7 @@ func _physics_process(delta: float) -> void:
 		_tick = TICK
 		var player := get_tree().get_first_node_in_group("player") as Player
 		if player and not player.is_dead() and burns(player.global_position):
-			player.apply_burn(float(config.get("dps", 12.0)) * TICK, "fogo")
+			player.apply_burn(float(config.get("dps", 12.0)) * TICK, "fisico" if is_roots() else "fogo")
 	queue_redraw()
 
 
@@ -119,8 +133,13 @@ func _draw() -> void:
 			var point := Vector2(x, y)
 			if not safe.has_point(point):
 				var flick := 0.5 + 0.5 * sin(_time * 9.0 + x * 0.3 + y * 0.7)
-				draw_circle(point + Vector2(6, 6), 5.0 + flick * 2.0, Color(1.0, 0.45 + 0.2 * flick, 0.12, 0.55))
-				draw_circle(point + Vector2(6, 4), 2.5 + flick, Color(1.0, 0.85, 0.4, 0.8))
+				if is_roots():  # raízes pulsando (devagar, como veias)
+					var pulse := 0.5 + 0.5 * sin(_time * 2.5 + x * 0.2 + y * 0.4)
+					draw_circle(point + Vector2(6, 6), 5.5 + pulse * 1.5, Color(0.5, 0.08, 0.14, 0.75))
+					draw_circle(point + Vector2(6, 5), 2.0 + pulse, Color(0.8, 0.25, 0.3, 0.8))
+				else:
+					draw_circle(point + Vector2(6, 6), 5.0 + flick * 2.0, Color(1.0, 0.45 + 0.2 * flick, 0.12, 0.55))
+					draw_circle(point + Vector2(6, 4), 2.5 + flick, Color(1.0, 0.85, 0.4, 0.8))
 			y += step
 		x += step
-	draw_rect(safe, Color(1.0, 0.5, 0.2, 0.35), false, 1.0)
+	draw_rect(safe, Color(0.8, 0.2, 0.3, 0.35) if is_roots() else Color(1.0, 0.5, 0.2, 0.35), false, 1.0)

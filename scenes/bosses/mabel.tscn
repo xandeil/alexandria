@@ -36,6 +36,7 @@ belly_bite = ExtResource("10_belly_bite")
 data = ExtResource("11_data")
 wake_distance = 150.0
 memory_reward = 1400
+phase_arena = {2: {"fogo_borda": 2, "borda": "raizes", "cresce": 12.0, "max": 3, "dps": 10.0, "some": "mesas"}}
 move_speed = 26.0
 acceleration = 260.0
 max_poise = 260.0

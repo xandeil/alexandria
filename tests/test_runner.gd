@@ -56,6 +56,9 @@ const SALA_SINO := "res://scenes/world/bosque_sino.tscn"
 const FORNALHA := "res://scenes/world/forjas_fornalha.tscn"
 const PASSARELA := "res://scenes/world/forjas_passarela.tscn"
 const SALA_DANCARINA := "res://scenes/world/forjas_dancarina.tscn"
+const DESPENSA := "res://scenes/world/raizes_despensa.tscn"
+const VARANDA := "res://scenes/world/raizes_varanda.tscn"
+const ENFERMARIA := "res://scenes/world/raizes_enfermaria.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -149,6 +152,10 @@ func _ready() -> void:
 		"test_forjas_expansion",
 		"test_dancarina",
 		"test_durgan_replays_combo",
+		"test_raizes_expansion",
+		"test_feast_tables",
+		"test_socorro",
+		"test_mabel_inhale",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -2758,10 +2765,10 @@ func test_roots_gate() -> void:
 	var kinds := {}
 	for node in level.entities.get_children():
 		kinds[node.get_class() if node.get_script() == null else (node.get_script() as Script).get_global_name()] = true
-	for name in ["BocaDeRaiz", "Inchado", "Colhedor", "LarvaSeiva", "Banqueteiro", "Ninhada", "RestChamber"]:
+	# v0.35: o Banqueteiro mudou para a Despensa e a Ninhada para a Varanda.
+	for name in ["BocaDeRaiz", "Inchado", "Colhedor", "LarvaSeiva", "RestChamber"]:
 		check(kinds.has(name), "as Raízes têm %s" % name)
 	check(not kinds.has("Sonambulo"), "o mesmo 'z' do Bosque aqui é outra coisa")
-	check(find_npc("porta_cozinha") != null, "antes do Banqueteiro: a porta dos fundos está trancada")
 	var back := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas") and (node as AreaExit).target_spawn == "descida":
@@ -2769,13 +2776,14 @@ func test_roots_gate() -> void:
 	check(back, "as Raízes sobem de volta para a descida das Forjas")
 	level.queue_free()
 	await frames(2)
+	level = await open_level(DESPENSA, "porta")
+	check(find_npc("porta_cozinha") != null, "antes do Banqueteiro: a porta dos fundos está trancada")
+	level.queue_free()
+	await frames(2)
 	Game.defeated_bosses.append("banqueteiro")
-	level = await open_level(RAIZES, "porta")
-	var to_mabel := false
-	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_mabel"):
-			to_mabel = true
-	check(to_mabel and find_npc("porta_cozinha") == null, "vencido o Banqueteiro: a porta de Mabel abre")
+	level = await open_level(DESPENSA, "porta")
+	var to_porch := _exit_to(VARANDA) != null
+	check(to_porch and find_npc("porta_cozinha") == null, "vencido o Banqueteiro: a porta da Varanda abre")
 	check(level._dialogue_variant("vendedor") == "vendedor", "o Vendedor só fala dela depois")
 	Game.defeated_bosses.append("mabel")
 	check(level._dialogue_variant("vendedor") == "vendedor_mabel" and not DialogueData.get_entry("vendedor_mabel").get("opcoes", []).is_empty(), "depois de Mabel: o Vendedor lembra dela (e ainda vende)")
@@ -2900,7 +2908,7 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
+	for path in [RAIZES, DESPENSA, VARANDA, ENFERMARIA, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
 		if path == NUCLEO:
 			Game.defeated_bosses.assign(Game.SEVEN)
 		if path == MONTANHA:
@@ -2956,7 +2964,7 @@ func test_new_areas_build() -> void:
 ## Venceu o mini-chefe que guardava a porta: ela abre NA HORA (sem descansar).
 func test_live_exit_unlock() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa"])
-	var level := await open_level(RAIZES, "porta")
+	var level := await open_level(DESPENSA, "porta")  # v0.35: o Banqueteiro mora na Despensa
 	check(find_npc("porta_cozinha") != null, "trancada")
 	var cook: Banqueteiro = null
 	for node in level.entities.get_children():
@@ -2967,9 +2975,9 @@ func test_live_exit_unlock() -> void:
 	await frames(3)
 	var open := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_mabel"):
+		if node is AreaExit and (node as AreaExit).target_scene == VARANDA:
 			open = true
-	check(open and level.spawns.has("lateral"), "a porta de Mabel abriu na hora")
+	check(open and level.spawns.has("lateral"), "a porta da Varanda abriu na hora")
 	await frames(2)
 	check(find_npc("porta_cozinha") == null, "o ponto 'trancado' sumiu")
 	level.queue_free()
@@ -5576,7 +5584,7 @@ func test_free_map_layout() -> void:
 	var expected := {
 		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
 		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "forjas_fornalha", "forjas_dancarina"],
-		"raizes": ["forjas_passarela", "cidade"], "dominio": ["forjas_passarela", "bosque_borda"], "montanha": ["cidade_viaduto", "bosque"],
+		"raizes": ["forjas_passarela", "raizes_despensa", "raizes_enfermaria"], "dominio": ["forjas_passarela", "bosque_borda"], "montanha": ["cidade_viaduto", "bosque"],
 		"bosque": ["teatro", "bosque_dormitorio", "bosque_sino"],
 	}
 	for area: String in expected:
@@ -5639,7 +5647,7 @@ func test_second_capsule_per_island() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
 	# A Cidade e o Bosque (v0.35) guardam a 2ª Câmara numa fase anexa: testadas à parte.
-	for area in ["raizes", "montanha", "dominio"]:
+	for area in ["montanha", "dominio"]:
 		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
 		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
 		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
@@ -5649,6 +5657,12 @@ func test_second_capsule_per_island() -> void:
 		level.queue_free()
 		await frames(2)
 	check(Game.capsule_info(FORNALHA)["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
+	var pantry := await open_level(DESPENSA, "camara")
+	check(pantry.chamber_for("camara") != null and find_npc("placa_raizes_despensa_1") != null, "Despensa: a 2ª Câmara das Raízes, com placa")
+	check(pantry.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["raizes"]).size() == 1,
+		"Despensa: o pertence das Raízes")
+	pantry.queue_free()
+	await frames(2)
 	var furnace := await open_level(FORNALHA, "camara")
 	check(furnace.chamber_for("camara") != null and find_npc("placa_forjas_fornalha_1") != null, "Fornalha: a 2ª Câmara das Forjas, com placa")
 	check(furnace.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["forjas"]).size() == 1,
@@ -7126,4 +7140,132 @@ func test_durgan_replays_combo() -> void:
 	check(durgan.phase_arena.has(2), "a forja escurece na fase 2")
 	durgan.queue_free()
 	await frames(2)
+
+
+# --- v0.35 · Etapa 6: as Raízes expandidas --------------------------------------------
+
+func test_raizes_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(RAIZES, "porta")
+	check(_exit_to(DESPENSA) != null, "Estufa: a descida para a Despensa está aberta")
+	check(_exit_to(ENFERMARIA) != null and level.spawns.has("enfermaria"), "Estufa: o corredor da Enfermaria")
+	check(find_npc("placa_estufa") != null, "a placa da Estufa 3")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DESPENSA, "porta")
+	check(_minis_named("Banqueteiro").size() == 1, "Despensa: o Banqueteiro")
+	check(find_npc("mesa_posta_1") != null and find_npc("mesa_posta_2") != null, "Despensa: duas mesas postas")
+	check(find_npc("veia_trancada") != null, "a veia abre do outro lado")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("banqueteiro")
+	level = await open_level(VARANDA, "porta")
+	check(_minis_named("Ninhada").size() == 1, "Varanda: a Ninhada")
+	check(_minis_named("MaeFaminta").size() == 1, "Varanda: a Mãe Faminta")
+	check(find_npc("varanda_porta_fechada") != null and _exit_to(ARENA_MABEL) == null, "o salão de Mabel fecha até a Ninhada cair")
+	var tunnel := false
+	var vein: AreaExit = null
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_tunel":
+			tunnel = true
+		if (node as AreaExit).opens_flag == "atalho_veia":
+			vein = node
+	check(tunnel, "Varanda: a entrada do túnel de raízes (abre a Cidade)")
+	Game.scene_changes_enabled = false
+	vein._armed = true
+	vein._on_body_entered(level.player)
+	check(Game.has_flag("atalho_veia"), "desceu pela veia: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("ninhada")
+	level = await open_level(VARANDA, "porta")
+	check(_exit_to(ARENA_MABEL) != null, "vencida a Ninhada: o salão abre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DESPENSA, "veia")
+	check(find_npc("veia_trancada") == null and level.spawns.has("veia"), "a Despensa sobe pela veia até a Varanda")
+	level.queue_free()
+	await frames(2)
+	check((load(ARENA_MABEL) as PackedScene).instantiate().get("exit_scene") == VARANDA, "o salão de Mabel volta para a Varanda")
+	Game.reset_progress()
+
+
+func test_feast_tables() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(DESPENSA, "porta")
+	var bloated := get_tree().get_nodes_in_group("enemies").filter(func(e): return str(e.get_meta(&"zona", "")) == "mesa_1")
+	check(bloated.size() == 2, "dois Inchados na cozinha da mesa 1 (%d)" % bloated.size())
+	level.player.stats.take_damage(level.player.stats.max_health * 0.6)
+	var healed := level.eat_at_table("mesa_1")
+	check(healed > 0.0, "comer cura (%.0f)" % healed)
+	check(bloated.all(func(e): return (e as Enemy).is_alerted()), "mas a sineta chama os Inchados da mesa")
+	var others := get_tree().get_nodes_in_group("enemies").filter(func(e): return str(e.get_meta(&"zona", "")) == "mesa_2")
+	check(not others.is_empty() and others.all(func(e): return not (e as Enemy).is_alerted()), "a outra cozinha nem ouve")
+	check(level.eat_at_table("mesa_1") == 0.0, "o prato está vazio (até a fase recarregar)")
+	var entry := DialogueData.get_entry("mesa_posta_2")
+	check(str(entry["falas"][0]) == "Ainda quente. Ninguém sabe de quem é.", "examinar o prato")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_socorro() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(ENFERMARIA, "porta")
+	var nurses := _minis_named("Socorro")
+	check(nurses.size() == 1, "a Enfermaria, com a Socorro")
+	var nurse := nurses[0] as Socorro
+	nurse.target = level.player
+	nurse.start_fight()
+	nurse._on_wake()
+	nurse.stats.take_damage(100.0)
+	var hp := nurse.stats.health
+	var info := HitInfo.create(14.0, nurse.global_position, level.player.global_position)
+	check(is_equal_approx(nurse.feed(info, false), 21.0) and is_equal_approx(nurse.stats.health, hp + 21.0), "golpe que entra: cura 150%")
+	check(is_equal_approx(nurse.feed(info, true), 10.5), "com bloqueio: metade disso")
+	nurse.stats.take_damage(nurse.stats.max_health * 0.6)
+	nurse._fight(0.016)
+	check(nurse.phase == 2, "Ronda da Noite")
+	nurse.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("socorro") and Game.has_item("funil_socorro"), "vencida: o Funil de Socorro")
+	# O Funil: cada golpe devolve vida; a morte cobra mais memórias.
+	Game.memories = 1000
+	var lost := Game.register_death()
+	check(lost == int(floor(1000 * Game.MEMORY_LOSS_RATIO * Game.FUNNEL_LOSS_MULTIPLIER)), "com o Funil, a morte cobra mais (%d)" % lost)
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_mabel_inhale() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "banqueteiro", "ninhada"])
+	var level := await open_level(ARENA_MABEL, "porta")
+	var mabel := level.boss_arena.boss as MabelVoragine
+	check(mabel.phase_arena.has(2), "a arena de Mabel muda na fase 2")
+	check(get_tree().get_nodes_in_group("mesas").size() == 2, "duas mesas no salão")
+	mabel.target = level.player
+	var shift := mabel.shift_arena(2)
+	await seconds(1.0)
+	check(shift != null and shift.is_roots() and get_tree().get_nodes_in_group("mesas").is_empty(), "fase 2: as mesas somem e as raízes fecham a borda")
+	level.player.global_position = mabel.global_position + Vector2(0, 90)
+	await seconds(0.5)  # chegou perto da mesa: a luta começa (senão o início da luta interrompe a inspiração)
+	mabel.phase = 2
+	level.player.global_position = mabel.global_position + Vector2(0, 90)
+	var start := level.player.global_position.distance_to(mabel.global_position)
+	mabel.start_inhale()
+	await seconds(mabel.inhale_windup + 0.6)
+	var now := level.player.global_position.distance_to(mabel.global_position)
+	check(now < start - 10.0, "ela inspira: o herói é puxado (%.0f → %.0f px)" % [start, now])
+	level.player.global_position = mabel.global_position + Vector2(0, 10)
+	await seconds(0.2)
+	check(level.player.is_grabbed_by(mabel), "chegou na boca: o bocado (engolido)")
+	level.player.release_grab()
+	shift.queue_free()
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
 

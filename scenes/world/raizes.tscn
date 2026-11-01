@@ -16,16 +16,15 @@ outdoor = true
 exit_scene = "res://scenes/world/forjas_passarela.tscn"
 exit_spawn = "descida"
 pickups = Array[Dictionary]([{"cell": Vector2i(58, 23), "item": "botas_banquete"}])
-extra_capsules = Array[Vector2i]([Vector2i(9, 17)])
 objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(3, 5), "key": "bau_raizes_1", "item": "capacete_banquete"}, {"kind": "bau", "cell": Vector2i(50, 25), "key": "bau_raizes_2", "item": "luvas_banquete"}, {"kind": "mimico", "cell": Vector2i(71, 6), "key": "mimico_raizes", "item": "peitoral_banquete"}])
 decor = Array[Dictionary]([{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}])
-exits = Array[Dictionary]([{"cell": Vector2i(10, 1), "scene": "res://scenes/world/cidade.tscn", "spawn": "tunel", "arrival": "tunel", "opens": "atalho_tunel"}])
+exits = Array[Dictionary]([{"cell": Vector2i(10, 1), "scene": "res://scenes/world/raizes_enfermaria.tscn", "spawn": "porta", "arrival": "enfermaria"}])
 enemy_power = 1.15
-exit2_scene = "res://scenes/world/arena_mabel.tscn"
+exit2_scene = "res://scenes/world/raizes_despensa.tscn"
 exit2_spawn = "porta"
-exit2_requires = "banqueteiro"
-exit2_locked_dialogue = "porta_cozinha"
-lore_points = {"1": "raiz_pulsando", "2": "placa_estufa", "3": "cardapio", "4": "ninho_larvas", "5": "porta_mabel_cheiro"}
+exit2_requires = ""
+exit2_locked_dialogue = ""
+lore_points = {"1": "raiz_pulsando", "2": "placa_estufa", "3": "cardapio", "4": "ninho_larvas"}
 item_points = Array[String](["sucata_temperada:3", "fragmento_turvo", "sucata_temperada:2", "sucata_temperada:2"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
