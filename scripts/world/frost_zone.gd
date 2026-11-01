@@ -70,7 +70,7 @@ func _freeze() -> void:
 	if trap_taps > 0:
 		IceBlock.trap(player, trap_taps)
 	if damage > 0.0 and not player.hurtbox.invulnerable:
-		player.apply_burn(damage)
+		player.apply_burn(damage, "gelo")
 		player.apply_chill(2.0)
 
 

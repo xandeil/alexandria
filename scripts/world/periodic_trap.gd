@@ -105,6 +105,7 @@ func _try_hit() -> void:
 	info.poise_damage = 25.0
 	info.unblockable = true
 	info.attack_name = {"pilao": "Martelete", "lava": "Fenda de lava"}.get(kind, "Armadilha")
+	info.damage_type = "fogo" if kind == "lava" else "fisico"
 	if player.hurtbox.receive_hit(info):
 		_struck = true
 

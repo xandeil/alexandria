@@ -91,7 +91,7 @@ func run(entry: Dictionary, fallback_name: String = "") -> String:
 
 
 func _show_line(text: String) -> void:
-	_text_label.text = DialogueData.fill(text)
+	_text_label.text = text  # falas são dubladas: nunca levam o nome do jogador
 	_visible_chars = 0.0
 	_text_label.visible_characters = 0
 	_typing = true

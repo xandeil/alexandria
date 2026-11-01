@@ -243,6 +243,8 @@ func _ready() -> void:
 		"test_chests_open_and_break",
 		"test_mimic",
 		"test_lab_capsule_after_prologue",
+		"test_armor_defense",
+		"test_equip_load_and_roll",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -797,7 +799,7 @@ func test_levels_build() -> void:
 			for node in level.entities.get_children():
 				if node is ItemPickup:
 					items += 1
-			check(items == 9, "Bosque: 3 itens + as 5 peças do Sono Leve + o pertence da 2ª cápsula (%d)" % items)
+			check(items == 6, "Bosque: 4 itens + o pertence da 2ª cápsula + as botas do Arconte (%d)" % items)
 		elif path.contains("teatro"):
 			check(level.rest_chamber != null, "Teatro: tem a Câmara de descanso")
 			check(level.spawns.has("camara"), "Teatro: spawn na Câmara")
@@ -1951,7 +1953,7 @@ func test_pickups_and_drops() -> void:
 	for node in level.entities.get_children():
 		if node is ItemPickup:
 			pickups.append(node)
-	check(pickups.size() == 10, "4 itens + as 5 peças do Detentor + o pertence da 2ª Câmara (%d)" % pickups.size())
+	check(pickups.size() == 6, "5 itens + o pertence da 2ª Câmara (%d)" % pickups.size())
 	var shield: ItemPickup = null
 	for pickup in pickups:
 		if pickup.item_id == "escudo_remendado":
@@ -1968,7 +1970,7 @@ func test_pickups_and_drops() -> void:
 		if node is ItemPickup:
 			left += 1
 			check((node as ItemPickup).item_id != "escudo_remendado", "o escudo não volta")
-	check(left == 9, "sobram 9 itens (%d)" % left)
+	check(left == 5, "sobram 5 itens (%d)" % left)
 	level.queue_free()
 	await frames(2)
 	# Drop de inimigo.
@@ -5441,13 +5443,22 @@ func test_periodic_trap() -> void:
 func test_dialogue_conditions_and_name() -> void:
 	Game.reset_progress()
 	DialogueData.get_entry("fada")  # carrega o arquivo
-	DialogueData._entries["teste_base"] = {"falas": ["Oi, {nome}."], "variantes": [{"quando": "flag:teste_v", "usar": "teste_outra"}],
+	DialogueData._entries["teste_base"] = {"falas": ["Oi, ratinho."], "variantes": [{"quando": "flag:teste_v", "usar": "teste_outra"}],
 		"opcoes": [{"tipo": "nome", "personagem": "teste", "sim": "flag:teste_disse", "nao": ""}, {"texto": "Sair", "acao": "", "quando": "!flag:teste_v"}]}
 	DialogueData._entries["teste_outra"] = {"falas": ["Outra."]}
 	check(DialogueData.variant("teste_base") == "teste_base", "sem a flag: a fala de sempre")
-	check(DialogueData.fill("Oi, {nome}.") == "Oi, ....", "sem nome: \"...\"")
+	check(DialogueData.fill("Cobaia: {nome}") == "Cobaia: ...", "texto escrito sem nome: \"...\"")
 	Game.set_player_name("  Alexandre  ")
-	check(DialogueData.fill("Oi, {nome}.") == "Oi, Alexandre.", "{nome} vira o nome do herói")
+	check(DialogueData.fill("Cobaia: {nome}") == "Cobaia: Alexandre", "{nome} vira o nome no texto ESCRITO")
+	# Jogo DUBLADO: nenhuma fala do dialogos.json pode usar o nome do jogador.
+	var spoken_with_name := []
+	for id: String in DialogueData._entries:
+		var entry: Variant = DialogueData._entries[id]
+		if entry is Dictionary:
+			for line: Variant in (entry as Dictionary).get("falas", []):
+				if str(line).contains("{nome}"):
+					spoken_with_name.append(id)
+	check(spoken_with_name.is_empty(), "nenhuma FALA diz o nome do jogador (dublagem): %s" % [spoken_with_name])
 	var options := DialogueBox.expand_options(DialogueData.get_entry("teste_base")["opcoes"])
 	check(options.size() == 3 and options[0]["texto"] == "Não lembro" and options[1]["texto"] == "Alexandre",
 		"opção de nome: \"Não lembro\" e o nome")
@@ -5699,6 +5710,75 @@ func test_lab_capsule_after_prologue() -> void:
 	check(Game.last_scene_request == Game.HUB_SCENE and Game.prologue_done, "cair de novo leva ao Teatro, sem refazer o fim do prólogo")
 	Game.wake_from_capsule = false
 	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.34 · Etapa 4: armaduras com defesa e peso ------------------------------------------
+
+func test_armor_defense() -> void:
+	Game.reset_progress()
+	check(is_zero_approx(Game.armor_defense("fisico")), "sem armadura: nada protege")
+	_wear_set("detentor")
+	check(is_equal_approx(Game.armor_defense("fisico"), 0.32 * 1.1), "Detentor inteiro: 32%% físico +10%% de corpo completo (%.3f)" % Game.armor_defense("fisico"))
+	Game.unequip_armor("botas")
+	check(Game.armor_defense("fisico") < 0.32, "faltou uma parte: sem o bônus de corpo completo")
+	Game.equip_armor("botas_caelis")
+	Game.add_item("botas_caelis", 1, false)
+	Game.equip_armor("botas_caelis")
+	var mixed := Game.armor_defense("fisico")
+	check(mixed > 0.25 and mixed < 0.352, "misturando conjuntos o bônus também vale (%.3f)" % mixed)
+	for set_id: String in ArmorSets.PROFILES:
+		for kind in ArmorSets.DAMAGE_TYPES:
+			var full := 0.0
+			for slot in ArmorData.SLOTS:
+				full += ArmorSets.piece_defense(set_id, slot, kind)
+			check(full * 1.1 <= ArmorSets.DEFENSE_CAP, "%s/%s abaixo do teto" % [set_id, kind])
+	# O golpe de verdade, no herói.
+	Game.reset_progress()
+	_wear_set("caelis")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	var fire := HitInfo.create(100.0, Vector2(180, 200), player.global_position)
+	fire.damage_type = "fogo"
+	var hp := player.stats.health
+	player._on_hit_received(fire)
+	check(is_equal_approx(hp - player.stats.health, 100.0 * (1.0 - 0.34 * 1.1)), "Caelis segura fogo (%.1f)" % (hp - player.stats.health))
+	player.stats.health = player.stats.max_health
+	player._iframes_left = 0.0
+	player._set_state(Player.State.FREE)
+	var cut := HitInfo.create(100.0, Vector2(180, 200), player.global_position)
+	hp = player.stats.health
+	player._on_hit_received(cut)
+	check(is_equal_approx(hp - player.stats.health, 100.0 * (1.0 - 0.18 * 1.1)), "e menos o físico (%.1f)" % (hp - player.stats.health))
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_equip_load_and_roll() -> void:
+	Game.reset_progress()
+	Game.equipped_weapon = "espada"
+	check(Game.load_tier() == "rapido", "quase nada no corpo: rolamento rápido (%.0f%%)" % (Game.load_ratio() * 100.0))
+	_wear_set("detentor")
+	Game.add_item("escudo_remendado", 1, false)
+	Game.left_hand = "escudo_remendado"
+	check(is_equal_approx(Game.equip_load(), 27.0 + 3.0 + Game.SHIELD_WEIGHT), "carga = armadura + espada + escudo (%.1f)" % Game.equip_load())
+	check(Game.load_tier() == "lento", "Detentor inteiro com Força 10: lento (%.0f%%)" % (Game.load_ratio() * 100.0))
+	Game.attributes["forca"] = 30
+	check(Game.load_tier() == "normal", "mais Força, mais carga: normal")
+	Game.attributes["forca"] = 1
+	check(Game.load_tier() == "pesado", "Força baixa: pesado demais")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player.stats.stamina = player.stats.max_stamina
+	check(not player._start_dash(), "pesado demais: não rola")
+	Game.attributes["forca"] = 10
+	for slot in ArmorData.SLOTS:
+		Game.unequip_armor(slot)
+	Game.left_hand = ""
+	check(player._start_dash() and is_equal_approx(player._dash_speed_scale, 1.1), "leve: rolamento rápido e longo")
+	player.queue_free()
 	await frames(2)
 	Game.reset_progress()
 
@@ -6018,19 +6098,33 @@ func test_armor_rules() -> void:
 
 func test_armor_in_world_and_menu() -> void:
 	Game.reset_progress()
-	# Um conjunto escondido em cada região de chefe (e nenhum repetido).
+	# v0.34 (Etapa 4): cada peça dos 6 conjuntos de chefe está em UM lugar só —
+	# baú (capacete, luvas), mímico (peitoral), 1º mini-chefe (calça) e outra
+	# ilha (botas). A Vigília continua inteira no Teatro.
 	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio"]
-	var placed: Array[String] = []
+	var found := {}
 	for region in regions:
 		var level := (load("res://scenes/world/%s.tscn" % region) as PackedScene).instantiate() as Level
 		for spec in level.item_points:
 			if spec.begins_with("conjunto:"):
-				placed.append(spec.trim_prefix("conjunto:"))
+				for id in ArmorSets.pieces(spec.trim_prefix("conjunto:")):
+					found[id] = found.get(id, 0) + 1
+		for def in level.objects + level.pickups:
+			var id := str(def.get("item", ""))
+			if Items.get_armor(id):
+				found[id] = found.get(id, 0) + 1
 		level.free()
-	placed.sort()
-	var all_sets: Array = ArmorSets.SETS.keys()
-	all_sets.sort()
-	check(placed == all_sets, "os 7 conjuntos, um por região: %s" % [placed])
+	for boss: String in Game.BOSS_REWARDS:
+		for id: String in Game.BOSS_REWARDS[boss]:
+			if Items.get_armor(id):
+				found[id] = found.get(id, 0) + 1
+	var missing := []
+	for set_id: String in ArmorSets.SETS:
+		for id in ArmorSets.pieces(set_id):
+			if found.get(id, 0) != 1:
+				missing.append("%s=%d" % [id, found.get(id, 0)])
+	check(missing.is_empty(), "as 35 peças, cada uma num lugar só (%s)" % [missing])
+	check(found.size() == 35, "nenhuma peça a mais (%d)" % found.size())
 	# No chão: as 5 peças em volta do ponto, cada uma com a própria chave.
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var pile := level.entities.get_children().filter(func(n): return n is ItemPickup and Items.get_armor(n.item_id) != null)

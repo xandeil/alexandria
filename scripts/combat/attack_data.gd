@@ -8,6 +8,8 @@ extends Resource
 ## é o que permite balancear o jogo rápido (e testar com o celular na mão).
 
 @export var display_name := "Golpe"
+## Tipo de dano (v0.34): "fisico", "fogo", "magia", "raio", "gelo".
+@export_enum("fisico", "fogo", "magia", "raio", "gelo") var damage_type := "fisico"
 
 @export_group("Custo e dano")
 @export var stamina_cost := 18.0

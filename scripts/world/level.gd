@@ -472,6 +472,10 @@ const PROPS := {
 ## v0.33 — Câmaras EXTRAS (a "C" do mapa é sempre a 1ª, ponto "camara"; estas
 ## viram "camara_2", "camara_3"... na ordem da lista). Em tiles.
 @export var extra_capsules: Array[Vector2i] = []
+## v0.34 — ITENS SOLTOS por célula (sem "@" no mapa, sem mexer na ordem do
+## item_points): {"cell": Vector2i(x, y), "item": "botas_detentor", "count": 1}.
+## Pegos uma vez, não voltam (chave "<área>@x,y" no save, como os do "@").
+@export var pickups: Array[Dictionary] = []
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -580,10 +584,17 @@ func _build_listed() -> void:
 		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
 	for def in traps:
 		PeriodicTrap.spawn(entities, def)
+	for def in pickups:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		var key := "%s@%d,%d" % [layout_file.get_file().get_basename(), cell.x, cell.y]
+		_place_pickup(str(def.get("item", "")), int(def.get("count", 1)), key, _cell_feet(cell.x, cell.y))
 	for def in decor:
 		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
 		var at := _cell_feet(cell.x, cell.y)
-		if def.has("dialogue"):
+		if def.has("dialogue") and not def.has("texture"):
+			var spot := _make_npc(str(def["dialogue"]), str(def.get("name", "")), "", 1, at, "Examinar")
+			spot.get_node("CollisionShape2D").disabled = true
+		elif def.has("dialogue"):
 			_place_object({"dialogue": def["dialogue"], "name": def.get("name", ""), "texture": def["texture"],
 				"prompt": "Examinar"}, at)
 		else:

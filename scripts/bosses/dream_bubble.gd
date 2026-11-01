@@ -56,6 +56,7 @@ func _physics_process(delta: float) -> void:
 		player.add_drowsiness(drowsiness)
 		var info := HitInfo.create(damage, global_position, player.global_position)
 		info.attack_name = "Bolha de sono"
+		info.damage_type = "magia"
 		info.source = source
 		info.unblockable = true  # sonho não se segura com escudo
 		player.hurtbox.receive_hit(info)

@@ -28,6 +28,10 @@ static func variant(id: String) -> String:
 
 
 ## Troca os marcadores do texto: "{nome}" vira o nome do herói.
+## SÓ PARA TEXTO ESCRITO (botões, terminal, menus, barra de chefe). O jogo é
+## DUBLADO: nenhuma FALA usa o nome do jogador — cada personagem tem apelidos
+## fixos ("ratinho", "parceiro", "freguês"...). Um teste garante que nenhuma
+## linha de "falas" do dialogos.json tenha {nome}.
 static func fill(text: String) -> String:
 	return text.replace("{nome}", Game.spoken_name())
 

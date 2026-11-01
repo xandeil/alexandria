@@ -111,27 +111,30 @@ const BASE_LIGHT := preload("res://data/attacks/player_light_1.tres")
 const BASE_HEAVY := preload("res://data/attacks/player_heavy.tres")
 
 ## O que cada chefe deixa ao ser vencido PELA PRIMEIRA VEZ (além das memórias).
+## v0.34 (Etapa 4): o 1º mini-chefe de cada ilha guarda a CALÇA do conjunto
+## de lá. As outras peças: capacete e luvas nos baús, peitoral no mímico, botas
+## em outra ilha (Level.pickups).
 const BOSS_REWARDS := {
 	"cavaleiro": {"lembranca_cavaleiro": 1},
 	"governanta": {"lembranca_governanta": 1},
-	"sargento": {"apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
+	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"aldir": {"lembranca_aldir": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
 	"helena": {"lembranca_helena": 1, "fragmento_turvo": 1},
-	"vigia": {"fragmento_turvo": 1, "sucata_temperada": 3},
+	"vigia": {"calca_sono": 1, "fragmento_turvo": 1, "sucata_temperada": 3},
 	"mae_esporos": {"fragmento_turvo": 1, "sucata_temperada": 2},
 	"nyssa": {"lembranca_nyssa": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
-	"banqueteiro": {"fragmento_turvo": 1, "sucata_temperada": 3},
+	"banqueteiro": {"calca_banquete": 1, "fragmento_turvo": 1, "sucata_temperada": 3},
 	"ninhada": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"mabel": {"lembranca_mabel": 1, "fragmento_turvo": 1, "sucata_temperada": 5},
-	"prototipo": {"sucata_temperada": 4},
+	"prototipo": {"calca_eco": 1, "sucata_temperada": 4},
 	"guardiao_ancora": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"durgan": {"lembranca_durgan": 1, "fragmento_turvo": 1, "sucata_temperada": 8},
 	"capitao": {"fragmento_turvo": 1, "sucata_temperada": 4},
-	"matriarca": {"fragmento_turvo": 1, "sucata_temperada": 4},
+	"matriarca": {"calca_caelis": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
 	"rachel": {"lembranca_rachel": 1, "fragmento_turvo": 2, "sucata_temperada": 10},
 	"curadora": {"fragmento_turvo": 1, "sucata_temperada": 4},
-	"golem_arquivo": {"fragmento_turvo": 1, "sucata_temperada": 5},
+	"golem_arquivo": {"calca_arconte": 1, "fragmento_turvo": 1, "sucata_temperada": 5},
 	"cassian": {"lembranca_cassian": 1, "fragmento_turvo": 2, "sucata_temperada": 12},
 }
 
@@ -647,7 +650,8 @@ func raise_ally(ally_id: String) -> void:
 
 # --- Nome do herói --------------------------------------------------------------------
 
-## O nome nas falas: "{nome}" vira o nome digitado (ou "..." se ainda não tem).
+## O nome ESCRITO (botões, terminal, menus): "{nome}" vira o nome digitado
+## (ou "..." se ainda não tem). Nunca em falas — o jogo é dublado.
 func spoken_name() -> String:
 	return player_name if not player_name.is_empty() else "..."
 
@@ -948,6 +952,71 @@ func armor_bonus(effect: String) -> float:
 		if piece and ArmorSets.effect_of(piece.set_id) == effect:
 			total += ArmorSets.per_piece(piece.set_id)
 	return total
+
+
+# --- v0.34 (Etapa 4): defesa e carga --------------------------------------------------
+
+## Quanto a armadura vestida reduz este tipo de dano (0.0 a ArmorSets.DEFENSE_CAP).
+## As 5 partes preenchidas (de qualquer conjunto) somam +10%.
+func armor_defense(damage_type: String) -> float:
+	var total := 0.0
+	var worn := 0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece:
+			worn += 1
+			total += ArmorSets.piece_defense(piece.set_id, slot, damage_type)
+	if worn == ArmorData.SLOTS.size():
+		total *= 1.0 + ArmorSets.FULL_BODY_BONUS
+	return minf(total, ArmorSets.DEFENSE_CAP)
+
+
+## Carga máxima: vem da Força (cada ponto acima de 0 soma 1,5).
+const LOAD_BASE := 30.0
+const LOAD_PER_FORCE := 1.5
+## Peso do escudo (o único item de mão esquerda que não é arma).
+const SHIELD_WEIGHT := 4.0
+
+
+func max_load() -> float:
+	return LOAD_BASE + LOAD_PER_FORCE * float(attributes.get("forca", StatsComponent.BASE_ATTRIBUTE))
+
+
+## Tudo que o herói carrega no corpo: armadura vestida + armas nas mãos + escudo.
+func equip_load() -> float:
+	var total := 0.0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece:
+			total += ArmorSets.piece_weight(piece.set_id, slot)
+	total += current_weapon().weight()
+	var left := left_weapon()
+	if left:
+		total += left.weight()
+	elif left_hand == SHIELD:
+		total += SHIELD_WEIGHT
+	return total
+
+
+func load_ratio() -> float:
+	return equip_load() / maxf(max_load(), 1.0)
+
+
+## O rolamento pela carga: "rapido" (até 30%), "normal" (até 70%),
+## "lento" (até 100%) e "pesado" (acima: não rola, só anda).
+func load_tier() -> String:
+	var ratio := load_ratio()
+	if ratio <= 0.3:
+		return "rapido"
+	if ratio <= 0.7:
+		return "normal"
+	if ratio <= 1.0:
+		return "lento"
+	return "pesado"
+
+
+const LOAD_TIER_NAMES := {"rapido": "Rolamento rápido", "normal": "Rolamento normal", "lento": "Rolamento lento",
+	"pesado": "Pesado demais: não rola"}
 
 
 ## Peças do efeito X vestidas (o "passo" precisa da contagem, não da soma).

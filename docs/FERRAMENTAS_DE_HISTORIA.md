@@ -25,7 +25,7 @@ Vale em portas, NPCs, falas, opções e zonas. Fica num lugar só: `Game.require
 ```json
 "ferreiro": {
   "nome": "Ferreiro Anão",
-  "falas": ["Oi, {nome}."],
+  "falas": ["Trouxe aço, ratinho?"],
   "variantes": [ {"quando": "chefe:durgan", "usar": "ferreiro_irmao"} ],
   "aparece_quando": "flag:ferreiro_chegou",
   "some_quando": "flag:ferreiro_foi_embora",
@@ -37,11 +37,12 @@ Vale em portas, NPCs, falas, opções e zonas. Fica num lugar só: `Game.require
 }
 ```
 
-- **`{nome}`** vira o nome do herói. Sem nome ainda, aparece `...`.
+- **O jogo é dublado: nenhuma fala usa o nome do jogador.** Cada personagem usa apelidos fixos (Governanta: "cobaia"/"você"; Helena: "ratinho"/"Cobaia"; Amaro: "ratinho"/"Cobaia 22"; Tião e Bastião: "ô do pijama branco"; Galeno: "amigo"/"pequeno"; Heitor: "parceiro"; Damião: "freguês"; Cícero: "cabra"; Dalva: "criança"; Benedita: "filho"; Lúcia: "você").
+- **`{nome}`** só vale em texto ESCRITO: botões de opção, terminal do laboratório, menus e a barra do Experimento Anterior. Um teste recusa `{nome}` dentro de `falas`.
 - **`variantes`**: a primeira cuja condição valer troca a fala.
 - **`aparece_quando` / `some_quando`**: decidem se o NPC está no mapa.
 - **`quando`** numa opção esconde o botão quando não vale.
-- **Opção `"tipo": "nome"`** mostra dois botões: "Não lembro" e o nome do herói. Escolher o nome liga `nome_dito_<personagem>`.
+- **Opção `"tipo": "nome"`** mostra dois botões: "Não lembro" e o nome do herói. Escolher o nome liga `nome_dito_<personagem>`, que só muda a REAÇÃO do personagem (outra fala, via `variantes`); ele nunca diz o nome.
 
 ## 3. Ações de opção (o `"acao"`)
 

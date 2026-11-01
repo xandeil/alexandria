@@ -179,6 +179,7 @@ func _hit_player(player: Player, amount: float) -> void:
 	info.poise_damage = 20.0
 	info.is_heavy = true
 	info.attack_name = "Eco"
+	info.damage_type = "magia"
 	info.source = source
 	player.hurtbox.receive_hit(info)
 

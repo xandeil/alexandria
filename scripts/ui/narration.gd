@@ -74,7 +74,7 @@ func play(lines: Array, style: Style = Style.SCREEN, backdrop: Color = Color(0.0
 		create_tween().tween_property(_band, "color:a", 0.55, 0.4)
 	for i in lines.size():
 		_skip = false
-		_label.text = DialogueData.fill(str(lines[i]))
+		_label.text = str(lines[i])  # narração é dublada: sem {nome}
 		line_started.emit(i)
 		var fade_in := create_tween()
 		fade_in.tween_property(_label, "modulate:a", 1.0, fade_time)

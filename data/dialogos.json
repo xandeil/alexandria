@@ -1053,5 +1053,11 @@
 			"Nº 1.",
 			"Ela nunca foi aberta. Até agora."
 		]
+	},
+	"vitrine_sono": {
+		"nome": "Vitrine",
+		"falas": [
+			"Sono de fada. Peça rara."
+		]
 	}
 }

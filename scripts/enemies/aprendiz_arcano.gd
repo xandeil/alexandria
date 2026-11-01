@@ -133,6 +133,7 @@ func _nova() -> void:
 		info.knockback = 120.0
 		info.poise_damage = 18.0
 		info.attack_name = "Anel de gelo"
+		info.damage_type = "gelo"
 		info.source = self
 		if target.hurtbox.receive_hit(info):
 			target.apply_chill(nova_chill)

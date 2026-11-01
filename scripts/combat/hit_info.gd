@@ -16,6 +16,9 @@ var unblockable := false
 ## ondas e agarrões montam o HitInfo na mão e ficam com false.
 var parryable := false
 var attack_name := ""
+## Tipo de dano (v0.34): "fisico", "fogo", "magia", "raio" ou "gelo".
+## A armadura do herói reduz cada tipo pela sua defesa (ArmorSets).
+var damage_type := "fisico"
 ## Quem bateu (pode ser null, ex.: dano do cenário).
 var source: Node2D
 ## De onde veio o golpe — usado para empurrão e para checar o escudo.
@@ -44,6 +47,7 @@ func scaled(factor: float) -> HitInfo:
 	copy.unblockable = unblockable
 	copy.parryable = parryable
 	copy.attack_name = attack_name
+	copy.damage_type = damage_type
 	copy.source = source
 	copy.source_position = source_position
 	copy.direction = direction

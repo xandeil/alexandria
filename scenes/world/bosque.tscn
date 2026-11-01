@@ -15,8 +15,9 @@ darkness = Color(0.82, 0.88, 0.84, 1)
 outdoor = true
 exit_scene = "res://scenes/world/teatro.tscn"
 exit_spawn = "lateral"
+pickups = Array[Dictionary]([{"cell": Vector2i(17, 7), "item": "botas_arconte"}])
 extra_capsules = Array[Vector2i]([Vector2i(61, 21)])
-objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(4, 26), "key": "bau_bosque_1", "item": "sucata_temperada", "count": 2}, {"kind": "bau", "cell": Vector2i(45, 10), "key": "bau_bosque_2", "item": "fragmento_turvo"}, {"kind": "mimico", "cell": Vector2i(65, 21), "key": "mimico_bosque", "item": "fragmento_turvo"}])
+objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(4, 26), "key": "bau_bosque_1", "item": "capacete_sono"}, {"kind": "bau", "cell": Vector2i(45, 10), "key": "bau_bosque_2", "item": "luvas_sono"}, {"kind": "mimico", "cell": Vector2i(65, 21), "key": "mimico_bosque", "item": "peitoral_sono"}])
 exits = Array[Dictionary]([{"cell": Vector2i(17, 5), "scene": "res://scenes/world/dominio.tscn", "spawn": "galho", "requires": "flag:atalho_galho", "locked_dialogue": "galho_trancado", "arrival": "galho"}])
 exit2_scene = "res://scenes/world/arena_nyssa.tscn"
 exit2_spawn = "porta"
@@ -27,7 +28,7 @@ exit3_spawn = "espinha"
 exit3_requires = "flag:atalho_espinha"
 exit3_locked_dialogue = "espinha_trancada"
 lore_points = {"1": "soldado_dormindo", "3": "lago_parado", "4": "cachoeira_lenta"}
-item_points = Array[String](["conjunto:sono", "sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3"])
+item_points = Array[String](["sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

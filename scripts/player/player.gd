@@ -1232,10 +1232,23 @@ func _setup_swing(attack: AttackData, direction: Vector2, combo_index: int) -> v
 
 # --- DASH ----------------------------------------------------------------------------
 
+## Rolamento pela CARGA (v0.34, Etapa 4): leve rola rápido e longe; pesado
+## demais (acima de 100%) nem rola — só anda.
+const DASH_BY_LOAD := {"rapido": [1.1, 1.15], "normal": [1.0, 1.0], "lento": [0.85, 0.85]}
+var _dash_speed_scale := 1.0
+var _dash_time_scale := 1.0
+
+
 func _start_dash() -> bool:
+	var tier := Game.load_tier()
+	if tier == "pesado":
+		Fx.float_text(global_position + Vector2(-14, -26), "pesado", Color(0.85, 0.8, 0.7), 7)
+		return false
 	if not stats.try_spend_stamina(dash_stamina_cost):
 		_deny_stamina()
 		return false
+	_dash_speed_scale = DASH_BY_LOAD[tier][0]
+	_dash_time_scale = DASH_BY_LOAD[tier][1]
 	var input := _move_input()
 	_dash_dir = input.normalized() if input.length() > 0.2 else facing
 	facing = _dash_dir
@@ -1252,17 +1265,18 @@ func _start_dash() -> bool:
 
 
 func _state_dash(delta: float) -> void:
-	if _state_time < dash_time:
+	var duration := dash_time * _dash_time_scale
+	if _state_time < duration:
 		# Começa rápido e desacelera no fim: sensação de rolamento, não de teleporte.
-		var t := _state_time / dash_time
-		velocity = _dash_dir * dash_speed * (1.0 - t * t * 0.7)
+		var t := _state_time / duration
+		velocity = _dash_dir * dash_speed * _dash_speed_scale * (1.0 - t * t * 0.7)
 		_afterimage_timer -= delta
 		if _afterimage_timer <= 0.0:
 			_afterimage_timer = 0.035
 			Fx.afterimage(body_sprite)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * 2.0 * delta)
-	if _state_time >= dash_time + dash_recovery_time:
+	if _state_time >= duration + dash_recovery_time:
 		_set_state(State.FREE)
 
 
@@ -1320,8 +1334,12 @@ func _on_hit_received(info: HitInfo) -> void:
 	if state == State.DEAD:
 		return
 	var harder := Game.difficulty() * Enemy.power_of(info.source)
-	if harder > 1.0 and info.source != self:
-		info = info.scaled(harder)  # NG+ e áreas difíceis: o mundo bate mais forte
+	if info.source != self:
+		# NG+ e áreas difíceis batem mais forte; a ARMADURA (v0.34) reduz cada
+		# tipo de dano pela sua defesa — tudo numa conta só, numa cópia do golpe.
+		var factor := harder * (1.0 - Game.armor_defense(info.damage_type))
+		if not is_equal_approx(factor, 1.0):
+			info = info.scaled(factor)
 	if state == State.BLOCK and _can_block(info):
 		_absorb_hit(info)
 		return
@@ -1349,10 +1367,10 @@ func _on_hit_received(info: HitInfo) -> void:
 
 ## Queimadura (fogo no chão): dano pequeno e contínuo, SEM cambalear e sem
 ## i-frames (senão o fogo "protegeria" você dos golpes). O dash por cima não queima.
-func apply_burn(amount: float) -> void:
+func apply_burn(amount: float, damage_type: String = "fogo") -> void:
 	if state == State.DEAD or _is_invulnerable() or amount <= 0.0:
 		return
-	var applied := stats.take_damage(amount)
+	var applied := stats.take_damage(amount * (1.0 - Game.armor_defense(damage_type)))
 	Fx.flash(body_sprite, 0.08, Color(1.0, 0.6, 0.3))
 	Fx.sparks(global_position + Vector2(0, -6), Vector2.UP, Color(1.0, 0.6, 0.2), 4, 50.0)
 	hurt.emit(applied)
