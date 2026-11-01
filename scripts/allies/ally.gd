@@ -1,6 +1,7 @@
 class_name Ally
 extends CharacterBody2D
-## BASE DOS ALIADOS (v0.31, Etapa 1) — extraída do Guarda Sem Posto.
+## BASE DOS ALIADOS (v0.31, Etapa 1) — extraída do antigo Guarda Sem Posto
+## (que virou o Heitor na Etapa 8).
 ## Todo companheiro que luta ao seu lado herda daqui: Lúcia, Galeno, Tião,
 ## Bastião, Heitor... Cada um só escolhe a aparência, os números e o que
 ## acontece quando cai (o gancho _on_fall).
@@ -26,14 +27,14 @@ const LEVEL_BONUS := 0.15
 ## Todos os aliados do jogo: id → script. Level usa para chamar quem está
 ## acompanhando ("<id>_acompanha") ou foi chamado para a arena ("<id>_na_arena").
 const REGISTRY := {
-	"guarda": "res://scripts/allies/guarda_aliado.gd",
 	"lucia": "res://scripts/allies/lucia_aliada.gd",
 	"galeno": "res://scripts/allies/galeno_aliado.gd",
 	"tiao": "res://scripts/allies/tiao_aliado.gd",
 	"bastiao": "res://scripts/allies/bastiao_aliado.gd",
+	"heitor": "res://scripts/allies/heitor_aliado.gd",
 }
 
-## Quem é (o id do save: "guarda", "lucia"...).
+## Quem é (o id do save: "heitor", "lucia"...).
 var ally_id := ""
 var display_name := ""
 var frames: SpriteFrames

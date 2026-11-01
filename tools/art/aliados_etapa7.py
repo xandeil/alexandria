@@ -1,4 +1,4 @@
-"""Aliados da Etapa 7 (v0.42): Lúcia, Galeno, Tião e Bastião.
+"""Aliados da Etapa 7 (v0.42): Lúcia, Galeno, Tião e Bastião (e o Heitor, Etapa 8).
 
 Cada um sai em dois arquivos:
   • <id>_aliado.png — tira de 4 quadros 18×24 (idle, walk, golpe, caido), usada
@@ -146,6 +146,28 @@ BASTIAO = [
 ]
 
 
+# --- Heitor (Etapa 8) ------------------------------------------------------------------
+HEITOR_KEY = {**COMMON, "A": (140, 150, 168), "a": (96, 104, 122), "w": (240, 240, 236), "R": (214, 176, 72),
+              "B": (90, 70, 56), "M": (190, 190, 200)}
+HEITOR = [
+    "....wwwwww.....",
+    "...wwwwwwww....",
+    "...wSSSSSSw....",
+    "...SKSSSSKS....",
+    "...SSSssSSS....",
+    "..aAAAAAAAAa...",
+    ".aAAAAAAAAAAa..",
+    "aAAAAAAAAAAAAaM",
+    "aAAAaAAAAaAAAaM",
+    "SAAAAAAAAAAAASM",
+    "RAAAAAAAAAAAA.M",
+    ".aAAAAAAAAAAa..",
+    "..aAAA..AAAa...",
+    "..AAA....AAA...",
+    "..BBB....BBB...",
+]
+
+
 def strip(rows: list[str], key: dict, hit_rows: list[str] | None = None) -> tuple:
     idle = pad(rows)
     walk = shift_legs(idle, H - 4)
@@ -162,6 +184,7 @@ def main() -> None:
         "galeno": (GALENO, GALENO_KEY, None),
         "tiao": (TIAO, TIAO_KEY, None),
         "bastiao": (BASTIAO, BASTIAO_KEY, None),
+        "heitor": (HEITOR, HEITOR_KEY, None),
     }
     for name, (rows, key, hit) in specs.items():
         fight, npc = strip(rows, key, hit)

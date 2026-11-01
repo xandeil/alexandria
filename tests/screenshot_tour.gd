@@ -1590,43 +1590,32 @@ func _tour_creation() -> void:
 
 
 func _tour_guard() -> void:
+	# v0.45 (Etapa 8): o Heitor nos três lugares em que fica preso, e na arena.
 	Game.reset_progress()
-	Game.pending_spawn = "porta"
-	var level := await open("res://scenes/world/cidade.tscn") as Level
-	await wait(0.5)
-	var npc: Node2D = null
-	for node in get_tree().get_nodes_in_group("npcs"):
-		if (node as NPC).dialogue_id == "guarda_cidade":
-			npc = node
-	level.player.global_position = npc.global_position + Vector2(-30, 10)
-	level.camera.snap_to_target()
-	await wait(3.0)
-	await shot("q01_guarda_na_cidade")
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
-	Game.pending_spawn = "porta"
-	level = await open("res://scenes/world/cidade.tscn") as Level
-	await wait(3.2)
-	level.player._iframes_left = 9999.0
-	var soldier: Node2D = null
-	for node in get_tree().get_nodes_in_group("enemies"):
-		if soldier == null or (node as Node2D).global_position.distance_to(level.player.global_position) < soldier.global_position.distance_to(level.player.global_position):
-			soldier = node
-	level.player.global_position = soldier.global_position + Vector2(-50, 0)
-	level.camera.snap_to_target()
-	await wait(1.6)
-	await shot("q02_guarda_lutando")
-	Game.flags["guarda_acompanha"] = false
+	for spot: Array in [["res://scenes/world/cidade.tscn", "poco_heitor", "q01_heitor_poco", ""],
+			["res://scenes/world/forjas.tscn", "estatua_heitor", "q02_heitor_estatua", "heitor_poco"],
+			["res://scenes/world/dominio.tscn", "gelo_heitor", "q03_heitor_gelo", "heitor_estatua"]]:
+		if not str(spot[3]).is_empty():
+			Game.set_flag(str(spot[3]))
+		Game.pending_spawn = "porta"
+		var level := await open(str(spot[0])) as Level
+		await wait(0.5)
+		for node in get_tree().get_nodes_in_group("npcs"):
+			if (node as NPC).dialogue_id == str(spot[1]):
+				level.player.global_position = (node as Node2D).global_position + Vector2(-30, 10)
+		level.player._iframes_left = 9999.0
+		level.camera.snap_to_target()
+		await wait(2.0)
+		await shot(str(spot[2]))
+	Game.set_flag("heitor_gelo")
 	Game.pending_spawn = "camara"
-	level = await open("res://scenes/world/teatro.tscn") as Level
+	var teatro := await open("res://scenes/world/teatro.tscn") as Level
 	await wait(3.0)
-	level.player._iframes_left = 9999.0
-	level._begin_modal()
-	level._on_dialogue_action("desafiar_helena")
-	await wait(2.6)
-	await shot("q03_o_sacrificio")
-	await wait(4.5)
-	await shot("q04_posto_vazio")
+	teatro.player._iframes_left = 9999.0
+	teatro._begin_modal()
+	teatro._on_dialogue_action("desafiar_helena")
+	await wait(4.0)
+	await shot("q04_heitor_na_arena")
 
 
 ## v0.25: o Traje da Vigília largado no palco e a aba Armadura do inventário.

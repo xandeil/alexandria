@@ -247,9 +247,9 @@ func _ready() -> void:
 		"test_tutorial_hints",
 		"test_release_secrets_stay_out",
 		"test_version_consistency",
-		"test_guard_meeting_and_fragments",
-		"test_guard_companion",
-		"test_guard_sacrifice",
+		"test_heitor_rescues",
+		"test_helena_drunk_visits",
+		"test_helena_fury_with_heitor",
 		"test_helena_recognizes_ring",
 		"test_title_souls_style",
 		"test_controller_mode",
@@ -4107,79 +4107,110 @@ func test_version_consistency() -> void:
 	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == expected, "versionCode acompanha a versão (%s, esperado %d)" % [codes, expected])
 
 
-# --- O Guarda Sem Posto (o marido de Helena) --------------------------------------------
+# --- v0.45 (Etapa 8): Heitor e Helena ---------------------------------------------------
 
-func test_guard_meeting_and_fragments() -> void:
+## Poço → estátua → gelo: cada resgate liga uma flag e abre o próximo encontro.
+func test_heitor_rescues() -> void:
 	var level := await open_level(CIDADE, "porta")
-	check(find_npc("guarda_cidade") != null, "na Cidade, entre os Civis Cinzentos")
-	level._after_talk("guarda_cidade")
-	check(Game.flags.get("guarda_conhecido", false), "conversou: ele vai para o Teatro")
+	check(find_npc("poco_heitor") != null, "na Avenida, o poço (onde ficava o guarda antigo)")
+	check(level.resolve_dialogue("poco_heitor") == "poco_heitor", "lá do fundo, alguém cantarola")
+	level._begin_modal()
+	await level._on_dialogue_action("flag:heitor_poco;ganhar:licor_da_vigilia")
+	level._end_modal()
+	check(Game.has_flag("heitor_poco") and Game.has_item("licor_da_vigilia"), "salvo do poço: ele dá o Licor da Vigília")
+	check(level.resolve_dialogue("poco_heitor") == "poco_vazio", "o poço fica vazio")
 	level.queue_free()
 	await frames(2)
-	level = await open_level(CIDADE, "porta")
-	check(find_npc("guarda_cidade") == null, "não está mais na Cidade")
+	Game.flags.erase("heitor_poco")
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("estatua_heitor") == null, "sem o poço, ninguém debaixo da estátua")
 	level.queue_free()
 	await frames(2)
-	level = await open_level(TEATRO, "camara")
-	check(find_npc("guarda") != null, "está no Teatro")
-	check(level._dialogue_variant("guarda") == "guarda_1", "primeiro fragmento: o anel")
-	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
-	check(level._dialogue_variant("guarda") == "guarda_3", "um fragmento por ilha")
-	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"])
-	check(level._dialogue_variant("guarda") == "guarda_6", "o último: ele vai junto no palco")
-	var actions := (DialogueData.get_entry("guarda_6").get("opcoes", []) as Array).map(func(o): return o["acao"])
-	check(actions.has("chamar_guarda") and actions.has("dispensar_guarda"), "dá para chamá-lo ou deixá-lo")
+	Game.set_flag("heitor_poco")
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("estatua_heitor") != null, "depois do poço: preso debaixo da estátua nas Forjas")
 	level.queue_free()
 	await frames(2)
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("gelo_heitor") == null and find_npc("heitor_dominio") == null, "o gelo ainda espera a estátua")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("heitor_estatua")
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("gelo_heitor") != null, "depois da estátua: preso no gelo do lago")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("heitor_gelo")
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("gelo_heitor") == null and find_npc("heitor_dominio") != null, "solto: ele fica no lago, cantarolando")
+	check(level.resolve_dialogue("heitor_dominio") == "heitor_dominio", "sem a história da flor, ele só canta")
+	Game.set_flag("helena_contou_flor")
+	check(level.resolve_dialogue("heitor_dominio") == "heitor_flor", "ela contou da flor: ele dá a Flor de Pedra")
+	await level._on_dialogue_action("flag:heitor_deu_flor;ganhar:flor_de_pedra")
+	check(Game.has_item("flor_de_pedra") and level.resolve_dialogue("heitor_dominio") == "heitor_dominio", "uma flor só")
+	level.queue_free()
+	await frames(2)
+	# O guarda antigo saiu do jogo (a Etapa 8 o substitui).
+	check(not Ally.REGISTRY.has("guarda") and Ally.REGISTRY.has("heitor"), "o aliado agora é o Heitor")
+	for id in ["guarda_cidade", "guarda_1", "posto_vazio"]:
+		check(DialogueData.get_entry(id).is_empty(), "sem a fala antiga %s" % id)
 
 
-func test_guard_companion() -> void:
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
-	var level := await open_level(CIDADE, "porta")
-	var allies := get_tree().get_nodes_in_group(&"allies")
-	check(allies.size() == 1 and allies[0] is GuardaAliado, "chamado: ele vem junto para a ilha")
-	var guard := allies[0] as GuardaAliado
-	level.player._iframes_left = 999.0
-	var soldier := spawn_enemy_scene(SOLDIER_SCENE, level.player.global_position + Vector2(40, 0))
-	soldier.reparent(level.entities)
-	var hp := soldier.stats.health
-	await seconds(3.0)
-	check(not is_instance_valid(soldier) or soldier.stats.health < hp, "ele corta o inimigo perto de você")
-	var big := HitInfo.create(999.0, guard.global_position + Vector2(10, 0), guard.global_position)
-	guard._hurtbox.receive_hit(big)
-	check(guard.fallen and not Game.flags.get("guarda_acompanha", true), "caiu de joelhos: volta para o Teatro")
-	level.queue_free()
-	await frames(2)
-	Game.flags["guarda_acompanha"] = true
-	level = await open_level(TEATRO, "camara")
-	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "no Teatro ele é só conversa")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.assign([])
-	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
-	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "nas arenas dos Pecados a luta é sua")
-	level.queue_free()
-	await frames(2)
-
-
-func test_guard_sacrifice() -> void:
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
+## A Helena bêbada: uma fala nova por visita; sóbria com 6 memórias.
+func test_helena_drunk_visits() -> void:
 	var level := await open_level(TEATRO, "camara")
-	check(find_npc("guarda") != null, "ele está no Teatro")
-	# Como no jogo: a escolha vem do diálogo da mulher na plateia (mundo pausado).
+	check(find_npc("helena") != null, "ela está na plateia")
+	check(level.resolve_dialogue("helena") == "helena", "1ª visita: o marido 'morreu'")
+	level._after_talk("helena")
+	check(level.resolve_dialogue("helena") == "helena_2", "2ª visita: a música horrível")
+	level._after_talk("helena")
+	check(Game.has_flag("helena_contou_flor") and level.resolve_dialogue("helena") == "helena_3", "3ª: ela contou da flor de pedra")
+	var texts := func() -> Array:
+		return DialogueBox.expand_options(DialogueData.get_entry("helena_3").get("opcoes", [])).map(func(o): return o["texto"])
+	check(not texts.call().has("Mostrar a Flor de Pedra") and not texts.call().has("Oferecer o Licor"), "sem os itens, só 'Deixá-la em paz'")
+	Game.add_item("licor_da_vigilia")
+	Game.add_item("flor_de_pedra")
+	check(texts.call().has("Mostrar a Flor de Pedra") and texts.call().has("Oferecer o Licor"), "com os itens, as opções aparecem")
+	await level._on_dialogue_action("dar:licor_da_vigilia")
+	check(not Game.has_item("licor_da_vigilia"), "o licor vai para ela")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"])
+	check(level.resolve_dialogue("helena") == "helena_sobria", "seis memórias: 'Só falta eu.'")
+	var actions := (DialogueData.get_entry("helena_sobria").get("opcoes", []) as Array).map(func(o): return o["acao"])
+	check(actions.has("desafiar_helena"), "sóbria, ela aceita a luta")
+	var flor := DialogueData.get_entry("helena_pela_flor")
+	check((flor.get("falas", []) as Array).size() == 4 and str(flor["opcoes"][0]["acao"]).contains("desafiar_helena"), "a flor: quatro falas e a fúria")
+	level.queue_free()
+	await frames(2)
+
+
+## A fúria pela flor: ela grita no começo, e o Heitor (salvo três vezes) entra junto.
+func test_helena_fury_with_heitor() -> void:
+	Game.set_flag("heitor_gelo")
+	var level := await open_level(TEATRO, "camara")
+	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "no Teatro, antes da luta, ninguém luta")
+	var said := []
+	var helena := level._boss as HelenaAltiva
+	helena.speech.connect(func(text: String): said.append(text))
+	level.player._iframes_left = 999.0
+	level._begin_modal()
+	await level._on_dialogue_action("flag:helena_pela_flor;desafiar_helena")
+	level._end_modal()  # no jogo, a caixa de diálogo fecha e o mundo volta a andar
+	await seconds(0.5)
+	var allies := get_tree().get_nodes_in_group(&"allies")
+	check(allies.size() == 1 and allies[0] is HeitorAliado, "o Heitor entra na arena com você")
+	check(level.boss_arena.state != BossArena.State.IDLE, "a luta começa")
+	await seconds(3.0)
+	level.player.global_position = level.boss_arena.arena_rect.get_center()  # entra na arena
+	await seconds(6.0)
+	check(said.has(HelenaAltiva.SPEECH_FLOR), "'Eu fiquei no posto! EU! Por você!'")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("heitor_morto")
+	level = await open_level(TEATRO, "camara")
 	level._begin_modal()
 	level._on_dialogue_action("desafiar_helena")
-	await seconds(7.0)
-	check(not get_tree().paused, "a cena não fica congelada")
-	check(Game.flags.get("guarda_sacrificado", false) and Game.has_item("anel_do_guarda"), "ele entra na frente do golpe e deixa o anel")
-	check(find_npc("guarda") == null and find_npc("posto_vazio") != null, "no lugar dele, o posto vazio")
-	check(not Game.flags.get("guarda_acompanha", true), "não acompanha mais ninguém")
-	level.queue_free()
-	await frames(2)
-	level = await open_level(TEATRO, "camara")
-	check(find_npc("guarda") == null and find_npc("posto_vazio") != null, "o posto vazio continua lá")
+	await seconds(0.5)
+	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "morto, ele não volta")
 	level.queue_free()
 	await frames(2)
 
@@ -5563,34 +5594,33 @@ func test_dialogue_conditions_and_name() -> void:
 
 func test_ally_base_levels_and_arena() -> void:
 	Game.reset_progress()
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
+	Game.flags["tiao_acompanha"] = true
 	var level := await open_level(CIDADE, "porta")
 	var guard := get_tree().get_first_node_in_group(&"allies") as Ally
-	check(guard is GuardaAliado and guard.ally_id == "guarda", "o Guarda agora é um Ally")
+	check(guard is TiaoAliado and guard.ally_id == "tiao", "o Tião é um Ally")
 	var base_hp := guard.max_health
 	level._reward_allies(true)
-	check(Game.ally_level("guarda") == 2, "venceram juntos: nível 2")
+	check(Game.ally_level("tiao") == 2, "venceram juntos: nível 2")
 	guard.fall()
-	check(Game.ally_level("guarda") == 2, "cair não tira nível")
+	check(Game.ally_level("tiao") == 2, "cair não tira nível")
 	level.queue_free()
 	await frames(2)
-	Game.flags["guarda_acompanha"] = true
+	Game.flags["tiao_acompanha"] = true
 	level = await open_level(CIDADE, "porta")
 	guard = get_tree().get_first_node_in_group(&"allies") as Ally
 	check(is_equal_approx(guard.max_health, base_hp * (1.0 + Ally.LEVEL_BONUS)), "nível 2: mais vida (%.0f)" % guard.max_health)
 	level.queue_free()
 	await frames(2)
-	Game.flags["guarda_acompanha"] = false
+	Game.flags["tiao_acompanha"] = false
 	level = await open_level(TEATRO, "camara")
-	await level._on_dialogue_action("lute_comigo:guarda")
+	await level._on_dialogue_action("lute_comigo:tiao")
 	level.queue_free()
 	await frames(2)
 	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
 	var in_arena := get_tree().get_nodes_in_group(&"allies").filter(func(a): return not a.is_queued_for_deletion())
 	check(in_arena.size() == 1, "\"Lute comigo\": ele entra na arena do Pecado")
 	level._reward_allies(false)
-	check(not Game.flags.has("guarda_na_arena"), "a chamada vale para uma luta")
+	check(not Game.flags.has("tiao_na_arena"), "a chamada vale para uma luta")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

@@ -35,6 +35,9 @@ const CATALOG := {
 	"gelo_perpetuo": preload("res://data/items/gelo_perpetuo.tres"),
 	"desenho_a_giz": preload("res://data/items/desenho_a_giz.tres"),
 	"espada_madeira_pequena": preload("res://data/items/espada_madeira_pequena.tres"),
+	# v0.45 (Etapa 8): os fios entre Helena e Heitor.
+	"flor_de_pedra": preload("res://data/items/flor_de_pedra.tres"),
+	"licor_da_vigilia": preload("res://data/items/licor_da_vigilia.tres"),
 	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
 	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
 	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),

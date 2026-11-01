@@ -197,7 +197,7 @@ var player_name := ""
 ## Objetos do mundo que LEMBRAM o estado (alavanca puxada, baú aberto, atalho
 ## aberto): {"chave": valor}. Não voltam ao descansar nem ao morrer.
 var world_state := {}
-## Nível de cada aliado ({"guarda": 2}): sobe ao vencer um chefe com ele junto.
+## Nível de cada aliado ({"heitor": 2}): sobe ao vencer um chefe com ele junto.
 var ally_levels := {}
 ## Aparência escolhida na criação de personagem (ver Appearance).
 var appearance := Appearance.default_data()

@@ -144,18 +144,6 @@ const THEME_ENTITIES := {
 	"cidade": {
 		# v0.35: o Corneteiro, opcional, no alto da Torre.
 		"U": {"miniboss": "corneteiro", "scene": preload("res://scenes/bosses/corneteiro.tscn")},
-		# O marido de Helena, sem memória (Bíblia: "O jogador o encontra na Cidade
-		# Estilhaçada, tentando proteger os Civis Cinzentos").
-		"!": {"npc": {"dialogue": "guarda_cidade", "name": "Guarda de cabelo branco",
-			"texture": "res://assets/sprites/guarda_npc.png", "unless_flag": "guarda_conhecido"}},
-	},
-	"teatro": {
-		# Depois de conhecê-lo, ele aparece no Teatro (e conta um pedaço por ilha).
-		"!": {"npc": {"dialogue": "guarda", "name": "Guarda de cabelo branco",
-			"texture": "res://assets/sprites/guarda_npc.png", "if_flag": "guarda_conhecido",
-			"unless_flag": "guarda_sacrificado", "group": "guarda_npc",
-			"instead": {"dialogue": "posto_vazio", "name": "Posto vazio", "texture": "res://assets/props/posto_vazio.png",
-				"prompt": "Examinar"}}},
 	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
@@ -1549,11 +1537,20 @@ func _spawn_companion() -> void:
 		var called := bool(Game.flags.get("%s_na_arena" % ally_id, false))
 		if not called and not Game.flags.get("%s_acompanha" % ally_id, false):
 			continue
-		if ally_id == "guarda" and Game.flags.get("guarda_sacrificado", false):
-			continue
 		var ally := Ally.spawn_by_id(ally_id, entities, player)
 		if _boss != null and not called and not ally.can_enter_arenas:
 			ally.queue_free()
+
+
+## v0.45 (Etapa 8): salvo três vezes (poço, estátua, gelo), o Heitor entra
+## com você na luta da Helena. Ela ainda não sabe que é ele.
+func _heitor_joins() -> void:
+	if not Game.has_flag("heitor_gelo") or Game.has_flag("heitor_morto") or player == null:
+		return
+	for node in get_tree().get_nodes_in_group(&"allies"):
+		if (node as Ally).ally_id == "heitor":
+			return
+	Ally.spawn_by_id("heitor", entities, player)
 
 
 ## Venceram juntos: quem estava de pé sobe de nível. A chamada para a arena
@@ -1567,45 +1564,6 @@ func _reward_allies(victory: bool) -> void:
 			Game.raise_ally(ally.ally_id)
 			ally._on_victory()
 		Game.flags.erase("%s_na_arena" % ally.ally_id)
-
-
-## Antes da luta de Helena, ele se põe na frente do golpe (Bíblia: "ele se
-## sacrifica para abrir o caminho ou proteger o jogador, sem nunca ter lembrado dela").
-func _guard_sacrifice(guard: NPC) -> void:
-	_end_modal()  # a escolha veio de um diálogo (mundo pausado): a cena precisa andar
-	begin_cutscene()
-	var front := player.global_position + Vector2(0, -20)
-	var walk := create_tween()
-	walk.tween_property(guard, "global_position", front, 0.6).set_trans(Tween.TRANS_SINE)
-	await walk.finished
-	hud.toast("“Fique atrás de mim. Já deixei um posto uma vez.”")
-	await _wait(1.6)
-	var from := _boss_npc.global_position + Vector2(0, -12) if _boss_npc else front + Vector2(0, -80)
-	var streak := Line2D.new()
-	streak.width = 3.0
-	streak.default_color = Color(1, 1, 1, 0.9)
-	streak.points = PackedVector2Array([from, front + Vector2(0, -10)])
-	streak.z_index = 20
-	entities.add_child(streak)
-	Sfx.play(&"hit_heavy", 0.0)
-	Fx.shake(5.0, 0.3)
-	Fx.flash(guard.get_node("Sprite") as CanvasItem, 0.2)
-	var fade := streak.create_tween()
-	fade.tween_property(streak, "modulate:a", 0.0, 0.5)
-	fade.tween_callback(streak.queue_free)
-	var fall := create_tween()
-	fall.tween_property(guard.get_node("Sprite"), "rotation", PI * 0.5, 0.5).set_trans(Tween.TRANS_BACK)
-	await _wait(1.2)
-	hud.toast("“...Eu não lembro de você. Mas lembro deste lugar.”")
-	await _wait(2.2)
-	Game.flags["guarda_sacrificado"] = true
-	Game.flags["guarda_acompanha"] = false
-	Game.add_item("anel_do_guarda")
-	_place_object({"dialogue": "posto_vazio", "name": "Posto vazio", "texture": "res://assets/props/posto_vazio.png",
-		"prompt": "Examinar"}, guard.global_position)
-	guard.queue_free()
-	await _wait(0.6)
-	end_cutscene()
 
 
 ## Cria o herói no ponto pedido pelo Game e devolve o id do ponto usado.
@@ -1687,8 +1645,14 @@ func _on_npc_talked(npc: NPC) -> void:
 
 ## Conversas que mudam o mundo (marcam uma flag no save).
 func _after_talk(dialogue_id: String) -> void:
-	if dialogue_id == "guarda_cidade":
-		Game.flags["guarda_conhecido"] = true  # da próxima vez, ele está no Teatro
+	# v0.45: as visitas à Helena bêbada contam (uma fala nova por visita).
+	match dialogue_id:
+		"helena":
+			if not Game.has_flag("helena_visita_1"):
+				Game.set_flag("helena_visita_1")
+			elif not Game.has_flag("helena_visita_2"):
+				Game.set_flag("helena_visita_2")
+				Game.set_flag("helena_contou_flor")  # a pedra que era flor
 
 
 ## Qual versão da fala usar. Primeiro as regras escritas no dialogos.json
@@ -1722,11 +1686,6 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Bíblia: "A Fada do Teatro — diálogo novo depois de Nyssa (irmã)".
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
-		"guarda":
-			# Bíblia: "A cada ilha conta um fragmento: um anel, uma voz de mulher, um posto vazio."
-			var islands := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"].filter(
-				func(id): return Game.is_boss_defeated(id)).size()
-			return "guarda_%d" % clampi(islands, 1, 6)
 		"mulher_do_nucleo":
 			# Vencido o Cavaleiro, aproximar-se dela é a escolha (Bíblia: os dois finais).
 			if Game.is_boss_defeated("cavaleiro"):
@@ -1892,16 +1851,8 @@ func _on_dialogue_action(action: String) -> void:
 				hud.toast("Memórias insuficientes.")
 		"desafiar_helena":
 			if boss_arena:
-				var guard := get_tree().get_first_node_in_group(&"guarda_npc") as NPC
-				if guard and Game.flags.get("guarda_conhecido", false):
-					await _guard_sacrifice(guard)
 				boss_arena.arm()
-		"chamar_guarda":
-			Game.flags["guarda_acompanha"] = true
-			hud.toast("O Guarda vai com você pelas ilhas (não nas arenas dos Pecados).")
-		"dispensar_guarda":
-			Game.flags["guarda_acompanha"] = false
-			hud.toast("O Guarda fica no Teatro.")
+				_heitor_joins()
 		"final_proteger":
 			_play_ending("proteger")
 		"final_destruir":

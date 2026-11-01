@@ -17,6 +17,8 @@ enum Mode { DORMANT, ENTER, AWAIT, DECIDE, APPROACH, STRAFE, BACKSTEP, ATTACK, L
 enum LeapStage { TELEGRAPH, AIR, LAND }
 
 const SPEECH_PHASE_2 := "Não. Não de novo."
+## v0.45 (Etapa 8): a fúria começou pela Flor de Pedra (helena_pela_flor).
+const SPEECH_FLOR := "Eu fiquei no posto! EU! Por você!"
 const SPEECH_PHASE_3 := "...Eu ainda estou no posto."
 const SPEECH_DEFEAT := "Ninguém ocupa o lugar de ninguém... Fique com ela. Eu não consigo mais segurar."
 ## Bíblia: "Na fase 3, sem armadura, Helena reconhece o anel dele com o jogador.
@@ -125,6 +127,8 @@ func start_fight() -> void:
 	_set_mode(Mode.DECIDE)
 	_decision_delay = 0.9
 	armor_ratio_changed.emit(armor)
+	if Game.has_flag("helena_pela_flor"):
+		speech.emit(SPEECH_FLOR)
 
 
 func phase_label() -> String:

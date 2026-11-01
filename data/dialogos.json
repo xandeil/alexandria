@@ -201,16 +201,35 @@
 	},
 	"helena": {
 		"nome": "Mulher na plateia",
+		"variantes": [
+			{
+				"quando": "memorias:6",
+				"usar": "helena_sobria"
+			},
+			{
+				"quando": "flag:helena_visita_2",
+				"usar": "helena_3"
+			},
+			{
+				"quando": "flag:helena_visita_1",
+				"usar": "helena_2"
+			}
+		],
 		"falas": [
-			"…",
-			"Você também acordou. Eles sempre acordam.",
-			"Este teatro guarda o que restou. Não o projeto. A memória.",
-			"Ninguém ocupa o lugar de ninguém."
+			"Ah, mais um que acordou. Senta. Não, aí não. Aí é lugar de ninguém. ...É piada. Ri.",
+			"Meu marido? Morreu. Todo perfeitinho, ele. Bota engraxada, cama arrumada. Nunca saiu do posto. Saiu UMA vez. Adivinha quem pediu?",
+			"Eu. 'Vem jantar comigo.' Ha! Jantar caro, hein?"
 		],
 		"opcoes": [
 			{
-				"texto": "Desembainhar",
-				"acao": "desafiar_helena"
+				"texto": "Mostrar a Flor de Pedra",
+				"quando": "item:flor_de_pedra",
+				"acao": "falar:helena_pela_flor"
+			},
+			{
+				"texto": "Oferecer o Licor",
+				"quando": "item:licor_da_vigilia",
+				"acao": "dar:licor_da_vigilia;falar:helena_licor"
 			},
 			{
 				"texto": "Deixá-la em paz",
@@ -833,124 +852,6 @@
 				"texto": "Ainda não",
 				"acao": ""
 			}
-		]
-	},
-	"guarda_cidade": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"Para trás. Estes aqui não lutam mais, mas ainda andam. Alguém precisa ficar com eles.",
-			"Meu nome? ...Não sei. Acordei de cabelo branco no meio de uma rua em chamas, com este uniforme e um anel no dedo.",
-			"Só lembro de uma coisa: deixei um posto uma vez. E alguém pagou por isso.",
-			"Se você for para o teatro, eu vou depois. Aquele lugar me chama. Não sei por quê."
-		]
-	},
-	"guarda_1": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"Este palco... eu já estive aqui. Antes de tudo.",
-			"Tenho um anel no dedo. Não sei de quem é a outra metade. Às vezes ele esquenta, quando passo perto da plateia."
-		],
-		"opcoes": [
-			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
-			}
-		]
-	},
-	"guarda_2": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"Sonhei com uma voz de mulher. Dizia “volte para o posto”. Ou “não volte”. Acordei sem saber qual das duas.",
-			"Se precisar de alguém do seu lado nas ilhas, é só chamar."
-		],
-		"opcoes": [
-			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
-			}
-		]
-	},
-	"guarda_3": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"Toda noite vejo um posto vazio e alguém correndo para ele. Nunca chego a tempo.",
-			"Talvez seja por isso que eu não consigo ficar parado."
-		],
-		"opcoes": [
-			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
-			}
-		]
-	},
-	"guarda_4": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"Os soldados da Cidade me olham como se me conhecessem. Talvez eu tenha dado ordens a eles. Talvez tenha desobedecido.",
-			"Ninguém aqui morre de verdade. Então todos nós devemos alguma coisa a alguém."
-		],
-		"opcoes": [
-			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
-			}
-		]
-	},
-	"guarda_5": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"A mulher da plateia não olha para mim. E eu não consigo parar de olhar para ela.",
-			"Ela segura a espada como quem segura um posto. Eu sei como é."
-		],
-		"opcoes": [
-			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
-			}
-		]
-	},
-	"guarda_6": {
-		"nome": "Guarda de cabelo branco",
-		"falas": [
-			"Se um dia você subir naquele palco para lutar com ela... eu vou junto.",
-			"Não me pergunte por quê. Eu também não sei. Só sei que, desta vez, eu não saio do lugar."
-		],
-		"opcoes": [
-			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
-			}
-		]
-	},
-	"posto_vazio": {
-		"nome": "Posto vazio",
-		"falas": [
-			"Um elmo amassado e uma espada cravada no assoalho, de pé.",
-			"Desta vez, ele não saiu do lugar."
 		]
 	},
 	"galho_trancado": {
@@ -2122,6 +2023,225 @@
 		"aparece_quando": "flag:bastiao_cinzento",
 		"falas": [
 			"Ele anda devagar pela ponte. Não lembra de ninguém."
+		]
+	},
+	"poco_heitor": {
+		"nome": "Poço",
+		"falas": [
+			"Lá do fundo, alguém cantarola. Desafinado."
+		],
+		"variantes": [
+			{
+				"quando": "flag:heitor_poco",
+				"usar": "poco_vazio"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Jogar a corda",
+				"acao": "flag:heitor_poco;falar:heitor_salvo_poco"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"poco_vazio": {
+		"nome": "Poço",
+		"falas": [
+			"Só água parada lá no fundo."
+		]
+	},
+	"heitor_salvo_poco": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Ha! Salvo de novo! Eu juro que costumo ser mais útil que isso.",
+			"Toma um gole! Eu nem gosto. Bebo pra acompanhar alguém. ...Que alguém?"
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar a garrafa",
+				"acao": "ganhar:licor_da_vigilia"
+			}
+		]
+	},
+	"estatua_heitor": {
+		"nome": "Estátua caída",
+		"aparece_quando": "flag:heitor_poco",
+		"falas": [
+			"Fui eu que fiz essa música! Acho. É ruim demais pra ser de outra pessoa."
+		],
+		"variantes": [
+			{
+				"quando": "flag:heitor_estatua",
+				"usar": "estatua_vazia"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Empurrar a estátua",
+				"acao": "flag:heitor_estatua;falar:heitor_salvo_estatua"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"estatua_vazia": {
+		"nome": "Estátua caída",
+		"falas": [
+			"Só a estátua, de lado. Ninguém embaixo."
+		]
+	},
+	"heitor_salvo_estatua": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Ha! Salvo de novo! Eu juro que costumo ser mais útil que isso.",
+			"Dizem que um homem morreu por sair do posto. Coitado! ...Por que todo mundo me olha quando falam isso?"
+		]
+	},
+	"gelo_heitor": {
+		"nome": "Homem no gelo",
+		"aparece_quando": "flag:heitor_estatua",
+		"some_quando": "flag:heitor_gelo",
+		"falas": [
+			"Ha! Gelado aqui, né? ...Você não sente frio? Que inveja!"
+		],
+		"variantes": [
+			{
+				"quando": "flag:heitor_gelo",
+				"usar": "heitor_dominio"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Quebrar o gelo",
+				"acao": "flag:heitor_gelo;falar:heitor_salvo_gelo"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"heitor_salvo_gelo": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Ha! Salvo de novo! Eu juro que costumo ser mais útil que isso.",
+			"Não lembro de nada. Mas acordo todo dia achando que estou atrasado. Atrasado pra quê? Boa pergunta!"
+		]
+	},
+	"heitor_dominio": {
+		"nome": "Homem de cabelo branco",
+		"aparece_quando": "flag:heitor_gelo",
+		"some_quando": "flag:heitor_morto",
+		"falas": [
+			"Fui eu que fiz essa música! Acho. É ruim demais pra ser de outra pessoa."
+		],
+		"variantes": [
+			{
+				"quando": "flag:helena_contou_flor+!flag:heitor_deu_flor",
+				"usar": "heitor_flor"
+			}
+		]
+	},
+	"heitor_flor": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Flor de pedra! Não sei onde ouvi isso. Fica pra você."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar a pedra",
+				"acao": "flag:heitor_deu_flor;ganhar:flor_de_pedra"
+			}
+		]
+	},
+	"helena_2": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Ele cantava desafinado. Era a única coisa errada nele. Eu amava a coisa errada.",
+			"Ele compôs uma música pra mim. Era horrível.",
+			"Ele me dava flor de qualquer coisa. Uma vez me deu uma pedra. Disse que era flor de pedra."
+		],
+		"opcoes": [
+			{
+				"texto": "Mostrar a Flor de Pedra",
+				"quando": "item:flor_de_pedra",
+				"acao": "falar:helena_pela_flor"
+			},
+			{
+				"texto": "Oferecer o Licor",
+				"quando": "item:licor_da_vigilia",
+				"acao": "dar:licor_da_vigilia;falar:helena_licor"
+			},
+			{
+				"texto": "Deixá-la em paz",
+				"acao": ""
+			}
+		]
+	},
+	"helena_3": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Imortal, esse lugar. Todo mundo volta. Menos quem eu queria. Típico.",
+			"Brinde! A quem fica no posto. ...E a quem não fica.",
+			"Tem um esquisito de cabelo branco cantando por aí? Manda parar. Essa música tem dono."
+		],
+		"opcoes": [
+			{
+				"texto": "Mostrar a Flor de Pedra",
+				"quando": "item:flor_de_pedra",
+				"acao": "falar:helena_pela_flor"
+			},
+			{
+				"texto": "Oferecer o Licor",
+				"quando": "item:licor_da_vigilia",
+				"acao": "dar:licor_da_vigilia;falar:helena_licor"
+			},
+			{
+				"texto": "Deixá-la em paz",
+				"acao": ""
+			}
+		]
+	},
+	"helena_licor": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Ele odiava essa porcaria. Bebia só pra me acompanhar."
+		]
+	},
+	"helena_sobria": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Seis. Só falta eu. ...Então é isso."
+		],
+		"opcoes": [
+			{
+				"texto": "Desembainhar",
+				"acao": "desafiar_helena"
+			},
+			{
+				"texto": "Ainda não",
+				"acao": ""
+			}
+		]
+	},
+	"helena_pela_flor": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"...Onde você achou isso?",
+			"Ninguém sabe disso. NINGUÉM. Só ele.",
+			"Ele tá vivo? Ele tá VIVO, andando por aí, e não VOLTOU pra mim?!",
+			"Eu bebi por ele! Eu ENTERREI ele aqui dentro! E ele tava CANTANDO?!"
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:helena_pela_flor;desafiar_helena"
+			}
 		]
 	}
 }
