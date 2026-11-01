@@ -2250,5 +2250,140 @@
 		"falas": [
 			"Os dois ficaram no posto."
 		]
+	},
+	"tito_desenho": {
+		"nome": "Desenho a giz",
+		"falas": [
+			"Dois bonecos de giz. O grande está sorrindo. O pequeno desenhou os dois sorrindo."
+		]
+	},
+	"tito_no_chao": {
+		"nome": "Criança caída",
+		"falas": [
+			"Ele não levantou. Os outros sempre levantam."
+		],
+		"opcoes": [
+			{
+				"texto": "Usar um Frasco de Sanidade",
+				"quando": "prologo+sanidade+flag:tito_caido+!flag:tito_morto",
+				"acao": "reviver_tito"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"tito_revivido": {
+		"nome": "Tito",
+		"falas": [
+			"Ele desenha de novo, no canto. Os dois olhos, agora, brancos."
+		]
+	},
+	"governanta_inicio": {
+		"nome": "Governanta",
+		"falas": [
+			"...Ninguém caiu hoje.",
+			"Eu conto todas as noites. Hoje a conta fechou antes de eu chegar no fim.",
+			"Você é dos meus? ...Não. Os meus não sabem andar até a porta.",
+			"Mas eu conto tudo que passa pela porta. ...Você lembra o seu nome?"
+		]
+	},
+	"governanta_escrever": {
+		"nome": "Governanta",
+		"falas": [
+			"...Eu vou escrever. Alguém precisa escrever.",
+			"Vá. Antes que eu lembre que devia te contar também."
+		]
+	},
+	"governanta_faltou_um": {
+		"nome": "Governanta",
+		"falas": [
+			"Faltou um. O do canto. ...ELE NÃO LEVANTOU."
+		]
+	},
+	"governanta_mesa": {
+		"nome": "Governanta",
+		"variantes": [
+			{
+				"quando": "sete+flag:tito_morto+flag:galeno_morto",
+				"usar": "governanta_final_tito_galeno"
+			},
+			{
+				"quando": "sete+flag:tito_morto",
+				"usar": "governanta_final_tito"
+			},
+			{
+				"quando": "sete+flag:tito_revivido",
+				"usar": "governanta_final_revivido"
+			},
+			{
+				"quando": "sete+feriu",
+				"usar": "governanta_final_feriu"
+			},
+			{
+				"quando": "sete",
+				"usar": "governanta_final_paz"
+			},
+			{
+				"quando": "flag:tito_caido",
+				"usar": "governanta_meio"
+			}
+		],
+		"falas": [
+			"Eu conto tudo que passa pela porta."
+		]
+	},
+	"governanta_meio": {
+		"nome": "Governanta",
+		"falas": [
+			"O do canto não levanta. Eu conto ele mesmo assim.",
+			"Respira pouco. Quem respira pouco ainda é gente.",
+			"Lá em cima vendem gente em vidro. Tem cheiro de casa. ...Eu não posso ir. Eu não saio da mesa."
+		]
+	},
+	"governanta_final_paz": {
+		"nome": "Governanta",
+		"falas": [
+			"Você voltou. Ninguém volta. Eles só acordam.",
+			"Eu contei você, sabia? Na primeira noite. Eu conto tudo que passa pela porta.",
+			"Eu tirei a morte deste lugar. Achei que era o mesmo que tirar a dor. ...Não era. Eles só param de crescer.",
+			"Você vai até o coração, não vai? Se ficar lá em cima, no lugar dele... eu entendo. Eu também nunca saí da mesa.",
+			"Mas se for soltar... venha me contar antes. Eu queria contar uma última vez. Do jeito certo."
+		]
+	},
+	"governanta_final_feriu": {
+		"nome": "Governanta",
+		"falas": [
+			"Escrevi seu nome com tanta força que rasgou o papel.",
+			"Eles levantaram. Menores. Sempre levantam menores. E me olham como se fosse culpa minha.",
+			"...É culpa minha.",
+			"Vá. Termine o que veio fazer. Pelo menos alguém aqui termina alguma coisa."
+		]
+	},
+	"governanta_final_tito": {
+		"nome": "Governanta",
+		"falas": [
+			"O do canto. Eu ainda conto ele. Toda noite. É o único que eu conto e a conta FECHA.",
+			"Sabe o que é uma conta que fecha? Eu esperei tanto. E agora queria que nunca tivesse fechado.",
+			"O pai veio. Grande. Sentou no chão, do lado dele. Ficou dias. Depois foi atrás de você."
+		]
+	},
+	"governanta_final_tito_galeno": {
+		"nome": "Governanta",
+		"falas": [
+			"O do canto. Eu ainda conto ele. Toda noite. É o único que eu conto e a conta FECHA.",
+			"Sabe o que é uma conta que fecha? Eu esperei tanto. E agora queria que nunca tivesse fechado.",
+			"O pai veio. Grande. Sentou no chão, do lado dele. Ficou dias. Depois foi atrás de você.",
+			"Ele não voltou. Ninguém volta. Eu disse isso pra ele também."
+		]
+	},
+	"governanta_final_revivido": {
+		"nome": "Governanta",
+		"falas": [
+			"Você trouxe ele de volta. O olho ficou branco.",
+			"Agora ele não cresce mais.",
+			"...Agora ele é meu também."
+		]
 	}
 }

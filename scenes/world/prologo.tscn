@@ -21,7 +21,8 @@ lore_points = {
 "4": "desenho_parede",
 "5": "camas",
 "6": "brinquedos",
-"7": "pratos"
+"7": "pratos",
+"8": "tito_desenho"
 }
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]

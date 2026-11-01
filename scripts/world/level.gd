@@ -1561,6 +1561,27 @@ func _spawn_companion() -> void:
 			ally.queue_free()
 
 
+## v0.47 (Etapa 9): o Frasco de Sanidade no Tito caído. Ele levanta — mas o
+## olho castanho fica branco: não cresce mais (tito_revivido).
+func revive_tito() -> void:
+	if not Game.consume_sanity_flask():
+		return
+	Game.clear_flag("tito_caido")
+	Game.set_flag("tito_revivido")
+	Sfx.play(&"sanity", -2.0)
+	for node in entities.get_children():
+		var child := node as Tito
+		if child:
+			Fx.splash(child.global_position + Vector2(0, -8), Color(0.95, 0.97, 1.0), 16)
+			var revived := _make_npc("tito_revivido", "Tito", "res://assets/sprites/crianca_poupada.png", 2, child.global_position)
+			revived.add_to_group("npcs")
+			revived.talked.connect(_on_npc_talked)
+			child.remove_for_revival()
+			break
+	if hud:
+		hud.toast("Ele levantou. O olho castanho ficou branco.")
+
+
 ## v0.46 (Etapa 8): o grito da Helena explode o Teatro. Plateia, palco e
 ## lustre caem AGORA (entulho por cima da luta); da próxima vez que a área
 ## carregar, o mapa já é o das ruínas (ruins_layout).
@@ -1913,6 +1934,8 @@ func _on_dialogue_action(action: String) -> void:
 			else:
 				Sfx.play(&"ui_click")
 				hud.toast("Memórias insuficientes.")
+		"reviver_tito":
+			revive_tito()
 		"desafiar_helena":
 			if boss_arena:
 				boss_arena.arm()

@@ -9,6 +9,11 @@ extends Level
 ##   N  a Governanta, sentada na cabeceira da mesa comprida;
 ##   E  a porta de saída (2 células) — tranca se ela lutar;
 ##   !  o chão que some depois da porta (a queda até o Teatro).
+##   y  o Tito, filho do Galeno (v0.47, Etapa 9): no canto do dormitório.
+##
+## v0.47 — A GOVERNANTA É IMORTAL: depois do prólogo, quem volta ao laboratório
+## a encontra sentada de novo na cabeceira (NPC, "governanta_mesa"). Ela fala no
+## meio do jogo (tito_caido) e no fim (sete memórias), conforme o caminho.
 ##
 ## A decisão "ela luta?" mora AQUI, não na Governanta: quando o herói entra no
 ## refeitório, a fase olha Game.criancas_feridas.
@@ -17,6 +22,7 @@ extends Level
 ## Vencida, a lembrança dela toma a tela (ecos em volta da mesa vazia).
 
 const GOVERNESS_SCENE := preload("res://scenes/bosses/governanta.tscn")
+const TITO_SCENE := preload("res://scenes/enemies/tito.tscn")
 const LAB_CRACKS := preload("res://assets/fx/lab_cracks.png")
 const LAB_HOLE := preload("res://assets/fx/lab_hole.png")
 const CHILD_SHEETS := [
@@ -32,6 +38,7 @@ const ECHO_COLOR := Color(1.0, 1.0, 1.0, 0.7)
 const TABLE_SIZE := Vector2(40, 92)
 
 var governess: Governanta
+var tito: Tito
 var exit_door: LabDoor
 
 var _table_feet := Vector2.ZERO
@@ -46,6 +53,7 @@ var _governess_echo: Sprite2D
 func _clear() -> void:
 	super._clear()
 	governess = null
+	tito = null
 	exit_door = null
 	_table_feet = Vector2.ZERO
 	_fall_cells.clear()
@@ -54,12 +62,19 @@ func _clear() -> void:
 func _build_entity(x: int, y: int, c: String) -> void:
 	match c:
 		"N":
+			if not Engine.is_editor_hint() and Game.prologue_done:
+				# Imortal: volta à mesa mesmo vencida. Agora só conversa.
+				_make_npc("governanta_mesa", "Governanta", "res://assets/sprites/governanta_sentada.png", 1,
+					_cell_feet(x, y) + Vector2(8, 0))
+				return
 			var node := GOVERNESS_SCENE.instantiate()
 			node.position = _cell_feet(x, y) + Vector2(8, 0)  # alinhada à mesa (2 células)
 			entities.add_child(node)
 			if not Engine.is_editor_hint():
 				governess = node as Governanta
 				_boss = governess
+		"y":
+			_place_tito(_cell_feet(x, y))
 		"E":
 			exit_door = LabDoor.new()
 			exit_door.position = _cell_feet(x, y) + Vector2(8, 0)
@@ -71,6 +86,26 @@ func _build_entity(x: int, y: int, c: String) -> void:
 			super._build_entity(x, y, c)
 		_:
 			super._build_entity(x, y, c)
+
+
+## O Tito: vivo no canto; caído (tito_caido/tito_morto); revivido (olho branco).
+## Se ninguém foi ferido e o prólogo acabou, ele é a Criança Poupada do Teatro.
+func _place_tito(feet: Vector2) -> void:
+	if Engine.is_editor_hint():
+		var preview := TITO_SCENE.instantiate()
+		preview.position = feet
+		entities.add_child(preview)
+		return
+	if Game.has_flag("tito_revivido"):
+		_make_npc("tito_revivido", "Tito", "res://assets/sprites/crianca_poupada.png", 2, feet)
+		return
+	if Game.prologue_done and Game.spared_child:
+		return  # foi atrás de você, até o Teatro
+	tito = TITO_SCENE.instantiate() as Tito
+	tito.position = feet
+	entities.add_child(tito)
+	if Game.has_flag("tito_caido") or Game.has_flag("tito_morto"):
+		tito.lie_down()
 
 
 ## A Governanta não arma a arena ao abrir a fase: quem decide é a escolha moral.
@@ -94,6 +129,26 @@ func _physics_process(_delta: float) -> void:
 	# "Ela já sabe o que o jogador fez."
 	if Game.criancas_feridas > 0 and _room.grow(-10.0).has_point(player.global_position):
 		_wake_governess()
+	elif Game.criancas_feridas == 0 and not _greeting and not Game.has_flag("governanta_contou") \
+			and _room.grow(-10.0).has_point(player.global_position):
+		_greet_peacefully()
+
+
+## CAMINHO PACÍFICO (v0.47, Etapa 9): ninguém caiu. Ela fala, pergunta o nome
+## (digitar) e escreve. Uma vez só.
+var _greeting := false
+
+
+func _greet_peacefully() -> void:
+	_greeting = true
+	Game.set_flag("governanta_contou")
+	_begin_modal()
+	await hud.dialogue.run(DialogueData.get_entry("governanta_inicio"), "Governanta")
+	if Game.player_name.is_empty():
+		await ask_player_name("VOCÊ LEMBRA O SEU NOME?")
+	await hud.dialogue.run(DialogueData.get_entry("governanta_escrever"), "Governanta")
+	_end_modal()
+	_greeting = false
 
 
 func _wake_governess() -> void:
@@ -110,6 +165,11 @@ func _lock_exit(locked: bool) -> void:
 # --- Vitória: a lembrança dela ------------------------------------------------------
 
 func _celebrate_victory(_subtitle: String) -> void:
+	if Game.has_flag("tito_caido") or Game.has_flag("tito_morto"):
+		# Etapa 9: faltou um na conta.
+		_begin_modal()
+		await hud.dialogue.run(DialogueData.get_entry("governanta_faltou_um"), "Governanta")
+		_end_modal()
 	await ask_name_in_anger()
 	await _play_governess_memory()
 	_lock_exit(false)

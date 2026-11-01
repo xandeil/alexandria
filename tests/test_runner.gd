@@ -138,6 +138,9 @@ func _ready() -> void:
 		"test_governess_attacks",
 		"test_prologue_peaceful",
 		"test_prologue_governess_fight",
+		"test_governess_peaceful_greeting",
+		"test_tito_falls_and_revives",
+		"test_tito_deadline_and_governess_lines",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -800,7 +803,7 @@ func test_levels_build() -> void:
 			for npc in level.get_tree().get_nodes_in_group("npcs"):
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
-			check(lore == 8, "Prólogo: 7 pontos de inspeção + a placa da cápsula (%d)" % lore)
+			check(lore == 9, "Prólogo: 8 pontos de inspeção (o 8º é o desenho do Tito) + a placa da cápsula (%d)" % lore)
 		elif path.contains("nyssa"):
 			check(level.boss_arena != null and level.boss_arena.boss is NyssaLumevel, "Clareira: Nyssa deitada no ar")
 			check(level.boss_arena.state == BossArena.State.ARMED, "Clareira: névoa armada ao chegar")
@@ -1542,7 +1545,9 @@ func test_prologue_peaceful() -> void:
 	var free := await wait_for(func(): return level.player.state == Player.State.FREE, 240)
 	check(free, "depois de sair da cápsula, o controle volta")
 	check(not Game.wake_from_capsule, "a cena de acordar roda uma vez só")
-	# Sem nenhuma criança ferida: ela só observa, sem luta e sem diálogo.
+	# Sem nenhuma criança ferida: ela só observa, sem luta. (A conversa da Etapa 9
+	# — "Ninguém caiu hoje" — é testada à parte: test_governess_peaceful_greeting.)
+	Game.set_flag("governanta_contou")
 	var gov := level.governess
 	level.player.global_position = gov.global_position + Vector2(40, 60)
 	await seconds(0.6)
@@ -1573,6 +1578,108 @@ func test_prologue_peaceful() -> void:
 	check(find_npc(Level.SPARED_CHILD_TALKS) != null, "a Criança Poupada está no Teatro")
 	teatro.queue_free()
 	await frames(2)
+
+
+## v0.47 (Etapa 9): ninguém caiu — ela fala, pede o nome e escreve.
+func test_governess_peaceful_greeting() -> void:
+	Game.reset_progress()
+	var level := await open_level(PROLOGO, "camara") as Prologo
+	check(level.tito != null and not level.tito.down, "o Tito está no canto, desenhando")
+	level.player.global_position = level.governess.global_position + Vector2(40, 60)
+	await frames(4)
+	check(level.hud.dialogue.visible and Game.has_flag("governanta_contou"), "'...Ninguém caiu hoje.'")
+	var guard := 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	check(level.hud.name_entry.visible, "'Você lembra o seu nome?' — digitar")
+	level.hud.name_entry.field.text = "Cobaia"
+	level.hud.name_entry.confirm()
+	await frames(3)
+	guard = 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	await frames(3)
+	check(Game.player_name == "Cobaia" and not get_tree().paused, "'Eu vou escrever.' — e o mundo volta")
+	check(level.boss_arena.state == BossArena.State.IDLE, "sem luta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## O Tito cai e não levanta: a espada de madeira; no laboratório, o Frasco de Sanidade.
+func test_tito_falls_and_revives() -> void:
+	Game.reset_progress()
+	Game.set_flag("governanta_contou")
+	var level := await open_level(PROLOGO, "camara") as Prologo
+	var tito := level.tito
+	var hp := tito.stats.max_health
+	check(is_equal_approx(hp, 40.0), "mesma vida das outras crianças (%.0f)" % hp)
+	var info := HitInfo.create(hp + 10.0, tito.global_position + Vector2(10, 0), tito.global_position)
+	info.source = level.player
+	tito.hurtbox.receive_hit(info)
+	await frames(3)
+	check(Game.criancas_feridas == 1, "conta como criança ferida, igual às outras")
+	check(tito.down and Game.has_flag("tito_caido"), "zerou a vida: caído, respirando pouco")
+	check(Game.has_item("espada_madeira_pequena"), "a Espada de Madeira Pequena vai para você")
+	await seconds(tito.regression_per_fall + 5.0)
+	check(tito.down, "ele não levanta (as outras sempre levantam)")
+	check(find_npc("tito_no_chao") != null, "Examinar: 'Ele não levantou.'")
+	Game.sanity_flasks = 1
+	var options := DialogueBox.expand_options(DialogueData.get_entry("tito_no_chao")["opcoes"])
+	check(options.size() == 1, "no prólogo, ainda não dá para reviver")
+	level.queue_free()
+	await frames(2)
+	Game.prologue_done = true
+	level = await open_level(PROLOGO, "camara") as Prologo
+	check(level.tito != null and level.tito.down, "de volta ao laboratório: ele continua no chão")
+	check(find_npc("governanta_mesa") != null and level.governess == null, "a Governanta voltou à mesa (só conversa)")
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_meio", "'O do canto não levanta.'")
+	options = DialogueBox.expand_options(DialogueData.get_entry("tito_no_chao")["opcoes"])
+	check(options.size() == 2, "com o Frasco de Sanidade: dá para usar nele")
+	await level._on_dialogue_action("reviver_tito")
+	await frames(3)
+	check(Game.has_flag("tito_revivido") and not Game.has_flag("tito_caido") and Game.sanity_flasks == 0, "ele levanta; o frasco foi gasto")
+	check(find_npc("tito_revivido") != null and not is_instance_valid(level.tito), "o olho castanho ficou branco")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(PROLOGO, "camara") as Prologo
+	check(find_npc("tito_revivido") != null and level.tito == null, "revivido, fica assim")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## O prazo (último fragmento do Galeno) e as falas da Governanta à mesa.
+func test_tito_deadline_and_governess_lines() -> void:
+	Game.reset_progress()
+	Game.set_flag("tito_caido")
+	Game.set_flag("galeno_esqueceu")
+	check(Game.has_flag("tito_morto"), "caído no último fragmento do Galeno: tito_morto")
+	Game.reset_progress()
+	Game.set_flag("tito_revivido")
+	Game.set_flag("galeno_lembrou")
+	check(not Game.has_flag("tito_morto"), "revivido a tempo: não morre")
+	Game.reset_progress()
+	var level := await open_level(PROLOGO, "camara")
+	var seven := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian", "helena"]
+	Game.defeated_bosses.assign(seven)
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_paz", "pacífico: 'Você voltou.'")
+	Game.criancas_feridas = 2
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_feriu", "feriu: 'rasgou o papel'")
+	Game.flags["tito_revivido"] = true
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_revivido", "revivido: 'Agora ele é meu também.'")
+	Game.flags["tito_morto"] = true
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_tito", "morto: 'a conta FECHA'")
+	Game.flags["galeno_morto"] = true
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_tito_galeno", "com o Galeno morto: 'Ele não voltou.'")
+	check(DialogueData.get_entry("governanta_faltou_um")["falas"][0].contains("ELE NÃO LEVANTOU"), "violento: 'Faltou um.'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
 
 
 func test_prologue_governess_fight() -> void:

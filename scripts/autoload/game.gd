@@ -622,6 +622,12 @@ func requirement_met(requires: String) -> bool:
 		"":
 			if value == "nome":  # v0.41: o herói já tem nome (a Governanta perguntou)
 				return not player_name.is_empty()
+			if value == "feriu":  # v0.47: feriu alguma criança no prólogo
+				return criancas_feridas > 0
+			if value == "sanidade":  # v0.47: tem Frasco de Sanidade
+				return sanity_flasks > 0
+			if value == "prologo":  # v0.47: o prólogo acabou (voltou ao laboratório)
+				return prologue_done
 			return seven_memories() == SEVEN.size() if value == "sete" else is_boss_defeated(value)
 		"chefe":
 			return is_boss_defeated(value)
@@ -882,8 +888,17 @@ func remove_item(item_id: String, count: int = 1) -> bool:
 func set_flag(flag: String) -> void:
 	if not flags.get(flag, false):
 		flags[flag] = true
+		_check_tito_deadline(flag)
 		flags_changed.emit()
 		save_game()
+
+
+## v0.47 (Etapa 9): o prazo do Tito é o último fragmento do Galeno (a escolha
+## "lembrar/esquecer", depois da Rachel). Caído até lá, ele não levanta mais.
+func _check_tito_deadline(flag: String) -> void:
+	if flag in ["galeno_lembrou", "galeno_esqueceu"] and flags.get("tito_caido", false) \
+			and not flags.get("tito_revivido", false):
+		flags["tito_morto"] = true
 
 
 func clear_flag(flag: String) -> void:
