@@ -704,7 +704,7 @@ const CAPSULES := [
 	{"scene": "res://scenes/world/cidade.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Avenida em Chamas", "island": "Cidade", "thumb": "cidade"},
 	{"scene": "res://scenes/world/cidade_quartel.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Quartel Desabado", "island": "Cidade", "thumb": "cidade"},
 	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Margem do Lago", "island": "Bosque", "thumb": "bosque"},
-	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara_2", "name": "Bosque do Sono Eterno", "place": "Dormitório", "island": "Bosque", "thumb": "bosque"},
+	{"scene": "res://scenes/world/bosque_dormitorio.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Dormitório", "island": "Bosque", "thumb": "bosque"},
 	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Salão das Estátuas", "island": "Forjas", "thumb": "forjas"},
 	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara_2", "name": "Forjas Ocas", "place": "Fornalha", "island": "Forjas", "thumb": "forjas"},
 	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Estufa 3", "island": "Raízes", "thumb": "raizes"},
@@ -745,8 +745,12 @@ func unlock_capsule(scene_path: String, spawn_id: String = "camara") -> void:
 
 
 ## As Câmaras desbloqueadas, na ordem do mapa (agrupadas por ilha), não na ordem em que você achou.
-## A 2ª Câmara da Cidade antes da v0.35 (Avenida, "camara_2") e onde ela está agora.
-const OLD_CITY_SECOND := ["res://scenes/world/cidade.tscn", "camara_2"]
+## Câmaras que mudaram de fase na v0.35 (Etapa 6): chave antiga → fase nova
+## (a 1ª Câmara dela, "camara"). Saves antigos são convertidos ao carregar.
+const MOVED_CAPSULES := {
+	"res://scenes/world/cidade.tscn#camara_2": "res://scenes/world/cidade_quartel.tscn",
+	"res://scenes/world/bosque.tscn#camara_2": "res://scenes/world/bosque_dormitorio.tscn",
+}
 const NEW_CITY_SECOND := "res://scenes/world/cidade_quartel.tscn"
 
 
@@ -1493,9 +1497,10 @@ func _from_dict(data: Dictionary) -> void:
 			defeated_bosses.append(str(boss))
 	rest_scene = str(data.get("rest_scene", START_SCENE))
 	rest_spawn = str(data.get("rest_spawn", START_SPAWN))
-	# MIGRAÇÃO (v0.35): a 2ª Câmara da Cidade mudou para o Quartel Desabado.
-	if rest_scene == OLD_CITY_SECOND[0] and rest_spawn == OLD_CITY_SECOND[1]:
-		rest_scene = NEW_CITY_SECOND
+	# MIGRAÇÃO (v0.35): a 2ª Câmara de algumas ilhas mudou para uma fase anexa.
+	var moved_rest := "%s#%s" % [rest_scene, rest_spawn]
+	if MOVED_CAPSULES.has(moved_rest):
+		rest_scene = MOVED_CAPSULES[moved_rest]
 		rest_spawn = "camara"
 	if data.has("vibration"):  # saves antigos: a vibração agora mora nas Opções do aparelho
 		Settings.import_legacy_vibration(bool(data["vibration"]))
@@ -1557,7 +1562,7 @@ func _from_dict(data: Dictionary) -> void:
 	if typeof(saved_capsules) == TYPE_ARRAY:
 		for scene_path in saved_capsules:
 			var key := str(scene_path)
-			unlock_capsule(NEW_CITY_SECOND if key == "%s#%s" % OLD_CITY_SECOND else key)
+			unlock_capsule(MOVED_CAPSULES.get(key, key))
 	# MIGRAÇÃO (saves de antes da v0.22): a Câmara onde você descansou por último
 	# e a do Teatro (depois do Prólogo) já contam como desbloqueadas.
 	unlock_capsule(rest_scene, rest_spawn)

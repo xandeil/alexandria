@@ -94,4 +94,9 @@ func shift_arena(phase_number: int) -> ArenaShift:
 	var settings: Variant = phase_arena.get(phase_number, {})
 	if not settings is Dictionary or (settings as Dictionary).is_empty() or arena_rect.size == Vector2.ZERO:
 		return null
-	return ArenaShift.apply(get_parent(), arena_rect, settings)
+	var shift := ArenaShift.apply(get_parent(), arena_rect, settings)
+	# Luta acabou: o fogo apaga e o sono volta ao normal (os buracos ficam).
+	fight_won.connect(func(_boss):
+		if is_instance_valid(shift):
+			shift.queue_free())
+	return shift

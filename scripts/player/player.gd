@@ -288,6 +288,8 @@ var _stagger_duration := 0.3
 var _shield_recoil := 0.0
 ## Barra de Sonolência (0 = desperto).
 var drowsiness := 0.0
+## Multiplica todo o sono que chega (Nyssa fase 2: 1,5). Volta a 1 no fim.
+var drowsiness_scale := 1.0
 var _sleep_grace_left := 0.0
 var _zzz_timer := 0.0
 ## Raio do barulho AGORA (some rápido). Veja make_noise() e is_heard_from().
@@ -877,7 +879,7 @@ func add_drowsiness(amount: float) -> void:
 		return
 	if state == State.DEAD or state == State.SLEEP or state == State.LOCKED or _plunging:
 		return
-	drowsiness = minf(drowsiness + amount, drowsiness_max)
+	drowsiness = minf(drowsiness + amount * drowsiness_scale, drowsiness_max)
 	drowsiness_changed.emit(drowsiness, drowsiness_max)
 	if drowsiness >= drowsiness_max:
 		_fall_asleep()

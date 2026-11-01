@@ -14,6 +14,9 @@ extends Node2D
 ##   "max": N          — ...até no máximo N tiles.
 ##   "escuro": 0.4     — a luz da arena cai para esta fração (CanvasModulate).
 ##   "dps": 14         — dano por segundo do fogo (padrão 12).
+##   "sono": 1.5       — a Barra de Sonolência enche 1,5× mais rápido (Nyssa).
+##   "luz_flores": true — as Flores de Pólen da arena passam a brilhar: no
+##                       escuro, é a única luz no chão.
 ##
 ## Quem chama: Boss.shift_arena(fase) — cada chefe, no seu _enter_phase_N.
 
@@ -51,6 +54,31 @@ func _ready() -> void:
 			create_tween().tween_property(level.canvas_modulate, "color", level.canvas_modulate.color * Color(dark, dark, dark, 1.0), 1.5)
 	if border_tiles > 0.0:
 		Sfx.play(&"fire_breath", -4.0)
+	var player := get_tree().get_first_node_in_group("player") as Player
+	if player and config.has("sono"):
+		player.drowsiness_scale = float(config["sono"])
+	if config.get("luz_flores", false):
+		_light_flowers()
+
+
+func _exit_tree() -> void:
+	var player := get_tree().get_first_node_in_group("player") as Player
+	if player and config.has("sono"):
+		player.drowsiness_scale = 1.0
+
+
+## As flores acendem (uma luz lilás em cada Flor de Pólen dentro da arena).
+func _light_flowers() -> void:
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is FlorDePolen and arena.has_point((node as Node2D).global_position):
+			var light := PointLight2D.new()
+			light.texture = preload("res://assets/fx/light.png")
+			light.color = Color(0.85, 0.7, 1.0)
+			light.energy = 0.9
+			light.texture_scale = 0.9
+			light.position = Vector2(0, -8)
+			light.add_to_group(&"flower_lights")
+			(node as Node2D).add_child(light)
 
 
 ## A área ainda segura (fora do anel de fogo).

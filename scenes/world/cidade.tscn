@@ -21,6 +21,7 @@ exit2_scene = "res://scenes/world/cidade_quartel.tscn"
 exit2_spawn = "porta"
 exit2_requires = ""
 exit2_locked_dialogue = ""
+decor = Array[Dictionary]([{"cell": Vector2i(41, 2), "texture": "res://assets/props/quartel_bombeiros.png"}])
 item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo", "sucata_temperada:2"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]

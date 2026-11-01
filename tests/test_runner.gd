@@ -49,6 +49,10 @@ const MONTANHA := "res://scenes/world/montanha.tscn"
 const QUARTEL := "res://scenes/world/cidade_quartel.tscn"
 const VIADUTO := "res://scenes/world/cidade_viaduto.tscn"
 const TORRE := "res://scenes/world/cidade_torre.tscn"
+const DORMITORIO := "res://scenes/world/bosque_dormitorio.tscn"
+const SLEEPER_SCENE_FOR_TEST := preload("res://scenes/enemies/sonambulo.tscn")
+const BORDA := "res://scenes/world/bosque_borda.tscn"
+const SALA_SINO := "res://scenes/world/bosque_sino.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -135,6 +139,10 @@ func _ready() -> void:
 		"test_city_expansion",
 		"test_corneteiro_silences_city",
 		"test_arena_shift_fire_ring",
+		"test_bosque_expansion",
+		"test_breathing_flowers",
+		"test_sino_despertar",
+		"test_nyssa_nightmare_arena",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -732,7 +740,7 @@ func test_title_pause_keeps_save() -> void:
 
 
 func test_levels_build() -> void:
-	for path in ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn", "res://scenes/world/arena_aldir.tscn", PROLOGO, BOSQUE, ARENA_NYSSA, QUARTEL, VIADUTO, TORRE]:
+	for path in ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn", "res://scenes/world/arena_aldir.tscn", PROLOGO, BOSQUE, ARENA_NYSSA, QUARTEL, VIADUTO, TORRE, DORMITORIO, BORDA, SALA_SINO]:
 		Game.pending_spawn = "camara" if path.contains("teatro") or path.contains("prologo") else "porta"
 		var level := (load(path) as PackedScene).instantiate() as Level
 		_world.add_child(level)
@@ -773,7 +781,7 @@ func test_levels_build() -> void:
 			check(covers == 10, "Arena: 10 coberturas (%d)" % covers)
 			var rect := level.boss_arena.arena_rect
 			check(not rect.has_point(level.player.global_position), "Arena: herói chega no corredor, fora da arena")
-		elif path.contains("bosque"):
+		elif path == BOSQUE:
 			var kinds := {}
 			for node in level.get_tree().get_nodes_in_group("respawnable"):
 				var kind: String = node.get_script().get_global_name()
@@ -783,7 +791,8 @@ func test_levels_build() -> void:
 			for node in level.get_tree().get_nodes_in_group("minibosses"):
 				minis.append(str(node.get_script().get_global_name()))
 			minis.sort()
-			check(minis == ["MaeDosEsporos", "VigiaQueDormiu"], "Bosque: os 2 mini-chefes (%s)" % [minis])
+			# v0.35: o Vigia mudou para o Dormitório e a Mãe para a Borda.
+			check(minis.is_empty(), "Margem: os mini-chefes saíram para as fases anexas (%s)" % [minis])
 			check(level.rest_chamber != null and level.spawns.has("camara"), "Bosque: Câmara de descanso na entrada")
 			check(level.spawns["porta"].x < 3 * 16 + 8, "Bosque: chega pela borda oeste, 2 células para dentro")
 			var waterfalls := 0
@@ -800,12 +809,12 @@ func test_levels_build() -> void:
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
 			# 4 de lore + a trilha das Forjas (trancada até vencer Mabel).
-			check(lore == 8, "Bosque: 4 de lore, galho e espinha trancados e as 2 placas das cápsulas (%d)" % lore)
+			check(lore == 5, "Margem: lore, a espinha trancada e a placa da cápsula (%d)" % lore)
 			var items := 0
 			for node in level.entities.get_children():
 				if node is ItemPickup:
 					items += 1
-			check(items == 6, "Bosque: 4 itens + o pertence da 2ª cápsula + as botas do Arconte (%d)" % items)
+			check(items == 5, "Bosque: 4 itens + as botas do Arconte (%d)" % items)
 		elif path.contains("teatro"):
 			check(level.rest_chamber != null, "Teatro: tem a Câmara de descanso")
 			check(level.spawns.has("camara"), "Teatro: spawn na Câmara")
@@ -814,7 +823,7 @@ func test_levels_build() -> void:
 			var npcs := level.get_tree().get_nodes_in_group("npcs").size()
 			check(npcs >= 5, "Teatro: NPCs (Fada, Vendedor, Ferreiro, Orbe, Helena) = %d" % npcs)
 			check(find_npc(Level.SPARED_CHILD_TALKS) == null, "Teatro: sem a Criança Poupada (ninguém foi poupado ainda)")
-		elif path.contains("cidade_"):
+		elif path.contains("cidade_") or path.contains("bosque_"):
 			pass  # Quartel, Viaduto e Torre: conteúdo em test_city_expansion
 		else:
 			var kinds := {}
@@ -828,10 +837,10 @@ func test_levels_build() -> void:
 			minis.sort()
 			# v0.35: o Sargento mudou para o Quartel e a Couraça para o Viaduto.
 			check(minis.is_empty(), "Avenida: os mini-chefes saíram para as fases anexas (%s)" % [minis])
-			check(kinds.get("CaoDeGuerra", 0) == 3 and kinds.get("AtiradorDeTelhado", 0) == 3 and kinds.get("CivilCinzento", 0) == 5, "Cidade: 3 cães, 3 atiradores, 5 civis (%s)" % kinds)
+			check(kinds.get("CaoDeGuerra", 0) == 3 and kinds.get("AtiradorDeTelhado", 0) == 3 and kinds.get("CivilCinzento", 0) == 7, "Cidade: 3 cães, 3 atiradores, 7 civis (2 no quartel de bombeiros) (%s)" % kinds)
 			check(level.rest_chamber != null and level.spawns.has("camara"), "Cidade: Câmara de descanso perto do portão")
 			check(level.spawns.has("torre"), "Cidade: chegada de quem desce da Torre")
-		var min_floor := 100 if path == TORRE else 300  # a Torre é pequena de propósito
+		var min_floor := 100 if path in [TORRE, SALA_SINO] else 300  # salas pequenas de propósito
 		check(level.floor_layer.get_used_cells().size() > min_floor, "%s: piso desenhado" % path)
 		var leaks := _find_open_edges(level)
 		check(leaks.is_empty(), "%s: mapa fechado (bordas abertas em %s)" % [path, leaks.slice(0, 5)])
@@ -2339,11 +2348,14 @@ func test_forest_gate() -> void:
 		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "lateral":
 			back = true
 	check(back, "o Bosque leva de volta à porta lateral do Teatro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BORDA, "porta")  # v0.35: a trilha da Clareira fica na Borda
 	check(find_npc("espinhos_nyssa") != null, "antes da Mãe dos Esporos: os espinhos fecham a trilha")
 	level.queue_free()
 	await frames(2)
 	Game.defeated_bosses.append("mae_esporos")
-	level = await open_level(BOSQUE, "porta")
+	level = await open_level(BORDA, "porta")
 	var thorns := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_nyssa"):
@@ -5046,6 +5058,9 @@ func test_rest_menu_and_travel() -> void:
 		"capsules": ["res://scenes/world/cidade.tscn#camara_2"]})
 	check(Game.rest_scene == Game.NEW_CITY_SECOND and Game.rest_spawn == "camara" and Game.is_capsule_unlocked(Game.NEW_CITY_SECOND),
 		"migração v0.35: a 2ª Câmara da Cidade vira a do Quartel")
+	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/bosque.tscn", "rest_spawn": "camara_2",
+		"capsules": ["res://scenes/world/bosque.tscn#camara_2"]})
+	check(Game.rest_scene == DORMITORIO and Game.is_capsule_unlocked(DORMITORIO), "migração v0.35: a 2ª Câmara do Bosque vira a do Dormitório")
 	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/forjas.tscn", "rest_spawn": "camara"})
 	check(Game.is_capsule_unlocked("res://scenes/world/forjas.tscn") and Game.is_capsule_unlocked(Game.HUB_SCENE), "migração: a última Câmara e o Teatro")
 	Game.wake_from_capsule = false
@@ -5550,8 +5565,8 @@ func test_free_map_layout() -> void:
 	var expected := {
 		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
 		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "dominio", "raizes"],
-		"raizes": ["forjas", "cidade"], "dominio": ["forjas", "bosque"], "montanha": ["cidade_viaduto", "bosque"],
-		"bosque": ["teatro"],
+		"raizes": ["forjas", "cidade"], "dominio": ["forjas", "bosque_borda"], "montanha": ["cidade_viaduto", "bosque"],
+		"bosque": ["teatro", "bosque_dormitorio", "bosque_sino"],
 	}
 	for area: String in expected:
 		level = await open_level("res://scenes/world/%s.tscn" % area, "camara")
@@ -5612,8 +5627,8 @@ func test_area_power() -> void:
 func test_second_capsule_per_island() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
-	# A Cidade (v0.35) guarda a 2ª Câmara no Quartel Desabado: testada à parte.
-	for area in ["bosque", "forjas", "raizes", "montanha", "dominio"]:
+	# A Cidade e o Bosque (v0.35) guardam a 2ª Câmara numa fase anexa: testadas à parte.
+	for area in ["forjas", "raizes", "montanha", "dominio"]:
 		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
 		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
 		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
@@ -5624,6 +5639,17 @@ func test_second_capsule_per_island() -> void:
 		await frames(2)
 	check(Game.capsule_info("res://scenes/world/forjas.tscn#camara_2")["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
 	check(Game.CAPSULES.size() == 15, "15 Câmaras no jogo (%d)" % Game.CAPSULES.size())
+	# Bosque: uma Câmara na Margem, a outra (com placa e pertence) no Dormitório.
+	var shore := await open_level(BOSQUE, "camara")
+	check(shore.rest_chambers.size() == 1, "Margem: uma Câmara")
+	shore.queue_free()
+	await frames(2)
+	var dorm := await open_level(DORMITORIO, "camara")
+	check(dorm.chamber_for("camara") != null and find_npc("placa_bosque_dormitorio_1") != null, "Dormitório: a 2ª Câmara do Bosque, com placa")
+	check(dorm.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["bosque"]).size() == 1,
+		"Dormitório: o pertence do Bosque")
+	dorm.queue_free()
+	await frames(2)
 	# Cidade: uma Câmara na Avenida, a outra (com placa e pertence) no Quartel.
 	var avenue := await open_level("res://scenes/world/cidade.tscn", "camara")
 	check(avenue.rest_chambers.size() == 1, "Avenida: uma Câmara")
@@ -6824,4 +6850,150 @@ func test_arena_shift_fire_ring() -> void:
 	aldir.queue_free()
 	player.queue_free()
 	await frames(2)
+
+
+# --- v0.35 · Etapa 6: o Bosque expandido ----------------------------------------------
+
+func _exit_to(scene: String) -> AreaExit:
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).target_scene == scene:
+			return node
+	return null
+
+
+func test_bosque_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	# Margem → Dormitório (livre) e a sala escondida do Sino.
+	var level := await open_level(BOSQUE, "porta")
+	check(_exit_to(DORMITORIO) != null, "Margem: a descida para o Dormitório está aberta")
+	check(_exit_to(SALA_SINO) != null and level.spawns.has("sino"), "Margem: a sala do Sino")
+	check(find_npc("galho_trancado") == null, "o galho congelado saiu da Margem")
+	level.queue_free()
+	await frames(2)
+	# Dormitório: Vigia, flores que respiram, porta da Borda fechada até passar por ele.
+	level = await open_level(DORMITORIO, "porta")
+	check(_minis_named("VigiaQueDormiu").size() == 1, "Dormitório: o Vigia")
+	check(get_tree().get_nodes_in_group("breathing_flowers").size() == 6, "Dormitório: 6 flores que respiram")
+	check(find_npc("cama_quente") != null, "Dormitório: a cama ainda quente")
+	check(find_npc("dormitorio_porta_fechada") != null and _exit_to(BORDA) == null, "a Borda fecha até passar pelo Vigia")
+	check(find_npc("raiz_trancada") != null, "a raiz da Borda abre do outro lado")
+	Game.set_flag("vigia_evitado")
+	await frames(2)
+	check(_exit_to(BORDA) != null, "passou escondido pelo Vigia: a porta abre na hora")
+	level.queue_free()
+	await frames(2)
+	Game.clear_flag("vigia_evitado")
+	Game.defeated_bosses.append("vigia")
+	level = await open_level(DORMITORIO, "porta")
+	check(_exit_to(BORDA) != null, "vencido o Vigia: também abre")
+	level.queue_free()
+	await frames(2)
+	# Borda: a Mãe, o galho trancado, a raiz que abre o atalho.
+	level = await open_level(BORDA, "porta")
+	check(_minis_named("MaeDosEsporos").size() == 1, "Borda: a Mãe dos Esporos")
+	check(find_npc("galho_trancado") != null, "Borda: o lado trancado do galho congelado")
+	var root := _exit_to(DORMITORIO)
+	var root_shortcut: AreaExit = null
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_raiz":
+			root_shortcut = node
+	check(root_shortcut != null and root != null, "Borda: a raiz desce até o Dormitório")
+	Game.scene_changes_enabled = false
+	root_shortcut._armed = true
+	root_shortcut._on_body_entered(level.player)
+	check(Game.has_flag("atalho_raiz"), "desceu pela raiz: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DORMITORIO, "raiz")
+	check(find_npc("raiz_trancada") == null and level.spawns.has("raiz"), "o Dormitório chega na Borda pela raiz")
+	level.queue_free()
+	await frames(2)
+	# Domínio e Clareira apontam para a Borda.
+	check((load("res://scenes/world/arena_nyssa.tscn") as PackedScene).instantiate().get("exit_scene") == BORDA, "a Clareira volta para a Borda")
+	Game.reset_progress()
+
+
+func test_breathing_flowers() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	player.set_physics_process(false)
+	var flowers := BreathingFlower.spawn_all(_world, {"cells": [Vector2i(12, 12)]})
+	var flower := flowers[0]
+	await frames(2)
+	player.global_position = flower.global_position + Vector2(20, 0)
+	player.sprinting = false
+	check(not flower.disturbed_by(player), "andando devagar perto: nada")
+	player.sprinting = true
+	check(flower.disturbed_by(player), "correndo perto: a flor sente o ar mexer")
+	await frames(2)
+	var clouds := get_tree().get_nodes_in_group("pollen_clouds").size()
+	check(clouds >= 1, "ela solta pólen (%d nuvens)" % clouds)
+	await frames(10)
+	check(get_tree().get_nodes_in_group("pollen_clouds").size() == clouds, "e respira de novo só depois de um tempo")
+	player.sprinting = false
+	player.global_position = flower.global_position + Vector2(200, 0)
+	player.sprinting = true
+	check(not flower.disturbed_by(player), "longe dela, correr não importa")
+	for cloud in get_tree().get_nodes_in_group("pollen_clouds"):
+		cloud.queue_free()
+	flower.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+func test_sino_despertar() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	check(is_equal_approx(SinoDespertar.bosque_aggro_scale(), SinoDespertar.AGGRO_RINGING), "o Sino toca: o Bosque enxerga mais longe")
+	var level := await open_level(SALA_SINO, "porta")
+	var bells := _minis_named("SinoDespertar")
+	check(bells.size() == 1 and find_npc("placa_sino") != null, "a sala do Sino, com a placa")
+	var bell := bells[0] as SinoDespertar
+	var sleepers_before := get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not n.dead)
+	bell.target = level.player
+	bell.start_fight()
+	bell._ring()
+	await frames(3)
+	check(bell.sleepers.size() == 1, "o toque chama um Sonâmbulo")
+	check(sleepers_before.all(func(e): return (e as Enemy).is_alerted()), "e acorda os da sala")
+	var rings := level.entities.get_children().filter(func(n): return n is ScreamRing).size()
+	check(rings >= 1, "o toque é um anel de som")
+	bell.stats.take_damage(bell.stats.max_health * 0.55)
+	bell._fight(0.016)
+	check(bell.phase == 2, "metade da vida: toca mais rápido")
+	bell.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("sino") and Game.has_flag("sino_silenciado"), "silenciado")
+	check(is_equal_approx(SinoDespertar.bosque_aggro_scale(), SinoDespertar.AGGRO_SILENCED), "o Bosque passa a enxergar menos")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BOSQUE, "porta")
+	var sleeper := SLEEPER_SCENE_FOR_TEST.instantiate() as Enemy
+	var base := sleeper.aggro_range
+	sleeper.free()
+	var shore_enemy: Enemy = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Sonambulo)[0]
+	check(is_equal_approx(shore_enemy.aggro_range, base * SinoDespertar.AGGRO_SILENCED), "um Sonâmbulo da Margem enxerga menos (%.0f)" % shore_enemy.aggro_range)
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_nyssa_nightmare_arena() -> void:
+	Game.reset_progress()
+	var level := await open_level(ARENA_NYSSA, "porta")
+	var nyssa := level.boss_arena.boss as NyssaLumevel
+	check(nyssa.phase_arena.has(2), "Nyssa tem a clareira no escuro")
+	var shift := nyssa.shift_arena(2)
+	check(shift != null, "a fase 2 muda a arena")
+	await frames(2)
+	check(is_equal_approx(level.player.drowsiness_scale, 1.5), "o sono enche 1,5× mais rápido")
+	var lights := get_tree().get_nodes_in_group("flower_lights").size()
+	check(lights >= 2, "as flores acendem no escuro (%d)" % lights)
+	nyssa.fight_won.emit(nyssa)
+	await frames(2)
+	check(is_equal_approx(level.player.drowsiness_scale, 1.0), "vencida: o sono volta ao normal")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
 

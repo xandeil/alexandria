@@ -37,7 +37,7 @@ Vale em portas, NPCs, falas, opções e zonas. Fica num lugar só: `Game.require
 }
 ```
 
-- **O jogo é dublado: nenhuma fala usa o nome do jogador.** Cada personagem usa apelidos fixos (Governanta: "cobaia"/"você"; Helena: "ratinho"/"Cobaia"; Amaro: "ratinho"/"Cobaia 22"; Tião e Bastião: "ô do pijama branco"; Galeno: "amigo"/"pequeno"; Heitor: "parceiro"; Damião: "freguês"; Cícero: "cabra"; Dalva: "criança"; Benedita: "filho"; Lúcia: "você").
+- **O jogo é dublado: nenhuma fala usa o nome do jogador.** Cada personagem usa apelidos fixos (Governanta: "cobaia"/"você"; Helena: "aberração"/"rato de laboratório"; Amaro: "ratinho"/"Cobaia 22"; Tião e Bastião: "ô do pijama branco"; Galeno: "amigo"/"pequeno"; Heitor: "parceiro"; Damião: "freguês"; Cícero: "cabra"; Dalva: "criança"; Benedita: "filho"; Lúcia: "você").
 - **`{nome}`** só vale em texto ESCRITO: botões de opção, terminal do laboratório, menus e a barra do Experimento Anterior. Um teste recusa `{nome}` dentro de `falas`.
 - **`variantes`**: a primeira cuja condição valer troca a fala.
 - **`aparece_quando` / `some_quando`**: decidem se o NPC está no mapa.

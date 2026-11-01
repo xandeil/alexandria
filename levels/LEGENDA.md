@@ -42,6 +42,7 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `(` `)` `[` `]` | árvore, arbusto, tronco caído (2 células), soldado dormindo em pé | árvore/tronco/soldado |
 | `z` `s` `^` `?` | Sonâmbulo, Flor de Pólen, Cervo de Musgo, Fada Murcha (renascem ao descansar) | — |
 | `U` `0` | mini-chefes: o Vigia que Dormiu, a Mãe dos Esporos | — |
+| `N` | mini-chefe opcional: o Sino de Despertar (`bosque_sino.txt`) | — |
 | `/` | Nyssa Lumevel, deitada no ar (`arena_nyssa.txt`) | — |
 | `'` | terceira saída (`exit3_scene`/`exit3_spawn`/`exit3_requires`; quem chega aparece em "oeste") — no Teatro, a porta das Raízes | só trancada |
 | **Raízes da Fome** (os MESMOS caracteres do Bosque, outro significado: `THEME_ENTITIES`/`THEME_PROPS` no `level.gd`) | | |
@@ -124,6 +125,7 @@ célula (x, y) em tiles. Assim não faltam caracteres e não há conflito entre 
 | `traps` | armadilha que dispara num ritmo | `{"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}` |
 | `extra_capsules` | Câmaras extras (a `C` do mapa é a 1ª, ponto `camara`; estas viram `camara_2`...) | `[Vector2i(32, 18)]` |
 | `collapse_fights` | chão que desaba durante a luta de um mini-chefe (o entulho tapa no fim) | `{"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}` |
+| `traps` com `"kind": "flor"` | flores que respiram (Bosque): soltam pólen se você corre ou rola perto | `{"kind": "flor", "cells": [Vector2i(8, 10)]}` |
 | `decor` | enfeite solto (com `dialogue` vira Examinar) | `{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}` |
 
 `objects` também aceita `{"kind": "mimico", "cell": ..., "key": "mimico_cidade", "item": "fragmento_turvo"}`
@@ -131,5 +133,6 @@ célula (x, y) em tiles. Assim não faltam caracteres e não há conflito entre 
 
 Chefe com a arena mudando de fase: `phase_arena` no nó do chefe (`ArenaShift`), ex.
 `{2: {"fogo_borda": 2, "cresce": 14.0, "max": 4, "dps": 12.0}}` — anel de fogo
-que fecha a arena. Também há `"escuro": 0.4` (a luz cai).
+que fecha a arena. Também há `"escuro": 0.4` (a luz cai), `"sono": 1.5` (a barra
+de sono enche mais rápido) e `"luz_flores": true` (as Flores de Pólen brilham).
 

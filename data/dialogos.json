@@ -973,13 +973,6 @@
 			"Nº 58. Vazia. Ainda morna."
 		]
 	},
-	"placa_bosque_2": {
-		"nome": "Placa",
-		"falas": [
-			"Nº 1203. Vazia. Ainda morna.",
-			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
-		]
-	},
 	"placa_forjas_1": {
 		"nome": "Placa",
 		"falas": [
@@ -1091,6 +1084,39 @@
 		"falas": [
 			"Um portão baixo, preso por uma corrente.",
 			"O cadeado está do outro lado. Do lado da ponte."
+		]
+	},
+	"placa_bosque_dormitorio_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1203. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"cama_quente": {
+		"nome": "Cama",
+		"falas": [
+			"Uma cama ainda quente. Ninguém se levantou dela."
+		]
+	},
+	"placa_sino": {
+		"nome": "Placa",
+		"falas": [
+			"Unidade de despertar 2. Para quando a Fada estiver cansada."
+		]
+	},
+	"dormitorio_porta_fechada": {
+		"nome": "Porta de raízes",
+		"falas": [
+			"Raízes fecham a passagem. Do outro lado, barulho de água.",
+			"Elas tremem cada vez que o Vigia respira."
+		]
+	},
+	"raiz_trancada": {
+		"nome": "Raiz grossa",
+		"falas": [
+			"Uma raiz grossa desce pela parede.",
+			"Ela se solta lá de cima. Da Borda."
 		]
 	}
 }

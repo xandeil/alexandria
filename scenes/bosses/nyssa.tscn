@@ -29,6 +29,7 @@ motion_mode = 1
 script = ExtResource("1_s")
 data = ExtResource("9_data")
 memory_reward = 1300
+phase_arena = {2: {"sono": 1.5, "luz_flores": true}}
 move_speed = 0.0
 max_poise = 999.0
 knockback_taken = 0.0

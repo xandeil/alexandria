@@ -14,7 +14,7 @@ ambience = &"amb_forest"
 darkness = Color(0.78, 0.76, 0.9, 1)
 outdoor = true
 arena_rect_tiles = Rect2i(9, 2, 22, 17)
-exit_scene = "res://scenes/world/bosque.tscn"
+exit_scene = "res://scenes/world/bosque_borda.tscn"
 exit_spawn = "lateral"
 lore_points = {"1": "clareira_nyssa"}
 

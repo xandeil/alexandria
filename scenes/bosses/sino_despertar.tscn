@@ -1,0 +1,87 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/sino_despertar.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://assets/sprites/sino_despertar.png" id="2_tex"]
+[ext_resource type="Shader" path="res://shaders/sprite_fx.gdshader" id="3_fx"]
+[ext_resource type="Texture2D" path="res://assets/fx/shadow.png" id="4_shadow"]
+[ext_resource type="Script" path="res://scripts/components/stats_component.gd" id="5_stats"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="6_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="7_hurtbox"]
+[ext_resource type="Resource" path="res://data/bosses/sino.tres" id="8_data"]
+
+[sub_resource type="AtlasTexture" id="Atlas_still"]
+atlas = ExtResource("2_tex")
+region = Rect2(0, 0, 26, 27)
+
+[sub_resource type="AtlasTexture" id="Atlas_ring"]
+atlas = ExtResource("2_tex")
+region = Rect2(26, 0, 26, 27)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_sino"]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_still")}], "loop": true, "name": &"idle", "speed": 5.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_ring")}, {"duration": 1.0, "texture": SubResource("Atlas_still")}], "loop": true, "name": &"toca", "speed": 8.0}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 10.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fx"]
+shader = ExtResource("3_fx")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 4.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(20, 24)
+
+[node name="SinoDespertar" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_s")
+data = ExtResource("8_data")
+wake_distance = 120.0
+memory_reward = 500
+move_speed = 0.0
+max_poise = 999.0
+knockback_taken = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+scale = Vector2(1.6, 1.2)
+texture = ExtResource("4_shadow")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="AnimatedSprite2D" parent="Visual"]
+material = SubResource("ShaderMaterial_fx")
+sprite_frames = SubResource("SpriteFrames_sino")
+animation = &"idle"
+offset = Vector2(0, -13)
+
+[node name="HitboxPivot" type="Node2D" parent="."]
+position = Vector2(0, -7)
+
+[node name="Hitbox" type="Area2D" parent="HitboxPivot"]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxPivot/Hitbox"]
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("7_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -12)
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+base_health = 380.0
+health_per_vitalidade = 0.0

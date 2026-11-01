@@ -126,6 +126,10 @@ const THEME_ENTITIES := {
 			"texture": "res://assets/sprites/mulher_nucleo.png", "frames": 2, "group": "nucleo_core",
 			"prompt": "Aproximar"}},
 	},
+	"bosque": {
+		# v0.35: o Sino de Despertar, opcional, na sala escondida.
+		"N": {"miniboss": "sino", "scene": preload("res://scenes/bosses/sino_despertar.tscn")},
+	},
 	"cidade": {
 		# v0.35: o Corneteiro, opcional, no alto da Torre.
 		"U": {"miniboss": "corneteiro", "scene": preload("res://scenes/bosses/corneteiro.tscn")},
@@ -588,7 +592,10 @@ func _build_listed() -> void:
 			continue
 		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
 	for def in traps:
-		PeriodicTrap.spawn(entities, def)
+		if str(def.get("kind", "")) == "flor":
+			BreathingFlower.spawn_all(entities, def)  # v0.35: dispara por movimento, não por ritmo
+		else:
+			PeriodicTrap.spawn(entities, def)
 	for def in pickups:
 		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
 		var key := "%s@%d,%d" % [layout_file.get_file().get_basename(), cell.x, cell.y]
@@ -1030,7 +1037,7 @@ const KEEPSAKES := {
 }
 ## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
 ## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
-const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade"}
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque"}
 
 
 ## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
@@ -1257,6 +1264,8 @@ func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 		enemy.set("variant", spawn["variant"])
 	if enemy is Enemy and not (enemy is Boss):
 		(enemy as Enemy).area_power = enemy_power  # antes do _ready (vida já nasce maior)
+		if theme == "bosque":  # v0.35: o Sino de Despertar ainda toca?
+			(enemy as Enemy).aggro_range *= SinoDespertar.bosque_aggro_scale()
 	enemy.add_to_group("respawnable")
 	entities.add_child(enemy)
 	# Inimigo comum morto fica morto até descansar (Game.slain). Chefes e

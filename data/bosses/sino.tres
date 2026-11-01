@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sino"
+display_name = "O Sino de Despertar"
+title = "Mini-chefe opcional do Bosque do Sono Eterno"
+sin = "Mini-chefe"
+sin_meaning = "Preguiça"
+race = "Máquina do Projeto"
+attribute = "—"
+area = "Bosque do Sono Eterno"
+scaling = "—"
+suggested_order = "Opcional — na sala escondida do Bosque"
+memory_reward = 500
+implemented = true
+unique_mechanic = "Não anda nem bate: toca. Cada toque é um anel de som que acorda os Sonâmbulos. Vencido, os inimigos do Bosque enxergam menos."
+phases = Array[String](["Toca a cada poucos segundos e chama Sonâmbulos.", "Toca mais rápido, dois anéis seguidos."])
+history = "Feito para acordar as cobaias quando a Fada estivesse cansada."
+meaning = "Nem todo despertar é bondade."
