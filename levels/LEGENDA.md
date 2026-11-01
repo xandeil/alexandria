@@ -140,3 +140,5 @@ que fecha a arena. Também há `"escuro": 0.4` (a luz cai), `"sono": 1.5` (a bar
 de sono enche mais rápido) e `"luz_flores": true` (as Flores de Pólen brilham).
 
 Montanha (v0.35): `E` = Couraça Queimada (inimiga comum, renasce), `N` = O Último Igual (opcional, `montanha_fosso.txt`).
+Domínio (v0.35): `E` = Protótipo numa vitrine (inimigo comum, acorda ao passar), `N` = O Mestre do Arconte (opcional, `dominio_aula.txt`).
+`still_trap` (no nó da fase): segundos parado até a vitrine de gelo fechar em volta (Arquivo e Sala do Arconte).

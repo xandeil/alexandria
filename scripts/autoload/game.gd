@@ -121,6 +121,7 @@ const BOSS_REWARDS := {
 	"dancarina": {"caixa_musica_bronze": 1, "sucata_temperada": 5},
 	"socorro": {"botao_socorro": 1, "sucata_temperada": 5},
 	"ultimo_igual": {"corrente_igual": 1, "sucata_temperada": 6},
+	"mestre_arconte": {"fragmento_turvo": 1, "sucata_temperada": 6},
 	"governanta": {"lembranca_governanta": 1},
 	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
@@ -725,7 +726,7 @@ const CAPSULES := [
 	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Floresta de Carvão", "island": "Montanha", "thumb": "montanha"},
 	{"scene": "res://scenes/world/montanha_ossario.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Ossário", "island": "Montanha", "thumb": "montanha"},
 	{"scene": "res://scenes/world/dominio.tscn", "spawn": "camara", "name": "Domínio Congelado", "place": "Lago da Mesa de Chá", "island": "Domínio", "thumb": "dominio"},
-	{"scene": "res://scenes/world/dominio.tscn", "spawn": "camara_2", "name": "Domínio Congelado", "place": "Arquivo", "island": "Domínio", "thumb": "dominio"},
+	{"scene": "res://scenes/world/dominio_arquivo.tscn", "spawn": "camara", "name": "Domínio Congelado", "place": "Arquivo", "island": "Domínio", "thumb": "dominio"},
 	{"scene": "res://scenes/world/nucleo.tscn", "spawn": "camara", "name": "O Núcleo", "place": "O Jardim", "island": "Núcleo", "thumb": "nucleo"},
 ]
 
@@ -766,6 +767,7 @@ const MOVED_CAPSULES := {
 	"res://scenes/world/forjas.tscn#camara_2": "res://scenes/world/forjas_fornalha.tscn",
 	"res://scenes/world/raizes.tscn#camara_2": "res://scenes/world/raizes_despensa.tscn",
 	"res://scenes/world/montanha.tscn#camara_2": "res://scenes/world/montanha_ossario.tscn",
+	"res://scenes/world/dominio.tscn#camara_2": "res://scenes/world/dominio_arquivo.tscn",
 }
 const NEW_CITY_SECOND := "res://scenes/world/cidade_quartel.tscn"
 

@@ -15,17 +15,16 @@ darkness = Color(0.86, 0.9, 1.0, 1)
 outdoor = true
 exit_scene = "res://scenes/world/forjas_passarela.tscn"
 exit_spawn = "cascata"
-decor = Array[Dictionary]([{"cell": Vector2i(23, 5), "dialogue": "vitrine_sono", "name": "Vitrine"}])
-pickups = Array[Dictionary]([{"cell": Vector2i(22, 5), "item": "botas_sono"}, {"cell": Vector2i(57, 11), "item": "botas_eco"}])
-extra_capsules = Array[Vector2i]([Vector2i(58, 9)])
+decor = Array[Dictionary]([{"cell": Vector2i(23, 5), "dialogue": "vitrine_sono", "name": "Vitrine"}, {"cell": Vector2i(75, 15), "dialogue": "mesa_de_cha", "name": "Mesa de chá", "texture": "res://assets/props/mesa_de_cha.png"}])
+pickups = Array[Dictionary]([{"cell": Vector2i(22, 5), "item": "botas_sono"}])
 objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(10, 22), "key": "bau_dominio_1", "item": "capacete_arconte"}, {"kind": "bau", "cell": Vector2i(32, 15), "key": "bau_dominio_2", "item": "luvas_arconte"}, {"kind": "mimico", "cell": Vector2i(79, 25), "key": "mimico_dominio", "item": "peitoral_arconte"}])
-exits = Array[Dictionary]([{"cell": Vector2i(30, 1), "scene": "res://scenes/world/bosque_borda.tscn", "spawn": "galho", "arrival": "galho", "opens": "atalho_galho"}])
+exits = Array[Dictionary]([{"cell": Vector2i(3, 12), "scene": "res://scenes/world/dominio_aula.tscn", "spawn": "porta", "arrival": "aula"}])
 enemy_power = 1.45
-exit2_scene = "res://scenes/world/arena_cassian.tscn"
+exit2_scene = "res://scenes/world/dominio_arquivo.tscn"
 exit2_spawn = "porta"
-exit2_requires = "golem_arquivo"
-exit2_locked_dialogue = "porta_arconte"
-lore_points = {"1": "praca_congelada", "2": "lago_congelado", "3": "galeria_vitrines", "4": "porta_do_arconte"}
+exit2_requires = ""
+exit2_locked_dialogue = ""
+lore_points = {"1": "praca_congelada", "2": "lago_congelado", "3": "galeria_vitrines"}
 item_points = Array[String](["fragmento_turvo", "sucata_temperada:2", "sucata_temperada:3", "sucata_temperada:4"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]

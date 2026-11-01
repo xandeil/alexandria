@@ -121,6 +121,9 @@ const THEME_ENTITIES := {
 			"texture": "res://assets/props/lore_book.png", "prompt": "Ler"}},
 		"/": {"boss": preload("res://scenes/bosses/cassian.tscn"), "memorial": {"dialogue": "cajado_de_cassian",
 			"name": "Cajado do Arconte", "texture": "res://assets/props/arconte_staff.png", "at_death": true}},
+		# v0.35: o Protótipo numa vitrine (inimigo comum) e o Mestre do Arconte (opcional).
+		"E": {"enemy": preload("res://scenes/bosses/prototipo_vitrine.tscn")},
+		"N": {"miniboss": "mestre_arconte", "scene": preload("res://scenes/bosses/mestre_arconte.tscn")},
 		# O Estudioso: preso no gelo até a Curadora cair (aí, a mesma pessoa, livre).
 		"!": {"npc": {"dialogue": "estudioso", "name": "Estudioso", "texture": "res://assets/sprites/estudioso_congelado.png",
 			"freed_by": "curadora", "freed_texture": "res://assets/sprites/estudioso.png"}},
@@ -493,6 +496,9 @@ const PROPS := {
 ## v0.35 — CHÃO QUE DESABA durante a luta de um mini-chefe (CollapsingFloor):
 ## {"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}
 @export var collapse_fights: Array[Dictionary] = []
+## v0.35 — VITRINES QUE FECHAM (Domínio): parado por estes segundos, o gelo
+## fecha em volta (StillTrap). 0 = desligado.
+@export var still_trap := 0.0
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -599,6 +605,8 @@ func _build_listed() -> void:
 				Mimico.spawn(entities, def, _cell_feet(cell.x, cell.y))
 			continue
 		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
+	if still_trap > 0.0:
+		StillTrap.attach(self, still_trap)
 	for def in traps:
 		if str(def.get("kind", "")) == "flor":
 			BreathingFlower.spawn_all(entities, def)  # v0.35: dispara por movimento, não por ritmo
@@ -1049,7 +1057,7 @@ const KEEPSAKES := {
 }
 ## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
 ## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
-const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas", "raizes_despensa": "raizes", "montanha_ossario": "montanha"}
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas", "raizes_despensa": "raizes", "montanha_ossario": "montanha", "dominio_arquivo": "dominio"}
 
 
 ## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia

@@ -62,6 +62,9 @@ const ENFERMARIA := "res://scenes/world/raizes_enfermaria.tscn"
 const OSSARIO := "res://scenes/world/montanha_ossario.tscn"
 const ENCOSTA := "res://scenes/world/montanha_encosta.tscn"
 const FOSSO := "res://scenes/world/montanha_fosso.tscn"
+const ARQUIVO := "res://scenes/world/dominio_arquivo.tscn"
+const GALERIA := "res://scenes/world/dominio_galeria.tscn"
+const AULA := "res://scenes/world/dominio_aula.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -162,6 +165,10 @@ func _ready() -> void:
 		"test_montanha_expansion",
 		"test_ultimo_igual",
 		"test_rachel_dive",
+		"test_dominio_expansion",
+		"test_still_trap",
+		"test_mestre_arconte",
+		"test_cassian_collects_flasks",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -2914,7 +2921,7 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, DESPENSA, VARANDA, ENFERMARIA, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, OSSARIO, ENCOSTA, FOSSO, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
+	for path in [RAIZES, DESPENSA, VARANDA, ENFERMARIA, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, OSSARIO, ENCOSTA, FOSSO, ARENA_RACHEL, DOMINIO, ARQUIVO, GALERIA, AULA, ARENA_CASSIAN, NUCLEO, CORACAO]:
 		if path == NUCLEO:
 			Game.defeated_bosses.assign(Game.SEVEN)
 		if path == MONTANHA:
@@ -2950,9 +2957,10 @@ func test_new_areas_build() -> void:
 			for node in level.entities.get_children():
 				if node.get_script():
 					kinds_ice[(node.get_script() as Script).get_global_name()] = true
-			for name in ["BibliotecarioGelo", "EstatuaViva", "AcaroCristal", "AprendizArcano", "CuradoraVitrines", "GolemArquivo", "RestChamber"]:
+			# v0.35: o Golem mudou para o Arquivo e a Curadora (com o Estudioso) para a Galeria.
+			for name in ["BibliotecarioGelo", "EstatuaViva", "AcaroCristal", "AprendizArcano", "RestChamber"]:
 				check(kinds_ice.has(name), "Domínio: tem %s" % name)
-			check(find_npc("estudioso") != null, "Domínio: o Estudioso congelado")
+			check(find_npc("mesa_de_cha") != null, "Domínio: a mesa de chá, junto da Câmara")
 		if path == CORACAO:
 			check(level.boss_arena != null and level.boss_arena.boss is CavaleiroDesolado, "O Coração: o Cavaleiro")
 			check(get_tree().get_first_node_in_group(&"nucleo_core") != null, "O Coração: a mulher ligada ao núcleo")
@@ -3684,7 +3692,9 @@ func test_curator() -> void:
 
 func test_archive_golem() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "curadora"])
-	var level := await open_level(DOMINIO, "porta")
+	var level := await open_level(ARQUIVO, "porta")  # v0.35: o Golem mora no Arquivo Profundo
+	for trap in get_tree().get_nodes_in_group(&"still_traps"):
+		trap.queue_free()  # o teste não anda: sem as vitrines que fecham
 	var golem: GolemArquivo = null
 	for node in level.entities.get_children():
 		if node is GolemArquivo:
@@ -3711,12 +3721,12 @@ func test_archive_golem() -> void:
 	check(Game.is_boss_defeated("golem_arquivo") and find_npc("livro_do_arquivo") != null, "vencido: o livro do Arquivo fica no chão")
 	var opened := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_cassian"):
+		if node is AreaExit and (node as AreaExit).target_scene == GALERIA:
 			opened = true
-	check(opened, "a porta do Arconte abre na hora")
+	check(opened, "a porta da Galeria abre na hora")
 	level.queue_free()
 	await frames(2)
-	level = await open_level(DOMINIO, "porta")
+	level = await open_level(ARQUIVO, "porta")
 	check(find_npc("livro_do_arquivo") != null, "o livro continua lá depois de voltar")
 	level.queue_free()
 	await frames(2)
@@ -3739,7 +3749,11 @@ func test_frozen_domain_gate() -> void:
 		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas") and (node as AreaExit).target_spawn == "cascata":
 			back = true
 	check(back, "do Domínio, a queda leva de volta às Forjas")
-	check(find_npc("porta_arconte") != null, "antes do Golem: a porta do Arconte está fechada")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(GALERIA, "porta")  # v0.35: a porta do Arconte (e o Estudioso) na Galeria
+	check(find_npc("porta_arconte") != null, "antes da Curadora: a porta do Arconte está fechada")
+	check(find_npc("estudioso") != null, "o Estudioso congelado, na Galeria")
 	check(level._dialogue_variant("estudioso") == "estudioso", "o Estudioso ainda está congelado")
 	Game.defeated_bosses.append("curadora")
 	check(level._dialogue_variant("estudioso") == "estudioso_livre", "a Curadora caiu: ele está livre")
@@ -5594,7 +5608,7 @@ func test_free_map_layout() -> void:
 	var expected := {
 		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
 		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "forjas_fornalha", "forjas_dancarina"],
-		"raizes": ["forjas_passarela", "raizes_despensa", "raizes_enfermaria"], "dominio": ["forjas_passarela", "bosque_borda"], "montanha": ["cidade_viaduto", "montanha_ossario", "montanha_fosso"],
+		"raizes": ["forjas_passarela", "raizes_despensa", "raizes_enfermaria"], "dominio": ["forjas_passarela", "dominio_arquivo", "dominio_aula"], "montanha": ["cidade_viaduto", "montanha_ossario", "montanha_fosso"],
 		"bosque": ["teatro", "bosque_dormitorio", "bosque_sino"],
 	}
 	for area: String in expected:
@@ -5657,15 +5671,13 @@ func test_second_capsule_per_island() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
 	# A Cidade e o Bosque (v0.35) guardam a 2ª Câmara numa fase anexa: testadas à parte.
-	for area in ["dominio"]:
-		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
-		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
-		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
-		check(plaques.size() == 2, "%s: cada Câmara tem a sua placa" % area)
-		var keepsake := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES[area])
-		check(keepsake.size() == 1, "%s: o pertence do antigo dono ao lado da 2ª" % area)
-		level.queue_free()
-		await frames(2)
+	# v0.35: TODAS as ilhas guardam a 2ª Câmara numa fase anexa (depois do 1º mini-chefe).
+	var archive := await open_level(ARQUIVO, "camara")
+	check(archive.chamber_for("camara") != null and find_npc("placa_dominio_arquivo_1") != null, "Arquivo: a 2ª Câmara do Domínio, com placa")
+	check(archive.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["dominio"]).size() == 1,
+		"Arquivo: o pertence do Domínio")
+	archive.queue_free()
+	await frames(2)
 	check(Game.capsule_info(FORNALHA)["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
 	var bones := await open_level(OSSARIO, "camara")
 	check(bones.chamber_for("camara") != null and find_npc("placa_montanha_ossario_1") != null, "Ossário: a 2ª Câmara da Montanha, com placa")
@@ -6203,7 +6215,7 @@ func test_armor_in_world_and_menu() -> void:
 	# ilha (botas). A Vigília continua inteira no Teatro.
 	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio",
 		"cidade_quartel", "cidade_viaduto", "bosque_dormitorio", "bosque_borda", "forjas_fornalha", "forjas_passarela",
-		"raizes_despensa", "raizes_varanda", "montanha_ossario", "montanha_encosta"]  # v0.35: as fases anexas também
+		"raizes_despensa", "raizes_varanda", "montanha_ossario", "montanha_encosta", "dominio_arquivo", "dominio_galeria"]  # v0.35: as fases anexas também
 	var found := {}
 	for region in regions:
 		var level := (load("res://scenes/world/%s.tscn" % region) as PackedScene).instantiate() as Level
@@ -7393,6 +7405,131 @@ func test_rachel_dive() -> void:
 	await seconds(rachel.dive_under_time + 0.1)
 	check(rachel.visual.visible and not rachel.hurtbox.invulnerable and rachel.global_position.distance_to(rachel.emerge_at) < 1.0, "irrompe de baixo")
 	level.player.hurtbox.invulnerable = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.35 · Etapa 6: o Domínio expandido ---------------------------------------------
+
+func test_dominio_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(DOMINIO, "porta")
+	check(_exit_to(ARQUIVO) != null, "Lago: a descida para o Arquivo está aberta")
+	check(_exit_to(AULA) != null and level.spawns.has("aula"), "Lago: a sala de aula congelada")
+	check(find_npc("mesa_de_cha") != null and level.rest_chamber != null, "a mesa de chá, junto da Câmara, do outro lado do lago")
+	check(level.rest_chamber.global_position.x > 60 * 16, "a Câmara fica do outro lado do lago")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ARQUIVO, "porta")
+	check(_minis_named("GolemArquivo").size() == 1, "Arquivo: o Golem")
+	check(get_tree().get_nodes_in_group(&"still_traps").size() == 1, "Arquivo: as vitrines que fecham")
+	check(find_npc("arquivo_porta_fechada") != null and _exit_to(GALERIA) == null, "a Galeria fecha até o Golem cair")
+	check(level.entities.get_children().any(func(n): return n is ItemPickup and n.item_id == "botas_eco"), "as botas do Eco, catalogadas no Arquivo")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("golem_arquivo")
+	level = await open_level(GALERIA, "porta")
+	check(_minis_named("CuradoraVitrines").size() == 1, "Galeria: a Curadora")
+	check(find_npc("estudioso") != null and find_npc("vitrine_risada") != null, "Galeria: o Estudioso e a vitrine da primeira risada")
+	var frozen: Array = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n.get_script().get_global_name() == "Prototipo")
+	check(frozen.size() == 1 and not (frozen[0] as MiniBoss).shows_boss_bar, "Galeria: o Protótipo numa vitrine (inimigo comum)")
+	var ice := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "gelo_perpetuo")
+	var fake := get_tree().get_nodes_in_group("covers").filter(func(c): return (c as Node2D).global_position.distance_to((ice[0] as Node2D).global_position) < 40.0) if not ice.is_empty() else []
+	check(ice.size() == 1 and fake.size() == 1, "o Gelo Perpétuo, atrás de uma vitrine falsa")
+	var stairs: AreaExit = null
+	var branch := false
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_escada":
+			stairs = node
+		if (node as AreaExit).opens_flag == "atalho_galho":
+			branch = true
+	check(branch and stairs != null, "Galeria: o galho congelado e a escada até o Arquivo")
+	Game.scene_changes_enabled = false
+	stairs._armed = true
+	stairs._on_body_entered(level.player)
+	check(Game.has_flag("atalho_escada"), "desceu pela escada: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ARQUIVO, "escada")
+	check(find_npc("escada_trancada") == null and level.spawns.has("escada"), "o Arquivo sobe pela escada até a Galeria")
+	level.queue_free()
+	await frames(2)
+	check((load(ARENA_CASSIAN) as PackedScene).instantiate().get("exit_scene") == GALERIA, "a Sala do Arconte volta para a Galeria")
+	Game.reset_progress()
+
+
+func test_still_trap() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var trap := StillTrap.attach(_world, 1.0)
+	await frames(2)
+	player.velocity = Vector2.ZERO
+	await seconds(0.6)
+	check(trap.still_time > 0.4 and not player.is_grabbed(), "parado: a conta corre (e o vidro avisa)")
+	await seconds(0.6)
+	check(player.is_grabbed(), "parado demais: a vitrine fecha")
+	player.release_grab()
+	trap.still_time = 0.5
+	player.velocity = Vector2(60, 0)
+	trap._physics_process(0.016)
+	check(trap.still_time == 0.0, "andar zera a conta")
+	trap.queue_free()
+	for block in get_tree().get_nodes_in_group(&"ice_blocks"):
+		block.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+func test_mestre_arconte() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(AULA, "porta")
+	var masters := _minis_named("MestreArconte")
+	check(masters.size() == 1, "a sala de aula, com o Mestre")
+	var master := masters[0] as MestreArconte
+	var said := []
+	master.speech.connect(func(t: String): said.append(t))
+	master.target = level.player
+	master.start_fight()
+	master.announce()
+	check(said[-1] == "Lição um: o gelo guarda!", "anuncia a lição antes do feitiço")
+	master.cast_spell(0, true)
+	check(not get_tree().get_nodes_in_group("frost_zones").is_empty(), "lição um: geada no chão")
+	master.announce()
+	check(said[-1] == "Lição dois: o que é guardado não muda!", "lição dois")
+	master.cast_spell(1, true)
+	master.announce()
+	check(said[-1] == "Lição três...", "lição três...")
+	master.forget()
+	check(said[-1] == "...Lição três. Qual era a lição três?" and master._can_be_staggered(), "esquece: a janela para bater")
+	master.stats.take_damage(master.stats.max_health * 0.55)
+	master._fight(0.016)
+	check(master.phase == 2, "fase 2: feitiços sem aviso")
+	master.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("mestre_arconte"), "vencido")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_cassian_collects_flasks() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "golem_arquivo", "curadora"])
+	var level := await open_level(ARENA_CASSIAN, "porta")
+	for trap in get_tree().get_nodes_in_group(&"still_traps"):
+		trap.queue_free()
+	check(level.still_trap > 0.0, "na Sala do Arconte, ficar parado também conta")
+	var cassian := level.boss_arena.boss as CassianVirel
+	cassian.target = level.player
+	var before := level.player.health_flasks
+	var case := cassian.collect_flask()
+	check(case != null and level.player.health_flasks == before - 1, "fase 2: um Frasco de Vida vai para a vitrine")
+	await frames(2)
+	case.take_damage(9999.0)
+	await frames(3)
+	check(level.player.health_flasks == before, "quebrou a vitrine: o frasco volta")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

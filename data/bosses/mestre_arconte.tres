@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "mestre_arconte"
+display_name = "O Mestre do Arconte"
+title = "Mini-chefe opcional do Domínio Congelado"
+sin = "Mini-chefe"
+sin_meaning = "Ganância"
+race = "Humano"
+attribute = "Gelo"
+area = "Domínio Congelado"
+scaling = "—"
+suggested_order = "Opcional — na sala de aula congelada"
+memory_reward = 650
+implemented = true
+unique_mechanic = "Anuncia a lição antes de cada feitiço. Na lição três, esquece: é a hora de bater. Na fase 2, esquece no meio e lança sem aviso."
+phases = Array[String](["Lição um (geada) e lição dois (estilhaços), sempre anunciadas.", "Feitiços sorteados, sem aviso."])
+history = "O professor de Cassian. A primeira pessoa que ele guardou."
+meaning = "Guardar não é o mesmo que aprender."

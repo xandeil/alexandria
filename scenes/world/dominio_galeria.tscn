@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/gelo_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Galeria" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/dominio_galeria.txt"
+area_name = "Galeria das Vitrines"
+area_subtitle = "O chão é de vidro. Embaixo, mais vitrines."
+theme = "gelo"
+ambience = &"amb_ice"
+darkness = Color(0.86, 0.9, 1.0, 1)
+outdoor = true
+exit_scene = "res://scenes/world/dominio_arquivo.tscn"
+exit_spawn = "lateral"
+enemy_power = 1.45
+decor = Array[Dictionary]([{"cell": Vector2i(22, 2), "dialogue": "vitrine_risada", "name": "Vitrine"}])
+pickups = Array[Dictionary]([{"cell": Vector2i(17, 11), "item": "gelo_perpetuo"}])
+exits = Array[Dictionary]([{"cell": Vector2i(9, 1), "scene": "res://scenes/world/bosque_borda.tscn", "spawn": "galho", "arrival": "galho", "opens": "atalho_galho"}, {"cell": Vector2i(39, 11), "scene": "res://scenes/world/dominio_arquivo.tscn", "spawn": "escada", "arrival": "escada", "opens": "atalho_escada"}])
+exit2_scene = "res://scenes/world/arena_cassian.tscn"
+exit2_spawn = "porta"
+exit2_requires = "curadora"
+exit2_locked_dialogue = "porta_arconte"
+lore_points = {"4": "porta_do_arconte"}
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

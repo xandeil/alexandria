@@ -653,7 +653,7 @@
 		"falas": [
 			"Uma porta de cristal com uma fechadura do tamanho de uma estante.",
 			"Do outro lado, alguém vira páginas. Devagar. Sem pressa nenhuma.",
-			"O Golem do Arquivo guarda a chave dentro do peito."
+			"A Curadora guarda a chave numa vitrine. Ela não abre para ninguém."
 		]
 	},
 	"praca_congelada": {
@@ -1012,13 +1012,6 @@
 			"Nº 9. Vazia. Ainda morna."
 		]
 	},
-	"placa_dominio_2": {
-		"nome": "Placa",
-		"falas": [
-			"Nº 1487. Vazia. Ainda morna.",
-			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
-		]
-	},
 	"placa_teatro_1": {
 		"nome": "Placa",
 		"falas": [
@@ -1248,6 +1241,47 @@
 		"falas": [
 			"Ossos empilhados fecham a passagem.",
 			"Alguma coisa grande dorme em cima deles."
+		]
+	},
+	"placa_dominio_arquivo_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1487. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"mesa_de_cha": {
+		"nome": "Mesa de chá",
+		"falas": [
+			"Duas xícaras. Uma ainda cheia. Congelou antes de esfriar."
+		]
+	},
+	"vitrine_risada": {
+		"nome": "Vitrine",
+		"falas": [
+			"Uma vitrine vazia. A placa diz: \"A primeira risada.\"",
+			"Alguém catalogou o vidro por dentro, com cuidado. Não sobrou nada para ver."
+		]
+	},
+	"catalogo_eco": {
+		"nome": "Fichário",
+		"falas": [
+			"Fichas em ordem, congeladas na gaveta.",
+			"Uma diz: \"Couraça do Eco, botas. Forjas. Catalogada.\""
+		]
+	},
+	"escada_trancada": {
+		"nome": "Escada de serviço",
+		"falas": [
+			"Uma escada de ferro sobe pela parede. A tampa lá em cima está fechada.",
+			"O trinco fica do outro lado. Na Galeria."
+		]
+	},
+	"arquivo_porta_fechada": {
+		"nome": "Porta do Arquivo",
+		"falas": [
+			"Uma porta de gelo com uma fechadura de livro.",
+			"Alguém grande guarda a chave. Ele não sai do lugar."
 		]
 	}
 }
