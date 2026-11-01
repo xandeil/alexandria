@@ -1616,6 +1616,27 @@ func _tour_guard() -> void:
 	teatro._on_dialogue_action("desafiar_helena")
 	await wait(4.0)
 	await shot("q04_heitor_na_arena")
+	# v0.46: o golpe no Heitor e a explosão (fase 2 → 3), depois as ruínas.
+	teatro._end_modal()
+	teatro.player.global_position = teatro.boss_arena.arena_rect.get_center()
+	await wait(3.0)
+	var helena := teatro._boss as HelenaAltiva
+	teatro.player._iframes_left = 9999.0
+	helena.stats.take_damage(99999.0)
+	await wait(2.0)
+	helena.stats.take_damage(99999.0)
+	await wait(2.2)
+	await shot("q05_elmo_caido")
+	await wait(6.2)
+	await shot("q06_explosao")
+	Game.set_flag("teatro_ruinas")
+	Game.pending_spawn = "camara"
+	teatro = await open("res://scenes/world/teatro.tscn") as Level
+	await wait(3.0)
+	teatro.player.global_position = teatro.player.global_position + Vector2(0, -60)
+	teatro.camera.snap_to_target()
+	await wait(1.0)
+	await shot("q07_teatro_em_ruinas")
 
 
 ## v0.25: o Traje da Vigília largado no palco e a aba Armadura do inventário.

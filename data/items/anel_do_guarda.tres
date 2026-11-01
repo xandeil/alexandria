@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_script")
 id = "anel_do_guarda"
-display_name = "Anel do Guarda"
+display_name = "Anel do Heitor"
 description = "Ele usou até o fim sem saber de quem era a outra metade. Por dentro, gravado quase apagado: “no posto”.
 Alguém, em algum lugar deste teatro, tem a outra."
 kind = 3

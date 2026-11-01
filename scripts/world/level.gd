@@ -148,6 +148,12 @@ const THEME_ENTITIES := {
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
+	# v0.46 (Etapa 8): o Teatro em ruínas (teatro_ruinas.txt).
+	"teatro": {
+		"[": {"tex": "res://assets/props/camarote_caido.png", "box": Vector2(20, 6)},
+		"]": {"tex": "res://assets/props/lustre_caido.png", "box": Vector2(26, 6)},
+		"(": {"tex": "res://assets/props/cortina_rasgada.png"},
+	},
 	"raizes": {
 		"(": {"tex": "res://assets/props/root_tangle.png", "box": Vector2(14, 7)},
 		")": {"tex": "res://assets/props/flesh_pod.png", "frames": 2, "fps": 1.6},
@@ -492,6 +498,10 @@ const PROPS := {
 ## "dialogue": "lucia_ponte", "name": "Lúcia", "texture": "res://...png", "frames": 2}
 ## (aparece_quando / some_quando vêm do dialogos.json, como sempre).
 @export var people: Array[Dictionary] = []
+## v0.46 — SEGUNDA VERSÃO DO MAPA: com esta flag ligada, o .txt usado é
+## ruins_layout (o Teatro depois da explosão: teatro_ruinas.txt).
+@export_file("*.txt") var ruins_layout := ""
+@export var ruins_flag := ""
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -671,11 +681,19 @@ func _clear() -> void:
 		sky.free()
 
 
+## Qual .txt está valendo agora (o normal, ou as ruínas depois do evento).
+func current_layout() -> String:
+	if not Engine.is_editor_hint() and not ruins_layout.is_empty() and Game.has_flag(ruins_flag) \
+			and FileAccess.file_exists(ruins_layout):
+		return ruins_layout
+	return layout_file
+
+
 func _load_layout() -> bool:
 	if layout_file.is_empty() or not FileAccess.file_exists(layout_file):
 		push_warning("Level: layout não encontrado: %s" % layout_file)
 		return false
-	var text := FileAccess.get_file_as_string(layout_file)
+	var text := FileAccess.get_file_as_string(current_layout())
 	_grid.clear()
 	for line in text.split("\n"):
 		_grid.append(line.trim_suffix("\r"))
@@ -945,6 +963,7 @@ func _build_entity(x: int, y: int, c: String) -> void:
 			_boss_npc = _make_npc("helena", "Mulher na plateia", "res://assets/sprites/helena_seated.png", 1, feet)
 			_boss = HELENA_SCENE.instantiate()
 			_boss.position = feet
+			(_boss as HelenaAltiva).theater_ruined.connect(ruin_theater)
 			entities.add_child(_boss)
 			# A espada partida fica no palco (onde ela aterrissou para lutar).
 			_memorial = {"dialogue": "espada_helena", "name": "Espada partida",
@@ -1540,6 +1559,51 @@ func _spawn_companion() -> void:
 		var ally := Ally.spawn_by_id(ally_id, entities, player)
 		if _boss != null and not called and not ally.can_enter_arenas:
 			ally.queue_free()
+
+
+## v0.46 (Etapa 8): o grito da Helena explode o Teatro. Plateia, palco e
+## lustre caem AGORA (entulho por cima da luta); da próxima vez que a área
+## carregar, o mapa já é o das ruínas (ruins_layout).
+func ruin_theater() -> void:
+	Game.set_flag("teatro_ruinas")
+	Sfx.play(&"scream", 0.0)
+	Sfx.play(&"quake", -2.0)
+	Sfx.play(&"crumble", -2.0)
+	Fx.shake(10.0, 1.4)
+	Fx.vibrate(400)
+	if hud:
+		var flash := ColorRect.new()
+		flash.color = Color(1, 1, 1, 0.85)
+		flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+		flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hud.add_child(flash)
+		var fade := flash.create_tween()
+		fade.tween_property(flash, "color:a", 0.0, 1.2)
+		fade.tween_callback(flash.queue_free)
+	# O lustre despenca do alto até a boca do palco.
+	var lustre := _make_prop({"tex": "res://assets/props/lustre_caido.png"}, _landing + Vector2(70, 110))
+	lustre.position.y -= 220.0
+	entities.add_child(lustre)
+	var drop := lustre.create_tween()
+	drop.tween_property(lustre, "position:y", lustre.position.y + 220.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	drop.tween_callback(func():
+		Sfx.play(&"shatter", 0.0)
+		Fx.shake(6.0, 0.4)
+		Fx.dust(lustre.global_position, 14))
+	# Entulho do palco e do teto, espalhado (sempre o mesmo: semente fixa).
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 8
+	var area := boss_arena.arena_rect if boss_arena else Rect2(_landing - Vector2(200, 60), Vector2(400, 160))
+	for i in 16:
+		var spot := area.position + Vector2(rng.randf() * area.size.x, rng.randf() * area.size.y)
+		var tex := "res://assets/props/rubble.png" if i % 3 else "res://assets/props/debris.png"
+		var piece := _make_prop({"tex": tex}, spot)
+		piece.modulate.a = 0.0
+		entities.add_child(piece)
+		var show := piece.create_tween()
+		show.tween_interval(rng.randf() * 0.8)
+		show.tween_property(piece, "modulate:a", 1.0, 0.15)
+		Fx.dust(spot, 4)
 
 
 ## v0.45 (Etapa 8): salvo três vezes (poço, estátua, gelo), o Heitor entra

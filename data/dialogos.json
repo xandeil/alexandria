@@ -2243,5 +2243,12 @@
 				"acao": "flag:helena_pela_flor;desafiar_helena"
 			}
 		]
+	},
+	"heitor_memorial": {
+		"nome": "Elmo e garrafa",
+		"aparece_quando": "flag:heitor_morto",
+		"falas": [
+			"Os dois ficaram no posto."
+		]
 	}
 }

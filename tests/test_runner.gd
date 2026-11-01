@@ -250,6 +250,8 @@ func _ready() -> void:
 		"test_heitor_rescues",
 		"test_helena_drunk_visits",
 		"test_helena_fury_with_heitor",
+		"test_heitor_falls_and_theater_explodes",
+		"test_theater_ruins_layout",
 		"test_helena_recognizes_ring",
 		"test_title_souls_style",
 		"test_controller_mode",
@@ -4211,6 +4213,82 @@ func test_helena_fury_with_heitor() -> void:
 	level._on_dialogue_action("desafiar_helena")
 	await seconds(0.5)
 	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "morto, ele não volta")
+	level.queue_free()
+	await frames(2)
+
+
+## v0.46: fim da fase 2 — o golpe nele, o elmo, "...Heitor?", o anel; o grito explode o Teatro.
+func test_heitor_falls_and_theater_explodes() -> void:
+	Game.set_flag("heitor_gelo")
+	var level := await open_level(TEATRO, "camara")
+	var helena := level._boss as HelenaAltiva
+	var said := []
+	helena.speech.connect(func(text: String): said.append(text))
+	level.player._iframes_left = 999.0
+	level._begin_modal()
+	await level._on_dialogue_action("desafiar_helena")
+	level._end_modal()
+	await seconds(3.0)
+	level.player.global_position = level.boss_arena.arena_rect.get_center()
+	await seconds(3.0)
+	check(helena.active, "a luta começou")
+	var heitor := get_tree().get_first_node_in_group(&"allies") as HeitorAliado
+	check(heitor != null, "o Heitor está na arena")
+	level.player._iframes_left = 999.0
+	helena.stats.take_damage(99999.0)
+	await seconds(2.0)
+	helena.stats.take_damage(99999.0)
+	await seconds(3.0)
+	check(heitor.fallen and Game.has_flag("heitor_morto"), "o golpe dela acerta o Heitor")
+	check(said.has(HelenaAltiva.SPEECH_HEITOR), "'...Heitor?'")
+	check(Game.has_item("anel_do_guarda"), "o anel dele rola até você")
+	level.player._iframes_left = 999.0
+	await seconds(5.0)
+	check(Game.has_flag("teatro_ruinas"), "o grito explode o Teatro")
+	check(helena.phase == 3 and said.has(HelenaAltiva.SPEECH_RING), "fase 3 nas ruínas: ela vê o anel")
+	check(find_npc("heitor_memorial") != null, "no lugar dele: elmo e garrafa")
+	check(DialogueData.get_entry("heitor_memorial")["falas"][0] == "Os dois ficaram no posto.", "'Os dois ficaram no posto.'")
+	level.queue_free()
+	await frames(2)
+	# Sem o Heitor: a fase 3 começa pela vida, e a explosão acontece igual.
+	Game.reset_progress()
+	level = await open_level(TEATRO, "camara")
+	helena = level._boss as HelenaAltiva
+	level.player._iframes_left = 999.0
+	level._begin_modal()
+	await level._on_dialogue_action("desafiar_helena")
+	level._end_modal()
+	await seconds(3.0)
+	level.player.global_position = level.boss_arena.arena_rect.get_center()
+	await seconds(3.0)
+	level.player._iframes_left = 999.0
+	helena.stats.take_damage(99999.0)
+	await seconds(2.0)
+	helena.stats.take_damage(99999.0)
+	level.player._iframes_left = 999.0
+	await seconds(4.5)
+	check(Game.has_flag("teatro_ruinas") and not Game.has_flag("heitor_morto"), "sem o Heitor, o Teatro cai igual")
+	check(not Game.has_item("anel_do_guarda"), "e não há anel")
+	level.queue_free()
+	await frames(2)
+
+
+## O Teatro em ruínas: outro .txt, gente em lugar novo, o memorial fixo.
+func test_theater_ruins_layout() -> void:
+	var level := await open_level(TEATRO, "camara")
+	check(level.current_layout() == "res://levels/teatro.txt", "antes: o Teatro de sempre")
+	var fada_before := find_npc("fada").global_position
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("teatro_ruinas")
+	Game.set_flag("heitor_morto")
+	level = await open_level(TEATRO, "camara")
+	check(level.current_layout() == "res://levels/teatro_ruinas.txt", "depois: as ruínas")
+	check(find_npc("fada") != null and find_npc("fada").global_position != fada_before, "a Fada mudou para o camarote caído")
+	for id in ["orbe", "fada", "helena"]:
+		check(find_npc(id) != null, "%s continua no Teatro" % id)
+	check(find_npc("heitor_memorial") != null, "o memorial do Heitor fica no fosso")
+	check(level.rest_chamber != null or not level.rest_chambers.is_empty(), "a Câmara de descanso continua")
 	level.queue_free()
 	await frames(2)
 

@@ -19,6 +19,11 @@ enum LeapStage { TELEGRAPH, AIR, LAND }
 const SPEECH_PHASE_2 := "Não. Não de novo."
 ## v0.45 (Etapa 8): a fúria começou pela Flor de Pedra (helena_pela_flor).
 const SPEECH_FLOR := "Eu fiquei no posto! EU! Por você!"
+## v0.46: fim da fase 2, o golpe dela acerta o Heitor; o elmo cai; ela vê o rosto.
+const SPEECH_HEITOR := "...Heitor?"
+
+## O grito dela explode o Teatro (Level.ruin_theater): fase 3 nas ruínas.
+signal theater_ruined
 const SPEECH_PHASE_3 := "...Eu ainda estou no posto."
 const SPEECH_DEFEAT := "Ninguém ocupa o lugar de ninguém... Fique com ela. Eu não consigo mais segurar."
 ## Bíblia: "Na fase 3, sem armadura, Helena reconhece o anel dele com o jogador.
@@ -555,6 +560,12 @@ func _enter_phase_3() -> void:
 	hitbox.deactivate()
 	hurtbox.invulnerable = true
 	telegraph.clear()
+	# Etapa 8: com o Heitor ao seu lado, o último golpe da fase 2 é nele.
+	var heitor := _heitor_in_arena()
+	if heitor:
+		await _strike_heitor(heitor)
+		if dead or not is_inside_tree() or token != _transition_token:
+			return
 	for piece in _pieces:
 		if not piece.get("dropped", false):
 			piece["dropped"] = true
@@ -578,6 +589,7 @@ func _enter_phase_3() -> void:
 	await wait(0.8)
 	if dead or token != _transition_token:
 		return
+	theater_ruined.emit()  # o grito: plateia, palco e lustre caem
 	title_changed.emit("Helena", "")  # sem título: só ela
 	phase_changed.emit("Fase 3 — A Mulher Sem Armadura")
 	Sfx.play(&"boss_phase", -6.0)
@@ -592,6 +604,33 @@ func _enter_phase_3() -> void:
 	else:
 		speech.emit(SPEECH_PHASE_3)
 		_go_decide(0.9)
+
+
+## O Heitor de pé na arena (salvo três vezes e trazido junto), ou null.
+func _heitor_in_arena() -> HeitorAliado:
+	for node in get_tree().get_nodes_in_group(&"allies"):
+		var heitor := node as HeitorAliado
+		if heitor and not heitor.fallen:
+			return heitor
+	return null
+
+
+## O golpe roteirizado: ela avança, acerta, o elmo cai — e ela vê o rosto.
+func _strike_heitor(heitor: HeitorAliado) -> void:
+	var to := heitor.global_position - global_position
+	facing = to.normalized() if to.length() > 1.0 else Vector2.RIGHT
+	body_sprite.flip_h = facing.x < 0.0
+	var dash := create_tween()
+	dash.tween_property(self, "global_position", heitor.global_position - facing * 18.0, 0.25)
+	await dash.finished
+	Sfx.play(&"swing_heavy", 0.0)
+	Sfx.play(&"hit_heavy", 0.0)
+	Fx.shake(6.0, 0.35)
+	Fx.hitstop(0.12)
+	heitor.struck_by_helena(facing)
+	await wait(1.8)
+	speech.emit(SPEECH_HEITOR)
+	await wait(2.4)
 
 
 func _on_died() -> void:
