@@ -29,6 +29,8 @@ var _first_focus: Control
 ## Os itens focáveis, de cima para baixo (a ordem do ↑/↓ no controle).
 var _focus_chain: Array[Control] = []
 var _walk_timer := 0.0
+## "???": o nome não se escolhe aqui (Etapa 5).
+var name_value: Label
 
 
 func _ready() -> void:
@@ -95,6 +97,16 @@ func _build() -> void:
 	box.offset_bottom = 100
 	box.add_theme_constant_override("separation", 2)
 	add_child(box)
+	# v0.41 (Etapa 5): o herói acorda sem memória — o nome ainda não existe.
+	# Ele só ganha um quando a Governanta perguntar.
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 6)
+	var name_title := UIStyle.label("Nome", 10, Color(0.75, 0.72, 0.68))
+	name_title.custom_minimum_size = Vector2(56, 0)
+	name_row.add_child(name_title)
+	name_value = UIStyle.label("???", 10, Color(0.6, 0.58, 0.55))
+	name_row.add_child(name_value)
+	box.add_child(name_row)
 	var titles := {"sexo": "Sexo", "corpo": "Corpo", "rosto": "Rosto", "cabelo": "Cabelo"}
 	for field in Appearance.FIELDS:
 		_add_row(box, field, titles[field])

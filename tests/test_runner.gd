@@ -169,6 +169,9 @@ func _ready() -> void:
 		"test_still_trap",
 		"test_mestre_arconte",
 		"test_cassian_collects_flasks",
+		"test_name_entry_screen",
+		"test_name_in_anger_and_terminal",
+		"test_name_reactions_and_ng_plus",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -1565,6 +1568,7 @@ func test_prologue_peaceful() -> void:
 
 func test_prologue_governess_fight() -> void:
 	Game.criancas_feridas = 2
+	Game.player_name = "Teste"  # v0.41: já tem nome (a pergunta com raiva é testada à parte)
 	var level := await open_level(PROLOGO, "camara") as Prologo
 	var gov := level.governess
 	level.player._iframes_left = 9999.0  # o teste é do fluxo, não da luta
@@ -5527,7 +5531,7 @@ func test_dialogue_conditions_and_name() -> void:
 	var spoken_with_name := []
 	for id: String in DialogueData._entries:
 		var entry: Variant = DialogueData._entries[id]
-		if entry is Dictionary:
+		if entry is Dictionary and not (entry as Dictionary).get("escrito", false):  # texto lido (terminal) pode
 			for line: Variant in (entry as Dictionary).get("falas", []):
 				if str(line).contains("{nome}"):
 					spoken_with_name.append(id)
@@ -6518,6 +6522,7 @@ func test_ng_guardian_fight() -> void:
 	Game.cycle = 1
 	Game.guardian = _guardian_build("lamina_desolada", Game.SHIELD, "vigilia")
 	Game.defeated_bosses.assign(Game.SEVEN)
+	Game.flags["experimento_perguntou"] = true  # v0.41: a pergunta do nome é testada à parte
 	var level := await open_level(CORACAO, "porta")
 	var boss := level.boss_arena.boss as ExperimentoAnterior
 	check(boss != null, "NG+ depois de Proteger: no lugar do Cavaleiro, o experimento anterior")
@@ -7533,3 +7538,115 @@ func test_cassian_collects_flasks() -> void:
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
+
+
+# --- v0.41 · Etapa 5: o nome do personagem --------------------------------------------
+
+func test_name_entry_screen() -> void:
+	Game.reset_progress()
+	var creation := CharacterCreation.new()
+	_world.add_child(creation)
+	await frames(2)
+	check(creation.name_value.text == "???", "na criação, o nome aparece como ???")
+	creation.queue_free()
+	var entry := NameEntry.new()
+	_world.add_child(entry)
+	await frames(2)
+	var got := [""]
+	entry.submitted.connect(func(t: String): got[0] = t)
+	entry.field.text = ""
+	entry.confirm()
+	check(got[0] == "", "nome vazio não passa (é obrigatório)")
+	entry.field.text = "   "
+	entry.confirm()
+	check(got[0] == "", "só espaços também não")
+	entry.field.text = ""
+	for letter in ["A", "L", "E", "X"]:
+		entry.type_letter(letter)
+	entry.toggle_case()
+	entry.type_letter("a")
+	entry.backspace()
+	check(entry.field.text == "ALEX", "a grade de letras digita e apaga (controle)")
+	check(entry.field.virtual_keyboard_enabled, "no celular, o campo abre o teclado do aparelho")
+	entry.field.text = "  Ana   Clara  "
+	entry.confirm()
+	check(got[0] == "Ana Clara", "o nome sai limpo (%s)" % got[0])
+	entry.field.text = "x".repeat(40)
+	check(NameEntry.clean(entry.field.text).length() <= NameEntry.MAX_LENGTH, "tem limite de tamanho")
+	entry.queue_free()
+	await frames(2)
+	# Pela ação de diálogo "pedir_nome" (o caminho pacífico, Etapa 9, vai usar).
+	var level := await open_level(TEATRO, "camara")
+	var ask := func(): await level._on_dialogue_action("pedir_nome")
+	ask.call()
+	await frames(2)
+	check(level.hud.name_entry.visible, "\"pedir_nome\" abre a tela")
+	level.hud.name_entry.field.text = "Cobaia"
+	level.hud.name_entry.confirm()
+	await frames(2)
+	check(Game.player_name == "Cobaia" and not level.hud.name_entry.visible, "salvo em player_name")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_name_in_anger_and_terminal() -> void:
+	Game.reset_progress()
+	Game.criancas_feridas = 1
+	var level := await open_level(PROLOGO, "camara")
+	var prologo := level as Prologo
+	var done := [false]
+	var run := func():
+		await prologo.ask_name_in_anger()
+		done[0] = true
+	run.call()
+	await frames(3)
+	check(level.hud.dialogue.visible, "caminho violento: ela pergunta com raiva antes de morrer")
+	var guard := 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	check(level.hud.name_entry.visible, "QUAL É O SEU NOME? — a tela de digitar")
+	level.hud.name_entry.field.text = "Rato"
+	level.hud.name_entry.confirm()
+	await frames(3)
+	guard = 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	await frames(3)
+	check(done[0] and Game.player_name == "Rato" and Game.has_flag("nome_violento"), "...Agora eu sei quem riscar.")
+	check(DialogueData.variant("terminal") == "terminal_riscado", "o terminal mostra o nome riscado duas vezes")
+	var lines: Array = DialogueData.get_entry("terminal_riscado")["falas"]
+	check(DialogueData.fill(str(lines[1])).contains("Rato"), "o nome aparece no fim da lista (texto escrito)")
+	Game.clear_flag("nome_violento")
+	check(DialogueData.variant("terminal") == "terminal_nome", "caminho pacífico: o nome com o número da tentativa")
+	Game.player_name = ""
+	check(DialogueData.variant("terminal") == "terminal", "sem nome: o terminal de antes")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_name_reactions_and_ng_plus() -> void:
+	Game.reset_progress()
+	for who in ["lucia", "galeno", "helena", "amaro", "experimento"]:
+		check(not DialogueData.get_entry("%s_nome_sim" % who).is_empty() and not DialogueData.get_entry("%s_nome_nao" % who).is_empty(),
+			"%s reage ao nome (disse / não lembro)" % who)
+	check(str(DialogueData.get_entry("lucia_nome_sim")["falas"][0]) == "Pronto. Agora eu guardo o seu também.", "a fala da Lúcia")
+	Game.set_player_name("Tito")
+	var snapshot := Game._guardian_snapshot()
+	check(snapshot.get("nome", "") == "Tito", "NG+: o nome antigo vai junto com o guardião")
+	Game.guardian = snapshot
+	Game.start_new_journey({})
+	check(Game.player_name.is_empty(), "o novo experimento acorda sem nome")
+	var guardian := (load("res://scenes/bosses/experimento_anterior.tscn") as PackedScene).instantiate() as ExperimentoAnterior
+	_world.add_child(guardian)
+	await frames(2)
+	check(guardian.display_name() == "Tito, O Experimento Anterior", "a barra: \"{nome antigo}, O Experimento Anterior\" (%s)" % guardian.display_name())
+	guardian.queue_free()
+	await frames(2)
+	Game.reset_progress()
+

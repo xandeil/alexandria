@@ -1319,6 +1319,23 @@ func _on_enemy_slain(enemy: Enemy, index: int) -> void:
 	Game.mark_slain(scene_file_path, index, forever)
 
 
+## NG+ (v0.41, Etapa 5): o Experimento Anterior pergunta o seu nome uma vez,
+## no começo da luta. A resposta só muda a reação dele.
+func _on_arena_fight_started(boss: Boss) -> void:
+	if boss is ExperimentoAnterior and not Game.has_flag("experimento_perguntou"):
+		Game.set_flag("experimento_perguntou")
+		await examine("experimento_pergunta", "O Experimento Anterior")
+
+
+## O NOME (v0.41, Etapa 5): a tela de digitar, obrigatória. Salva em
+## Game.player_name. O texto da pergunta é ESCRITO; a fala dublada fica no
+## diálogo de quem pergunta (ninguém diz o nome em voz alta).
+func ask_player_name(prompt: String) -> String:
+	var typed: String = await hud.name_entry.run(prompt)
+	Game.set_player_name(typed)
+	return Game.player_name
+
+
 ## MESA POSTA (v0.35, Etapa 6 — Raízes): comer cura bem, mas a sineta toca e
 ## todos os inimigos da zona vêm (os Inchados). Uma vez por visita: o prato
 ## enche de novo quando a fase recarrega. Devolve quanto curou.
@@ -1553,6 +1570,7 @@ func _connect_world() -> void:
 		add_child(boss_arena)
 		boss_arena.setup(_boss, _boss_npc, _fog_walls, rect, _landing)
 		boss_arena.sealed.connect(func(boss: Boss): camera.focus = boss)  # a câmera revela o chefe
+		boss_arena.fight_started.connect(_on_arena_fight_started)
 		boss_arena.fight_started.connect(_on_fight_started)
 		boss_arena.fight_ended.connect(_on_fight_ended)
 		if boss_arena.state == BossArena.State.DONE:
@@ -1713,6 +1731,7 @@ func _on_dialogue_action(action: String) -> void:
 	#   "nome:<personagem>:sim"  você disse o seu nome a ele (nome_dito_<personagem>)
 	#   "dar:<item>"             entrega um item (sai da bolsa; liga a flag "dado_<item>")
 	#   "comer:<zona>"           MESA POSTA: cura, mas a sineta chama a zona (Raízes)
+	#   "pedir_nome"             a tela de digitar o nome (obrigatório; Etapa 5)
 	#   várias de uma vez, separadas por ";"  ("flag:x;falar:y")
 	if action.contains(";"):
 		for part in action.split(";"):
@@ -1746,6 +1765,8 @@ func _on_dialogue_action(action: String) -> void:
 					Game.set_flag("nome_dito_%s" % value)
 				return
 	match action:
+		"pedir_nome":
+			await ask_player_name("VOCÊ LEMBRA O SEU NOME?")
 		"subir_nivel":
 			await hud.level_up_menu.run(player)
 		"melhorar_arma":

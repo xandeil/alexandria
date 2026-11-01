@@ -13,6 +13,8 @@ const ICON_MEMORY := preload("res://assets/ui/icon_memory.png")
 const ICON_PAUSE := preload("res://assets/ui/icon_pause.png")
 
 var dialogue: DialogueBox
+## v0.41 (Etapa 5): a tela de digitar o nome (teclado, celular e controle).
+var name_entry: NameEntry
 var level_up_menu: LevelUpMenu
 var smith_menu: SmithMenu
 var rest_menu: RestMenu
@@ -80,6 +82,8 @@ func _ready() -> void:
 	inventory_menu = InventoryMenu.new()
 	add_child(inventory_menu)
 	pause_menu.inventory_menu = inventory_menu
+	name_entry = NameEntry.new()
+	add_child(name_entry)
 	_build_item_log()
 	Game.item_added.connect(show_item_gained)
 	Game.sanity_flasks_changed.connect(func(count: int): _sanity_label.text = "x%d" % count)
@@ -170,7 +174,7 @@ func _refresh_pause_button() -> void:
 ## mas abrir o menu por cima da tela "VOCÊ ESQUECEU" só confunde).
 func can_pause() -> bool:
 	if cutscene or get_tree().paused or Fader.busy or dialogue.visible or level_up_menu.visible or smith_menu.visible or inventory_menu.visible \
-			or rest_menu.visible or shop_menu.visible:
+			or rest_menu.visible or shop_menu.visible or name_entry.visible:
 		return false
 	return is_instance_valid(_player) and not _player.is_dead()
 

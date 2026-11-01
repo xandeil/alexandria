@@ -110,8 +110,23 @@ func _lock_exit(locked: bool) -> void:
 # --- Vitória: a lembrança dela ------------------------------------------------------
 
 func _celebrate_victory(_subtitle: String) -> void:
+	await ask_name_in_anger()
 	await _play_governess_memory()
 	_lock_exit(false)
+
+
+## CAMINHO VIOLENTO (v0.41, Etapa 5): antes de se desfazer, a Governanta
+## pergunta o nome com raiva — ela precisa fechar a conta. Depois vem a
+## lembrança dela, como antes. (No terminal, o nome aparece riscado duas vezes.)
+func ask_name_in_anger() -> void:
+	if not Game.player_name.is_empty():
+		return
+	_begin_modal()
+	await hud.dialogue.run(DialogueData.get_entry("governanta_conta"), "Governanta")
+	await ask_player_name("QUAL É O SEU NOME?")
+	await hud.dialogue.run(DialogueData.get_entry("governanta_riscar"), "Governanta")
+	Game.set_flag("nome_violento")
+	_end_modal()
 
 
 ## "Ao ser derrotada, sua lembrança se partia em fragmentos: crianças brincando,

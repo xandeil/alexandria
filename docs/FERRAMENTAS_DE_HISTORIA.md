@@ -56,6 +56,7 @@ As ações antigas continuam valendo: `loja`, `subir_nivel`, `desafiar_helena`..
 | `nome:lucia:sim` | marca que você disse o seu nome a ele |
 | `dar:caixa_musica_bronze` | entrega um item (sai da bolsa e liga `dado_<item>`) |
 | `comer:mesa_1` | mesa posta: cura, mas a sineta chama todos os inimigos da zona `mesa_1` |
+| `pedir_nome` | abre a tela de digitar o nome (obrigatório) e salva em `player_name` |
 | `a;b` | várias ações em sequência (ex.: `flag:x;falar:y`) |
 
 ## 4. Aliados (base `Ally`)
@@ -68,3 +69,12 @@ As ações antigas continuam valendo: `loja`, `subir_nivel`, `desafiar_helena`..
 ## 5. No mapa (listas do nó da fase)
 
 São quatro listas: `exits`, `zones`, `objects` e `traps`. Os exemplos estão em `levels/LEGENDA.md`.
+
+## 6. Nome do personagem (Etapa 5)
+
+- Na criação, o nome aparece como **"???"**. Ele só existe quando a Governanta pergunta.
+- **Caminho violento:** antes de se desfazer, ela pergunta com raiva (`governanta_conta` → tela → `governanta_riscar`) e liga `nome_violento`.
+- **Caminho pacífico:** a ação `pedir_nome` no meio da conversa dela (Etapa 9).
+- **Terminal do laboratório:** entradas com `"escrito": true` são texto lido, não fala: podem usar `{nome}` e `{tentativa}` (mortes + 1). Com `nome_violento`, o nome aparece riscado duas vezes.
+- **Reações** (`<quem>_nome_sim` / `<quem>_nome_nao`): Lúcia, Galeno, Helena, Amaro e o Experimento Anterior. Ninguém diz o nome em voz alta.
+- **NG+:** o nome antigo vai junto com o guardião; a barra mostra "{nome antigo}, O Experimento Anterior".

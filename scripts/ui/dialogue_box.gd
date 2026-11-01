@@ -79,8 +79,9 @@ func run(entry: Dictionary, fallback_name: String = "") -> String:
 	_name_label.visible = not _name_label.text.is_empty()
 	visible = true
 	Sfx.play(&"ui_open")
+	var written: bool = entry.get("escrito", false)  # texto lido (terminal), não dublado
 	for line in lines:
-		_show_line(str(line))
+		_show_line(DialogueData.fill(str(line)) if written else str(line))
 		await _advance
 	var action := ""
 	var options: Array = expand_options(entry.get("opcoes", []))

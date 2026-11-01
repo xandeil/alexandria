@@ -32,8 +32,13 @@ static func variant(id: String) -> String:
 ## DUBLADO: nenhuma FALA usa o nome do jogador — cada personagem tem apelidos
 ## fixos ("ratinho", "parceiro", "freguês"...). Um teste garante que nenhuma
 ## linha de "falas" do dialogos.json tenha {nome}.
+##
+## v0.41: também "{tentativa}" (número de tentativas = mortes + 1) e
+## "{nome_antigo}" (o nome do Experimento Anterior, no NG+). Uma entrada com
+## "escrito": true (o terminal do laboratório) é TEXTO, não fala: pode usar {nome}.
 static func fill(text: String) -> String:
-	return text.replace("{nome}", Game.spoken_name())
+	return text.replace("{nome}", Game.spoken_name()).replace("{tentativa}", str(Game.deaths + 1)) \
+		.replace("{nome_antigo}", str(Game.guardian.get("nome", "")))
 
 
 static func _load() -> void:

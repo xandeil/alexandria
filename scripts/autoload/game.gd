@@ -620,6 +620,8 @@ func requirement_met(requires: String) -> bool:
 	var value := text.get_slice(":", 1) if text.contains(":") else text
 	match kind:
 		"":
+			if value == "nome":  # v0.41: o herói já tem nome (a Governanta perguntou)
+				return not player_name.is_empty()
 			return seven_memories() == SEVEN.size() if value == "sete" else is_boss_defeated(value)
 		"chefe":
 			return is_boss_defeated(value)
@@ -1686,6 +1688,7 @@ func _guardian_snapshot() -> Dictionary:
 		"atributos": attributes.duplicate(),
 		"frascos": health_flasks_max,
 		"ciclo": cycle,
+		"nome": player_name,  # v0.41: a barra dele mostra "{nome antigo}, O Experimento Anterior"
 	}
 
 

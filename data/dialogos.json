@@ -31,6 +31,16 @@
 			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
 			"Os números são altos demais para alguém ainda estar contando.",
 			"O seu nome não está na lista. Ou está, e você não lembra qual é."
+		],
+		"variantes": [
+			{
+				"quando": "nome+flag:nome_violento",
+				"usar": "terminal_riscado"
+			},
+			{
+				"quando": "nome",
+				"usar": "terminal_nome"
+			}
 		]
 	},
 	"capsula_ocupada": {
@@ -1282,6 +1292,112 @@
 		"falas": [
 			"Uma porta de gelo com uma fechadura de livro.",
 			"Alguém grande guarda a chave. Ele não sai do lugar."
+		]
+	},
+	"governanta_conta": {
+		"nome": "Governanta",
+		"falas": [
+			"Eu contei. Todas as noites, eu contei...",
+			"Espera. ESPERA. A conta... eu preciso fechar a conta...",
+			"QUAL É O SEU NOME?"
+		]
+	},
+	"governanta_riscar": {
+		"nome": "Governanta",
+		"falas": [
+			"...Agora eu sei quem riscar."
+		]
+	},
+	"terminal_nome": {
+		"nome": "Terminal",
+		"escrito": true,
+		"falas": [
+			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
+			"Os números são altos demais para alguém ainda estar contando.",
+			"No fim da lista, uma linha nova: {nome} — tentativa {tentativa}."
+		]
+	},
+	"terminal_riscado": {
+		"nome": "Terminal",
+		"escrito": true,
+		"falas": [
+			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
+			"No fim da lista: {nome} — tentativa {tentativa}.",
+			"O nome está riscado. Riscado de novo, por cima, com mais força."
+		]
+	},
+	"lucia_nome_sim": {
+		"nome": "Lúcia",
+		"falas": [
+			"Pronto. Agora eu guardo o seu também."
+		]
+	},
+	"lucia_nome_nao": {
+		"nome": "Lúcia",
+		"falas": [
+			"...Então somos duas. Eu guardo o vazio por você."
+		]
+	},
+	"galeno_nome_sim": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Nome de gente forte!"
+		]
+	},
+	"galeno_nome_nao": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Eu também não! Somos dois!"
+		]
+	},
+	"helena_nome_sim": {
+		"nome": "Helena",
+		"falas": [
+			"Bonito. O meu também era bonito, antes."
+		]
+	},
+	"helena_nome_nao": {
+		"nome": "Helena",
+		"falas": [
+			"Sorte sua."
+		]
+	},
+	"amaro_nome_sim": {
+		"nome": "Amaro",
+		"falas": [
+			"Ah, então é assim que chama o meu ratinho preferido!"
+		]
+	},
+	"amaro_nome_nao": {
+		"nome": "Amaro",
+		"falas": [
+			"Sem nome? Melhor."
+		]
+	},
+	"experimento_nome_sim": {
+		"nome": "O Experimento Anterior",
+		"falas": [
+			"...Era o meu também."
+		]
+	},
+	"experimento_nome_nao": {
+		"nome": "O Experimento Anterior",
+		"falas": [
+			"Ela vai te dar um. Como deu pra mim."
+		]
+	},
+	"experimento_pergunta": {
+		"nome": "O Experimento Anterior",
+		"falas": [
+			"...Você ainda lembra o seu nome?"
+		],
+		"opcoes": [
+			{
+				"tipo": "nome",
+				"personagem": "experimento",
+				"sim": "falar:experimento_nome_sim",
+				"nao": "falar:experimento_nome_nao"
+			}
 		]
 	}
 }
