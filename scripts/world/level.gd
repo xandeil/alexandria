@@ -127,6 +127,8 @@ const THEME_ENTITIES := {
 			"prompt": "Aproximar"}},
 	},
 	"cidade": {
+		# v0.35: o Corneteiro, opcional, no alto da Torre.
+		"U": {"miniboss": "corneteiro", "scene": preload("res://scenes/bosses/corneteiro.tscn")},
 		# O marido de Helena, sem memória (Bíblia: "O jogador o encontra na Cidade
 		# Estilhaçada, tentando proteger os Civis Cinzentos").
 		"!": {"npc": {"dialogue": "guarda_cidade", "name": "Guarda de cabelo branco",
@@ -476,6 +478,9 @@ const PROPS := {
 ## item_points): {"cell": Vector2i(x, y), "item": "botas_detentor", "count": 1}.
 ## Pegos uma vez, não voltam (chave "<área>@x,y" no save, como os do "@").
 @export var pickups: Array[Dictionary] = []
+## v0.35 — CHÃO QUE DESABA durante a luta de um mini-chefe (CollapsingFloor):
+## {"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}
+@export var collapse_fights: Array[Dictionary] = []
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -1023,6 +1028,9 @@ const KEEPSAKES := {
 	"cidade": "botao_de_casaco", "bosque": "fita_desbotada", "forjas": "oculos_rachados",
 	"raizes": "dente_de_leite", "montanha": "bolinha_de_gude", "dominio": "bilhete_dobrado",
 }
+## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
+## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade"}
 
 
 ## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
@@ -1048,6 +1056,9 @@ func _add_rest_chamber(x: int, y: int, feet: Vector2) -> void:
 			"prompt": "Examinar"}, feet + Vector2(-12, 2))
 	if index == 2 and KEEPSAKES.has(area):
 		_place_pickup(KEEPSAKES[area], 1, "%s#pertence" % area, feet + Vector2(30, 4))
+	elif index == 1 and KEEPSAKE_ROOMS.has(area):
+		var island: String = KEEPSAKE_ROOMS[area]
+		_place_pickup(KEEPSAKES[island], 1, "%s#pertence" % island, feet + Vector2(30, 4))
 
 
 ## A Câmara de um ponto ("camara", "camara_2"...) — null se não houver.
@@ -1271,8 +1282,10 @@ func _spawn_living_enemies() -> void:
 			enemy.set_meta(&"zona", str(zone.get("id", "")))
 
 
-func _on_enemy_slain(_enemy: Enemy, index: int) -> void:
-	Game.mark_slain(scene_file_path, index)
+func _on_enemy_slain(enemy: Enemy, index: int) -> void:
+	# O Corneteiro vencido (v0.35): os soldados da Cidade não voltam mais.
+	var forever := theme == "cidade" and enemy is SoldadoRemendado and Game.has_flag("corneteiro_morto")
+	Game.mark_slain(scene_file_path, index, forever)
 
 
 ## Ponto de inspeção (lore pelo cenário): invisível, não bloqueia, "Examinar".
@@ -1871,6 +1884,12 @@ func register_miniboss(mini: MiniBoss) -> void:
 	mini.fight_started.connect(_on_miniboss_started)
 	mini.fight_reset.connect(_on_miniboss_ended.bind(false))
 	mini.fight_won.connect(_on_miniboss_ended.bind(true))
+	for def in collapse_fights:
+		if mini.data and str(def.get("boss", "")) == mini.data.id:
+			var collapse := CollapsingFloor.create(self, def)
+			mini.fight_started.connect(func(_b): collapse.start())
+			mini.fight_reset.connect(func(_b): collapse.stop())
+			mini.fight_won.connect(func(_b): collapse.stop())
 
 
 func _add_farm() -> void:

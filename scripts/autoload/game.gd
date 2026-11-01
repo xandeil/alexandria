@@ -116,6 +116,7 @@ const BASE_HEAVY := preload("res://data/attacks/player_heavy.tres")
 ## em outra ilha (Level.pickups).
 const BOSS_REWARDS := {
 	"cavaleiro": {"lembranca_cavaleiro": 1},
+	"corneteiro": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"governanta": {"lembranca_governanta": 1},
 	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
@@ -183,6 +184,9 @@ var flags := {}
 ## (o número é a ordem do inimigo no mapa). Eles NÃO voltam ao trocar de área —
 ## só ao descansar numa Câmara ou ao morrer (regra do Dark Souls, v0.30.7).
 var slain := {}
+## Mortos PARA SEMPRE (nem descanso nem morte trazem de volta): o mesmo formato.
+## Ex.: os soldados da Cidade depois de vencer o Corneteiro (Etapa 6).
+var slain_forever := {}
 ## Nome do herói (v0.31): ele acorda sem nome; a Governanta pergunta. "" = ainda sem nome.
 var player_name := ""
 ## Objetos do mundo que LEMBRAM o estado (alavanca puxada, baú aberto, atalho
@@ -275,6 +279,7 @@ func reset_progress() -> void:
 		attributes[attribute] = StatsComponent.BASE_ATTRIBUTE
 	defeated_bosses.clear()
 	slain = {}
+	slain_forever = {}
 	player_name = ""
 	world_state = {}
 	ally_levels = {}
@@ -663,15 +668,16 @@ func set_player_name(new_name: String) -> void:
 
 # --- Inimigos abatidos (só voltam ao descansar ou morrer) -------------------------------
 
-func mark_slain(scene_path: String, index: int) -> void:
-	var list: Array = slain.get(scene_path, [])
+func mark_slain(scene_path: String, index: int, forever: bool = false) -> void:
+	var book := slain_forever if forever else slain
+	var list: Array = book.get(scene_path, [])
 	if not list.has(index):
 		list.append(index)
-	slain[scene_path] = list
+	book[scene_path] = list
 
 
 func is_slain(scene_path: String, index: int) -> bool:
-	return (slain.get(scene_path, []) as Array).has(index)
+	return (slain.get(scene_path, []) as Array).has(index) or (slain_forever.get(scene_path, []) as Array).has(index)
 
 
 ## Descansou (ou morreu): o mundo inteiro volta a se encher.
@@ -696,7 +702,7 @@ const CAPSULES := [
 	{"scene": "res://scenes/world/teatro.tscn", "spawn": "camara", "name": "Teatro Alexandria", "place": "Diante do palco", "island": "Teatro", "thumb": "teatro"},
 	{"scene": "res://scenes/world/prologo.tscn", "spawn": "camara", "name": "Complexo das Cápsulas", "place": "A sua cápsula", "island": "Laboratório", "thumb": "prologo"},
 	{"scene": "res://scenes/world/cidade.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Avenida em Chamas", "island": "Cidade", "thumb": "cidade"},
-	{"scene": "res://scenes/world/cidade.tscn", "spawn": "camara_2", "name": "Cidade Estilhaçada", "place": "Quartel Desabado", "island": "Cidade", "thumb": "cidade"},
+	{"scene": "res://scenes/world/cidade_quartel.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Quartel Desabado", "island": "Cidade", "thumb": "cidade"},
 	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Margem do Lago", "island": "Bosque", "thumb": "bosque"},
 	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara_2", "name": "Bosque do Sono Eterno", "place": "Dormitório", "island": "Bosque", "thumb": "bosque"},
 	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Salão das Estátuas", "island": "Forjas", "thumb": "forjas"},
@@ -739,6 +745,11 @@ func unlock_capsule(scene_path: String, spawn_id: String = "camara") -> void:
 
 
 ## As Câmaras desbloqueadas, na ordem do mapa (agrupadas por ilha), não na ordem em que você achou.
+## A 2ª Câmara da Cidade antes da v0.35 (Avenida, "camara_2") e onde ela está agora.
+const OLD_CITY_SECOND := ["res://scenes/world/cidade.tscn", "camara_2"]
+const NEW_CITY_SECOND := "res://scenes/world/cidade_quartel.tscn"
+
+
 func unlocked_capsules() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for info: Dictionary in CAPSULES:
@@ -1455,6 +1466,7 @@ func _to_dict() -> Dictionary:
 		"play_seconds": play_seconds,
 		"flags": flags.duplicate(),
 		"abatidos": slain.duplicate(true),
+		"abatidos_sempre": slain_forever.duplicate(true),
 		"nome": player_name,
 		"estado_mundo": world_state.duplicate(true),
 		"aliados": ally_levels.duplicate(),
@@ -1481,6 +1493,10 @@ func _from_dict(data: Dictionary) -> void:
 			defeated_bosses.append(str(boss))
 	rest_scene = str(data.get("rest_scene", START_SCENE))
 	rest_spawn = str(data.get("rest_spawn", START_SPAWN))
+	# MIGRAÇÃO (v0.35): a 2ª Câmara da Cidade mudou para o Quartel Desabado.
+	if rest_scene == OLD_CITY_SECOND[0] and rest_spawn == OLD_CITY_SECOND[1]:
+		rest_scene = NEW_CITY_SECOND
+		rest_spawn = "camara"
 	if data.has("vibration"):  # saves antigos: a vibração agora mora nas Opções do aparelho
 		Settings.import_legacy_vibration(bool(data["vibration"]))
 	criancas_feridas = maxi(int(data.get("criancas_feridas", 0)), 0)
@@ -1511,6 +1527,12 @@ func _from_dict(data: Dictionary) -> void:
 	if saved_allies is Dictionary:
 		for ally_id: Variant in saved_allies:
 			ally_levels[str(ally_id)] = maxi(int(saved_allies[ally_id]), 1)
+	slain_forever = {}
+	var saved_forever: Variant = data.get("abatidos_sempre", {})
+	if saved_forever is Dictionary:
+		for scene: Variant in saved_forever:
+			if saved_forever[scene] is Array:
+				slain_forever[str(scene)] = (saved_forever[scene] as Array).map(func(i): return int(i))
 	slain = {}
 	var saved_slain: Variant = data.get("abatidos", {})
 	if saved_slain is Dictionary:
@@ -1534,7 +1556,8 @@ func _from_dict(data: Dictionary) -> void:
 	var saved_capsules: Variant = data.get("capsules", [])
 	if typeof(saved_capsules) == TYPE_ARRAY:
 		for scene_path in saved_capsules:
-			unlock_capsule(str(scene_path))
+			var key := str(scene_path)
+			unlock_capsule(NEW_CITY_SECOND if key == "%s#%s" % OLD_CITY_SECOND else key)
 	# MIGRAÇÃO (saves de antes da v0.22): a Câmara onde você descansou por último
 	# e a do Teatro (depois do Prólogo) já contam como desbloqueadas.
 	unlock_capsule(rest_scene, rest_spawn)

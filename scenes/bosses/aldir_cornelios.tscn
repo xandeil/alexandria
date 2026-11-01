@@ -36,6 +36,7 @@ collision_layer = 4
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_aldir")
+phase_arena = {2: {"fogo_borda": 2, "cresce": 14.0, "max": 4, "dps": 12.0}}
 martelada = ExtResource("13_martelada")
 varredura = ExtResource("14_varredura")
 empurrao = ExtResource("15_empurrao")

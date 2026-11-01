@@ -218,6 +218,12 @@
 				"texto": "Agora não",
 				"acao": ""
 			}
+		],
+		"variantes": [
+			{
+				"quando": "!couraca",
+				"usar": "portao_aldir_guardado"
+			}
 		]
 	},
 	"portao_aldir_aberto": {
@@ -961,13 +967,6 @@
 			"Nº 112. Vazia. Ainda morna."
 		]
 	},
-	"placa_cidade_2": {
-		"nome": "Placa",
-		"falas": [
-			"Nº 347. Vazia. Ainda morna.",
-			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
-		]
-	},
 	"placa_bosque_1": {
 		"nome": "Placa",
 		"falas": [
@@ -1058,6 +1057,40 @@
 		"nome": "Vitrine",
 		"falas": [
 			"Sono de fada. Peça rara."
+		]
+	},
+	"placa_cidade_quartel_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 347. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"portao_aldir_guardado": {
+		"nome": "Portão do Detentor",
+		"falas": [
+			"O portão fica do outro lado da ponte.",
+			"No meio da ponte, uma armadura parada. Queimada por dentro. Ela não deixa ninguém passar."
+		]
+	},
+	"escala_de_guarda": {
+		"nome": "Escala de guarda",
+		"falas": [
+			"Escala de guarda. Um nome em todas as noites. Ninguém riscou."
+		]
+	},
+	"quartel_portao_fechado": {
+		"nome": "Portão do quartel",
+		"falas": [
+			"Um portão de ferro, trancado por fora da guarita.",
+			"Atrás da grade, um apito pendurado num prego. Quem dá as ordens aqui ainda está de pé."
+		]
+	},
+	"portao_viaduto_trancado": {
+		"nome": "Portão lateral",
+		"falas": [
+			"Um portão baixo, preso por uma corrente.",
+			"O cadeado está do outro lado. Do lado da ponte."
 		]
 	}
 }

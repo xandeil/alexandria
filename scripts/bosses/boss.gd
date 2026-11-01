@@ -23,6 +23,10 @@ signal ready_to_fight
 ## a esta distância (dá tempo de VER o chefe antes). 0 = começa na hora.
 @export var wake_distance := 0.0
 
+## O que muda na arena em cada fase (v0.35, Etapa 6): fase → config de
+## ArenaShift. Ex.: {2: {"fogo_borda": 2, "cresce": 12.0, "max": 4}}.
+@export var phase_arena := {}
+
 ## Limites da arena (em coordenadas do mundo), preenchidos pela BossArena.
 var arena_rect := Rect2()
 var active := false
@@ -82,3 +86,12 @@ func clamp_to_arena(point: Vector2, margin: float = 12.0) -> Vector2:
 		return point
 	var inner := arena_rect.grow(-margin)
 	return Vector2(clampf(point.x, inner.position.x, inner.end.x), clampf(point.y, inner.position.y, inner.end.y))
+
+
+## Muda a arena para a fase N (se o chefe tiver uma config para ela).
+## Cada chefe chama no seu _enter_phase_N. Devolve o ArenaShift (ou null).
+func shift_arena(phase_number: int) -> ArenaShift:
+	var settings: Variant = phase_arena.get(phase_number, {})
+	if not settings is Dictionary or (settings as Dictionary).is_empty() or arena_rect.size == Vector2.ZERO:
+		return null
+	return ArenaShift.apply(get_parent(), arena_rect, settings)

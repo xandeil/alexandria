@@ -41,6 +41,8 @@ const SPEECH_DEFEAT := "Eu tinha alguém para proteger... Não lembro o nome."
 const PHASE_LABELS := ["Fase 1 — O Soldado que Ainda Pensa", "Fase 2 — O Caos"]
 ## No máximo tantos buracos abertos: o mais velho entope de entulho.
 const MAX_PITS := 6
+## Fase 2 (v0.35): os buracos FICAM até o fim (só entope se passar disto).
+const MAX_PITS_PHASE_2 := 14
 ## Abertura do leque de ondas da fase 2 (radianos).
 const FAN_ANGLE := 0.42
 
@@ -429,7 +431,7 @@ func _trim_pits() -> void:
 	for pit in _pits:
 		if is_instance_valid(pit) and pit.is_active():
 			alive.append(pit)
-	while alive.size() > MAX_PITS:
+	while alive.size() > (MAX_PITS if phase == 1 else MAX_PITS_PHASE_2):
 		alive.pop_front().fill()
 	_pits = alive
 
@@ -674,6 +676,7 @@ func _enter_phase_2() -> void:
 	Fx.slow_motion(0.3, 0.45)
 	eyes.visible = true
 	visual.modulate = Color(1.08, 0.94, 0.9)
+	shift_arena(2)  # a praça pega fogo pelas bordas e a arena encolhe (Etapa 6)
 	for i in 3:
 		await wait(0.45)
 		if token != _transition_token or dead:

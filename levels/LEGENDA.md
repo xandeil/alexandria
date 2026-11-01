@@ -123,7 +123,13 @@ célula (x, y) em tiles. Assim não faltam caracteres e não há conflito entre 
 | `objects` | alavanca, baú, porta de atalho (lembram o estado para sempre) | `{"kind": "atalho", "cell": Vector2i(12, 5), "key": "atalho_galho", "abre_de": "oeste", "locked_dialogue": "galho_trancado"}` |
 | `traps` | armadilha que dispara num ritmo | `{"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}` |
 | `extra_capsules` | Câmaras extras (a `C` do mapa é a 1ª, ponto `camara`; estas viram `camara_2`...) | `[Vector2i(32, 18)]` |
+| `collapse_fights` | chão que desaba durante a luta de um mini-chefe (o entulho tapa no fim) | `{"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}` |
 | `decor` | enfeite solto (com `dialogue` vira Examinar) | `{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}` |
 
 `objects` também aceita `{"kind": "mimico", "cell": ..., "key": "mimico_cidade", "item": "fragmento_turvo"}`
 — o mímico é o baú comum espelhado; vencido, não volta nunca.
+
+Chefe com a arena mudando de fase: `phase_arena` no nó do chefe (`ArenaShift`), ex.
+`{2: {"fogo_borda": 2, "cresce": 14.0, "max": 4, "dps": 12.0}}` — anel de fogo
+que fecha a arena. Também há `"escuro": 0.4` (a luz cai).
+

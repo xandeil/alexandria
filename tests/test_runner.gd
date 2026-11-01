@@ -46,6 +46,9 @@ const PROTOTIPO_SCENE := preload("res://scenes/bosses/prototipo.tscn")
 const GUARDIAO_SCENE := preload("res://scenes/bosses/guardiao_ancora.tscn")
 const CIDADE := "res://scenes/world/cidade.tscn"
 const MONTANHA := "res://scenes/world/montanha.tscn"
+const QUARTEL := "res://scenes/world/cidade_quartel.tscn"
+const VIADUTO := "res://scenes/world/cidade_viaduto.tscn"
+const TORRE := "res://scenes/world/cidade_torre.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -129,6 +132,9 @@ func _ready() -> void:
 		"test_sargento_whistles_and_platoon",
 		"test_miniboss_resets_when_player_flees",
 		"test_couraca_back_only",
+		"test_city_expansion",
+		"test_corneteiro_silences_city",
+		"test_arena_shift_fire_ring",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -726,7 +732,7 @@ func test_title_pause_keeps_save() -> void:
 
 
 func test_levels_build() -> void:
-	for path in ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn", "res://scenes/world/arena_aldir.tscn", PROLOGO, BOSQUE, ARENA_NYSSA]:
+	for path in ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn", "res://scenes/world/arena_aldir.tscn", PROLOGO, BOSQUE, ARENA_NYSSA, QUARTEL, VIADUTO, TORRE]:
 		Game.pending_spawn = "camara" if path.contains("teatro") or path.contains("prologo") else "porta"
 		var level := (load(path) as PackedScene).instantiate() as Level
 		_world.add_child(level)
@@ -808,6 +814,8 @@ func test_levels_build() -> void:
 			var npcs := level.get_tree().get_nodes_in_group("npcs").size()
 			check(npcs >= 5, "Teatro: NPCs (Fada, Vendedor, Ferreiro, Orbe, Helena) = %d" % npcs)
 			check(find_npc(Level.SPARED_CHILD_TALKS) == null, "Teatro: sem a Criança Poupada (ninguém foi poupado ainda)")
+		elif path.contains("cidade_"):
+			pass  # Quartel, Viaduto e Torre: conteúdo em test_city_expansion
 		else:
 			var kinds := {}
 			for node in level.get_tree().get_nodes_in_group("respawnable"):
@@ -818,11 +826,13 @@ func test_levels_build() -> void:
 			for node in level.get_tree().get_nodes_in_group("minibosses"):
 				minis.append(str(node.get_script().get_global_name()))
 			minis.sort()
-			check(minis == ["CouracaAndante", "SargentoSemPelotao"], "Cidade: os 2 mini-chefes (%s)" % [minis])
+			# v0.35: o Sargento mudou para o Quartel e a Couraça para o Viaduto.
+			check(minis.is_empty(), "Avenida: os mini-chefes saíram para as fases anexas (%s)" % [minis])
 			check(kinds.get("CaoDeGuerra", 0) == 3 and kinds.get("AtiradorDeTelhado", 0) == 3 and kinds.get("CivilCinzento", 0) == 5, "Cidade: 3 cães, 3 atiradores, 5 civis (%s)" % kinds)
 			check(level.rest_chamber != null and level.spawns.has("camara"), "Cidade: Câmara de descanso perto do portão")
-			check(level.spawns.has("portao"), "Cidade: ponto de chegada diante do portão do Aldir")
-		check(level.floor_layer.get_used_cells().size() > 300, "%s: piso desenhado" % path)
+			check(level.spawns.has("torre"), "Cidade: chegada de quem desce da Torre")
+		var min_floor := 100 if path == TORRE else 300  # a Torre é pequena de propósito
+		check(level.floor_layer.get_used_cells().size() > min_floor, "%s: piso desenhado" % path)
 		var leaks := _find_open_edges(level)
 		check(leaks.is_empty(), "%s: mapa fechado (bordas abertas em %s)" % [path, leaks.slice(0, 5)])
 		check(level.wall_layer.get_used_cells().size() > 50, "%s: paredes com colisão" % path)
@@ -1313,7 +1323,7 @@ func test_aldir_arena_and_gate() -> void:
 	check(not fog_up, "sem névoa depois da vitória")
 	level.queue_free()
 	await frames(2)
-	level = await open_level("res://scenes/world/cidade.tscn", "porta")
+	level = await open_level(VIADUTO, "porta")
 	check(find_npc("portao_aldir_aberto") != null, "o portão muda depois da vitória")
 	level.queue_free()
 	await frames(2)
@@ -1953,7 +1963,7 @@ func test_pickups_and_drops() -> void:
 	for node in level.entities.get_children():
 		if node is ItemPickup:
 			pickups.append(node)
-	check(pickups.size() == 6, "5 itens + o pertence da 2ª Câmara (%d)" % pickups.size())
+	check(pickups.size() == 5, "5 itens (o pertence foi para o Quartel) (%d)" % pickups.size())
 	var shield: ItemPickup = null
 	for pickup in pickups:
 		if pickup.item_id == "escudo_remendado":
@@ -1970,7 +1980,7 @@ func test_pickups_and_drops() -> void:
 		if node is ItemPickup:
 			left += 1
 			check((node as ItemPickup).item_id != "escudo_remendado", "o escudo não volta")
-	check(left == 5, "sobram 5 itens (%d)" % left)
+	check(left == 4, "sobram 4 itens (%d)" % left)
 	level.queue_free()
 	await frames(2)
 	# Drop de inimigo.
@@ -3370,20 +3380,21 @@ func test_beast_matriarch() -> void:
 
 func test_mountain_gate() -> void:
 	# v0.31 (mapa livre): a escalada no fim do Viaduto já começa livre.
+	# v0.35: a escalada saiu da Avenida e foi para o fim do Viaduto Partido.
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
-	var level := await open_level(CIDADE, "porta")
+	var level := await open_level(VIADUTO, "porta")
 	check(find_npc("ponte_levadica") == null, "mapa livre: nada trava a subida para a Montanha")
 	var to_mountain := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha"):
 			to_mountain = true
-	check(to_mountain and level.spawns.has("lateral"), "a subida para a Montanha está aberta")
+	check(to_mountain and level.spawns.has("escalada"), "a subida para a Montanha está aberta")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(MONTANHA, "porta")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("cidade") and (node as AreaExit).target_spawn == "lateral":
+		if node is AreaExit and (node as AreaExit).target_scene == VIADUTO and (node as AreaExit).target_spawn == "escalada":
 			back = true
 	check(back, "a Montanha leva de volta à ponte da Cidade")
 	check(find_npc("porta_ninho") != null, "antes da Matriarca: a trilha do Ninho está fechada")
@@ -5008,12 +5019,12 @@ func test_rest_menu_and_travel() -> void:
 	await wait_for(func(): return level.player.state == Player.State.FREE, 300)  # sai da cápsula
 	# Desbloqueia a Cidade e viaja até ela.
 	Game.unlock_capsule("res://scenes/world/cidade.tscn")
-	Game.unlock_capsule("res://scenes/world/cidade.tscn", "camara_2")
+	Game.unlock_capsule("res://scenes/world/cidade_quartel.tscn")
 	level._on_rest_requested(level.rest_chamber)
 	await wait_for(func(): return menu.visible, 420)
 	var names: Array = real.call().map(func(c): return c.get_meta("scene"))
 	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/prologo.tscn", "res://scenes/world/cidade.tscn",
-		"res://scenes/world/cidade.tscn#camara_2"], "uma linha por ilha, na ordem do mapa (%s)" % [names])
+		"res://scenes/world/cidade_quartel.tscn"], "uma linha por ilha, na ordem do mapa (%s)" % [names])
 	check(menu.cards()[1].has_meta("gap") and menu.cards()[4].get_meta("scene") == "res://scenes/world/cidade.tscn",
 		"o Teatro sozinho na linha: um espaço completa, a Cidade começa na esquerda")
 	var city: Button = real.call()[2]
@@ -5030,7 +5041,11 @@ func test_rest_menu_and_travel() -> void:
 	Game.reset_progress()
 	Game._from_dict(data)
 	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn"), "Câmaras desbloqueadas ficam no save")
-	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn#camara_2"), "a 2ª Câmara da Cidade também")
+	check(Game.is_capsule_unlocked("res://scenes/world/cidade_quartel.tscn"), "a 2ª Câmara da Cidade também")
+	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/cidade.tscn", "rest_spawn": "camara_2",
+		"capsules": ["res://scenes/world/cidade.tscn#camara_2"]})
+	check(Game.rest_scene == Game.NEW_CITY_SECOND and Game.rest_spawn == "camara" and Game.is_capsule_unlocked(Game.NEW_CITY_SECOND),
+		"migração v0.35: a 2ª Câmara da Cidade vira a do Quartel")
 	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/forjas.tscn", "rest_spawn": "camara"})
 	check(Game.is_capsule_unlocked("res://scenes/world/forjas.tscn") and Game.is_capsule_unlocked(Game.HUB_SCENE), "migração: a última Câmara e o Teatro")
 	Game.wake_from_capsule = false
@@ -5046,7 +5061,7 @@ func test_rest_menu_pad_navigation() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
 	Game.unlock_capsule("res://scenes/world/cidade.tscn")
-	Game.unlock_capsule("res://scenes/world/cidade.tscn", "camara_2")
+	Game.unlock_capsule("res://scenes/world/cidade_quartel.tscn")
 	Game.unlock_capsule("res://scenes/world/bosque.tscn")
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
@@ -5067,10 +5082,10 @@ func test_rest_menu_pad_navigation() -> void:
 	for i in 2:
 		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
 		seen.append(focused.call())
-	check(seen == ["res://scenes/world/cidade.tscn#camara_2", "res://scenes/world/cidade.tscn"],
+	check(seen == ["res://scenes/world/cidade_quartel.tscn", "res://scenes/world/cidade.tscn"],
 		"→ dá a volta NA MESMA LINHA (as duas Câmaras da ilha): %s" % [seen])
 	await _pad_press(JOY_BUTTON_DPAD_LEFT)
-	check(focused.call() == "res://scenes/world/cidade.tscn#camara_2", "← também fica na linha")
+	check(focused.call() == "res://scenes/world/cidade_quartel.tscn", "← também fica na linha")
 	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	check(focused.call() == "res://scenes/world/bosque.tscn", "↓ desce para a linha do Bosque")
 	await _pad_press(JOY_BUTTON_DPAD_DOWN)
@@ -5081,7 +5096,7 @@ func test_rest_menu_pad_navigation() -> void:
 	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
 	Game.last_scene_request = ""
 	await _pad_press(JOY_BUTTON_A)
-	check(Game.last_scene_request == "res://scenes/world/cidade.tscn" and Game.rest_spawn == "camara_2",
+	check(Game.last_scene_request == "res://scenes/world/cidade_quartel.tscn" and Game.rest_spawn == "camara",
 		"✕ viaja para a 2ª Câmara da Cidade (%s, %s)" % [Game.last_scene_request, Game.rest_spawn])
 	Game.wake_from_capsule = false
 	level.queue_free()
@@ -5533,8 +5548,9 @@ func test_free_map_layout() -> void:
 	level.queue_free()
 	await frames(2)
 	var expected := {
-		"cidade": ["teatro", "montanha"], "forjas": ["teatro", "dominio", "raizes"],
-		"raizes": ["forjas", "cidade"], "dominio": ["forjas", "bosque"], "montanha": ["cidade", "bosque"],
+		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
+		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "dominio", "raizes"],
+		"raizes": ["forjas", "cidade"], "dominio": ["forjas", "bosque"], "montanha": ["cidade_viaduto", "bosque"],
 		"bosque": ["teatro"],
 	}
 	for area: String in expected:
@@ -5596,7 +5612,8 @@ func test_area_power() -> void:
 func test_second_capsule_per_island() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
-	for area in ["cidade", "bosque", "forjas", "raizes", "montanha", "dominio"]:
+	# A Cidade (v0.35) guarda a 2ª Câmara no Quartel Desabado: testada à parte.
+	for area in ["bosque", "forjas", "raizes", "montanha", "dominio"]:
 		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
 		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
 		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
@@ -5607,14 +5624,24 @@ func test_second_capsule_per_island() -> void:
 		await frames(2)
 	check(Game.capsule_info("res://scenes/world/forjas.tscn#camara_2")["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
 	check(Game.CAPSULES.size() == 15, "15 Câmaras no jogo (%d)" % Game.CAPSULES.size())
-	# Descansar na 2ª e morrer: renasce NELA (e sai dela).
+	# Cidade: uma Câmara na Avenida, a outra (com placa e pertence) no Quartel.
+	var avenue := await open_level("res://scenes/world/cidade.tscn", "camara")
+	check(avenue.rest_chambers.size() == 1, "Avenida: uma Câmara")
+	avenue.queue_free()
+	await frames(2)
 	Game.wake_from_capsule = true
-	var level := await open_level("res://scenes/world/cidade.tscn", "camara_2")
-	var second := level.chamber_for("camara_2")
+	var level := await open_level("res://scenes/world/cidade_quartel.tscn", "camara")
+	var second := level.chamber_for("camara")
+	check(second != null, "Quartel: a 2ª Câmara da Cidade")
+	var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id == "placa_cidade_quartel_1")
+	check(plaques.size() == 1, "Quartel: a placa da Câmara")
+	var keepsake := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["cidade"])
+	check(keepsake.size() == 1, "Quartel: o pertence da Cidade")
+	# Descansar nela e morrer: renasce NELA (e sai dela).
 	await wait_for(func(): return level.player.state == Player.State.FREE, 600)
 	check(level.player.global_position.distance_to(second.front_point()) < 12.0, "acorda saindo da 2ª Câmara")
-	Game.set_rest_point(level.scene_file_path, "camara_2")
-	check(Game.rest_spawn == "camara_2" and Game.is_capsule_unlocked("res://scenes/world/cidade.tscn#camara_2"),
+	Game.set_rest_point(level.scene_file_path, "camara")
+	check(Game.rest_spawn == "camara" and Game.is_capsule_unlocked("res://scenes/world/cidade_quartel.tscn"),
 		"a 2ª vira ponto de renascer e destino de viagem")
 	level.queue_free()
 	await frames(2)
@@ -6651,3 +6678,150 @@ func test_pad_style() -> void:
 	check(seen.back() == "auto" and seen.size() == 5, "Opções: Automático → PlayStation → Xbox → Nintendo → Genérico → Automático")
 	Settings.pad_style = saved
 	PadStyle.detected = "generico"
+
+
+# --- v0.35 · Etapa 6: a Cidade expandida ----------------------------------------------
+
+func _minis_named(kind: String) -> Array:
+	return get_tree().get_nodes_in_group("minibosses").filter(func(n): return n.get_script().get_global_name() == kind)
+
+
+func test_city_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	# Avenida → Quartel (livre) e → Torre.
+	var level := await open_level(CIDADE, "porta")
+	var targets := {}
+	for node in level.entities.get_children():
+		if node is AreaExit:
+			targets[(node as AreaExit).target_scene] = (node as AreaExit).target_spawn
+	check(targets.get(QUARTEL, "") == "porta", "Avenida: o quartel está aberto (%s)" % [targets])
+	check(targets.get(TORRE, "") == "porta", "Avenida: a porta da Torre")
+	check(find_npc("portao_aldir") == null, "o portão do Aldir saiu da Avenida")
+	level.queue_free()
+	await frames(2)
+	# Quartel: Sargento, fio de alarme, portão para o Viaduto fechado até ele cair.
+	level = await open_level(QUARTEL, "porta")
+	check(_minis_named("SargentoSemPelotao").size() == 1, "Quartel: o Sargento mora aqui")
+	check(find_npc("quartel_portao_fechado") != null, "Quartel: o portão para o Viaduto está fechado")
+	check(find_npc("portao_viaduto_trancado") != null, "Quartel: o atalho do Viaduto abre do outro lado")
+	check(find_npc("escala_de_guarda") != null, "Quartel: a escala de guarda")
+	var wires := get_tree().get_nodes_in_group("zone_triggers")
+	check(wires.size() == 1, "Quartel: um fio de alarme (%d)" % wires.size())
+	var called := (wires[0] as ZoneTrigger).fire()
+	check(called == 2, "o fio chama os dois soldados do alojamento (%d)" % called)
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("sargento")
+	level = await open_level(QUARTEL, "porta")
+	var to_bridge := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene == VIADUTO:
+			to_bridge = true
+	check(to_bridge and find_npc("quartel_portao_fechado") == null, "vencido o Sargento: o portão abre")
+	level.queue_free()
+	await frames(2)
+	# Viaduto: a Couraça na ponte, o portão do Aldir guardado.
+	level = await open_level(VIADUTO, "porta")
+	var armors := _minis_named("CouracaAndante")
+	check(armors.size() == 1, "Viaduto: a Couraça na ponte")
+	check(level.resolve_dialogue("portao_aldir") == "portao_aldir_guardado", "o portão fica do outro lado da Couraça")
+	var collapse: Array = level.get_children().filter(func(n): return n is CollapsingFloor)
+	check(collapse.size() == 1, "Viaduto: a ponte pode desabar")
+	var floor_node := collapse[0] as CollapsingFloor
+	var armor := armors[0] as MiniBoss
+	armor.fight_started.emit(armor)
+	check(floor_node.active, "a luta começa: a ponte racha")
+	await seconds(4.5)
+	var pits := get_tree().get_nodes_in_group("pits").filter(func(p): return (p as ArenaPit).is_active())
+	check(pits.size() >= 1, "abriram buracos na ponte (%d)" % pits.size())
+	check(pits.all(func(p): return floor_node.rect.has_point((p as Node2D).global_position)), "só na ponte")
+	armor.fight_won.emit(armor)
+	check(not floor_node.active and get_tree().get_nodes_in_group("pits").all(func(p): return not (p as ArenaPit).is_active()),
+		"fim da luta: o entulho tapa os buracos")
+	Game.defeated_bosses.append("couraca")
+	check(level.resolve_dialogue("portao_aldir") == "portao_aldir", "sem a Couraça, o portão chama")
+	var shortcut := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene == QUARTEL and (node as AreaExit).opens_flag == "atalho_viaduto":
+			shortcut = true
+	check(shortcut and level.spawns.has("escalada"), "Viaduto: o atalho para o Quartel e a escalada da Montanha")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_corneteiro_silences_city() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(TORRE, "porta")
+	var horns := _minis_named("Corneteiro")
+	check(horns.size() == 1, "Torre: o Corneteiro lá em cima")
+	var horn := horns[0] as Corneteiro
+	check(horn.reinforcements_per_whistle == 3, "a corneta chama três")
+	horn.target = level.player
+	horn.start_fight()
+	horn._start_whistle()
+	await seconds(1.2)
+	var rings := 0
+	for node in level.get_children() + level.entities.get_children():
+		if node is ScreamRing:
+			rings += 1
+	check(rings >= 1 and horn.summoned.size() == 3, "o toque é um anel e chama três (%d anéis, %d)" % [rings, horn.summoned.size()])
+	horn.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("corneteiro") and Game.has_flag("corneteiro_morto"), "vencido: a Cidade fica sem toque")
+	level.queue_free()
+	await frames(2)
+	# Daí em diante, soldado da Cidade morto não volta mais.
+	level = await open_level(CIDADE, "porta")
+	var soldier: SoldadoRemendado = null
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		if node is SoldadoRemendado:
+			soldier = node
+			break
+	var index: int = (soldier.defeated.get_connections()[0]["callable"] as Callable).get_bound_arguments()[0]
+	check(index >= 0, "o índice do inimigo no mapa")
+	level._on_enemy_slain(soldier, index)
+	var dog: CaoDeGuerra = null
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		if node is CaoDeGuerra:
+			dog = node
+			break
+	var dog_index: int = (dog.defeated.get_connections()[0]["callable"] as Callable).get_bound_arguments()[0]
+	check(dog_index >= 0, "o índice do inimigo no mapa")
+	level._on_enemy_slain(dog, dog_index)
+	Game.slain = {}  # descansou
+	var data := Game._to_dict()
+	Game._from_dict(data)
+	check(Game.is_slain(CIDADE, index), "o soldado não volta no descanso (nem depois de carregar)")
+	check(not Game.is_slain(CIDADE, dog_index), "o cão volta (só os soldados obedeciam à corneta)")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_arena_shift_fire_ring() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(100, 100))
+	player.set_physics_process(false)
+	await frames(2)
+	var shift := ArenaShift.apply(_world, Rect2(0, 0, 320, 240), {"fogo_borda": 2, "cresce": 0.5, "max": 3, "dps": 20.0})
+	check(shift.burns(Vector2(10, 10)) and not shift.burns(Vector2(160, 120)), "a borda queima, o meio não")
+	player.global_position = Vector2(8, 120)
+	var hp := player.stats.health
+	await seconds(1.2)
+	check(player.stats.health < hp, "quem fica no fogo queima (%.0f → %.0f)" % [hp, player.stats.health])
+	check(shift.border_tiles == 3.0, "o anel cresce até o máximo (%.0f)" % shift.border_tiles)
+	var aldir := spawn_aldir(Vector2(160, 120))
+	await frames(2)
+	check(aldir.phase_arena.has(2), "o Aldir tem a praça em chamas na fase 2")
+	aldir.arena_rect = Rect2(0, 0, 320, 240)
+	var made := aldir.shift_arena(2)
+	check(made != null and made.border_tiles == 2.0, "a fase 2 acende o anel de fogo")
+	shift.queue_free()
+	made.queue_free()
+	aldir.queue_free()
+	player.queue_free()
+	await frames(2)
+

@@ -35,6 +35,17 @@ func _ready() -> void:
 	shape.shape = box
 	add_child(shape)
 	body_entered.connect(_on_body_entered)
+	z_index = -5
+	queue_redraw()
+
+
+## O fio no chão: dá para VER (quem presta atenção passa por cima com o dash
+## ou contorna). Depois de tocar, o fio fica frouxo.
+func _draw() -> void:
+	var color := Color(0.75, 0.72, 0.6, 0.9) if not _fired else Color(0.45, 0.42, 0.38, 0.6)
+	draw_line(Vector2(-7, 1), Vector2(7, 1 if not _fired else 4), color, 1.0)
+	draw_rect(Rect2(-8, -1, 2, 4), Color(0.4, 0.35, 0.3))
+	draw_rect(Rect2(6, -1, 2, 4), Color(0.4, 0.35, 0.3))
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -47,6 +58,7 @@ func fire(player: Player = null) -> int:
 	if _fired:
 		return 0
 	_fired = true
+	queue_redraw()
 	Sfx.play(sound, -4.0)
 	var called := ZoneTrigger.alert_zone(get_tree(), zone_id)
 	triggered.emit(zone_id)
