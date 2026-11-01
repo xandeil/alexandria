@@ -43,6 +43,7 @@ dash_strike = ExtResource("11_dash_strike")
 data = ExtResource("12_data")
 wake_distance = 140.0
 memory_reward = 1500
+phase_arena = {2: {"escuro": 0.75}}
 move_speed = 52.0
 acceleration = 600.0
 max_poise = 180.0

@@ -59,6 +59,7 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `(` `)` `[` `]` | corrente da Âncora, engrenagens, prensa (2 células), estátua de bronze | corrente/prensa/estátua |
 | `z` `s` `^` `?` | Autômato de Bronze, Torreta de Faísca, Minerador Oco, Imitador | — |
 | `U` `0` | mini-chefes: O Protótipo, O Guardião da Âncora | — |
+| `N` | mini-chefe opcional: a Dançarina de Engrenagem (`forjas_dancarina.txt`) | — |
 | `/` | Durgan Vell (`arena_durgan.txt`) | — |
 | **Montanha Carbonizada** (tema "montanha") | | |
 | `.` `,` `g` `;` | cinza, basalto, mato queimado, entulho | não |

@@ -117,6 +117,8 @@ const BASE_HEAVY := preload("res://data/attacks/player_heavy.tres")
 const BOSS_REWARDS := {
 	"cavaleiro": {"lembranca_cavaleiro": 1},
 	"corneteiro": {"fragmento_turvo": 1, "sucata_temperada": 4},
+	"sino": {"fragmento_turvo": 1, "sucata_temperada": 4},
+	"dancarina": {"caixa_musica_bronze": 1, "sucata_temperada": 5},
 	"governanta": {"lembranca_governanta": 1},
 	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
@@ -706,7 +708,7 @@ const CAPSULES := [
 	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Margem do Lago", "island": "Bosque", "thumb": "bosque"},
 	{"scene": "res://scenes/world/bosque_dormitorio.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Dormitório", "island": "Bosque", "thumb": "bosque"},
 	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Salão das Estátuas", "island": "Forjas", "thumb": "forjas"},
-	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara_2", "name": "Forjas Ocas", "place": "Fornalha", "island": "Forjas", "thumb": "forjas"},
+	{"scene": "res://scenes/world/forjas_fornalha.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Fornalha", "island": "Forjas", "thumb": "forjas"},
 	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Estufa 3", "island": "Raízes", "thumb": "raizes"},
 	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara_2", "name": "Raízes da Fome", "place": "Despensa", "island": "Raízes", "thumb": "raizes"},
 	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Floresta de Carvão", "island": "Montanha", "thumb": "montanha"},
@@ -750,6 +752,7 @@ func unlock_capsule(scene_path: String, spawn_id: String = "camara") -> void:
 const MOVED_CAPSULES := {
 	"res://scenes/world/cidade.tscn#camara_2": "res://scenes/world/cidade_quartel.tscn",
 	"res://scenes/world/bosque.tscn#camara_2": "res://scenes/world/bosque_dormitorio.tscn",
+	"res://scenes/world/forjas.tscn#camara_2": "res://scenes/world/forjas_fornalha.tscn",
 }
 const NEW_CITY_SECOND := "res://scenes/world/cidade_quartel.tscn"
 

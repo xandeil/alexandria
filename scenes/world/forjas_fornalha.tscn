@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/forjas_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Fornalha" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/forjas_fornalha.txt"
+area_name = "Fornalha Funda"
+area_subtitle = "Os pilões ainda batem. Ninguém manda parar."
+theme = "forjas"
+ambience = &"amb_forge"
+darkness = Color(0.62, 0.56, 0.54, 1)
+exit_scene = "res://scenes/world/forjas.tscn"
+exit_spawn = "lateral"
+exits = Array[Dictionary]([{"cell": Vector2i(40, 1), "scene": "res://scenes/world/forjas_passarela.tscn", "spawn": "elevador", "requires": "flag:atalho_elevador", "locked_dialogue": "elevador_parado", "arrival": "elevador"}])
+traps = Array[Dictionary]([{"kind": "pilao", "cells": Array[Vector2i]([Vector2i(9, 8), Vector2i(9, 9), Vector2i(9, 10), Vector2i(9, 11), Vector2i(9, 12)]), "period": 2.4, "offset": 0.0, "damage": 30}, {"kind": "pilao", "cells": Array[Vector2i]([Vector2i(15, 8), Vector2i(15, 9), Vector2i(15, 10), Vector2i(15, 11), Vector2i(15, 12)]), "period": 2.4, "offset": 1.2, "damage": 30}, {"kind": "pilao", "cells": Array[Vector2i]([Vector2i(12, 5), Vector2i(12, 6), Vector2i(12, 7)]), "period": 2.4, "offset": 0.6, "damage": 30}])
+exit2_scene = "res://scenes/world/forjas_passarela.tscn"
+exit2_spawn = "porta"
+exit2_requires = "prototipo"
+exit2_locked_dialogue = "fornalha_porta_fechada"
+lore_points = {"1": "martelo_de_crianca"}
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

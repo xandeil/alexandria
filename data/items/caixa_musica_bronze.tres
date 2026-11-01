@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/caixa_musica_bronze.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "caixa_musica_bronze"
+display_name = "Caixa de Música de Bronze"
+description = "Tem um nome gravado por dentro. Não é o de quem fez."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

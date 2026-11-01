@@ -172,6 +172,11 @@
 				"acao": "melhorar_arma"
 			},
 			{
+				"texto": "Entregar a caixa de música",
+				"acao": "dar:caixa_musica_bronze;falar:ferreiro_caixa",
+				"quando": "item:caixa_musica_bronze"
+			},
+			{
 				"texto": "Só olhando",
 				"acao": ""
 			}
@@ -280,6 +285,11 @@
 			{
 				"texto": "Melhorar a arma",
 				"acao": "melhorar_arma"
+			},
+			{
+				"texto": "Entregar a caixa de música",
+				"acao": "dar:caixa_musica_bronze;falar:ferreiro_caixa",
+				"quando": "item:caixa_musica_bronze"
 			},
 			{
 				"texto": "Só olhando",
@@ -526,6 +536,11 @@
 			{
 				"texto": "Melhorar a arma",
 				"acao": "melhorar_arma"
+			},
+			{
+				"texto": "Entregar a caixa de música",
+				"acao": "dar:caixa_musica_bronze;falar:ferreiro_caixa",
+				"quando": "item:caixa_musica_bronze"
 			},
 			{
 				"texto": "Só olhando",
@@ -979,13 +994,6 @@
 			"Nº 406. Vazia. Ainda morna."
 		]
 	},
-	"placa_forjas_2": {
-		"nome": "Placa",
-		"falas": [
-			"Nº 771. Vazia. Ainda morna.",
-			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
-		]
-	},
 	"placa_raizes_1": {
 		"nome": "Placa",
 		"falas": [
@@ -1117,6 +1125,63 @@
 		"falas": [
 			"Uma raiz grossa desce pela parede.",
 			"Ela se solta lá de cima. Da Borda."
+		]
+	},
+	"placa_forjas_fornalha_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 771. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"martelo_de_crianca": {
+		"nome": "Martelo pequeno",
+		"falas": [
+			"Um martelo pequeno, de criança. Dois nomes no cabo. Um foi raspado."
+		]
+	},
+	"palco_da_dancarina": {
+		"nome": "Palco",
+		"falas": [
+			"Feita para dançar para alguém. Ninguém veio ver."
+		]
+	},
+	"estatua_sem_rosto": {
+		"nome": "Estátua",
+		"falas": [
+			"Uma estátua de bronze, igual às outras. Esta não tem rosto."
+		]
+	},
+	"fornalha_porta_fechada": {
+		"nome": "Porta da fornalha",
+		"falas": [
+			"Uma porta de ferro, quente demais para tocar.",
+			"Do outro lado, alguma coisa grande respira vapor."
+		]
+	},
+	"elevador_parado": {
+		"nome": "Elevador",
+		"falas": [
+			"Um elevador de carga, parado lá em cima.",
+			"A alavanca fica do outro lado. Na Passarela."
+		]
+	},
+	"ferreiro_caixa": {
+		"nome": "Ferreiro Anão",
+		"falas": [
+			"...Ele fazia isso? Eu nunca soube."
+		],
+		"variantes": [
+			{
+				"quando": "chefe:durgan",
+				"usar": "ferreiro_caixa_durgan"
+			}
+		]
+	},
+	"ferreiro_caixa_durgan": {
+		"nome": "Ferreiro Anão",
+		"falas": [
+			"Ele fez para mim. E eu nunca fui lá ver."
 		]
 	}
 }

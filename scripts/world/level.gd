@@ -88,6 +88,8 @@ const THEME_ENTITIES := {
 		"?": {"enemy": preload("res://scenes/enemies/imitador.tscn")},
 		"U": {"miniboss": "prototipo", "scene": preload("res://scenes/bosses/prototipo.tscn")},
 		"0": {"miniboss": "guardiao_ancora", "scene": preload("res://scenes/bosses/guardiao_ancora.tscn")},
+		# v0.35: a Dançarina de Engrenagem, opcional, no salão de cima.
+		"N": {"miniboss": "dancarina", "scene": preload("res://scenes/bosses/dancarina.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/durgan.tscn"), "memorial": {"dialogue": "chave_de_durgan",
 			"name": "Chave-martelo", "texture": "res://assets/sprites/durgan_chave.png", "rotation": -0.5,
 			"at_death": true}},
@@ -1037,7 +1039,7 @@ const KEEPSAKES := {
 }
 ## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
 ## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
-const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque"}
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas"}
 
 
 ## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
@@ -1667,6 +1669,7 @@ func _on_dialogue_action(action: String) -> void:
 	#   "falar:<id>"             emenda outra fala (conversa em várias partes)
 	#   "lute_comigo:<aliado>"   o aliado entra na próxima luta de chefe
 	#   "nome:<personagem>:sim"  você disse o seu nome a ele (nome_dito_<personagem>)
+	#   "dar:<item>"             entrega um item (sai da bolsa; liga a flag "dado_<item>")
 	#   várias de uma vez, separadas por ";"  ("flag:x;falar:y")
 	if action.contains(";"):
 		for part in action.split(";"):
@@ -1687,6 +1690,10 @@ func _on_dialogue_action(action: String) -> void:
 			"lute_comigo":
 				Game.flags["%s_na_arena" % value] = true
 				hud.toast("Na próxima luta, vocês entram juntos.")
+				return
+			"dar":
+				if Game.remove_item(value, 1):
+					Game.set_flag("dado_%s" % value)
 				return
 			"nome":
 				if action.get_slice(":", 2) == "sim":

@@ -53,6 +53,9 @@ const DORMITORIO := "res://scenes/world/bosque_dormitorio.tscn"
 const SLEEPER_SCENE_FOR_TEST := preload("res://scenes/enemies/sonambulo.tscn")
 const BORDA := "res://scenes/world/bosque_borda.tscn"
 const SALA_SINO := "res://scenes/world/bosque_sino.tscn"
+const FORNALHA := "res://scenes/world/forjas_fornalha.tscn"
+const PASSARELA := "res://scenes/world/forjas_passarela.tscn"
+const SALA_DANCARINA := "res://scenes/world/forjas_dancarina.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -143,6 +146,9 @@ func _ready() -> void:
 		"test_breathing_flowers",
 		"test_sino_despertar",
 		"test_nyssa_nightmare_arena",
+		"test_forjas_expansion",
+		"test_dancarina",
+		"test_durgan_replays_combo",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -2739,7 +2745,8 @@ func test_ninhada_splits_and_engulfs() -> void:
 func test_roots_gate() -> void:
 	# v0.31 (mapa livre): as Raízes ficam embaixo das Forjas (descida) e o
 	# túnel de raízes leva à Cidade. A porta oeste do Teatro vai às Forjas.
-	var level := await open_level(FORJAS, "porta")
+	# v0.35: a descida saiu do Salão e foi para a Passarela da Âncora.
+	var level := await open_level(PASSARELA, "porta")
 	var down := 0
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("raizes"):
@@ -2893,7 +2900,7 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
+	for path in [RAIZES, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
 		if path == NUCLEO:
 			Game.defeated_bosses.assign(Game.SEVEN)
 		if path == MONTANHA:
@@ -2912,7 +2919,8 @@ func test_new_areas_build() -> void:
 			for node in level.entities.get_children():
 				if node.get_script():
 					kinds[(node.get_script() as Script).get_global_name()] = true
-			for name in ["AutomatoBronze", "TorretaFaisca", "MineradorOco", "Imitador", "Prototipo", "GuardiaoAncora", "RestChamber"]:
+			# v0.35: o Protótipo mudou para a Fornalha e o Guardião para a Passarela.
+			for name in ["AutomatoBronze", "TorretaFaisca", "MineradorOco", "Imitador", "RestChamber"]:
 				check(kinds.has(name), "Forjas: tem %s" % name)
 		if path == MONTANHA:
 			var found := {}
@@ -3133,6 +3141,9 @@ func test_forge_gate_and_smith() -> void:
 		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "oeste":
 			back = true
 	check(back, "as Forjas levam de volta à porta oeste do Teatro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(PASSARELA, "porta")  # v0.35: a porta da Forja do Eco fica na Passarela
 	check(find_npc("porta_ancora") != null, "antes do Guardião: a porta da Forja do Eco está presa")
 	check(level._dialogue_variant("ferreiro") == "ferreiro", "o Ferreiro só lembra do irmão depois")
 	Game.defeated_bosses.append("durgan")
@@ -3696,7 +3707,7 @@ func test_archive_golem() -> void:
 func test_frozen_domain_gate() -> void:
 	# v0.31 (mapa livre): o Domínio fica no alto das Forjas (cascata de gelo).
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan"])
-	var level := await open_level(FORJAS, "porta")
+	var level := await open_level(PASSARELA, "porta")  # v0.35: a cascata sai da Passarela
 	var to_ice := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("dominio"):
@@ -5564,8 +5575,8 @@ func test_free_map_layout() -> void:
 	await frames(2)
 	var expected := {
 		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
-		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "dominio", "raizes"],
-		"raizes": ["forjas", "cidade"], "dominio": ["forjas", "bosque_borda"], "montanha": ["cidade_viaduto", "bosque"],
+		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "forjas_fornalha", "forjas_dancarina"],
+		"raizes": ["forjas_passarela", "cidade"], "dominio": ["forjas_passarela", "bosque_borda"], "montanha": ["cidade_viaduto", "bosque"],
 		"bosque": ["teatro", "bosque_dormitorio", "bosque_sino"],
 	}
 	for area: String in expected:
@@ -5628,7 +5639,7 @@ func test_second_capsule_per_island() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
 	# A Cidade e o Bosque (v0.35) guardam a 2ª Câmara numa fase anexa: testadas à parte.
-	for area in ["forjas", "raizes", "montanha", "dominio"]:
+	for area in ["raizes", "montanha", "dominio"]:
 		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
 		check(level.rest_chambers.size() == 2 and level.spawns.has("camara_2"), "%s: duas Câmaras" % area)
 		var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id.begins_with("placa_%s" % area))
@@ -5637,7 +5648,13 @@ func test_second_capsule_per_island() -> void:
 		check(keepsake.size() == 1, "%s: o pertence do antigo dono ao lado da 2ª" % area)
 		level.queue_free()
 		await frames(2)
-	check(Game.capsule_info("res://scenes/world/forjas.tscn#camara_2")["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
+	check(Game.capsule_info(FORNALHA)["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
+	var furnace := await open_level(FORNALHA, "camara")
+	check(furnace.chamber_for("camara") != null and find_npc("placa_forjas_fornalha_1") != null, "Fornalha: a 2ª Câmara das Forjas, com placa")
+	check(furnace.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["forjas"]).size() == 1,
+		"Fornalha: o pertence das Forjas")
+	furnace.queue_free()
+	await frames(2)
 	check(Game.CAPSULES.size() == 15, "15 Câmaras no jogo (%d)" % Game.CAPSULES.size())
 	# Bosque: uma Câmara na Margem, a outra (com placa e pertence) no Dormitório.
 	var shore := await open_level(BOSQUE, "camara")
@@ -6996,4 +7013,117 @@ func test_nyssa_nightmare_arena() -> void:
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
+
+
+# --- v0.35 · Etapa 6: as Forjas expandidas --------------------------------------------
+
+func test_forjas_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(FORJAS, "porta")
+	check(_exit_to(FORNALHA) != null, "Salão: a descida para a Fornalha está aberta")
+	check(_exit_to(SALA_DANCARINA) != null and level.spawns.has("dancarina"), "Salão: o salão de cima, da Dançarina")
+	check(find_npc("estatua_sem_rosto") != null, "a estátua sem rosto, na frente da 1ª Câmara")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORNALHA, "porta")
+	check(_minis_named("Prototipo").size() == 1, "Fornalha: o Protótipo")
+	var hammers := get_tree().get_nodes_in_group("traps").filter(func(t): return t is PeriodicTrap and t.kind == "pilao")
+	check(hammers.size() == 3, "Fornalha: três fileiras de marteletes (%d)" % hammers.size())
+	check(find_npc("martelo_de_crianca") != null, "o martelo pequeno, de criança")
+	check(find_npc("fornalha_porta_fechada") != null and _exit_to(PASSARELA) == null, "a Passarela fecha até o Protótipo cair")
+	check(find_npc("elevador_parado") != null, "o elevador está parado lá em cima")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("prototipo")
+	level = await open_level(FORNALHA, "porta")
+	check(_exit_to(PASSARELA) != null, "vencido o Protótipo: a Passarela abre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(PASSARELA, "porta")
+	check(_minis_named("GuardiaoAncora").size() == 1 and find_npc("placa_ancora") != null, "Passarela: o Guardião e a placa ÂNCORA 5")
+	check(_exit_to("res://scenes/world/dominio.tscn") != null and _exit_to("res://scenes/world/raizes.tscn") != null,
+		"Passarela: a subida para o Domínio e a descida para as Raízes")
+	var lift: AreaExit = null
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_elevador":
+			lift = node
+	check(lift != null, "Passarela: o elevador desce até a Fornalha")
+	Game.scene_changes_enabled = false
+	lift._armed = true
+	lift._on_body_entered(level.player)
+	check(Game.has_flag("atalho_elevador"), "desceu de elevador: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORNALHA, "elevador")
+	check(find_npc("elevador_parado") == null and level.spawns.has("elevador"), "a Fornalha sobe de elevador até a Passarela")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_dancarina() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(SALA_DANCARINA, "porta")
+	var dancers := _minis_named("DancarinaEngrenagem")
+	check(dancers.size() == 1 and find_npc("palco_da_dancarina") != null, "o salão da Dançarina, com o palco")
+	var dancer := dancers[0] as DancarinaEngrenagem
+	dancer.target = level.player
+	dancer.start_fight()
+	dancer._on_wake()
+	check(dancer.mode == DancarinaEngrenagem.Mode.SPIN, "acorda girando")
+	var gaps: Array[float] = []
+	var guard := 0
+	while dancer.mode == DancarinaEngrenagem.Mode.SPIN and guard < 50:
+		gaps.append(dancer._note_gap)
+		dancer.play_note()
+		guard += 1
+	check(gaps.size() >= 7 and gaps[-1] < gaps[0], "a música acelera (%.2f → %.2f s)" % [gaps[0], gaps[-1]])
+	check(dancer.mode == DancarinaEngrenagem.Mode.SILENCE and dancer.darts_left == 1, "a música para: silêncio, um disparo")
+	dancer.start_dart()
+	check(dancer.mode == DancarinaEngrenagem.Mode.DART and dancer.hitbox.active, "dispara (e machuca)")
+	# Fase 2: dois ou três disparos.
+	dancer.stats.take_damage(dancer.stats.max_health * 0.55)
+	dancer._start_song()
+	dancer._fight(0.016)
+	check(dancer.phase == 2, "metade da vida: fase 2")
+	dancer.notes_played = dancer.notes_this_song - 1
+	dancer.play_note()
+	check(dancer.darts_left >= 2, "fase 2: %d disparos seguidos" % dancer.darts_left)
+	dancer.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("dancarina") and Game.has_item("caixa_musica_bronze"), "vencida: a Caixa de Música de Bronze")
+	level.queue_free()
+	await frames(2)
+	# A caixa para o Ferreiro: a fala muda se Durgan já caiu.
+	check(DialogueData.variant("ferreiro_caixa") == "ferreiro_caixa", "Durgan vivo: '...Ele fazia isso?'")
+	Game.defeated_bosses.append("durgan")
+	check(DialogueData.variant("ferreiro_caixa") == "ferreiro_caixa_durgan", "Durgan morto: 'Ele fez para mim.'")
+	var options := DialogueBox.expand_options(DialogueData.get_entry("ferreiro_irmao").get("opcoes", []))
+	check(options.any(func(o): return str(o.get("acao", "")).begins_with("dar:caixa_musica_bronze")), "o Ferreiro aceita a caixa")
+	level = await open_level(TEATRO, "camara")
+	await level._on_dialogue_action("dar:caixa_musica_bronze")
+	check(not Game.has_item("caixa_musica_bronze") and Game.has_flag("dado_caixa_musica_bronze"), "entregue: sai da bolsa")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_durgan_replays_combo() -> void:
+	Game.reset_progress()
+	var durgan := (load("res://scenes/bosses/durgan.tscn") as PackedScene).instantiate() as DurganVell
+	_world.add_child(durgan)
+	await frames(2)
+	for action in [&"leve", &"leve", &"forte", &"dash"]:
+		durgan._on_player_action(action)
+	check(durgan.last_player_combo == [&"leve", &"leve", &"forte", &"dash"], "guarda o combo inteiro (%s)" % [durgan.last_player_combo])
+	var attacks := durgan.combo_as_attacks(durgan.last_player_combo)
+	check(attacks == [durgan.copy_light[0], durgan.copy_light[1], durgan.copy_heavy, durgan.dash_strike], "e traduz golpe por golpe")
+	durgan._clock += 2.0
+	durgan._on_player_action(&"forte")
+	check(durgan.last_player_combo.size() == 4, "um golpe solto depois de uma pausa não apaga o último combo")
+	check(durgan.phase_arena.has(2), "a forja escurece na fase 2")
+	durgan.queue_free()
+	await frames(2)
 

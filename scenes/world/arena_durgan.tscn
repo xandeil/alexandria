@@ -14,7 +14,7 @@ ambience = &"amb_forge"
 darkness = Color(0.74, 0.74, 0.82, 1)
 outdoor = true
 arena_rect_tiles = Rect2i(6, 3, 26, 19)
-exit_scene = "res://scenes/world/forjas.tscn"
+exit_scene = "res://scenes/world/forjas_passarela.tscn"
 exit_spawn = "lateral"
 lore_points = {"1": "forja_do_eco"}
 

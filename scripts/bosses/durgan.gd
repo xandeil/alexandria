@@ -74,6 +74,16 @@ var mode := Mode.DECIDE
 var counts := {&"leve": 0, &"forte": 0, &"dash": 0, &"escudo": 0, &"cura": 0}
 var helpers: Array[Enemy] = []
 var last_copy: StringName = &""
+## v0.35 (Etapa 6): a fase 2 repete o seu ÚLTIMO COMBO INTEIRO. Um combo são
+## golpes e dashes seguidos, com menos de COMBO_GAP entre um e outro.
+const COMBO_GAP := 0.9
+const COMBO_ACTIONS: Array[StringName] = [&"leve", &"forte", &"dash"]
+## A cada quantas decisões da fase 2 ele devolve o seu combo.
+const REPLAY_EVERY := 3
+var last_player_combo: Array[StringName] = []
+var _chain: Array[StringName] = []
+var _chain_time := -10.0
+var _decisions := 0
 
 var _mode_time := 0.0
 var _clock := 0.0
@@ -185,10 +195,43 @@ func _on_player_action(action: StringName) -> void:
 	if not counts.has(action) or dead:
 		return
 	counts[action] += 1
+	_record_combo(action)
 	# Fase 2: quem abusa do dash enfrenta alguém que esquiva — ele REAGE ao seu golpe.
 	if phase == 2 and (action == &"leve" or action == &"forte") and (mode == Mode.DECIDE or mode == Mode.APPROACH):
 		if target and global_position.distance_to(target.global_position) < 56.0 and randf() < dodge_chance():
 			dodge((global_position - target.global_position).normalized().rotated(randf_range(-0.6, 0.6)))
+
+
+## Guarda a sequência de golpes/dashes do herói; um combo novo começa depois
+## de uma pausa maior que COMBO_GAP. Combos de 2 ações ou mais viram o "último".
+func _record_combo(action: StringName) -> void:
+	if not COMBO_ACTIONS.has(action):
+		return
+	if _clock - _chain_time > COMBO_GAP:
+		_chain.clear()
+	_chain.append(action)
+	_chain_time = _clock
+	if _chain.size() >= 2:
+		last_player_combo = _chain.duplicate()
+
+
+## O seu combo, traduzido nos golpes dele (leve → corte; forte → pancada;
+## dash → investida). Público: os testes conferem a tradução.
+func combo_as_attacks(combo: Array[StringName]) -> Array:
+	var attacks: Array = []
+	var light := 0
+	for action in combo:
+		match action:
+			&"leve":
+				attacks.append(copy_light[mini(light, copy_light.size() - 1)])
+				light += 1
+			&"forte":
+				attacks.append(copy_heavy)
+				light = 0
+			&"dash":
+				attacks.append(dash_strike)
+				light = 0
+	return attacks
 
 
 ## Peso de cada ação = vezes usadas + 1 (ninguém fica com chance zero).
@@ -239,7 +282,19 @@ func _decide(delta: float) -> void:
 			return
 		_set_mode(Mode.APPROACH)
 		return
+	_decisions += 1
+	if _decisions % REPLAY_EVERY == 0 and last_player_combo.size() >= 2:
+		replay_combo(distance)
+		return
 	_copy(pick_copy(), distance)
+
+
+## Devolve o último combo inteiro do herói (sem fala: o eco é o aviso).
+func replay_combo(distance: float) -> void:
+	last_copy = &"combo"
+	Fx.float_text(global_position + Vector2(-12, -34), "ECO", Color(0.75, 0.9, 1.0), 8)
+	Sfx.play(&"mirror", -6.0)
+	_start_or_approach(combo_as_attacks(last_player_combo), distance)
 
 
 func _approach(delta: float) -> void:
@@ -409,6 +464,7 @@ func _enter_reflection() -> void:
 	for helper in helpers:
 		if helper is AutomatoBronze and is_instance_valid(helper) and not helper.dead:
 			helper.stats.take_damage(9999.0)  # os rostos de bronze caem: agora o rosto é o seu
+	shift_arena(2)  # v0.35: a forja escurece; só o espelho dele brilha
 	await wait(2.2)
 	if dead:
 		return
