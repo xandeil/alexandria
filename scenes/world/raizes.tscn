@@ -15,7 +15,6 @@ darkness = Color(0.86, 0.8, 0.78, 1)
 outdoor = true
 exit_scene = "res://scenes/world/forjas_passarela.tscn"
 exit_spawn = "descida"
-pickups = Array[Dictionary]([{"cell": Vector2i(58, 23), "item": "botas_banquete"}])
 objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(3, 5), "key": "bau_raizes_1", "item": "capacete_banquete"}, {"kind": "bau", "cell": Vector2i(50, 25), "key": "bau_raizes_2", "item": "luvas_banquete"}, {"kind": "mimico", "cell": Vector2i(71, 6), "key": "mimico_raizes", "item": "peitoral_banquete"}])
 decor = Array[Dictionary]([{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}])
 exits = Array[Dictionary]([{"cell": Vector2i(10, 1), "scene": "res://scenes/world/raizes_enfermaria.tscn", "spawn": "porta", "arrival": "enfermaria"}])

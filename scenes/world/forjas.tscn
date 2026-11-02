@@ -25,7 +25,7 @@ exit2_requires = ""
 exit2_locked_dialogue = ""
 lore_points = {"2": "galeria_estatuas", "3": "oficina_durgan"}
 item_points = Array[String](["sucata_temperada:2", "fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2"])
-people = Array[Dictionary]([{"cell": Vector2i(12, 23), "dialogue": "galeno_forjas", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(12, 5), "dialogue": "estatua_heitor", "name": "Estátua caída", "texture": "res://assets/props/bronze_statue.png", "prompt": "Examinar"}, {"cell": Vector2i(14, 23), "dialogue": "mochila_damiao", "name": "Mochila", "texture": "res://assets/props/mochila_damiao.png", "prompt": "Examinar", "requires": "flag:damiao_morreu_forjas"}])
+people = Array[Dictionary]([{"cell": Vector2i(12, 23), "dialogue": "galeno_forjas", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(12, 5), "dialogue": "estatua_heitor", "name": "Estátua caída", "texture": "res://assets/props/bronze_statue.png", "prompt": "Examinar"}, {"cell": Vector2i(14, 23), "dialogue": "mochila_damiao", "name": "Mochila", "texture": "res://assets/props/mochila_damiao.png", "prompt": "Examinar", "requires": "flag:damiao_morreu_forjas"}, {"cell": Vector2i(20, 9), "dialogue": "amaro_forjas", "name": "Amaro", "texture": "res://assets/sprites/amaro_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

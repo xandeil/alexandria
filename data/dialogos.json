@@ -99,6 +99,10 @@
 			{
 				"quando": "flag:galeno_esqueceu",
 				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
 			}
 		]
 	},
@@ -116,6 +120,10 @@
 			{
 				"quando": "flag:galeno_esqueceu",
 				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
 			}
 		]
 	},
@@ -133,6 +141,10 @@
 			{
 				"quando": "flag:galeno_esqueceu",
 				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
 			}
 		]
 	},
@@ -150,6 +162,10 @@
 			{
 				"quando": "flag:galeno_esqueceu",
 				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
 			}
 		]
 	},
@@ -167,6 +183,10 @@
 			{
 				"quando": "flag:galeno_esqueceu",
 				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
 			}
 		]
 	},
@@ -185,6 +205,10 @@
 			{
 				"quando": "flag:galeno_esqueceu",
 				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
 			}
 		]
 	},
@@ -1609,6 +1633,10 @@
 			"Não lembro o que eu protegia. Mas olha estes braços! Alguma coisa valia a pena."
 		],
 		"variantes": [
+			{
+				"quando": "flag:amaro_1+!flag:galeno_falou_amaro",
+				"usar": "galeno_amaro"
+			},
 			{
 				"quando": "flag:galeno_fragmentos",
 				"usar": "galeno_giz"
@@ -3140,6 +3168,155 @@
 				"texto": "Sair",
 				"acao": "flag:benedita_sonho"
 			}
+		]
+	},
+	"amaro_cidade": {
+		"nome": "Amaro",
+		"some_quando": "flag:amaro_1",
+		"falas": [
+			"Ratinho! Meu ratinho preferido!",
+			"Ô, menino! Quase! Senta aqui, come alguma coisa. Ninguém luta de barriga vazia."
+		],
+		"opcoes": [
+			{
+				"texto": "Valeu",
+				"acao": "flag:amaro_1"
+			}
+		]
+	},
+	"amaro_bosque": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_1",
+		"some_quando": "flag:amaro_2",
+		"falas": [
+			"Anda devagar ali. Correr, aqui, é o jeito mais rápido de dormir pra sempre."
+		],
+		"opcoes": [
+			{
+				"texto": "Valeu",
+				"acao": "flag:amaro_2"
+			}
+		]
+	},
+	"amaro_forjas": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_2",
+		"some_quando": "flag:amaro_3",
+		"falas": [
+			"Era de um amigo. Ele não vai precisar."
+		],
+		"opcoes": [
+			{
+				"texto": "Aceitar",
+				"acao": "flag:amaro_3;ganhar:botao_arrancado"
+			}
+		]
+	},
+	"amaro_varanda": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_3",
+		"some_quando": "flag:amaro_traiu",
+		"falas": [
+			"Ratinho, vem cá. Tô ouvindo uns gritos ali. Gente pedindo ajuda. Dá uma olhada? Eu tenho medo de altura."
+		],
+		"opcoes": [
+			{
+				"texto": "Dar uma olhada",
+				"acao": "flag:amaro_4"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	},
+	"amaro_empurra": {
+		"nome": "Amaro",
+		"falas": [
+			"Foi mal, ratinho. O Pitoco tem que comer."
+		]
+	},
+	"amaro_teatro": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_traiu+flag:pitoco_morto",
+		"some_quando": "flag:amaro_perdoado|flag:amaro_nao_perdoado",
+		"falas": [
+			"Ô, ratinho... Olha. Eu não sei por que eu fiz isso. Sério.",
+			"Acho que eu tava de mau humor. Faz uns cem anos."
+		],
+		"opcoes": [
+			{
+				"texto": "Perdoar",
+				"acao": "flag:amaro_perdoado;falar:amaro_riso"
+			},
+			{
+				"texto": "Não perdoar",
+				"acao": "flag:amaro_nao_perdoado;memorias:10000;falar:amaro_toma"
+			}
+		]
+	},
+	"amaro_riso": {
+		"nome": "Amaro",
+		"falas": [
+			"HAHAHA! Valeu, Cobaia 22! Você é gente boa demais pra esse lugar!"
+		]
+	},
+	"amaro_toma": {
+		"nome": "Amaro",
+		"falas": [
+			"Tá. Toma essa merda."
+		]
+	},
+	"tito_amaro": {
+		"nome": "Criança",
+		"falas": [
+			"Aquele moço careca chuta os cinzentos quando acha que ninguém tá olhando."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:tito_falou_amaro"
+			}
+		]
+	},
+	"galeno_amaro": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Simpático demais, esse. Gente simpática demais sempre quer alguma coisa."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:galeno_falou_amaro"
+			}
+		]
+	},
+	"parede_raizes": {
+		"nome": "Raízes finas",
+		"falas": [
+			"As raízes aqui são finas. Atrás delas, um vento frio — e gritos, lá embaixo."
+		],
+		"opcoes": [
+			{
+				"texto": "Quebrar",
+				"acao": "flag:parede_toca_quebrada"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"toca_restos": {
+		"nome": "Restos",
+		"falas": [
+			"Experimentos meio comidos. Alguns ainda piscam."
+		]
+	},
+	"toca_escalada": {
+		"nome": "Escalada",
+		"falas": [
+			"Dá para subir por aqui, pisando no que sobrou deles."
 		]
 	}
 }

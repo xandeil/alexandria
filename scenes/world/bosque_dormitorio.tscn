@@ -21,7 +21,7 @@ exit2_spawn = "porta"
 exit2_requires = "vigia|flag:vigia_evitado"
 exit2_locked_dialogue = "dormitorio_porta_fechada"
 lore_points = {"1": "cama_quente"}
-people = Array[Dictionary]([{"cell": Vector2i(9, 12), "dialogue": "tiao_bosque_dormitorio", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}])
+people = Array[Dictionary]([{"cell": Vector2i(9, 12), "dialogue": "tiao_bosque_dormitorio", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}, {"cell": Vector2i(9, 7), "dialogue": "amaro_bosque", "name": "Amaro", "texture": "res://assets/sprites/amaro_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

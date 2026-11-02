@@ -58,6 +58,8 @@ const CATALOG := {
 	"lanca_de_raio": preload("res://data/spells/lanca_de_raio.tres"),
 	"tempestade": preload("res://data/spells/tempestade.tres"),
 	"ultimo_pedido": preload("res://data/items/ultimo_pedido.tres"),
+	# v0.52 (Etapa 11): o presente do Amaro nas Forjas (vira botão na Etapa 12).
+	"botao_arrancado": preload("res://data/items/botao_arrancado.tres"),
 	# v0.51 (Etapa 10): os conjuntos dos vendedores novos.
 	"capacete_aprendiz": preload("res://data/items/capacete_aprendiz.tres"),
 	"peitoral_aprendiz": preload("res://data/items/peitoral_aprendiz.tres"),

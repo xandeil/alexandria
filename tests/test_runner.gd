@@ -150,6 +150,9 @@ func _ready() -> void:
 		"test_new_vendors_and_shops",
 		"test_cicero_puts_out_the_city",
 		"test_benedita_prayer",
+		"test_amaro_encounters",
+		"test_amaro_trap_and_toca",
+		"test_pitoco_and_forgiveness",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -2030,6 +2033,127 @@ func test_benedita_prayer() -> void:
 	Game.set_flag("mercador_benedita_encontrado")
 	level = await open_level(TEATRO, "camara")
 	check(level.resolve_dialogue("benedita_teatro") == "benedita_sonho", "NG+ depois de Destruir: 'Eu sonhei que caía.'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.52 (Etapa 11): os quatro encontros com o Amaro, e as pistas.
+func test_amaro_encounters() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "porta")
+	check(find_npc("amaro_cidade") != null, "1. Cidade: 'Ninguém luta de barriga vazia.'")
+	await level._on_dialogue_action("flag:amaro_1")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DORMITORIO, "porta")
+	check(find_npc("amaro_bosque") != null, "2. Bosque: avisa das flores que respiram")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("amaro_2")
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("amaro_forjas") != null, "3. Forjas: o Botão Arrancado")
+	await level._on_dialogue_action("flag:amaro_3;ganhar:botao_arrancado")
+	check(Game.has_item("botao_arrancado"), "'Era de um amigo. Ele não vai precisar.'")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(VARANDA, "porta")
+	check(find_npc("amaro_varanda") != null, "4. Raízes: 'Tô ouvindo uns gritos ali.'")
+	check(level.resolve_dialogue("galeno_de_novo") == "galeno_amaro", "Galeno: 'Gente simpática demais sempre quer alguma coisa.'")
+	check(level.resolve_dialogue("crianca_poupada_2") == "tito_amaro", "Tito: 'chuta os cinzentos quando acha que ninguém tá olhando'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## A armadilha do buraco e a Toca (perde memórias; sem cápsula; a bota do Banquete).
+func test_amaro_trap_and_toca() -> void:
+	Game.reset_progress()
+	Game.set_flag("amaro_4")
+	var level := await open_level(VARANDA, "porta")
+	level.player._iframes_left = 999.0
+	level.player.global_position = level._cell_feet(level.trap_hole.x, level.trap_hole.y) + Vector2(20, 0)
+	var pushed := await wait_for(func(): return Game.has_flag("amaro_traiu"), 600)
+	check(pushed, "perto do buraco: o Amaro empurra")
+	check(Game.last_scene_request == Level.TOCA_SCENE, "cai na Toca do Pitoco")
+	level.queue_free()
+	await frames(2)
+	Game.memories = 200
+	level = await open_level(Level.TOCA_SCENE, "inicio")
+	check(level.rest_chambers.is_empty(), "sem cápsula")
+	check(get_tree().get_nodes_in_group("minibosses").any(func(m): return m is Pitoco), "o Pitoco lá embaixo")
+	await seconds(2.5)
+	check(Game.memories < 200, "lá embaixo, as memórias vão embora aos poucos (%d)" % Game.memories)
+	var boots := false
+	for node in level.entities.get_children():
+		if node is ItemPickup and (node as ItemPickup).item_id == "botas_banquete":
+			boots = true
+	check(boots, "a peça do Banquete (as botas) está na Toca")
+	level.queue_free()
+	await frames(2)
+	# A parede quebrável: quem explora acha a Toca antes.
+	Game.reset_progress()
+	level = await open_level(VARANDA, "porta")
+	check(find_npc("parede_raizes") != null, "raízes finas no túnel (trancado)")
+	await level._on_dialogue_action("flag:parede_toca_quebrada")
+	await frames(3)
+	check(find_npc("parede_raizes") == null, "quebrou: o caminho abre")
+	level.queue_free()
+	await frames(2)
+	# Sem o Pitoco: o empurrão acontece igual; lá embaixo, a voz dele.
+	Game.reset_progress()
+	Game.set_flag("amaro_4")
+	Game.set_flag("pitoco_morto")
+	level = await open_level(VARANDA, "porta")
+	level.player.global_position = level._cell_feet(level.trap_hole.x, level.trap_hole.y)
+	pushed = await wait_for(func(): return Game.has_flag("amaro_traiu"), 600)
+	check(pushed and Game.has_flag("amaro_procura"), "o buraco vazio — o empurrão acontece sempre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(Level.TOCA_SCENE, "inicio")
+	await frames(3)
+	check(not Game.has_flag("amaro_procura"), "'...Pitoco?' / 'CADÊ O PITOCO?!'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## O Pitoco: buscar (agarra e traz), lambida (memórias); vencido, o perdão no Teatro.
+func test_pitoco_and_forgiveness() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var pitoco := (load("res://scenes/bosses/pitoco.tscn") as PackedScene).instantiate() as Pitoco
+	pitoco.position = Vector2(270, 200)
+	_world.add_child(pitoco)
+	await frames(3)
+	pitoco.target = player
+	pitoco.start_fight()
+	pitoco._fetch_dir = Vector2.LEFT
+	pitoco._throw_tentacle()
+	check(player.is_grabbed_by(pitoco), "buscar: o tentáculo agarra de longe")
+	await seconds(Pitoco.FETCH_HOLD + 0.3)
+	check(not player.is_grabbed_by(pitoco), "depois, solta")
+	Game.memories = 500
+	player.global_position = pitoco.global_position + Vector2(-20, 0)
+	pitoco._current_attack = pitoco.lambida
+	pitoco.mode = Pitoco.Mode.ATTACK
+	pitoco._on_attack_finished()
+	check(Game.memories < 500, "a lambida leva memórias")
+	pitoco.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.has_flag("pitoco_morto") and Game.is_boss_defeated("pitoco"), "vencido: pitoco_morto")
+	player.queue_free()
+	await frames(2)
+	Game.set_flag("amaro_traiu")
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("amaro_teatro") != null, "no Teatro: 'Acho que eu tava de mau humor. Faz uns cem anos.'")
+	var memories := Game.memories
+	await level._on_dialogue_action("flag:amaro_nao_perdoado;memorias:10000")
+	check(Game.memories == memories + 10000, "não perdoar: ele joga 10.000 memórias em você")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("amaro_teatro") == null, "e vai embora")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
@@ -6794,7 +6918,7 @@ func test_armor_in_world_and_menu() -> void:
 	# ilha (botas). A Vigília continua inteira no Teatro.
 	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio",
 		"cidade_quartel", "cidade_viaduto", "bosque_dormitorio", "bosque_borda", "forjas_fornalha", "forjas_passarela",
-		"raizes_despensa", "raizes_varanda", "montanha_ossario", "montanha_encosta", "dominio_arquivo", "dominio_galeria"]  # v0.35: as fases anexas também
+		"raizes_despensa", "raizes_varanda", "raizes_toca", "montanha_ossario", "montanha_encosta", "dominio_arquivo", "dominio_galeria"]  # v0.35: as fases anexas também
 	var found := {}
 	for region in regions:
 		var level := (load("res://scenes/world/%s.tscn" % region) as PackedScene).instantiate() as Level

@@ -49,6 +49,10 @@ func _ready() -> void:
 		await shot("loja_titulo")
 		Game.quit_game()
 		return
+	if only == "amaro":
+		await _tour_amaro()
+		Game.quit_game()
+		return
 	if only == "magia":
 		await _tour_magic()
 		Game.quit_game()
@@ -1591,6 +1595,32 @@ func _tour_creation() -> void:
 	await shot("c05_no_jogo")
 	level.queue_free()
 	Game.reset_progress()
+
+
+## v0.52: a armadilha do buraco (o Pitoco lá embaixo) e a Toca.
+func _tour_amaro() -> void:
+	Game.reset_progress()
+	Game.set_flag("amaro_4")
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/raizes_varanda.tscn") as Level
+	await wait(2.5)
+	level.player._iframes_left = 9999.0
+	level.player.global_position = level._cell_feet(level.trap_hole.x, level.trap_hole.y) + Vector2(24, 0)
+	await wait(2.4)
+	await shot("a01_buraco_pitoco")
+	await wait(1.4)
+	await shot("a02_amaro_empurra")
+	Game.scene_changes_enabled = false
+	Game.pending_spawn = "inicio"
+	Game.scene_changes_enabled = true
+	level = await open("res://scenes/world/raizes_toca.tscn") as Level
+	await wait(2.0)
+	level.player._iframes_left = 9999.0
+	for node in get_tree().get_nodes_in_group("minibosses"):
+		level.player.global_position = (node as Node2D).global_position + Vector2(-90, 0)
+	level.camera.snap_to_target()
+	await wait(1.5)
+	await shot("a03_toca_pitoco")
 
 
 ## v0.50: o sistema de magia (bola de fogo no ar, a explosão, o botão Magia).

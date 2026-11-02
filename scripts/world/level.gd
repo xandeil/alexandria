@@ -81,6 +81,8 @@ const THEME_ENTITIES := {
 		# v0.35: a Mãe Faminta (a Mãe dos Esporos reaproveitada) e Socorro, opcional.
 		"E": {"enemy": preload("res://scenes/bosses/mae_faminta.tscn")},  # inimiga comum forte (renasce)
 		"N": {"miniboss": "socorro", "scene": preload("res://scenes/bosses/socorro.tscn")},
+		# v0.52 (Etapa 11): o Pitoco, no fundo da Toca.
+		"!": {"miniboss": "pitoco", "scene": preload("res://scenes/bosses/pitoco.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/mabel.tscn"), "memorial": {"dialogue": "mesa_de_mabel",
 			"name": "Mesa posta", "texture": "res://assets/props/mabel_table.png"}},
 	},
@@ -501,6 +503,12 @@ const PROPS := {
 ## v0.46 — SEGUNDA VERSÃO DO MAPA: com esta flag ligada, o .txt usado é
 ## ruins_layout (o Teatro depois da explosão: teatro_ruinas.txt).
 @export_file("*.txt") var ruins_layout := ""
+## v0.52 — memórias que se perdem por segundo enquanto o herói está aqui
+## (a Toca do Pitoco: "perde memórias aos poucos").
+@export var memory_drain := 0.0
+## v0.52 — O BURACO DOS GRITOS (Varanda das Raízes): célula do buraco. Depois do
+## 4º encontro com o Amaro (amaro_4), chegar perto dispara a armadilha.
+@export var trap_hole := Vector2i(-1, -1)
 @export var ruins_flag := ""
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
@@ -1541,6 +1549,7 @@ func _start_runtime() -> void:
 		hud.show_area_title(area_name, area_subtitle)
 	_connect_world()
 	_add_farm()
+	_amaro_calls_from_above()  # v0.52: só na Toca, depois do empurrão sem o Pitoco
 	Sfx.play_ambience(ambience, -12.0)
 	# Novo jogo / depois da queda: o herói sai da cápsula (a Câmara).
 	if Game.wake_from_capsule:
@@ -1602,6 +1611,90 @@ func start_galeno_fight() -> GalenoEscudo:
 	galeno.fight_won.connect(back_on)
 	galeno.fight_reset.connect(back_on)
 	return galeno
+
+
+# --- v0.52 (Etapa 11): a Toca e a armadilha do Amaro ----------------------------------
+const TOCA_SCENE := "res://scenes/world/raizes_toca.tscn"
+const AMARO_TEXTURE := "res://assets/sprites/amaro_npc.png"
+const PITOCO_FRAMES := preload("res://assets/sprites/pitoco_frames.tres")
+const HOLE_REACH := 26.0
+var _drain_left := 0.0
+var _trap_running := false
+
+
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint() or player == null or get_tree().paused:
+		return
+	if memory_drain > 0.0 and not player.is_dead() and Game.memories > 0:
+		_drain_left += memory_drain * delta
+		if _drain_left >= 1.0:
+			var lost := int(_drain_left)
+			_drain_left -= lost
+			Game.drain_memories(0.0, lost)
+	if trap_hole.x >= 0 and not _trap_running and Game.has_flag("amaro_4") and not Game.has_flag("amaro_traiu") \
+			and not _talking and player.global_position.distance_to(_cell_feet(trap_hole.x, trap_hole.y)) <= HOLE_REACH:
+		amaro_trap()
+
+
+## A ARMADILHA: perto do buraco o herói perde o controle (o jogo continua: não
+## é um corte), a câmera desce devagar para dentro, lá embaixo o Pitoco abana
+## os tentáculos — e o Amaro empurra. Sem o Pitoco: o buraco vazio e escuro.
+func amaro_trap() -> void:
+	_trap_running = true
+	begin_cutscene()
+	var hole := _cell_feet(trap_hole.x, trap_hole.y)
+	var look := Node2D.new()
+	entities.add_child(look)
+	look.global_position = player.global_position
+	camera.focus = look
+	var down := create_tween()
+	down.tween_property(look, "global_position", hole + Vector2(0, 30), 1.6).set_trans(Tween.TRANS_SINE)
+	await down.finished
+	var empty := Game.has_flag("pitoco_morto")
+	if not empty:
+		var dog := AnimatedSprite2D.new()
+		dog.sprite_frames = PITOCO_FRAMES
+		dog.play(&"idle")
+		dog.speed_scale = 2.5  # abanando
+		dog.modulate = Color(0.7, 0.6, 0.7, 0.9)
+		dog.z_index = -1
+		entities.add_child(dog)
+		dog.global_position = hole + Vector2(0, 2)
+		Sfx.play(&"bark", -6.0)
+		await _wait(1.6)
+		dog.queue_free()
+	else:
+		await _wait(1.2)
+	# O Amaro, atrás.
+	var amaro := _make_npc("amaro_empurra", "Amaro", AMARO_TEXTURE, 2, player.global_position + Vector2(-18, -4))
+	amaro.get_node("CollisionShape2D").disabled = true
+	camera.focus = null
+	look.queue_free()
+	await _wait(0.5)
+	hud.toast("“Foi mal, ratinho. O Pitoco tem que comer.”")
+	await _wait(1.6)
+	Sfx.play(&"swing", 0.0)
+	var push := create_tween()
+	push.tween_property(player, "global_position", hole, 0.35).set_trans(Tween.TRANS_QUAD)
+	await push.finished
+	Sfx.play(&"fall", 0.0)
+	Game.set_flag("amaro_traiu")
+	if empty:
+		Game.set_flag("amaro_procura")  # lá embaixo, a voz dele: "...Pitoco?"
+	_leaving = true
+	Game.clear_carry()
+	Game.travel(TOCA_SCENE, "inicio")
+
+
+## Na Toca, depois do empurrão sem o Pitoco: a voz dele lá de cima.
+func _amaro_calls_from_above() -> void:
+	if not Game.has_flag("amaro_procura") or hud == null:
+		return
+	Game.clear_flag("amaro_procura")
+	await _wait(2.0)
+	for line in ["“...Pitoco?”", "“Pitoco, cadê você?”", "“CADÊ O PITOCO?!”"]:
+		hud.toast(line)
+		await _wait(2.2)
 
 
 ## v0.51: a Cidade depois do "Apague" do Cícero (cidade_apagada).
@@ -1940,6 +2033,10 @@ func _on_dialogue_action(action: String) -> void:
 				return
 			"chama":
 				call_brawler(value)
+				return
+			"memorias":  # v0.52: "memorias:10000" — alguém joga memórias em você
+				Game.add_memories(int(value))
+				Fx.memory_motes(player.global_position + Vector2(0, -40), player, 24)
 				return
 			"presente":  # v0.51: "presente:<flag>:<item>" — um presente, uma vez só
 				if not Game.has_flag(value):

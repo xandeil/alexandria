@@ -7,6 +7,9 @@
 [node name="Varanda" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/raizes_varanda.txt"
+people = Array[Dictionary]([{"cell": Vector2i(37, 8), "dialogue": "amaro_varanda", "name": "Amaro", "texture": "res://assets/sprites/amaro_npc.png", "frames": 2}])
+trap_hole = Vector2i(33, 8)
+decor = Array[Dictionary]([{"cell": Vector2i(33, 8), "texture": "res://assets/props/buraco_gritos.png"}])
 area_name = "Varanda das Raízes Pendentes"
 area_subtitle = "As raízes descem para o céu. Algumas voltam com alguma coisa."
 theme = "raizes"
@@ -16,7 +19,7 @@ outdoor = true
 exit_scene = "res://scenes/world/raizes_despensa.tscn"
 exit_spawn = "lateral"
 enemy_power = 1.15
-exits = Array[Dictionary]([{"cell": Vector2i(9, 1), "scene": "res://scenes/world/cidade.tscn", "spawn": "tunel", "arrival": "tunel", "opens": "atalho_tunel"}, {"cell": Vector2i(45, 11), "scene": "res://scenes/world/raizes_despensa.tscn", "spawn": "veia", "arrival": "veia", "opens": "atalho_veia"}])
+exits = Array[Dictionary]([{"cell": Vector2i(9, 1), "scene": "res://scenes/world/cidade.tscn", "spawn": "tunel", "arrival": "tunel", "opens": "atalho_tunel"}, {"cell": Vector2i(45, 11), "scene": "res://scenes/world/raizes_despensa.tscn", "spawn": "veia", "arrival": "veia", "opens": "atalho_veia"}, {"cell": Vector2i(20, 12), "scene": "res://scenes/world/raizes_toca.tscn", "spawn": "escalada", "arrival": "toca", "requires": "flag:parede_toca_quebrada", "locked_dialogue": "parede_raizes"}])
 exit2_scene = "res://scenes/world/arena_mabel.tscn"
 exit2_spawn = "porta"
 exit2_requires = "ninhada"
