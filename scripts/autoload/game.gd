@@ -458,58 +458,118 @@ const SELL_PRICES := {"sucata_temperada": 60, "fragmento_turvo": 300}
 ## Depois que a Rachel cai, ele "vende mais barato. Só um pouco." (diálogo dele)
 const RACHEL_DISCOUNT := 0.8
 
-## Quantos de cada item com limite você já comprou (id → quantidade).
+## v0.49 (Etapa 10) — LOJA DO DAMIÃO, o Sucateiro: sempre mais barata; o
+## estoque cresce com as ilhas ("quando"); compra Algo Quebrado.
+const DAMIAO_STOCK := [
+	{"id": "sucata_temperada", "preco": 160},
+	{"id": "meio_pingente", "preco": 40, "limite": 1},
+	{"id": "fragmento_turvo", "preco": 750, "limite": 2, "quando": "aldir"},
+	{"id": "lanca_cobaia", "preco": 600, "limite": 1, "quando": "nyssa"},
+	{"id": "arco_cobaia", "preco": 600, "limite": 1, "quando": "mabel"},
+	{"id": "martelo_cobaia", "preco": 700, "limite": 1, "quando": "durgan"},
+]
+const DAMIAO_BUYS := {"sucata_temperada": 70, "fragmento_turvo": 320, "algo_quebrado": 150}
+## "Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+const DAMIAO_THANKS_DISCOUNT := 0.9
+## O Fragmento de Loja (a mochila dele) entregue ao Vendedor: ele passa a vender
+## o estoque do Damião e baixa os próprios preços.
+const INHERITED_DISCOUNT := 0.85
+## Todas as lojas: id → quem é, o que vende e o que compra. ShopMenu.run(…, id).
+const MERCHANTS := {
+	"vendedor": {"nome": "Vendedor Dragonoide", "retrato": "res://assets/sprites/npc_vendedor.png",
+		"fala": "\"Memórias por tralhas, tralhas por memórias. É assim que se vive aqui.\"",
+		"cor": Color(0.86, 0.46, 0.28), "estoque": SHOP_STOCK, "compra": SELL_PRICES},
+	"damiao": {"nome": "Damião, o Sucateiro", "retrato": "res://assets/sprites/damiao_npc.png",
+		"fala": "\"Achado não é roubado! Achado é... achado. É outra coisa.\"",
+		"cor": Color(0.74, 0.62, 0.38), "estoque": DAMIAO_STOCK, "compra": DAMIAO_BUYS},
+}
+
+## Quantos de cada item com limite você já comprou ("id", ou "loja:id" nas
+## outras lojas) → quantidade.
 var shop_bought := {}
 
 
-func shop_price(item_id: String) -> int:
-	for entry: Dictionary in SHOP_STOCK:
+## O que esta loja tem agora (as linhas cujo "quando" vale).
+func merchant_stock(merchant: String = "vendedor") -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var lists: Array = [MERCHANTS[merchant]["estoque"]]
+	if merchant == "vendedor" and has_flag("dado_fragmento_de_loja"):
+		lists.append(DAMIAO_STOCK)  # a loja herdada
+	for list: Array in lists:
+		for entry: Dictionary in list:
+			if requirement_met(str(entry.get("quando", ""))) and not result.any(func(e): return e["id"] == entry["id"]):
+				result.append(entry)
+	return result
+
+
+func _stock_entry(item_id: String, merchant: String) -> Dictionary:
+	for entry: Dictionary in merchant_stock(merchant):
 		if entry["id"] == item_id:
-			var price := int(entry["preco"])
-			return int(round(price * RACHEL_DISCOUNT)) if is_boss_defeated("rachel") else price
-	return 0
+			return entry
+	return {}
+
+
+func _bought_key(item_id: String, merchant: String) -> String:
+	return item_id if merchant == "vendedor" else "%s:%s" % [merchant, item_id]
+
+
+func shop_price(item_id: String, merchant: String = "vendedor") -> int:
+	var entry := _stock_entry(item_id, merchant)
+	if entry.is_empty():
+		return 0
+	var price := float(entry["preco"])
+	if merchant == "vendedor":
+		if is_boss_defeated("rachel"):
+			price *= RACHEL_DISCOUNT
+		if has_flag("dado_fragmento_de_loja"):
+			price *= INHERITED_DISCOUNT
+	elif merchant == "damiao" and DAMIAO_TRIPS.any(func(d): return has_flag("damiao_salvo_" + d)):
+		price *= DAMIAO_THANKS_DISCOUNT
+	return int(round(price))
 
 
 ## Quantos ainda restam (-1 = infinito).
-func shop_left(item_id: String) -> int:
-	for entry: Dictionary in SHOP_STOCK:
-		if entry["id"] == item_id and entry.has("limite"):
-			return maxi(int(entry["limite"]) - int(shop_bought.get(item_id, 0)), 0)
+func shop_left(item_id: String, merchant: String = "vendedor") -> int:
+	var entry := _stock_entry(item_id, merchant)
+	if entry.has("limite"):
+		return maxi(int(entry["limite"]) - int(shop_bought.get(_bought_key(item_id, merchant), 0)), 0)
 	return -1
 
 
 ## "" = pode comprar; senão o motivo: "memories", "esgotado" ou "cheio".
-func shop_block_reason(item_id: String) -> String:
-	if shop_left(item_id) == 0:
+func shop_block_reason(item_id: String, merchant: String = "vendedor") -> String:
+	if shop_left(item_id, merchant) == 0:
 		return "esgotado"
 	var item := Items.get_item(item_id)
 	if item_id != "frasco_sanidade" and item and item_count(item_id) >= item.max_stack:
 		return "cheio"
-	if memories < shop_price(item_id):
+	if memories < shop_price(item_id, merchant):
 		return "memories"
 	return ""
 
 
-func buy_from_shop(item_id: String) -> bool:
-	if shop_block_reason(item_id) != "":
+func buy_from_shop(item_id: String, merchant: String = "vendedor") -> bool:
+	if _stock_entry(item_id, merchant).is_empty() or shop_block_reason(item_id, merchant) != "":
 		return false
-	spend_memories(shop_price(item_id))
+	spend_memories(shop_price(item_id, merchant))
 	if item_id == "frasco_sanidade":
 		sanity_flasks += 1  # o Frasco de Sanidade é um contador, não um item da mochila
 		sanity_flasks_changed.emit(sanity_flasks)
 	else:
 		add_item(item_id, 1, false)
-	if shop_left(item_id) >= 0:
-		shop_bought[item_id] = int(shop_bought.get(item_id, 0)) + 1
+	if shop_left(item_id, merchant) >= 0:
+		var key := _bought_key(item_id, merchant)
+		shop_bought[key] = int(shop_bought.get(key, 0)) + 1
 	items_changed.emit()
 	save_game()
 	return true
 
 
-## Preço de venda (0 = o Vendedor não compra isso).
-func sell_price(item_id: String) -> int:
-	if SELL_PRICES.has(item_id):
-		return int(SELL_PRICES[item_id])
+## Preço de venda (0 = esta loja não compra isso).
+func sell_price(item_id: String, merchant: String = "vendedor") -> int:
+	var buys: Dictionary = MERCHANTS[merchant]["compra"]
+	if buys.has(item_id):
+		return int(buys[item_id])
 	var weapon := Items.get_weapon(item_id)
 	if weapon and item_id != START_WEAPON and item_id != FISTS:
 		return maxi(300, weapon.forge_memories / 3)
@@ -518,10 +578,10 @@ func sell_price(item_id: String) -> int:
 
 ## O que dá para vender agora: [{id, count, price}]. Lembranças, escudo e
 ## anel NÃO entram (são da história). Arma: só as cópias que não estão na mão.
-func sellable_items() -> Array[Dictionary]:
+func sellable_items(merchant: String = "vendedor") -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for item_id: String in Items.CATALOG:
-		var price := sell_price(item_id)
+		var price := sell_price(item_id, merchant)
 		if price <= 0:
 			continue
 		var count := _sellable_count(item_id)
@@ -537,8 +597,8 @@ func _sellable_count(item_id: String) -> int:
 	return maxi(item_count(item_id) - in_hands, 0)
 
 
-func sell_to_shop(item_id: String) -> bool:
-	var price := sell_price(item_id)
+func sell_to_shop(item_id: String, merchant: String = "vendedor") -> bool:
+	var price := sell_price(item_id, merchant)
 	if price <= 0 or _sellable_count(item_id) <= 0:
 		return false
 	remove_item(item_id, 1)
@@ -546,6 +606,48 @@ func sell_to_shop(item_id: String) -> bool:
 	items_changed.emit()
 	save_game()
 	return true
+
+
+# --- v0.49 (Etapa 10): as viagens do Damião --------------------------------------------
+## Liberadas com 3 memórias de chefe, nesta ordem. Ele avisa (falando com ele),
+## some no próximo descanso ou chefe vencido, e volta no seguinte — salvo, se a
+## missão do NPC daquela ilha não foi perdida; senão, morre lá (damiao_morto).
+const DAMIAO_TRIPS := ["cidade", "forjas", "raizes", "montanha"]
+## Quem perdeu a missão de cada ilha (aí ninguém o salva).
+const DAMIAO_DOOM := {
+	"cidade": "flag:lucia_congelada|flag:lucia_esquecida",
+	"forjas": "flag:galeno_morto",
+	"raizes": "flag:tiao_cinzento",
+	"montanha": "flag:bastiao_cinzento",
+}
+
+
+## O destino da próxima viagem ("" = acabaram).
+func damiao_destination() -> String:
+	var trip := int(flags.get("damiao_viagem", 0))
+	return DAMIAO_TRIPS[trip] if trip < DAMIAO_TRIPS.size() else ""
+
+
+## Chamado ao descansar e ao vencer um chefe (Level).
+func damiao_tick() -> void:
+	if not has_flag("mercador_damiao_encontrado") or has_flag("damiao_morto"):
+		return
+	var destination := damiao_destination()
+	if destination.is_empty():
+		return
+	if has_flag("damiao_fora"):
+		flags.erase("damiao_fora")
+		flags.erase("damiao_avisou")
+		if requirement_met(DAMIAO_DOOM[destination]):
+			flags["damiao_morto"] = true
+			flags["damiao_morreu_" + destination] = true
+		else:
+			flags["damiao_salvo_" + destination] = true
+			flags["damiao_viagem"] = int(flags.get("damiao_viagem", 0)) + 1
+		flags_changed.emit()
+		save_game()
+	elif has_flag("damiao_avisou"):
+		set_flag("damiao_fora")
 
 
 ## Compra genérica de item do Vendedor.
@@ -641,6 +743,8 @@ func requirement_met(requires: String) -> bool:
 			return has_item(value)
 		"estado":
 			return world_flag(value)
+		"damiao":  # v0.49: o destino da próxima viagem do Damião
+			return damiao_destination() == value
 		"conta":  # v0.42: "conta:lucia_quedas:3" = o contador chegou a 3
 			return int(flags.get(value, 0)) >= int(text.get_slice(":", 2))
 	push_warning("Condição desconhecida: %s" % text)

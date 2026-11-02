@@ -217,6 +217,11 @@
 				"acao": "loja"
 			},
 			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
+			},
+			{
 				"texto": "Sair",
 				"acao": ""
 			}
@@ -553,6 +558,11 @@
 				"acao": "loja"
 			},
 			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
+			},
+			{
 				"texto": "Sair",
 				"acao": ""
 			}
@@ -706,6 +716,11 @@
 				"acao": "loja"
 			},
 			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
+			},
+			{
 				"texto": "Sair",
 				"acao": ""
 			}
@@ -722,6 +737,11 @@
 			{
 				"texto": "Negociar",
 				"acao": "loja"
+			},
+			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
 			},
 			{
 				"texto": "Sair",
@@ -1485,6 +1505,16 @@
 			}
 		],
 		"opcoes": [
+			{
+				"texto": "Mostrar o meio pingente",
+				"quando": "item:meio_pingente+!flag:damiao_morto",
+				"acao": "dar:meio_pingente;cena:reencontro_avelar"
+			},
+			{
+				"texto": "Mostrar o meio pingente",
+				"quando": "item:meio_pingente+flag:damiao_morto",
+				"acao": "dar:meio_pingente;falar:lucia_pingente_sozinha"
+			},
 			{
 				"texto": "Ficar",
 				"acao": "lucia_final"
@@ -2530,6 +2560,267 @@
 		"nome": "Galeno",
 		"falas": [
 			"...É. Eu sabia."
+		]
+	},
+	"damiao_viaduto": {
+		"nome": "Damião",
+		"some_quando": "flag:mercador_damiao_encontrado",
+		"falas": [
+			"Achado não é roubado! Achado é... achado. É outra coisa.",
+			"Os donos? Ah, os donos não vão sentir falta. Os donos esqueceram que eram donos.",
+			"Não posso ficar parado, amigo. Fico parado, esqueço. Ando, lembro. Mais ou menos."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_damiao_encontrado;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_damiao_encontrado"
+			}
+		]
+	},
+	"damiao_teatro": {
+		"nome": "Damião",
+		"variantes": [
+			{
+				"quando": "flag:damiao_salvo_cidade+!flag:damiao_contou_cidade",
+				"usar": "damiao_voltou_cidade"
+			},
+			{
+				"quando": "flag:damiao_salvo_forjas+!flag:damiao_contou_forjas",
+				"usar": "damiao_voltou_forjas"
+			},
+			{
+				"quando": "flag:damiao_salvo_raizes+!flag:damiao_contou_raizes",
+				"usar": "damiao_voltou_raizes"
+			},
+			{
+				"quando": "flag:damiao_salvo_montanha+!flag:damiao_contou_montanha",
+				"usar": "damiao_voltou_montanha"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:cidade",
+				"usar": "damiao_aviso_cidade"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:forjas",
+				"usar": "damiao_aviso_forjas"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:raizes",
+				"usar": "damiao_aviso_raizes"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:montanha",
+				"usar": "damiao_aviso_montanha"
+			}
+		],
+		"falas": [
+			"O saco? É pra ninguém ver que eu tô ficando com cara de ninguém.",
+			"Papel de pão. Cheira a casa. ...Não sei que casa."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"mochila_damiao": {
+		"nome": "Mochila",
+		"aparece_quando": "flag:damiao_morto",
+		"some_quando": "flag:mochila_pega",
+		"falas": [
+			"A mochila do Damião, largada. O sino de lata ainda balança."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar o sino",
+				"acao": "flag:mochila_pega;ganhar:fragmento_de_loja"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"vendedor_herda": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"...Ele cobrava menos que eu. Eu reclamava. Agora vou cobrar menos também. Em nome dele."
+		]
+	},
+	"reencontro_avelar": {
+		"cena": [
+			[
+				"Lúcia",
+				"...Onde você achou isso? Quem te vendeu?"
+			],
+			[
+				"Damião",
+				"...Eu te conheço?"
+			],
+			[
+				"Lúcia",
+				"Não. ...Mas encaixa."
+			],
+			[
+				"Damião",
+				"Eu andei tanto... achando que ia lembrar onde era."
+			],
+			[
+				"Lúcia",
+				"Eu esperei tanto... achando que você ia lembrar de mim."
+			],
+			[
+				"Damião",
+				"Então a gente esqueceu junto. ...Já é alguma coisa."
+			]
+		],
+		"acao": "flag:irmaos_avelar_reencontrados"
+	},
+	"lucia_pingente_sozinha": {
+		"nome": "Lúcia",
+		"falas": [
+			"...Encaixa. ...E quem tinha a outra metade?"
+		]
+	},
+	"damiao_voltou_cidade": {
+		"nome": "Damião",
+		"falas": [
+			"Uma moça de máscara me salvou! Lúcia, o nome. Bonito, né? Parece nome de alguém.",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_cidade;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_cidade"
+			}
+		]
+	},
+	"damiao_aviso_cidade": {
+		"nome": "Damião",
+		"falas": [
+			"Vou dar uma volta na Cidade. Dizem que tem sucata nas ruas queimadas. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"damiao_voltou_forjas": {
+		"nome": "Damião",
+		"falas": [
+			"Um grandalhão me tirou de baixo de três bonecos de bronze. Rindo! Rindo, o maluco!",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_forjas;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_forjas"
+			}
+		]
+	},
+	"damiao_aviso_forjas": {
+		"nome": "Damião",
+		"falas": [
+			"Vou dar uma olhada nas Forjas. Dizem que tem bronze sobrando. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"damiao_voltou_raizes": {
+		"nome": "Damião",
+		"falas": [
+			"Um sujeito me salvou e ficou perguntando se eu tinha visto 'aquele cara'. Que cara?",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_raizes;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_raizes"
+			}
+		]
+	},
+	"damiao_aviso_raizes": {
+		"nome": "Damião",
+		"falas": [
+			"Vou dar uma olhada nas Raízes. Dizem que tem panela boa largada por lá. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"damiao_voltou_montanha": {
+		"nome": "Damião",
+		"falas": [
+			"Um sujeito me salvou e ficou perguntando se eu tinha visto 'aquele cara'. Que cara?",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_montanha;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_montanha"
+			}
+		]
+	},
+	"damiao_aviso_montanha": {
+		"nome": "Damião",
+		"falas": [
+			"Vou subir a Montanha. Dizem que tem escama de dragão pelo chão. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
 		]
 	}
 }

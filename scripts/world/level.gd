@@ -1561,6 +1561,18 @@ func _spawn_companion() -> void:
 			ally.queue_free()
 
 
+## v0.49: uma conversa entre DOIS ou mais (o reencontro dos irmãos Avelar).
+## No dialogos.json: "<id>": {"cena": [["Lúcia", "fala"], ["Damião", "fala"], ...]}.
+func play_scene_lines(scene_id: String) -> void:
+	var entry := DialogueData.get_entry(scene_id)
+	for line: Variant in entry.get("cena", []):
+		var pair: Array = line
+		await hud.dialogue.run({"nome": str(pair[0]), "falas": [str(pair[1])]}, str(pair[0]))
+	var then := str(entry.get("acao", ""))
+	if not then.is_empty():
+		await _on_dialogue_action(then)
+
+
 ## v0.48 (Etapa 9): Galeno, O Escudo Que Chegou Tarde (tito_morto). Ele sai
 ## de diante da cápsula e luta ali mesmo. A cápsula fica desligada até o fim.
 const GALENO_BOSS_SCENE := "res://scenes/bosses/galeno_escudo.tscn"
@@ -1919,6 +1931,12 @@ func _on_dialogue_action(action: String) -> void:
 			"chama":
 				call_brawler(value)
 				return
+			"loja":  # v0.49: "loja:damiao" — a loja de outro vendedor
+				await hud.shop_menu.open_shop(player, value)
+				return
+			"cena":  # v0.49: "cena:<id>" — várias falas, cada uma com quem fala
+				await play_scene_lines(value)
+				return
 			"duelo_sebastioes":
 				start_sebastioes_duel()
 				return
@@ -2027,6 +2045,7 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 	player.rest()
 	player.global_position = spawns.get(chamber.spawn_id, player.global_position)
 	_respawn_enemies()
+	Game.damiao_tick()  # v0.49: o Damião sai (ou volta) de viagem enquanto você dorme
 	Game.set_rest_point(scene_file_path, chamber.spawn_id)
 	camera.snap_to_target()
 	await _wait(0.3)
@@ -2104,6 +2123,8 @@ func _on_fight_started(boss: Boss) -> void:
 
 func _on_fight_ended(victory: bool) -> void:
 	_reward_allies(victory)
+	if victory:
+		Game.damiao_tick()  # v0.49: chefe vencido também conta para a viagem do Damião
 	camera.focus = null
 	var subtitle := ""
 	if is_instance_valid(boss_arena.boss):

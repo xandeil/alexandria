@@ -43,6 +43,9 @@ var _hint: ButtonHintBar
 var _l1_hint: Label
 var _r1_hint: Label
 var _close_button: Button
+var _root: Control
+var _portrait: TextureRect
+var _name_label: Label
 
 # Ficha (a mesma anatomia da ficha do inventário).
 var detail_name: Label
@@ -65,6 +68,29 @@ func _ready() -> void:
 
 # --- Montagem -------------------------------------------------------------------------------
 
+## v0.49: o mesmo balcão com outro dono (a loja de cada vendedor): troca o
+## retrato, o nome, a fala e a cor depois de montado.
+func apply_keeper() -> void:
+	if _root == null:
+		return
+	_set_portrait()
+	_name_label.text = keeper_name.to_upper()
+	_line.text = keeper_line
+	_line.add_theme_color_override("font_color", accent.lightened(0.35))
+	_root.queue_redraw()
+
+
+func _set_portrait() -> void:
+	if portrait_texture == null:
+		_portrait.texture = null
+		return
+	var atlas := AtlasTexture.new()
+	atlas.atlas = portrait_texture
+	var frame_w := portrait_texture.get_width() / maxi(portrait_frames, 1)
+	atlas.region = Rect2(0, 0, frame_w, portrait_texture.get_height())
+	_portrait.texture = atlas
+
+
 func _build() -> void:
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.97)
@@ -75,15 +101,12 @@ func _build() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.draw.connect(func(): _draw_frame(root))
 	add_child(root)
+	_root = root
 
 	# Cabeçalho: retrato + nome + uma fala; memórias à direita.
 	var portrait := TextureRect.new()
-	if portrait_texture:
-		var atlas := AtlasTexture.new()
-		atlas.atlas = portrait_texture
-		var frame_w := portrait_texture.get_width() / maxi(portrait_frames, 1)
-		atlas.region = Rect2(0, 0, frame_w, portrait_texture.get_height())
-		portrait.texture = atlas
+	_portrait = portrait
+	_set_portrait()
 	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -91,6 +114,7 @@ func _build() -> void:
 	portrait.size = Vector2(44, 44)
 	root.add_child(portrait)
 	var name_label := UIStyle.label(keeper_name.to_upper(), 12, LIT, UIStyle.TITLE_FONT)
+	_name_label = name_label
 	name_label.position = Vector2(60, 6)
 	root.add_child(name_label)
 	_line = UIStyle.label(keeper_line, 7, accent.lightened(0.35))

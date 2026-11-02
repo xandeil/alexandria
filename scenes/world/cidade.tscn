@@ -7,7 +7,7 @@
 [node name="Cidade" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/cidade.txt"
-people = Array[Dictionary]([{"cell": Vector2i(11, 26), "dialogue": "poco_heitor", "name": "Poço", "texture": "res://assets/props/poco.png", "prompt": "Examinar"}])
+people = Array[Dictionary]([{"cell": Vector2i(11, 26), "dialogue": "poco_heitor", "name": "Poço", "texture": "res://assets/props/poco.png", "prompt": "Examinar"}, {"cell": Vector2i(14, 26), "dialogue": "mochila_damiao", "name": "Mochila", "texture": "res://assets/props/mochila_damiao.png", "prompt": "Examinar", "requires": "flag:damiao_morreu_cidade"}])
 area_name = "Cidade Estilhaçada"
 area_subtitle = "Os soldados do governo subiram com a ilha e ainda cumprem a última ordem."
 theme = "cidade"

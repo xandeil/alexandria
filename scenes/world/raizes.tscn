@@ -26,7 +26,7 @@ exit2_requires = ""
 exit2_locked_dialogue = ""
 lore_points = {"1": "raiz_pulsando", "2": "placa_estufa", "3": "cardapio", "4": "ninho_larvas"}
 item_points = Array[String](["sucata_temperada:3", "fragmento_turvo", "sucata_temperada:2", "sucata_temperada:2"])
-people = Array[Dictionary]([{"cell": Vector2i(68, 12), "dialogue": "galeno_raizes", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}])
+people = Array[Dictionary]([{"cell": Vector2i(68, 12), "dialogue": "galeno_raizes", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(66, 12), "dialogue": "mochila_damiao", "name": "Mochila", "texture": "res://assets/props/mochila_damiao.png", "prompt": "Examinar", "requires": "flag:damiao_morreu_raizes"}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

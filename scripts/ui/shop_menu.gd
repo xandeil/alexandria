@@ -6,6 +6,9 @@ extends SoulsMenu
 ##
 ## O menu não sabe preços nem estoque: pergunta tudo ao Game (shop_price,
 ## shop_left, sell_price...). Trocar um preço é mexer num lugar só.
+##
+## v0.49 (Etapa 10): a mesma tela serve a TODAS as lojas (Game.MERCHANTS).
+## run(player, "damiao") abre a do Damião, com a cor, o retrato e a fala dele.
 
 const ICON_MEMORY := preload("res://assets/ui/icon_memory.png")
 ## O que ele diz quando não dá (motivo vem do Game).
@@ -16,11 +19,27 @@ const REASONS := {
 }
 
 
+var merchant := "vendedor"
+
+
 func _init() -> void:
-	accent = Color(0.86, 0.46, 0.28)
-	keeper_name = "Vendedor Dragonoide"
-	keeper_line = "\"Memórias por tralhas, tralhas por memórias. É assim que se vive aqui.\""
-	portrait_texture = preload("res://assets/sprites/npc_vendedor.png")
+	_apply_merchant()
+
+
+func _apply_merchant() -> void:
+	var info: Dictionary = Game.MERCHANTS[merchant]
+	accent = info["cor"]
+	keeper_name = info["nome"]
+	keeper_line = info["fala"]
+	portrait_texture = load(info["retrato"])
+
+
+## Abre a loja deste vendedor (padrão: o Dragonoide).
+func open_shop(player: Player = null, merchant_id: String = "vendedor") -> void:
+	merchant = merchant_id if Game.MERCHANTS.has(merchant_id) else "vendedor"
+	_apply_merchant()
+	apply_keeper()
+	await run(player)
 
 
 func _tabs() -> Array[String]:
@@ -30,13 +49,13 @@ func _tabs() -> Array[String]:
 func _entries(tab_index: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if tab_index == 0:
-		for stock: Dictionary in Game.SHOP_STOCK:
+		for stock: Dictionary in Game.merchant_stock(merchant):
 			var id: String = stock["id"]
-			var reason := Game.shop_block_reason(id)
-			result.append({"id": id, "icon": Items.get_item(id).icon, "corner": str(Game.shop_price(id)),
+			var reason := Game.shop_block_reason(id, merchant)
+			result.append({"id": id, "icon": Items.get_item(id).icon, "corner": str(Game.shop_price(id, merchant)),
 				"dim": reason == "esgotado"})
 	else:
-		for entry in Game.sellable_items():
+		for entry in Game.sellable_items(merchant):
 			result.append({"id": entry["id"], "icon": Items.get_item(entry["id"]).icon, "corner": "x%d" % entry["count"]})
 	return result
 
@@ -50,24 +69,24 @@ func _show_detail(id: String) -> void:
 	if item is WeaponData:
 		add_scaling_table(item as WeaponData)
 	if _tab == 0:
-		var left := Game.shop_left(id)
+		var left := Game.shop_left(id, merchant)
 		var have := Game.sanity_flasks if id == "frasco_sanidade" else Game.item_count(id)
 		detail_stats.text = "Você tem: %d%s" % [have, "\nRestam: %d" % left if left >= 0 else ""]
-		add_cost_line(ICON_MEMORY, "Preço: %d memórias" % Game.shop_price(id), Game.memories >= Game.shop_price(id))
-		detail_status.text = REASONS.get(Game.shop_block_reason(id), "")
+		add_cost_line(ICON_MEMORY, "Preço: %d memórias" % Game.shop_price(id, merchant), Game.memories >= Game.shop_price(id, merchant))
+		detail_status.text = REASONS.get(Game.shop_block_reason(id, merchant), "")
 	else:
 		var count := 0
-		for entry in Game.sellable_items():
+		for entry in Game.sellable_items(merchant):
 			if entry["id"] == id:
 				count = entry["count"]
 		detail_stats.text = "Você tem: %d para vender" % count
-		add_cost_line(ICON_MEMORY, "Ele paga: %d memórias" % Game.sell_price(id), true)
+		add_cost_line(ICON_MEMORY, "Ele paga: %d memórias" % Game.sell_price(id, merchant), true)
 		if item is WeaponData:
 			detail_status.text = "A arma que está na sua mão não entra na venda."
 
 
 func _activate(id: String) -> void:
-	var done := Game.buy_from_shop(id) if _tab == 0 else Game.sell_to_shop(id)
+	var done := Game.buy_from_shop(id, merchant) if _tab == 0 else Game.sell_to_shop(id, merchant)
 	if not done:
 		Sfx.play(&"ui_click")
 		_selected = ""

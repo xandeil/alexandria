@@ -143,6 +143,8 @@ func _ready() -> void:
 		"test_tito_deadline_and_governess_lines",
 		"test_galeno_destinies",
 		"test_galeno_shield_boss",
+		"test_damiao_shop",
+		"test_damiao_trips_and_backpack",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -1751,6 +1753,102 @@ func test_galeno_shield_boss() -> void:
 	await frames(2)
 	level = await open_level(TEATRO, "camara")
 	check(find_npc("galeno_capsula") == null, "vencido, não volta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.49 (Etapa 10): o Damião — loja mais barata, estoque que cresce, compra Algo Quebrado.
+func test_damiao_shop() -> void:
+	Game.reset_progress()
+	var ids := Game.merchant_stock("damiao").map(func(e): return e["id"])
+	check(ids.has("sucata_temperada") and ids.has("meio_pingente") and not ids.has("fragmento_turvo"), "no começo: sucata e o meio pingente")
+	check(Game.shop_price("sucata_temperada", "damiao") < Game.shop_price("sucata_temperada"), "mais barato que o Vendedor")
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	ids = Game.merchant_stock("damiao").map(func(e): return e["id"])
+	check(ids.has("fragmento_turvo") and ids.has("lanca_cobaia"), "o estoque cresce com as ilhas")
+	check(Game.shop_price("fragmento_turvo", "damiao") < Game.shop_price("fragmento_turvo"), "fragmento também mais barato")
+	Game.memories = 5000
+	check(Game.buy_from_shop("meio_pingente", "damiao") and Game.has_item("meio_pingente"), "compra o meio pingente")
+	check(Game.shop_block_reason("meio_pingente", "damiao") == "esgotado" and Game.shop_left("meio_pingente") == -1, "um só (e o limite é da loja dele)")
+	Game.add_item("algo_quebrado", 2)
+	check(Game.sell_price("algo_quebrado", "damiao") > 0 and Game.sell_price("algo_quebrado") == 0, "só ele compra Algo Quebrado")
+	var before := Game.memories
+	check(Game.sell_to_shop("algo_quebrado", "damiao") and Game.memories > before, "vendeu para o Damião")
+	# Encontrado no Viaduto, muda-se para o Teatro.
+	var level := await open_level(VIADUTO, "porta")
+	check(find_npc("damiao_viaduto") != null, "o Damião anda pelo Viaduto")
+	var shop := level.hud.shop_menu
+	var run := func(): await shop.open_shop(level.player, "damiao")
+	run.call()
+	await frames(2)
+	check(shop.visible and shop.keeper_name == "Damião, o Sucateiro", "a loja dele (outro balcão, a mesma tela)")
+	shop.close()
+	await frames(2)
+	await level._on_dialogue_action("flag:mercador_damiao_encontrado")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(VIADUTO, "porta")
+	check(find_npc("damiao_viaduto") == null, "encontrado: não anda mais por ali")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("damiao_teatro") != null, "...mudou-se para o Teatro, num camarote")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## As viagens: avisa, some, volta salvo (desconto) ou morre (a mochila, o Fragmento de Loja).
+func test_damiao_trips_and_backpack() -> void:
+	Game.reset_progress()
+	Game.set_flag("mercador_damiao_encontrado")
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_teatro", "antes de 3 memórias, nada de viagem")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_aviso_cidade", "3 memórias: ele avisa o destino (Cidade)")
+	Game.set_flag("damiao_avisou")
+	Game.damiao_tick()
+	check(Game.has_flag("damiao_fora"), "descansou: ele sumiu")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("damiao_teatro") == null, "fora de viagem, o camarote está vazio")
+	Game.damiao_tick()
+	check(Game.has_flag("damiao_salvo_cidade") and Game.damiao_destination() == "forjas", "voltou salvo (a Lúcia o salvou)")
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_voltou_cidade", "'Uma moça de máscara me salvou!'")
+	check(Game.shop_price("sucata_temperada", "damiao") < 160, "desconto pra quem salvou a vida dele")
+	Game.set_flag("damiao_contou_cidade")
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_aviso_forjas", "próxima: as Forjas")
+	Game.set_flag("galeno_morto")  # a missão das Forjas perdida
+	Game.set_flag("damiao_avisou")
+	Game.damiao_tick()
+	Game.damiao_tick()
+	check(Game.has_flag("damiao_morto") and Game.has_flag("damiao_morreu_forjas"), "ninguém o salvou nas Forjas")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("mochila_damiao") != null, "no lugar avisado: a mochila")
+	await level._on_dialogue_action("flag:mochila_pega;ganhar:fragmento_de_loja")
+	check(Game.has_item("fragmento_de_loja"), "o Fragmento de Loja")
+	level.queue_free()
+	await frames(2)
+	var vendor_options := DialogueBox.expand_options(DialogueData.get_entry("vendedor")["opcoes"]).map(func(o): return o["texto"])
+	check(vendor_options.has("Entregar o Fragmento de Loja"), "dá para entregar ao Vendedor")
+	var old_price := Game.shop_price("sucata_temperada")
+	level = await open_level(TEATRO, "camara")
+	await level._on_dialogue_action("dar:fragmento_de_loja")
+	check(Game.shop_price("sucata_temperada") < old_price, "o Vendedor baixa os preços")
+	check(Game.merchant_stock().map(func(e): return e["id"]).has("meio_pingente"), "e vende o estoque do Damião (o pingente vai junto)")
+	# O pingente na Lúcia: com o Damião morto, ninguém tinha a outra metade.
+	Game.add_item("meio_pingente")
+	var lucia := DialogueBox.expand_options(DialogueData.get_entry("lucia_teatro")["opcoes"])
+	check(lucia.any(func(o): return str(o["acao"]).contains("lucia_pingente_sozinha")), "'...E quem tinha a outra metade?'")
+	Game.flags.erase("damiao_morto")
+	lucia = DialogueBox.expand_options(DialogueData.get_entry("lucia_teatro")["opcoes"])
+	check(lucia.any(func(o): return str(o["acao"]).contains("cena:reencontro_avelar")), "vivo: o reencontro dos irmãos")
+	var scene_lines: Array = DialogueData.get_entry("reencontro_avelar")["cena"]
+	check(scene_lines.size() == 6 and DialogueData.get_entry("reencontro_avelar")["acao"] == "flag:irmaos_avelar_reencontrados", "seis falas e a flag")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

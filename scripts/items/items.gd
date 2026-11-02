@@ -40,6 +40,9 @@ const CATALOG := {
 	"licor_da_vigilia": preload("res://data/items/licor_da_vigilia.tres"),
 	# v0.48 (Etapa 9): o que o Galeno deixa (só com o Tito morto).
 	"escudo_sem_dono": preload("res://data/items/escudo_sem_dono.tres"),
+	# v0.49 (Etapa 10): o Damião, o Sucateiro.
+	"meio_pingente": preload("res://data/items/meio_pingente.tres"),
+	"fragmento_de_loja": preload("res://data/items/fragmento_de_loja.tres"),
 	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
 	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
 	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),
