@@ -628,6 +628,8 @@ func requirement_met(requires: String) -> bool:
 				return sanity_flasks > 0
 			if value == "prologo":  # v0.47: o prólogo acabou (voltou ao laboratório)
 				return prologue_done
+			if value == "poupou":  # v0.48: ninguém ferido (o Tito é a Criança Poupada)
+				return spared_child
 			return seven_memories() == SEVEN.size() if value == "sete" else is_boss_defeated(value)
 		"chefe":
 			return is_boss_defeated(value)
@@ -893,12 +895,17 @@ func set_flag(flag: String) -> void:
 		save_game()
 
 
-## v0.47 (Etapa 9): o prazo do Tito é o último fragmento do Galeno (a escolha
-## "lembrar/esquecer", depois da Rachel). Caído até lá, ele não levanta mais.
-func _check_tito_deadline(flag: String) -> void:
-	if flag in ["galeno_lembrou", "galeno_esqueceu"] and flags.get("tito_caido", false) \
-			and not flags.get("tito_revivido", false):
+## v0.47 (Etapa 9): o prazo do Tito é o último fragmento do Galeno (o 3º,
+## depois da Rachel; ou a escolha "lembrar/esquecer"). Caído até lá, ele não
+## levanta mais. (v0.48: o 3º fragmento também conta — GalenoAliado chama.)
+func _check_tito_deadline(flag: String = "") -> void:
+	var last_fragment := int(flags.get("galeno_fragmentos", 0)) >= 3 or flag in ["galeno_lembrou", "galeno_esqueceu"]
+	if last_fragment and flags.get("tito_caido", false) and not flags.get("tito_revivido", false):
 		flags["tito_morto"] = true
+
+
+func check_tito_deadline() -> void:
+	_check_tito_deadline()
 
 
 func clear_flag(flag: String) -> void:

@@ -1561,6 +1561,32 @@ func _spawn_companion() -> void:
 			ally.queue_free()
 
 
+## v0.48 (Etapa 9): Galeno, O Escudo Que Chegou Tarde (tito_morto). Ele sai
+## de diante da cápsula e luta ali mesmo. A cápsula fica desligada até o fim.
+const GALENO_BOSS_SCENE := "res://scenes/bosses/galeno_escudo.tscn"
+
+
+func start_galeno_fight() -> GalenoEscudo:
+	var at := player.global_position + Vector2(0, -40)
+	for npc in get_tree().get_nodes_in_group("npcs"):
+		if (npc as NPC).dialogue_id == "galeno_capsula":
+			at = (npc as Node2D).global_position
+			npc.queue_free()
+	var galeno := (load(GALENO_BOSS_SCENE) as PackedScene).instantiate() as GalenoEscudo
+	galeno.position = at
+	entities.add_child(galeno)
+	register_miniboss(galeno)
+	for chamber in rest_chambers:
+		chamber.set_available(false)
+	var back_on := func(_b: Boss):
+		for chamber in rest_chambers:
+			if is_instance_valid(chamber):
+				chamber.set_available(true)
+	galeno.fight_won.connect(back_on)
+	galeno.fight_reset.connect(back_on)
+	return galeno
+
+
 ## v0.47 (Etapa 9): o Frasco de Sanidade no Tito caído. Ele levanta — mas o
 ## olho castanho fica branco: não cresce mais (tito_revivido).
 func revive_tito() -> void:
@@ -1936,6 +1962,8 @@ func _on_dialogue_action(action: String) -> void:
 				hud.toast("Memórias insuficientes.")
 		"reviver_tito":
 			revive_tito()
+		"luta_galeno":
+			start_galeno_fight()
 		"desafiar_helena":
 			if boss_arena:
 				boss_arena.arm()

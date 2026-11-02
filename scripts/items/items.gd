@@ -38,6 +38,8 @@ const CATALOG := {
 	# v0.45 (Etapa 8): os fios entre Helena e Heitor.
 	"flor_de_pedra": preload("res://data/items/flor_de_pedra.tres"),
 	"licor_da_vigilia": preload("res://data/items/licor_da_vigilia.tres"),
+	# v0.48 (Etapa 9): o que o Galeno deixa (só com o Tito morto).
+	"escudo_sem_dono": preload("res://data/items/escudo_sem_dono.tres"),
 	"botao_de_casaco": preload("res://data/items/botao_de_casaco.tres"),
 	"fita_desbotada": preload("res://data/items/fita_desbotada.tres"),
 	"oculos_rachados": preload("res://data/items/oculos_rachados.tres"),

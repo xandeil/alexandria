@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "galeno_escudo"
+display_name = "Galeno"
+title = "O Escudo Que Chegou Tarde"
+sin = "Mini-chefe"
+sin_meaning = "Luto"
+race = "Humanos"
+attribute = "—"
+area = "Teatro Alexandria"
+scaling = "—"
+suggested_order = "Só se o Tito morreu (depois do último fragmento do Galeno)"
+memory_reward = 1200
+implemented = true
+unique_mechanic = "Fase 1: o escudo segura de frente. Fase 2: ele joga o escudo fora — sem defesa, mais rápido."
+phases = Array[String](["Batida de escudo, giro da espada curva, investida com escudo.", "Sem escudo: combos longos, salto com golpe de cima, sem defesa."])
+history = "Procurou força pelas ilhas, rindo. A força era o filho."
+meaning = "Fica atrás de mim."

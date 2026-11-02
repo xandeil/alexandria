@@ -90,6 +90,16 @@
 		"falas": [
 			"Você não bateu na gente.",
 			"Ninguém nunca fez isso. Aí eu vim atrás. Caí também."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			}
 		]
 	},
 	"crianca_poupada_2": {
@@ -97,6 +107,16 @@
 		"falas": [
 			"Lá fora tem uns soldados com escudo.",
 			"Eles seguram o escudo na frente... mas esquecem de virar. Pelas costas não tem escudo."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			}
 		]
 	},
 	"crianca_poupada_3": {
@@ -104,6 +124,16 @@
 		"falas": [
 			"A moça brilhante troca memória por força.",
 			"Ela é a única daqui que não pede nada pra ela."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			}
 		]
 	},
 	"crianca_poupada_4": {
@@ -111,6 +141,16 @@
 		"falas": [
 			"A moça ruiva da plateia fica sem armadura se você esperar.",
 			"Mas aí ela fica mais brava. Tudo aqui fica."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			}
 		]
 	},
 	"crianca_poupada_5": {
@@ -118,6 +158,16 @@
 		"falas": [
 			"O homem do martelo quebra o chão.",
 			"Se você correr bem rápido — aquele pulinho — você passa por cima do buraco. Eu vi."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			}
 		]
 	},
 	"crianca_poupada_6": {
@@ -126,6 +176,16 @@
 			"O frasco branco do vendedor é gente.",
 			"Eu sei porque tem cheiro de casa.",
 			"...A Governanta contava a gente toda noite. Um dia a conta não fechou."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			}
 		]
 	},
 	"fada": {
@@ -2384,6 +2444,92 @@
 			"Você trouxe ele de volta. O olho ficou branco.",
 			"Agora ele não cresce mais.",
 			"...Agora ele é meu também."
+		]
+	},
+	"tito_reencontro": {
+		"nome": "Tito",
+		"falas": [
+			"...Pai. Você demorou."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "falar:galeno_reencontro"
+			}
+		]
+	},
+	"galeno_reencontro": {
+		"nome": "Galeno",
+		"falas": [
+			"Eu sei. Eu sei, filho. Eu tava procurando força. ...Era você. Sempre foi você."
+		]
+	},
+	"galeno_pai": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_lembrou+poupou",
+		"falas": [
+			"Você deixou ele brincar. Ninguém deixava ele brincar."
+		]
+	},
+	"tito_era_ele": {
+		"nome": "Tito",
+		"falas": [
+			"...Era ele, né?"
+		]
+	},
+	"galeno_laboratorio": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_lembrou+feriu+!flag:tito_morto",
+		"variantes": [
+			{
+				"quando": "flag:tito_revivido",
+				"usar": "galeno_ajoelhado"
+			}
+		],
+		"falas": [
+			"Ele dorme numa caminha pequena demais, do lado do Tito."
+		]
+	},
+	"galeno_ajoelhado": {
+		"nome": "Galeno",
+		"falas": [
+			"O olho dele... era castanho.",
+			"Ele não vai crescer, né?",
+			"...Tudo bem. Eu também não vou. A gente fica pequeno junto."
+		]
+	},
+	"galeno_capsula": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:tito_morto+!flag:galeno_morto",
+		"falas": [
+			"Você dorme aí, né? Numa caixa. Ele dormia numa cama deste tamanho.",
+			"Eu lembrei, amigo. De tudo. O nome dele era Tito.",
+			"Ele tinha um olho castanho ainda. Sabe o que isso quer dizer? Que ainda dava tempo. Que ele ainda ia crescer.",
+			"Essa espada na sua cintura. Eu fiz. Lixei de noite, com a mão, pra não ter farpa.",
+			"Você carregou ela esse tempo todo. E eu ri. Eu olhei pra ela e RI.",
+			"Me diz que ele te atacou primeiro. Mente pra mim. ...Por favor, mente."
+		],
+		"opcoes": [
+			{
+				"texto": "Ele me atacou primeiro",
+				"acao": "falar:galeno_mentira;luta_galeno"
+			},
+			{
+				"texto": "[Silêncio]",
+				"acao": "falar:galeno_silencio;luta_galeno"
+			}
+		]
+	},
+	"galeno_mentira": {
+		"nome": "Galeno",
+		"falas": [
+			"...Ele brincava de pega-pega. Ele nunca pegou ninguém."
+		]
+	},
+	"galeno_silencio": {
+		"nome": "Galeno",
+		"falas": [
+			"...É. Eu sabia."
 		]
 	}
 }

@@ -141,6 +141,8 @@ func _ready() -> void:
 		"test_governess_peaceful_greeting",
 		"test_tito_falls_and_revives",
 		"test_tito_deadline_and_governess_lines",
+		"test_galeno_destinies",
+		"test_galeno_shield_boss",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -1664,6 +1666,11 @@ func test_tito_deadline_and_governess_lines() -> void:
 	Game.set_flag("galeno_lembrou")
 	check(not Game.has_flag("tito_morto"), "revivido a tempo: não morre")
 	Game.reset_progress()
+	Game.set_flag("tito_caido")
+	Game.flags["galeno_fragmentos"] = 2
+	GalenoAliado.new()._on_victory()
+	check(Game.has_flag("tito_morto"), "o 3º fragmento (o último) também fecha o prazo")
+	Game.reset_progress()
 	var level := await open_level(PROLOGO, "camara")
 	var seven := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian", "helena"]
 	Game.defeated_bosses.assign(seven)
@@ -1677,6 +1684,73 @@ func test_tito_deadline_and_governess_lines() -> void:
 	Game.flags["galeno_morto"] = true
 	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_tito_galeno", "com o Galeno morto: 'Ele não voltou.'")
 	check(DialogueData.get_entry("governanta_faltou_um")["falas"][0].contains("ELE NÃO LEVANTOU"), "violento: 'Faltou um.'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.48: os destinos — reencontro, "Era ele, né?", a caminha pequena, o joelho no chão.
+func test_galeno_destinies() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.spared_child = true
+	Game.set_flag("galeno_lembrou")
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("crianca_poupada_1") == "tito_reencontro", "não feriu ninguém + lembrou: '...Pai. Você demorou.'")
+	check(find_npc("galeno_pai") != null, "o Galeno fica do lado do filho, no Teatro")
+	Game.clear_flag("galeno_lembrou")
+	Game.set_flag("galeno_esqueceu")
+	check(level.resolve_dialogue("crianca_poupada_3") == "tito_era_ele", "esqueceu: '...Era ele, né?'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.criancas_feridas = 2
+	Game.set_flag("galeno_lembrou")
+	level = await open_level(PROLOGO, "camara")
+	check(find_npc("galeno_laboratorio") != null, "feriu outras, não o Tito: o Galeno numa caminha pequena demais")
+	check((level as Prologo).tito != null and not (level as Prologo).tito.down, "o Tito vivo, no canto")
+	Game.set_flag("tito_revivido")
+	check(level.resolve_dialogue("galeno_laboratorio") == "galeno_ajoelhado", "revivido: ele se ajoelha em vez de lutar")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.48: com o Tito morto, ele espera diante da cápsula — e luta.
+func test_galeno_shield_boss() -> void:
+	Game.reset_progress()
+	Game.set_flag("tito_morto")
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("galeno_capsula") != null, "diante da cápsula: 'Você dorme aí, né? Numa caixa.'")
+	var actions := (DialogueData.get_entry("galeno_capsula")["opcoes"] as Array).map(func(o): return o["acao"])
+	check(actions.size() == 2 and actions.all(func(a): return str(a).ends_with("luta_galeno")), "mentir ou ficar em silêncio: a luta vem igual")
+	level.player._iframes_left = 999.0
+	var said := []
+	var galeno := level.start_galeno_fight()
+	galeno.speech.connect(func(t: String): said.append(t))
+	await frames(3)
+	check(find_npc("galeno_capsula") == null, "ele sai da frente da cápsula")
+	check(not level.rest_chambers.is_empty() and level.rest_chambers.all(func(c): return not c.interactable.enabled), "a cápsula desliga durante a luta")
+	level.player.global_position = galeno.global_position + Vector2(40, 0)
+	await seconds(1.0)
+	check(galeno.active and is_equal_approx(galeno.stats.max_health, 850.0), "a luta: 850 de vida")
+	var front := HitInfo.create(100.0, galeno.global_position + galeno.facing * 20.0, galeno.global_position)
+	check(galeno._incoming_damage_multiplier(front) < 0.5, "fase 1: o escudo segura de frente")
+	galeno.stats.take_damage(galeno.stats.max_health * 0.55)
+	level.player._iframes_left = 999.0
+	await seconds(0.5)
+	check(galeno.phase == 2 and said.has(GalenoEscudo.SPEECH_PHASE_2), "'Não tem mais nada atrás de mim.'")
+	check(is_equal_approx(galeno._incoming_damage_multiplier(front), 1.0), "sem escudo, sem defesa")
+	galeno.stats.take_damage(99999.0)
+	await seconds(1.0)
+	check(Game.has_flag("galeno_morto") and Game.is_boss_defeated("galeno_escudo"), "'...Tito. O pai chegou.'")
+	check(Game.has_item("escudo_sem_dono"), "o Escudo Sem Dono")
+	check(level.rest_chambers.all(func(c): return c.interactable.enabled), "acabou: a cápsula liga de novo")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("galeno_capsula") == null, "vencido, não volta")
 	level.queue_free()
 	await frames(2)
 	Game.reset_progress()

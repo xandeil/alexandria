@@ -32,6 +32,7 @@ func _on_hit(info: HitInfo) -> void:
 ## Venceram juntos: um fragmento volta.
 func _on_victory() -> void:
 	Game.flags["galeno_fragmentos"] = mini(int(Game.flags.get("galeno_fragmentos", 0)) + 1, MAX_FRAGMENTS)
+	Game.check_tito_deadline()  # v0.48: o último fragmento é o prazo do Tito
 
 
 ## Caiu: esquece um fragmento — e fica mais feliz.
