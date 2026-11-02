@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/chicote_de_chamas.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "chicote_de_chamas"
+display_name = "Chicote de Chamas"
+description = "Um estalo de fogo em leque, à sua frente."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "piromancia"
+form = "frente"
+damage_type = "fogo"
+stamina_cost = 26.0
+cast_time = 0.45
+power = 40.0
+reach = 52.0
+color = Color(1, 0.5, 0.2, 1)

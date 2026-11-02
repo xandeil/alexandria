@@ -49,6 +49,10 @@ func _ready() -> void:
 		await shot("loja_titulo")
 		Game.quit_game()
 		return
+	if only == "magia":
+		await _tour_magic()
+		Game.quit_game()
+		return
 	if only == "guarda":
 		await _tour_guard()
 		Game.quit_game()
@@ -1587,6 +1591,27 @@ func _tour_creation() -> void:
 	await shot("c05_no_jogo")
 	level.queue_free()
 	Game.reset_progress()
+
+
+## v0.50: o sistema de magia (bola de fogo no ar, a explosão, o botão Magia).
+func _tour_magic() -> void:
+	Game.reset_progress()
+	for id in ["bola_de_fogo", "explosao_curta", "escudo_de_geada"]:
+		Game.add_item(id)
+	Game.equip_spell("bola_de_fogo")
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/cidade.tscn") as Level
+	await wait(3.0)
+	level.player._iframes_left = 9999.0
+	level.player.facing = Vector2.RIGHT
+	level.player._start_cast()
+	await wait(0.62)
+	await shot("m01_bola_de_fogo")
+	Game.equip_spell("explosao_curta")
+	level.player.stats.restore_stamina(999.0)
+	level.player._start_cast()
+	await wait(0.64)
+	await shot("m02_explosao")
 
 
 func _tour_guard() -> void:

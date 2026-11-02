@@ -42,6 +42,8 @@ signal saved
 signal flags_changed
 ## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
 signal weapon_changed(id: String)
+## v0.50: a magia equipada mudou ("" = nenhuma).
+signal spell_changed(id: String)
 ## Vestiu ou tirou uma peça de armadura (o herói recalcula vida e velocidade).
 signal armor_changed
 
@@ -165,6 +167,8 @@ var left_hand := ""
 var two_handing := false
 ## Arma na mão direita (id do catálogo; sempre uma arma que você tem).
 var equipped_weapon := START_WEAPON
+## v0.50 (Etapa 10): a magia que o botão Magia lança ("" = nenhuma).
+var equipped_spell := ""
 ## Armadura vestida: espaço do corpo ("capacete"...) → id da peça ("" = nada).
 var armor := {}
 ## NG+ (v0.27): 0 = a primeira jornada; 1 = NG+, 2 = NG++...
@@ -300,6 +304,7 @@ func reset_progress() -> void:
 	inventory = {}
 	weapon_level = 0
 	equipped_weapon = START_WEAPON
+	equipped_spell = ""
 	left_hand = ""
 	two_handing = false
 	armor = _empty_armor()
@@ -1308,6 +1313,19 @@ func _copies_free(id: String, hand: String) -> int:
 ## Equipa uma arma numa mão ("direita" ou "esquerda").
 ## Sem uma cópia sobrando, a arma MUDA de mão: sai da esquerda e vai para a
 ## direita. A direita nunca fica vazia (o golpe precisa de uma arma).
+## v0.50: equipa (ou guarda, se já é ela) uma magia que você tem.
+func equip_spell(id: String) -> bool:
+	if id.is_empty() or equipped_spell == id:
+		equipped_spell = ""
+	elif item_count(id) > 0 and Items.get_item(id) is SpellData:
+		equipped_spell = id
+	else:
+		return false
+	spell_changed.emit(equipped_spell)
+	save_game()
+	return true
+
+
 func equip_weapon(id: String, hand: String = "direita") -> bool:
 	if not owns_weapon(id):
 		return false
@@ -1592,6 +1610,7 @@ func _to_dict() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"memories": memories,
+		"magia_equipada": equipped_spell,
 		"deaths": deaths,
 		"vision_loss": vision_loss,
 		"sanity_flasks": sanity_flasks,
@@ -1672,6 +1691,9 @@ func _from_dict(data: Dictionary) -> void:
 	guardian = (saved_guardian as Dictionary).duplicate(true) if saved_guardian is Dictionary else {}
 	starter_sword = bool(data.get("espada_inicial", true))
 	chosen_weapon = str(data.get("arma_escolhida", ""))
+	equipped_spell = str(data.get("magia_equipada", ""))
+	if not equipped_spell.is_empty() and item_count(equipped_spell) <= 0:
+		equipped_spell = ""
 	player_name = str(data.get("nome", ""))
 	var saved_state: Variant = data.get("estado_mundo", {})
 	world_state = (saved_state as Dictionary).duplicate(true) if saved_state is Dictionary else {}

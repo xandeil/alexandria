@@ -44,13 +44,13 @@ signal grab_progress(taps: int, taps_needed: int)
 ## Durgan conta isso durante a luta e, na fase 2, copia o que você mais usou.
 signal action_used(action: StringName)
 
-enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED, PARRY, CRITICAL }
+enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED, PARRY, CRITICAL, CAST }
 
 ## Ações de comando (o movimento fica de fora: andar logo após o diálogo é normal).
-const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &"heal", &"sanity", &"block", &"special"]
+const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &"heal", &"sanity", &"block", &"special", &"cast"]
 ## Estados "com os pés no chão": só neles dá para cair num buraco. No DASH o herói
 ## está no ar — é assim que se atravessa um buraco.
-const GROUNDED_STATES := [State.FREE, State.ATTACK, State.HEAL, State.SANITY, State.STAGGER, State.BLOCK, State.SLEEP]
+const GROUNDED_STATES := [State.FREE, State.ATTACK, State.HEAL, State.SANITY, State.STAGGER, State.BLOCK, State.SLEEP, State.CAST]
 
 ## Ângulo da espada em repouso (abaixada, apontando para frente e para baixo).
 const IDLE_SWORD_ANGLE := 1.15
@@ -481,6 +481,7 @@ func _physics_process(delta: float) -> void:
 	_state_time += delta
 	_anim_time += delta
 	_chill_left = maxf(_chill_left - delta, 0.0)
+	_barrier_left = maxf(_barrier_left - delta, 0.0)
 	on_ice = Ice.is_slippery(self)
 	_combo_grace = maxf(_combo_grace - delta, 0.0)
 	_iframes_left = maxf(_iframes_left - delta, 0.0)
@@ -513,6 +514,8 @@ func _physics_process(delta: float) -> void:
 			_state_parry(delta)
 		State.CRITICAL:
 			_state_critical(delta)
+		State.CAST:
+			_state_cast(delta)
 		State.LOCKED, State.DEAD:
 			velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 
@@ -599,6 +602,8 @@ func _read_input(delta: float) -> void:
 		_buffer(&"left_light")
 	if _just_pressed(&"special"):
 		_buffer(&"l2")
+	if _just_pressed(&"cast"):
+		_buffer(&"cast")  # v0.50: a magia equipada
 	if _just_pressed(&"interact"):
 		_buffer(&"interact")  # ✕ no controle / F no teclado: só conversa e examina
 	if _buffer_left > 0.0:
@@ -721,6 +726,8 @@ func _consume_buffer(allow_heal: bool = true) -> void:
 				_start_heal()
 		&"sanity":
 			_start_sanity()
+		&"cast":
+			_start_cast()
 		&"interact":
 			if _interactable != null:
 				_interactable.interact(self)
@@ -1286,6 +1293,59 @@ func _state_dash(delta: float) -> void:
 
 # --- Frascos ----------------------------------------------------------------------------
 
+# --- v0.50 (Etapa 10): MAGIA ---------------------------------------------------------
+## Botão Magia: o herói para, brilha (cast_time) e solta a magia equipada. Gasta
+## estamina ao começar (mesma regra dos golpes: sem estamina, não sai). Levar um
+## golpe no preparo (STAGGER) desperdiça a estamina — risco e recompensa.
+## O QUE a magia faz mora no SpellCaster; aqui só o estado.
+
+var _cast_spell: SpellData
+var _cast_direction := Vector2.RIGHT
+var _barrier_left := 0.0
+var _barrier_ratio := 1.0
+var _barrier_color := Color.WHITE
+
+signal spell_cast(spell_id: String)
+
+
+func _start_cast() -> bool:
+	var spell := Items.get_item(Game.equipped_spell) as SpellData if not Game.equipped_spell.is_empty() else null
+	if spell == null:
+		return false
+	if not stats.try_spend_stamina(spell.stamina_cost):
+		stamina_denied.emit()
+		return false
+	_cast_spell = spell
+	_cast_direction = _aim_direction()
+	facing = _cast_direction
+	_set_state(State.CAST)
+	Fx.flash(body_sprite, spell.cast_time, spell.color)
+	return true
+
+
+func _state_cast(delta: float) -> void:
+	velocity = velocity.move_toward(Vector2.ZERO, _brake() * delta)
+	if not _effect_applied and _state_time >= _cast_spell.cast_time:
+		_effect_applied = true
+		SpellCaster.release(_cast_spell, self, _cast_direction)
+		spell_cast.emit(_cast_spell.id)
+		action_used.emit(&"magia")
+	if _state_time >= _cast_spell.cast_time + 0.25:
+		_set_state(State.FREE)
+
+
+## Barreira: por "seconds", só "ratio" do dano entra.
+func raise_barrier(ratio: float, seconds: float, color: Color) -> void:
+	_barrier_ratio = clampf(ratio, 0.0, 1.0)
+	_barrier_left = seconds
+	_barrier_color = color
+	Fx.flash(body_sprite, 0.3, color)
+
+
+func barrier_active() -> bool:
+	return _barrier_left > 0.0
+
+
 func _start_heal() -> bool:
 	if health_flasks <= 0 or stats.health >= stats.max_health:
 		return false
@@ -1342,6 +1402,8 @@ func _on_hit_received(info: HitInfo) -> void:
 		# NG+ e áreas difíceis batem mais forte; a ARMADURA (v0.34) reduz cada
 		# tipo de dano pela sua defesa — tudo numa conta só, numa cópia do golpe.
 		var factor := harder * (1.0 - Game.armor_defense(info.damage_type))
+		if _barrier_left > 0.0:
+			factor *= _barrier_ratio  # v0.50: barreira (Escudo de Geada, Barreira)
 		if not is_equal_approx(factor, 1.0):
 			info = info.scaled(factor)
 	if state == State.BLOCK and _can_block(info):

@@ -13,7 +13,7 @@ extends CanvasLayer
 
 signal closed
 
-const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Materiais", "Lembranças"]
+const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Magias", "Materiais", "Lembranças"]
 const SLOT := 30
 const COLUMNS := 5
 const GOLD_LINE := Color(0.62, 0.52, 0.32, 0.55)
@@ -338,6 +338,8 @@ func entries(tab: int = -1) -> Array[Dictionary]:
 		"Frascos":
 			result.append({"id": "frasco_vida", "count": _health_flasks()})
 			result.append({"id": "frasco_sanidade", "count": Game.sanity_flasks})
+		"Magias":  # v0.50
+			result.append_array(_items_of(ItemData.Kind.MAGIA))
 		"Materiais":
 			result.append_array(_items_of(ItemData.Kind.MATERIAL))
 		"Lembranças":
@@ -526,6 +528,9 @@ func _select(item_id: String) -> void:
 	if item is ArmorData:
 		_show_armor(item as ArmorData)
 		return
+	if item is SpellData:
+		_show_spell(item as SpellData)
+		return
 	_detail_kind.text = ItemData.KIND_NAMES[item.kind]
 	match item_id:
 		"frasco_vida":
@@ -536,6 +541,18 @@ func _select(item_id: String) -> void:
 			_detail_stats.text = "Equipado" if Game.shield_equipped() else "Guardado"
 		_:
 			_detail_stats.text = "" if item.max_stack == 1 else "x%d" % Game.item_count(item_id)
+
+
+## v0.50: a ficha de uma magia (escola, forma, custo, poder agora).
+func _show_spell(spell: SpellData) -> void:
+	_detail_kind.text = "%s%s" % [spell.school_name(), "  ·  equipada" if Game.equipped_spell == spell.id else ""]
+	var power := spell.power
+	if is_instance_valid(_player):
+		power = SpellCaster.power_of(spell, _player)
+	var what := "Cura" if spell.form == "cura" else ("Proteção" if spell.form == "barreira" else "Dano")
+	_detail_stats.text = "Estamina  %d\n%s  %d" % [spell.stamina_cost, what, power] if spell.form != "barreira" \
+		else "Estamina  %d\nBarreira  %d s" % [spell.stamina_cost, spell.duration]
+	_detail_skill.text = "Botão Magia: lançar. Cresce com %s." % ("Fé" if spell.school == "milagre" else "Magia")
 
 
 func _show_weapon(weapon: WeaponData) -> void:
@@ -619,6 +636,9 @@ func _activate(item_id: String) -> void:
 	elif item_id == "escudo_remendado":
 		Game.set_shield_equipped(not Game.shield_equipped())
 		Sfx.play(&"shield_up", -4.0)
+	elif Items.get_item(item_id) is SpellData:
+		Game.equip_spell(item_id)  # apertar a equipada = guardar
+		Sfx.play(&"chime", -6.0)
 	elif Items.get_armor(item_id):
 		if Game.is_armor_equipped(item_id):
 			Game.unequip_armor(Items.get_armor(item_id).slot)  # apertar a vestida = tirar

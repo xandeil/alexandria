@@ -145,6 +145,8 @@ func _ready() -> void:
 		"test_galeno_shield_boss",
 		"test_damiao_shop",
 		"test_damiao_trips_and_backpack",
+		"test_spell_projectile_and_area",
+		"test_spell_heal_barrier_and_menu",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -1850,6 +1852,85 @@ func test_damiao_trips_and_backpack() -> void:
 	var scene_lines: Array = DialogueData.get_entry("reencontro_avelar")["cena"]
 	check(scene_lines.size() == 6 and DialogueData.get_entry("reencontro_avelar")["acao"] == "flag:irmaos_avelar_reencontrados", "seis falas e a flag")
 	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.50 (Etapa 10): o sistema de magia — equipar, lançar, gastar estamina, acertar.
+func test_spell_projectile_and_area() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 999.0
+	await frames(2)
+	check(not player._start_cast(), "sem magia equipada, o botão não faz nada")
+	Game.add_item("bola_de_fogo")
+	check(Game.equip_spell("bola_de_fogo") and Game.equipped_spell == "bola_de_fogo", "equipou a Bola de Fogo")
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(270, 200))
+	soldier.set_physics_process(false)
+	await frames(2)
+	var hp := soldier.stats.health
+	var stamina := player.stats.stamina
+	player.facing = Vector2.RIGHT
+	check(player._start_cast() and player.state == Player.State.CAST, "Magia: o herói para e prepara")
+	check(player.stats.stamina < stamina, "gasta estamina")
+	await seconds(1.2)
+	check(soldier.stats.health < hp, "a bola de fogo acerta (%.0f → %.0f)" % [hp, soldier.stats.health])
+	check(player.state == Player.State.FREE, "depois, o controle volta")
+	# Área: tudo em volta.
+	Game.add_item("explosao_curta")
+	Game.equip_spell("explosao_curta")
+	soldier.global_position = player.global_position + Vector2(0, 24)
+	hp = soldier.stats.health
+	player.stats.restore_stamina(999.0)
+	player._start_cast()
+	await seconds(0.9)
+	check(soldier.stats.health < hp, "Explosão Curta acerta quem está em volta")
+	# Sem estamina, não sai.
+	player.stats.drain_stamina(999.0)
+	check(not player._start_cast(), "sem estamina, a magia não sai")
+	# Escala: Fé para milagres, Magia para feitiços e piromancias.
+	var spear := Items.get_item("lanca_de_raio") as SpellData
+	var base := SpellCaster.power_of(spear, player)
+	player.stats.fe += 10
+	check(SpellCaster.power_of(spear, player) > base and spear.scaling_attribute() == "fe", "milagre cresce com Fé")
+	soldier.queue_free()
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_spell_heal_barrier_and_menu() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	Game.add_item("milagre_cura")
+	Game.equip_spell("milagre_cura")
+	player.stats.take_damage(80.0)
+	var hp := player.stats.health
+	player._start_cast()
+	await seconds(1.3)
+	check(player.stats.health > hp, "Cura: a vida sobe")
+	Game.add_item("escudo_de_geada")
+	Game.equip_spell("escudo_de_geada")
+	player.stats.restore_stamina(999.0)
+	player._start_cast()
+	await seconds(0.9)
+	check(player.barrier_active(), "Escudo de Geada: a barreira sobe")
+	hp = player.stats.health
+	var hit := HitInfo.create(40.0, player.global_position + Vector2(20, 0), player.global_position)
+	player.hurtbox.receive_hit(hit)
+	check(is_equal_approx(hp - player.stats.health, 20.0), "metade do golpe fica no gelo (%.0f)" % (hp - player.stats.health))
+	check(Game.equip_spell("escudo_de_geada") and Game.equipped_spell == "", "apertar de novo guarda a magia")
+	# A aba Magias do inventário.
+	var menu := InventoryMenu.new()
+	add_child(menu)
+	await frames(2)
+	var tab := InventoryMenu.TABS.find("Magias")
+	var ids := menu.entries(tab).map(func(e): return e["id"])
+	check(tab >= 0 and ids.has("milagre_cura") and ids.has("escudo_de_geada"), "a aba Magias lista as suas magias")
+	menu.queue_free()
+	check(Items.get_item("bola_de_fogo") is SpellData and Game.sell_price("bola_de_fogo") == 0, "magia é item (não se vende)")
+	player.queue_free()
 	await frames(2)
 	Game.reset_progress()
 
@@ -4990,8 +5071,8 @@ func test_inventory_menu() -> void:
 	check(ids == ["espada", "pilar_estilhacada", Game.FISTS], "aba Armas (punhos no fim): %s" % [ids])
 	check(menu.entries(1).map(func(e): return e["id"]) == ["escudo_remendado"], "aba Escudos")
 	check(menu.entries(3).map(func(e): return e["id"]) == ["frasco_vida", "frasco_sanidade"], "aba Frascos")
-	check(menu.entries(4).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
-	check(menu.entries(5).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
+	check(menu.entries(InventoryMenu.TABS.find("Materiais")).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
+	check(menu.entries(InventoryMenu.TABS.find("Lembranças")).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
 	check(get_viewport().gui_get_focus_owner() in menu._slots, "o foco começa na grade (controle)")
 	# Ficha da arma: letras de escala e habilidade.
 	menu._select("pilar_estilhacada")
@@ -5010,7 +5091,7 @@ func test_inventory_menu() -> void:
 	menu._activate("escudo_remendado")
 	await frames(1)
 	check(not Game.shield_ready(), "guardou o escudo pelo menu")
-	menu.set_tab(5)
+	menu.set_tab(InventoryMenu.TABS.find("Lembranças"))
 	menu._select("lembranca_aldir")
 	check(menu._detail_text.text.contains("impotência"), "lembrança mostra a lore")
 	hud.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)

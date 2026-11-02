@@ -13,6 +13,7 @@ enum Kind {
 	MATERIAL,     ## Sucata, fragmentos: trocados com o Ferreiro e o Orbe.
 	LEMBRANCA,    ## Itens-chave de lore: não servem para nada além de lembrar.
 	ARMADURA,     ## Capacete, peitoral, luvas, calça, botas (ArmorData).
+	MAGIA,        ## v0.50: feitiços, piromancias e milagres (SpellData).
 }
 
 const KIND_NAMES := {
@@ -21,6 +22,7 @@ const KIND_NAMES := {
 	Kind.MATERIAL: "Materiais",
 	Kind.LEMBRANCA: "Lembranças",
 	Kind.ARMADURA: "Armadura",
+	Kind.MAGIA: "Magias",
 }
 
 @export var id := ""

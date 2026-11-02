@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/escudo_de_geada.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "escudo_de_geada"
+display_name = "Escudo de Geada"
+description = "Uma casca de gelo fino. Metade do golpe fica nela."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "feitico"
+form = "barreira"
+damage_type = "gelo"
+stamina_cost = 30.0
+cast_time = 0.5
+power = 0.0
+barrier_ratio = 0.5
+duration = 8.0
+color = Color(0.75, 0.92, 1, 1)

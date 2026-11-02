@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/lanca_de_raio.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lanca_de_raio"
+display_name = "Lança de Raio"
+description = "O raio é resposta. Nem sempre a que a gente pediu."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "milagre"
+form = "projetil"
+damage_type = "raio"
+stamina_cost = 28.0
+cast_time = 0.55
+power = 52.0
+reach = 220.0
+projectile_speed = 320.0
+color = Color(0.95, 0.9, 0.5, 1)

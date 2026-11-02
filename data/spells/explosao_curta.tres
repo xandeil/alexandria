@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/explosao_curta.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "explosao_curta"
+display_name = "Explosão Curta"
+description = "Tudo em volta pega fogo por um instante."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "piromancia"
+form = "area"
+damage_type = "fogo"
+stamina_cost = 30.0
+cast_time = 0.55
+power = 56.0
+reach = 40.0
+poise_damage = 40.0
+knockback = 200.0
+color = Color(1, 0.6, 0.25, 1)

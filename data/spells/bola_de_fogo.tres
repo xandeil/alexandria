@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/bola_de_fogo.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "bola_de_fogo"
+display_name = "Bola de Fogo"
+description = "Fogo da rua do Cícero. Não balança."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "piromancia"
+form = "projetil"
+damage_type = "fogo"
+stamina_cost = 24.0
+cast_time = 0.5
+power = 48.0
+reach = 180.0
+projectile_speed = 200.0
+color = Color(1, 0.55, 0.2, 1)

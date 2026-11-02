@@ -15,6 +15,8 @@ signal landed(at: Vector2, parent: Node)
 const BOLT := &"virote"
 const ARROW := &"flecha"
 const POLLEN := &"polen"
+## v0.50: uma magia (bola de fogo, projétil arcano, lança de raio): esfera de luz.
+const SPELL := &"magia"
 const HURTBOX_MASK := 16  # mesma camada que a hitbox do herói procura
 const WORLD_MASK := 1
 
@@ -26,6 +28,10 @@ var poise_damage := 12.0
 var knockback := 70.0
 var max_distance := 220.0
 var source: Node2D
+## Magia: a cor, o tipo de dano e o nome do golpe.
+var color := Color(0.6, 0.8, 1.0)
+var damage_type := "fisico"
+var attack_name := ""
 
 var _traveled := 0.0
 var _done := false
@@ -45,15 +51,18 @@ static func fire(parent: Node, from: Vector2, dir: Vector2, owner_node: Node2D, 
 		shot.speed = 240.0  # flecha: um pouco mais lenta, dá para ver o arco
 	parent.add_child(shot)
 	shot.global_position = from
-	Sfx.play(&"swing", -4.0)
+	if shot_kind != SPELL:
+		Sfx.play(&"swing", -4.0)
 	return shot
 
 
 func _ready() -> void:
 	z_index = 6
 	_shape.radius = 4.0
-	if kind == POLLEN:
+	if kind == POLLEN or kind == SPELL:
 		material = Fx.unshaded
+	if kind == SPELL:
+		_shape.radius = 6.0
 
 
 func _physics_process(delta: float) -> void:
@@ -93,7 +102,8 @@ func _try_hit(space: PhysicsDirectSpaceState2D) -> bool:
 		var info := HitInfo.create(damage, global_position - direction * 8.0, target.global_position)
 		info.poise_damage = poise_damage
 		info.knockback = knockback
-		info.attack_name = {BOLT: "Virote", ARROW: "Flecha", POLLEN: "Flecha de pólen"}[kind]
+		info.attack_name = attack_name if not attack_name.is_empty() else {BOLT: "Virote", ARROW: "Flecha", POLLEN: "Flecha de pólen"}.get(kind, "Magia")
+		info.damage_type = damage_type
 		info.source = source
 		if target.receive_hit(info):
 			struck.emit(target, info)
@@ -106,7 +116,7 @@ func _try_hit(space: PhysicsDirectSpaceState2D) -> bool:
 func _finish(spark: bool) -> void:
 	_done = true
 	if spark:
-		Fx.sparks(global_position + Vector2(0, -7), -direction, Color(1.0, 0.9, 0.6), 5)
+		Fx.sparks(global_position + Vector2(0, -7), -direction, color if kind == SPELL else Color(1.0, 0.9, 0.6), 5)
 	landed.emit(global_position, get_parent())
 	queue_free()
 
@@ -124,3 +134,7 @@ func _draw() -> void:
 		POLLEN:
 			draw_line(lift + back, lift, Color(0.62, 0.48, 0.34), 1.0)
 			draw_circle(lift, 2.5, Color(1.0, 0.9, 0.45, 0.9))
+		SPELL:
+			draw_circle(lift + back * 0.6, 2.0, Color(color, 0.35))
+			draw_circle(lift, 4.0, Color(color, 0.55))
+			draw_circle(lift, 2.2, Color(1, 1, 1, 0.95))
