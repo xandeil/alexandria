@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Chicotada de volta"
+stamina_cost = 20.0
+damage = 26.0
+poise_damage = 18.0
+knockback = 90.0
+is_heavy = false
+windup_time = 0.22
+lunge_speed = 60.0
+lunge_time = 0.05
+active_time = 0.1
+recovery_time = 0.34
+combo_window = 0.14
+active_during_lunge = false
+track_until = 0.6
+reach = 22.0
+radius = 16.0
+hitstop = 0.05
+shake = 1.5
+slash_arc_degrees = 140.0
+slash_radius = 34.0
+slash_color = Color(0.8, 0.8, 0.85, 0.9)
+sound = &"swing"
+scaling_attribute = "nenhum"
+scaling_per_point = 0.0
+parryable = false

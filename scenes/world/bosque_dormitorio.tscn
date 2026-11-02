@@ -1,0 +1,40 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/bosque_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Dormitorio" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/bosque_dormitorio.txt"
+pickups = Array[Dictionary]([{"cell": Vector2i(16, 9), "item": "botao_musgo"}])
+area_name = "Dormitório Sob o Musgo"
+area_subtitle = "As camas estão feitas. Quem dormia nelas ainda dorme."
+theme = "bosque"
+ambience = &"amb_forest"
+darkness = Color(0.58, 0.62, 0.66, 1)
+exit_scene = "res://scenes/world/bosque.tscn"
+exit_spawn = "lateral"
+exits = Array[Dictionary]([{"cell": Vector2i(35, 17), "scene": "res://scenes/world/bosque_borda.tscn", "spawn": "raiz", "requires": "flag:atalho_raiz", "locked_dialogue": "raiz_trancada", "arrival": "raiz"}])
+traps = Array[Dictionary]([{"kind": "flor", "cells": Array[Vector2i]([Vector2i(8, 10), Vector2i(12, 13), Vector2i(15, 9), Vector2i(17, 12), Vector2i(30, 12), Vector2i(38, 10)])}])
+exit2_scene = "res://scenes/world/bosque_borda.tscn"
+exit2_spawn = "porta"
+exit2_requires = "vigia|flag:vigia_evitado"
+exit2_locked_dialogue = "dormitorio_porta_fechada"
+lore_points = {"1": "cama_quente"}
+people = Array[Dictionary]([{"cell": Vector2i(9, 12), "dialogue": "tiao_bosque_dormitorio", "name": "Tião", "texture": "res://assets/sprites/tiao_npc.png", "frames": 2}, {"cell": Vector2i(9, 7), "dialogue": "amaro_bosque", "name": "Amaro", "texture": "res://assets/sprites/amaro_npc.png", "frames": 2}])
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

@@ -78,6 +78,11 @@ const THEME_ENTITIES := {
 		"?": {"enemy": preload("res://scenes/enemies/larva_seiva.tscn"), "swarm": 3},
 		"U": {"miniboss": "banqueteiro", "scene": preload("res://scenes/bosses/banqueteiro.tscn")},
 		"0": {"miniboss": "ninhada", "scene": preload("res://scenes/bosses/ninhada.tscn")},
+		# v0.35: a Mãe Faminta (a Mãe dos Esporos reaproveitada) e Socorro, opcional.
+		"E": {"enemy": preload("res://scenes/bosses/mae_faminta.tscn")},  # inimiga comum forte (renasce)
+		"N": {"miniboss": "socorro", "scene": preload("res://scenes/bosses/socorro.tscn")},
+		# v0.52 (Etapa 11): o Pitoco, no fundo da Toca.
+		"!": {"miniboss": "pitoco", "scene": preload("res://scenes/bosses/pitoco.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/mabel.tscn"), "memorial": {"dialogue": "mesa_de_mabel",
 			"name": "Mesa posta", "texture": "res://assets/props/mabel_table.png"}},
 	},
@@ -88,6 +93,8 @@ const THEME_ENTITIES := {
 		"?": {"enemy": preload("res://scenes/enemies/imitador.tscn")},
 		"U": {"miniboss": "prototipo", "scene": preload("res://scenes/bosses/prototipo.tscn")},
 		"0": {"miniboss": "guardiao_ancora", "scene": preload("res://scenes/bosses/guardiao_ancora.tscn")},
+		# v0.35: a Dançarina de Engrenagem, opcional, no salão de cima.
+		"N": {"miniboss": "dancarina", "scene": preload("res://scenes/bosses/dancarina.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/durgan.tscn"), "memorial": {"dialogue": "chave_de_durgan",
 			"name": "Chave-martelo", "texture": "res://assets/sprites/durgan_chave.png", "rotation": -0.5,
 			"at_death": true}},
@@ -99,6 +106,9 @@ const THEME_ENTITIES := {
 		"?": {"enemy": preload("res://scenes/enemies/brasa_viva.tscn"), "swarm": 2},
 		"U": {"miniboss": "capitao", "scene": preload("res://scenes/bosses/capitao_dragonoide.tscn")},
 		"0": {"miniboss": "matriarca", "scene": preload("res://scenes/bosses/matriarca_bestial.tscn")},
+		# v0.35: a Couraça Queimada (inimiga comum forte) e O Último Igual (opcional).
+		"E": {"enemy": preload("res://scenes/bosses/couraca_queimada.tscn")},
+		"N": {"miniboss": "ultimo_igual", "scene": preload("res://scenes/bosses/ultimo_igual.tscn")},
 		"/": {"boss": preload("res://scenes/bosses/rachel.tscn"), "memorial": {"dialogue": "escama_de_rachel",
 			"name": "Escama do Orgulho", "texture": "res://assets/props/scale_memorial.png", "at_death": true}},
 	},
@@ -113,6 +123,9 @@ const THEME_ENTITIES := {
 			"texture": "res://assets/props/lore_book.png", "prompt": "Ler"}},
 		"/": {"boss": preload("res://scenes/bosses/cassian.tscn"), "memorial": {"dialogue": "cajado_de_cassian",
 			"name": "Cajado do Arconte", "texture": "res://assets/props/arconte_staff.png", "at_death": true}},
+		# v0.35: o Protótipo numa vitrine (inimigo comum) e o Mestre do Arconte (opcional).
+		"E": {"enemy": preload("res://scenes/bosses/prototipo_vitrine.tscn")},
+		"N": {"miniboss": "mestre_arconte", "scene": preload("res://scenes/bosses/mestre_arconte.tscn")},
 		# O Estudioso: preso no gelo até a Curadora cair (aí, a mesma pessoa, livre).
 		"!": {"npc": {"dialogue": "estudioso", "name": "Estudioso", "texture": "res://assets/sprites/estudioso_congelado.png",
 			"freed_by": "curadora", "freed_texture": "res://assets/sprites/estudioso.png"}},
@@ -126,23 +139,23 @@ const THEME_ENTITIES := {
 			"texture": "res://assets/sprites/mulher_nucleo.png", "frames": 2, "group": "nucleo_core",
 			"prompt": "Aproximar"}},
 	},
-	"cidade": {
-		# O marido de Helena, sem memória (Bíblia: "O jogador o encontra na Cidade
-		# Estilhaçada, tentando proteger os Civis Cinzentos").
-		"!": {"npc": {"dialogue": "guarda_cidade", "name": "Guarda de cabelo branco",
-			"texture": "res://assets/sprites/guarda_npc.png", "unless_flag": "guarda_conhecido"}},
+	"bosque": {
+		# v0.35: o Sino de Despertar, opcional, na sala escondida.
+		"N": {"miniboss": "sino", "scene": preload("res://scenes/bosses/sino_despertar.tscn")},
 	},
-	"teatro": {
-		# Depois de conhecê-lo, ele aparece no Teatro (e conta um pedaço por ilha).
-		"!": {"npc": {"dialogue": "guarda", "name": "Guarda de cabelo branco",
-			"texture": "res://assets/sprites/guarda_npc.png", "if_flag": "guarda_conhecido",
-			"unless_flag": "guarda_sacrificado", "group": "guarda_npc",
-			"instead": {"dialogue": "posto_vazio", "name": "Posto vazio", "texture": "res://assets/props/posto_vazio.png",
-				"prompt": "Examinar"}}},
+	"cidade": {
+		# v0.35: o Corneteiro, opcional, no alto da Torre.
+		"U": {"miniboss": "corneteiro", "scene": preload("res://scenes/bosses/corneteiro.tscn")},
 	},
 }
 ## Cenário próprio de cada ilha (mesma ideia): sobrepõe PROPS.
 const THEME_PROPS := {
+	# v0.46 (Etapa 8): o Teatro em ruínas (teatro_ruinas.txt).
+	"teatro": {
+		"[": {"tex": "res://assets/props/camarote_caido.png", "box": Vector2(20, 6)},
+		"]": {"tex": "res://assets/props/lustre_caido.png", "box": Vector2(26, 6)},
+		"(": {"tex": "res://assets/props/cortina_rasgada.png"},
+	},
 	"raizes": {
 		"(": {"tex": "res://assets/props/root_tangle.png", "box": Vector2(14, 7)},
 		")": {"tex": "res://assets/props/flesh_pod.png", "frames": 2, "fps": 1.6},
@@ -445,6 +458,58 @@ const PROPS := {
 @export var exit4_spawn := ""
 @export var exit4_requires := ""
 @export var exit4_locked_dialogue := ""
+## v0.31 — SAÍDAS EM LISTA (sem o limite de 4 do exit2/3/4, que continuam valendo).
+## Cada uma: {"cell": Vector2i(x, y), "scene": "res://...", "spawn": "porta",
+##   "requires": "flag:atalho_tunel", "locked_dialogue": "tunel_trancado", "arrival": "tunel"}
+## "requires" aceita tudo que Game.requirement_met entende (chefe, flag, item, estado...).
+## "arrival" é o nome do ponto onde quem CHEGA por esta saída aparece.
+@export var exits: Array[Dictionary] = []
+## Força dos inimigos comuns desta área (vida e dano). Mapa livre: as áreas
+## difíceis ficam difíceis mesmo para quem chega cedo. 1.0 = normal.
+@export var enemy_power := 1.0
+## v0.31 — ZONAS: retângulos do mapa (em tiles) com regras para os inimigos de dentro.
+## {"id": "alarme_quartel", "rect": Rect2i(10, 4, 8, 6),
+##  "requires": "!flag:corneteiro_morto",   (o grupo só nasce se a condição valer)
+##  "triggers": [Vector2i(12, 9)]}         (fio de alarme: chama a zona inteira)
+@export var zones: Array[Dictionary] = []
+## v0.31 — OBJETOS COM ESTADO (WorldObject): alavanca, baú, porta de atalho.
+## {"kind": "bau", "cell": Vector2i(5, 3), "key": "bau_cidade_1", "item": "anel_x"}
+@export var objects: Array[Dictionary] = []
+## v0.31 — ARMADILHAS PERIÓDICAS (PeriodicTrap): marteletes, fendas de lava...
+## {"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}
+@export var traps: Array[Dictionary] = []
+## v0.31 — ENFEITES soltos (sem caractere no mapa): {"cell": Vector2i(x, y),
+## "texture": "res://assets/props/x.png"} e, se der para Examinar,
+## "dialogue": "id" e "name": "Nome". Ex.: os avisos sem texto do mapa livre.
+@export var decor: Array[Dictionary] = []
+## v0.33 — Câmaras EXTRAS (a "C" do mapa é sempre a 1ª, ponto "camara"; estas
+## viram "camara_2", "camara_3"... na ordem da lista). Em tiles.
+@export var extra_capsules: Array[Vector2i] = []
+## v0.34 — ITENS SOLTOS por célula (sem "@" no mapa, sem mexer na ordem do
+## item_points): {"cell": Vector2i(x, y), "item": "botas_detentor", "count": 1}.
+## Pegos uma vez, não voltam (chave "<área>@x,y" no save, como os do "@").
+@export var pickups: Array[Dictionary] = []
+## v0.35 — CHÃO QUE DESABA durante a luta de um mini-chefe (CollapsingFloor):
+## {"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}
+@export var collapse_fights: Array[Dictionary] = []
+## v0.35 — VITRINES QUE FECHAM (Domínio): parado por estes segundos, o gelo
+## fecha em volta (StillTrap). 0 = desligado.
+@export var still_trap := 0.0
+## v0.42 — GENTE no mapa sem gastar letra (Etapa 7): NPCs por célula, com as
+## mesmas chaves dos NPCs de tema. Ex.: {"cell": Vector2i(30, 4),
+## "dialogue": "lucia_ponte", "name": "Lúcia", "texture": "res://...png", "frames": 2}
+## (aparece_quando / some_quando vêm do dialogos.json, como sempre).
+@export var people: Array[Dictionary] = []
+## v0.46 — SEGUNDA VERSÃO DO MAPA: com esta flag ligada, o .txt usado é
+## ruins_layout (o Teatro depois da explosão: teatro_ruinas.txt).
+@export_file("*.txt") var ruins_layout := ""
+## v0.52 — memórias que se perdem por segundo enquanto o herói está aqui
+## (a Toca do Pitoco: "perde memórias aos poucos").
+@export var memory_drain := 0.0
+## v0.52 — O BURACO DOS GRITOS (Varanda das Raízes): célula do buraco. Depois do
+## 4º encontro com o Amaro (amaro_4), chegar perto dispara a armadilha.
+@export var trap_hole := Vector2i(-1, -1)
+@export var ruins_flag := ""
 ## Pontos de inspeção do mapa: dígito → id da fala em data/dialogos.json.
 ## Ex.: {"1": "terminal"} — o "1" do .txt vira algo que dá para Examinar.
 @export var lore_points := {}
@@ -472,6 +537,9 @@ var hud: HUD
 var spawns := {}
 var boss_arena: BossArena
 var rest_chamber: RestChamber
+## Todas as Câmaras desta área, na ordem de leitura do mapa (v0.33: até duas
+## por ilha). A 1ª é o ponto "camara"; a 2ª, "camara_2".
+var rest_chambers: Array[RestChamber] = []
 
 var _grid: Array[String] = []
 var _width := 0
@@ -523,9 +591,79 @@ func build() -> void:
 	for y in range(-1, _height + 2):
 		for x in range(-1, _width + 1):
 			_build_cell(x, y, _char_at(x, y), tiles)
-	canvas_modulate.color = darkness
+	_build_listed()
+	canvas_modulate.color = darkness * Color(0.62, 0.62, 0.72) if _city_put_out() else darkness
 	if outdoor:
 		_add_sky()
+
+
+## As listas do Inspector (v0.31): saídas extras, objetos, armadilhas, alarmes.
+func _build_listed() -> void:
+	for cell in extra_capsules:
+		_add_rest_chamber(cell.x, cell.y, _cell_feet(cell.x, cell.y))
+	for def in exits:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		_add_side_exit(cell.x, cell.y, str(def.get("scene", "")), str(def.get("spawn", "")),
+			str(def.get("requires", "")), str(def.get("locked_dialogue", "")), str(def.get("arrival", "saida_%d,%d" % [cell.x, cell.y])),
+			str(def.get("opens", "")))
+	if Engine.is_editor_hint():
+		return
+	for def in objects:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		if str(def.get("kind", "")) == "mimico":
+			# O mímico é um INIMIGO com cara de baú; vencido, não volta nunca.
+			if not Game.world_flag(str(def.get("key", ""))):
+				Mimico.spawn(entities, def, _cell_feet(cell.x, cell.y))
+			continue
+		WorldObject.spawn(entities, def, _cell_feet(cell.x, cell.y))
+	if still_trap > 0.0:
+		StillTrap.attach(self, still_trap)
+	for def in people:
+		var person_cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		var person := def.duplicate()
+		person.erase("cell")
+		_build_theme_entity({"npc": person}, person_cell.x, person_cell.y, _cell_feet(person_cell.x, person_cell.y))
+	for def in traps:
+		if str(def.get("kind", "")) == "flor":
+			BreathingFlower.spawn_all(entities, def)  # v0.35: dispara por movimento, não por ritmo
+		else:
+			PeriodicTrap.spawn(entities, def)
+	for def in pickups:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		var key := "%s@%d,%d" % [layout_file.get_file().get_basename(), cell.x, cell.y]
+		_place_pickup(str(def.get("item", "")), int(def.get("count", 1)), key, _cell_feet(cell.x, cell.y))
+	for def in decor:
+		var cell: Vector2i = def.get("cell", Vector2i.ZERO)
+		var at := _cell_feet(cell.x, cell.y)
+		if def.has("dialogue") and not def.has("texture"):
+			var spot := _make_npc(str(def["dialogue"]), str(def.get("name", "")), "", 1, at, "Examinar")
+			spot.get_node("CollisionShape2D").disabled = true
+		elif def.has("dialogue"):
+			var placed := _place_object({"dialogue": def["dialogue"], "name": def.get("name", ""), "texture": def["texture"],
+				"prompt": str(def.get("prompt", "Examinar"))}, at)
+			if def.has("group"):
+				placed.add_to_group(StringName(str(def["group"])))
+		else:
+			var sprite := Sprite2D.new()
+			sprite.texture = load(str(def["texture"]))
+			sprite.offset = Vector2(0, -sprite.texture.get_height() * 0.5 + 1)
+			sprite.position = at
+			if def.has("group"):
+				sprite.add_to_group(StringName(str(def["group"])))  # ex.: "mesas" (somem na fase 2 da Mabel)
+			entities.add_child(sprite)
+	for zone in zones:
+		for cell: Vector2i in zone.get("triggers", []):
+			ZoneTrigger.spawn(entities, str(zone.get("id", "")), _cell_center(cell.x, cell.y))
+
+
+## A zona (Level.zones) que contém este ponto do mundo ({} = nenhuma).
+func zone_at(point: Vector2) -> Dictionary:
+	var cell := Level.cell_at(point)
+	for zone in zones:
+		var rect: Rect2i = zone.get("rect", Rect2i())
+		if rect.has_point(cell):
+			return zone
+	return {}
 
 
 func _clear() -> void:
@@ -544,16 +682,26 @@ func _clear() -> void:
 	plate_cells.clear()
 	ice_cells.clear()
 	_locked_exits.clear()
+	rest_chambers.clear()
+	rest_chamber = null
 	var sky := get_node_or_null("Sky")
 	if sky:
 		sky.free()
+
+
+## Qual .txt está valendo agora (o normal, ou as ruínas depois do evento).
+func current_layout() -> String:
+	if not Engine.is_editor_hint() and not ruins_layout.is_empty() and Game.has_flag(ruins_flag) \
+			and FileAccess.file_exists(ruins_layout):
+		return ruins_layout
+	return layout_file
 
 
 func _load_layout() -> bool:
 	if layout_file.is_empty() or not FileAccess.file_exists(layout_file):
 		push_warning("Level: layout não encontrado: %s" % layout_file)
 		return false
-	var text := FileAccess.get_file_as_string(layout_file)
+	var text := FileAccess.get_file_as_string(current_layout())
 	_grid.clear()
 	for line in text.split("\n"):
 		_grid.append(line.trim_suffix("\r"))
@@ -780,6 +928,11 @@ func _inward_of(x: int, y: int) -> Vector2:
 
 func _build_entity(x: int, y: int, c: String) -> void:
 	var feet := _cell_feet(x, y)
+	if _city_put_out() and (c == "f" or c == "v"):
+		# v0.51 (Etapa 10): o Cícero apagou a rua. Sem fogo; os Civis Cinzentos sentam.
+		if c == "v":
+			_make_npc("civil_sentado", "Civil Cinzento", "res://assets/sprites/civil.png", 5, feet, "Examinar")
+		return
 	var prop := _prop_def(c)
 	if not prop.is_empty():
 		entities.add_child(_make_prop(prop, feet))
@@ -800,10 +953,7 @@ func _build_entity(x: int, y: int, c: String) -> void:
 		"P":
 			spawns["inicio"] = feet
 		"C":
-			rest_chamber = REST_SCENE.instantiate()
-			rest_chamber.position = feet + Vector2(8, 0)
-			entities.add_child(rest_chamber)
-			spawns["camara"] = feet + Vector2(8, 22)
+			_add_rest_chamber(x, y, feet)
 		"D":
 			var exit := EXIT_SCENE.instantiate() as AreaExit
 			exit.position = _cell_center(x, y)
@@ -826,6 +976,7 @@ func _build_entity(x: int, y: int, c: String) -> void:
 			_boss_npc = _make_npc("helena", "Mulher na plateia", "res://assets/sprites/helena_seated.png", 1, feet)
 			_boss = HELENA_SCENE.instantiate()
 			_boss.position = feet
+			(_boss as HelenaAltiva).theater_ruined.connect(ruin_theater)
 			entities.add_child(_boss)
 			# A espada partida fica no palco (onde ela aterrissou para lutar).
 			_memorial = {"dialogue": "espada_helena", "name": "Espada partida",
@@ -929,17 +1080,66 @@ func _build_entity(x: int, y: int, c: String) -> void:
 			edge.get_node("CollisionShape2D").disabled = true
 
 
+## O pertence do antigo dono, ao lado da 2ª Câmara de cada ilha (Etapa 3).
+const KEEPSAKES := {
+	"cidade": "botao_de_casaco", "bosque": "fita_desbotada", "forjas": "oculos_rachados",
+	"raizes": "dente_de_leite", "montanha": "bolinha_de_gude", "dominio": "bilhete_dobrado",
+}
+## v0.35: a 2ª Câmara de algumas ilhas mora numa fase anexa (o Quartel é da
+## Cidade): fase anexa → ilha. A 1ª Câmara da fase anexa guarda o pertence.
+const KEEPSAKE_ROOMS := {"cidade_quartel": "cidade", "bosque_dormitorio": "bosque", "forjas_fornalha": "forjas", "raizes_despensa": "raizes", "montanha_ossario": "montanha", "dominio_arquivo": "dominio"}
+
+
+## Uma Câmara: a cápsula, o ponto de chegada e a PLACA com o número da cobaia
+## (Examinar "placa_<área>_<n>" no dialogos.json). A 2ª da ilha guarda o
+## pertence de quem dormia nela.
+func _add_rest_chamber(x: int, y: int, feet: Vector2) -> void:
+	var index := rest_chambers.size() + 1
+	var spawn_id := "camara" if index == 1 else "camara_%d" % index
+	var chamber := REST_SCENE.instantiate() as RestChamber
+	chamber.spawn_id = spawn_id
+	chamber.position = feet + Vector2(8, 0)
+	entities.add_child(chamber)
+	rest_chambers.append(chamber)
+	if rest_chamber == null:
+		rest_chamber = chamber
+	spawns[spawn_id] = feet + Vector2(8, 22)
+	if Engine.is_editor_hint():
+		return
+	var area := layout_file.get_file().get_basename()
+	var plaque := "placa_%s_%d" % [area, index]
+	if not DialogueData.get_entry(plaque).is_empty():
+		_place_object({"dialogue": plaque, "name": "Placa", "texture": "res://assets/props/placa_capsula.png",
+			"prompt": "Examinar"}, feet + Vector2(-12, 2))
+	if index == 2 and KEEPSAKES.has(area):
+		_place_pickup(KEEPSAKES[area], 1, "%s#pertence" % area, feet + Vector2(30, 4))
+	elif index == 1 and KEEPSAKE_ROOMS.has(area):
+		var island: String = KEEPSAKE_ROOMS[area]
+		_place_pickup(KEEPSAKES[island], 1, "%s#pertence" % island, feet + Vector2(30, 4))
+
+
+## A Câmara de um ponto ("camara", "camara_2"...) — null se não houver.
+func chamber_for(spawn_id: String) -> RestChamber:
+	for chamber in rest_chambers:
+		if chamber.spawn_id == spawn_id:
+			return chamber
+	return null
+
+
 ## Saída extra: trancada (vira um ponto "Examinar") até vencer o chefe pedido.
-func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: String, locked_dialogue: String, arrival: String) -> void:
+## opens: atalho — passar por esta saída liga a flag que destranca o outro lado.
+func _add_side_exit(x: int, y: int, scene: String, spawn: String, requires: String, locked_dialogue: String, arrival: String,
+		opens: String = "") -> void:
 	if not Engine.is_editor_hint() and not Game.requirement_met(requires):
 		var lock := _make_npc(locked_dialogue, "", "", 1, _cell_feet(x, y), "Examinar")
 		_locked_exits.append({"npc": lock, "x": x, "y": y, "scene": scene, "spawn": spawn, "requires": requires,
-			"arrival": arrival})
+			"arrival": arrival, "opens": opens})
 		return
 	var side_exit := EXIT_SCENE.instantiate() as AreaExit
 	side_exit.position = _cell_center(x, y)
 	side_exit.target_scene = scene
 	side_exit.target_spawn = spawn
+	side_exit.opens_flag = opens
 	entities.add_child(side_exit)
 	spawns[arrival] = _inward_of(x, y)
 
@@ -991,6 +1191,15 @@ func _build_theme_entity(spec: Dictionary, x: int, y: int, feet: Vector2) -> voi
 		# Regras de presença por flag do save: "if_flag" (só aparece se...) e
 		# "unless_flag" (some se...; no lugar, o "instead", se houver).
 		if npc_def.has("if_flag") and not Game.flags.get(npc_def["if_flag"], false):
+			return
+		# v0.31: qualquer condição (chefe, flag, item...) — no def do tema OU no
+		# próprio dialogos.json ("aparece_quando" / "some_quando" da fala do NPC).
+		var entry := DialogueData.get_entry(str(npc_def.get("dialogue", "")))
+		var show_when := str(npc_def.get("requires", entry.get("aparece_quando", "")))
+		var hide_when := str(entry.get("some_quando", ""))
+		if not Game.requirement_met(show_when) or (not hide_when.is_empty() and Game.requirement_met(hide_when)):
+			if npc_def.has("instead"):
+				_place_object(npc_def["instead"], feet)
 			return
 		if npc_def.has("unless_flag") and Game.flags.get(npc_def["unless_flag"], false):
 			if npc_def.has("instead"):
@@ -1103,24 +1312,150 @@ func _spawn_enemy(spawn: Dictionary, index: int = -1) -> Node2D:
 	enemy.position = spawn["at"]
 	if spawn.has("variant"):
 		enemy.set("variant", spawn["variant"])
+	# Comum = inimigo de verdade OU mini-chefe reaproveitado sem barra (v0.35).
+	var common := enemy is Enemy and (not (enemy is Boss) or (enemy is MiniBoss and not (enemy as MiniBoss).shows_boss_bar))
+	if common:
+		(enemy as Enemy).area_power = enemy_power  # antes do _ready (vida já nasce maior)
+		if theme == "bosque":  # v0.35: o Sino de Despertar ainda toca?
+			(enemy as Enemy).aggro_range *= SinoDespertar.bosque_aggro_scale()
 	enemy.add_to_group("respawnable")
 	entities.add_child(enemy)
 	# Inimigo comum morto fica morto até descansar (Game.slain). Chefes e
 	# mini-chefes já têm a regra deles (Game.defeated_bosses).
-	if index >= 0 and enemy is Enemy and not (enemy is Boss):
+	if index >= 0 and common:
 		(enemy as Enemy).defeated.connect(_on_enemy_slain.bind(index))
 	return enemy
 
 
 ## Spawna os inimigos do mapa, pulando os que já foram mortos desde o último descanso.
+## Zonas (v0.31): um grupo cuja zona pede uma condição só nasce se ela valer
+## (ex.: "!flag:corneteiro_morto" — vencido o Corneteiro, o grupo some para sempre),
+## e cada inimigo leva a marca da zona (o alarme chama só os dela).
 func _spawn_living_enemies() -> void:
 	for i in _enemy_spawns.size():
-		if not Game.is_slain(scene_file_path, i):
-			_spawn_enemy(_enemy_spawns[i], i)
+		if Game.is_slain(scene_file_path, i):
+			continue
+		var zone := zone_at(_enemy_spawns[i]["at"])
+		if not Game.requirement_met(str(zone.get("requires", ""))):
+			continue
+		var enemy := _spawn_enemy(_enemy_spawns[i], i)
+		if not zone.is_empty():
+			enemy.set_meta(&"zona", str(zone.get("id", "")))
 
 
-func _on_enemy_slain(_enemy: Enemy, index: int) -> void:
-	Game.mark_slain(scene_file_path, index)
+func _on_enemy_slain(enemy: Enemy, index: int) -> void:
+	# O Corneteiro vencido (v0.35): os soldados da Cidade não voltam mais.
+	var forever := theme == "cidade" and enemy is SoldadoRemendado and Game.has_flag("corneteiro_morto")
+	Game.mark_slain(scene_file_path, index, forever)
+
+
+## NG+ (v0.41, Etapa 5): o Experimento Anterior pergunta o seu nome uma vez,
+## no começo da luta. A resposta só muda a reação dele.
+func _on_arena_fight_started(boss: Boss) -> void:
+	if boss is ExperimentoAnterior and not Game.has_flag("experimento_perguntou"):
+		Game.set_flag("experimento_perguntou")
+		await examine("experimento_pergunta", "O Experimento Anterior")
+
+
+## TIÃO E BASTIÃO (v0.43, Etapa 7): chamado ao lado de um mini-chefe, o brigão
+## entra AGORA e luta com você (e acompanha até a luta acabar). Com
+## "brigoes_juntos", quem chama um ganha os dois. Devolve quem veio.
+func call_brawler(id: String) -> Array[Ally]:
+	var ids: Array[String] = [id]
+	if Game.has_flag("brigoes_juntos"):
+		ids = ["tiao", "bastiao"]
+	var came: Array[Ally] = []
+	for who in ids:
+		if Game.has_flag("%s_cinzento" % who):
+			continue
+		var already := get_tree().get_nodes_in_group(&"allies").any(func(a): return (a as Ally).ally_id == who and not (a as Ally).fallen)
+		if already:
+			continue
+		Game.flags["%s_acompanha" % who] = true
+		came.append(Ally.spawn_by_id(who, entities, player))
+	return came
+
+
+## A briga da ponte, opção 3: entrar no meio. Os dois viram um mini-chefe em
+## dupla bem ali (os NPCs saem de cena enquanto isso).
+const SEBASTIOES_SCENE := "res://scenes/bosses/sebastioes.tscn"
+
+
+func start_sebastioes_duel() -> Sebastioes:
+	var at := player.global_position + Vector2(0, -40)
+	for npc in get_tree().get_nodes_in_group("npcs"):
+		if str((npc as NPC).dialogue_id).begins_with("briga_"):
+			at = (npc as Node2D).global_position
+			npc.queue_free()
+	var duo := (load(SEBASTIOES_SCENE) as PackedScene).instantiate() as Sebastioes
+	duo.position = at
+	entities.add_child(duo)
+	register_miniboss(duo)
+	return duo
+
+
+## LÚCIA, o final no Teatro (v0.42, Etapa 7): "Qual é o meu nome?" — três
+## nomes, embaralhados uma vez por jogo; nada no menu marca o certo.
+const LUCIA_NAMES := ["Lúcia", "Luzia", "Lívia"]
+
+
+func lucia_name_order() -> Array:
+	var saved: Variant = Game.flags.get("lucia_nomes", [])
+	if saved is Array and (saved as Array).size() == LUCIA_NAMES.size():
+		return saved
+	var order := LUCIA_NAMES.duplicate()
+	order.shuffle()
+	Game.flags["lucia_nomes"] = order
+	return order
+
+
+func lucia_final() -> void:
+	if Game.has_flag("irmaos_avelar_reencontrados"):
+		# O irmão responde por você (Etapa 10).
+		await hud.dialogue.run({"nome": "Damião", "falas": ["Lúcia."]}, "Damião")
+		await _on_dialogue_action("flag:lucia_lembrada;falar:lucia_certo")
+		await _on_dialogue_action("falar:lucia_e_o_seu")
+		return
+	var options: Array = []
+	for name_option: String in lucia_name_order():
+		var right := name_option == LUCIA_NAMES[0]
+		options.append({"texto": name_option,
+			"acao": "flag:lucia_lembrada;falar:lucia_certo" if right else "flag:lucia_esquecida;falar:lucia_errado"})
+	var entry := {"nome": "Lúcia", "falas": ["Qual é o meu nome?"], "opcoes": options}
+	var action: String = await hud.dialogue.run(entry, "Lúcia")
+	await _on_dialogue_action(action)
+	await _on_dialogue_action("falar:lucia_e_o_seu")
+
+
+## O NOME (v0.41, Etapa 5): a tela de digitar, obrigatória. Salva em
+## Game.player_name. O texto da pergunta é ESCRITO; a fala dublada fica no
+## diálogo de quem pergunta (ninguém diz o nome em voz alta).
+func ask_player_name(prompt: String) -> String:
+	var typed: String = await hud.name_entry.run(prompt)
+	Game.set_player_name(typed)
+	return Game.player_name
+
+
+## MESA POSTA (v0.35, Etapa 6 — Raízes): comer cura bem, mas a sineta toca e
+## todos os inimigos da zona vêm (os Inchados). Uma vez por visita: o prato
+## enche de novo quando a fase recarrega. Devolve quanto curou.
+const TABLE_HEAL := 0.4
+var _tables_eaten := {}
+
+
+func eat_at_table(zone_id: String) -> float:
+	if _tables_eaten.has(zone_id) or player == null:
+		hud.toast("O prato está vazio.")
+		return 0.0
+	_tables_eaten[zone_id] = true
+	var before := player.stats.health
+	player.stats.heal(player.stats.max_health * TABLE_HEAL)
+	Sfx.play(&"gulp", -4.0)
+	Sfx.play(&"bell", -2.0)
+	Fx.float_text(player.global_position + Vector2(-10, -30), "plim!", Color(1.0, 0.95, 0.7), 8)
+	ZoneTrigger.alert_zone(get_tree(), zone_id, 10.0)
+	player.make_noise(400.0)
+	return player.stats.health - before
 
 
 ## Ponto de inspeção (lore pelo cenário): invisível, não bloqueia, "Examinar".
@@ -1193,6 +1528,9 @@ func _add_sky() -> void:
 
 func _start_runtime() -> void:
 	Game.session_active = true  # vale também ao rodar a fase direto pelo editor (F6)
+	# Portas que abrem por flag, item ou alavanca (v0.31) abrem NA HORA.
+	Game.flags_changed.connect(_on_progress_changed)
+	Game.items_changed.connect(_on_progress_changed)
 	hud = HUD_SCENE.instantiate()
 	add_child(hud)
 	_spawn_living_enemies()
@@ -1211,61 +1549,247 @@ func _start_runtime() -> void:
 		hud.show_area_title(area_name, area_subtitle)
 	_connect_world()
 	_add_farm()
+	_amaro_calls_from_above()  # v0.52: só na Toca, depois do empurrão sem o Pitoco
 	Sfx.play_ambience(ambience, -12.0)
 	# Novo jogo / depois da queda: o herói sai da cápsula (a Câmara).
 	if Game.wake_from_capsule:
 		Game.wake_from_capsule = false
-		if spawn_id == "camara" and rest_chamber:
-			_play_wake_up()
+		var chamber := chamber_for(spawn_id)
+		if chamber:
+			_play_wake_up(chamber)
 
 
-## O Guarda, se você o chamou, aparece ao seu lado nas ilhas — mas não no Teatro
-## (lá ele é a pessoa de conversa) nem nas arenas dos Pecados (essas lutas são suas).
+## Os aliados (base Ally) que estão com você aparecem nas ilhas — mas não no
+## Teatro nem no laboratório (lá eles são gente de conversa). Nas arenas dos
+## Pecados só entra quem foi chamado com "Lute comigo" ("<id>_na_arena") ou
+## quem pode sempre (can_enter_arenas).
 func _spawn_companion() -> void:
-	if not Game.flags.get("guarda_acompanha", false) or Game.flags.get("guarda_sacrificado", false):
+	if theme == "teatro" or theme == "laboratorio":
 		return
-	if theme == "teatro" or theme == "laboratorio" or _boss != null:
-		return
-	GuardaAliado.spawn(entities, player)
+	for ally_id: String in Ally.REGISTRY:
+		var called := bool(Game.flags.get("%s_na_arena" % ally_id, false))
+		if not called and not Game.flags.get("%s_acompanha" % ally_id, false):
+			continue
+		var ally := Ally.spawn_by_id(ally_id, entities, player)
+		if _boss != null and not called and not ally.can_enter_arenas:
+			ally.queue_free()
 
 
-## Antes da luta de Helena, ele se põe na frente do golpe (Bíblia: "ele se
-## sacrifica para abrir o caminho ou proteger o jogador, sem nunca ter lembrado dela").
-func _guard_sacrifice(guard: NPC) -> void:
-	_end_modal()  # a escolha veio de um diálogo (mundo pausado): a cena precisa andar
+## v0.49: uma conversa entre DOIS ou mais (o reencontro dos irmãos Avelar).
+## No dialogos.json: "<id>": {"cena": [["Lúcia", "fala"], ["Damião", "fala"], ...]}.
+func play_scene_lines(scene_id: String) -> void:
+	var entry := DialogueData.get_entry(scene_id)
+	for line: Variant in entry.get("cena", []):
+		var pair: Array = line
+		await hud.dialogue.run({"nome": str(pair[0]), "falas": [str(pair[1])]}, str(pair[0]))
+	var then := str(entry.get("acao", ""))
+	if not then.is_empty():
+		await _on_dialogue_action(then)
+
+
+## v0.48 (Etapa 9): Galeno, O Escudo Que Chegou Tarde (tito_morto). Ele sai
+## de diante da cápsula e luta ali mesmo. A cápsula fica desligada até o fim.
+const GALENO_BOSS_SCENE := "res://scenes/bosses/galeno_escudo.tscn"
+
+
+func start_galeno_fight() -> GalenoEscudo:
+	var at := player.global_position + Vector2(0, -40)
+	for npc in get_tree().get_nodes_in_group("npcs"):
+		if (npc as NPC).dialogue_id == "galeno_capsula":
+			at = (npc as Node2D).global_position
+			npc.queue_free()
+	var galeno := (load(GALENO_BOSS_SCENE) as PackedScene).instantiate() as GalenoEscudo
+	galeno.position = at
+	entities.add_child(galeno)
+	register_miniboss(galeno)
+	for chamber in rest_chambers:
+		chamber.set_available(false)
+	var back_on := func(_b: Boss):
+		for chamber in rest_chambers:
+			if is_instance_valid(chamber):
+				chamber.set_available(true)
+	galeno.fight_won.connect(back_on)
+	galeno.fight_reset.connect(back_on)
+	return galeno
+
+
+# --- v0.52 (Etapa 11): a Toca e a armadilha do Amaro ----------------------------------
+const TOCA_SCENE := "res://scenes/world/raizes_toca.tscn"
+const AMARO_TEXTURE := "res://assets/sprites/amaro_npc.png"
+const PITOCO_FRAMES := preload("res://assets/sprites/pitoco_frames.tres")
+const HOLE_REACH := 26.0
+var _drain_left := 0.0
+var _trap_running := false
+
+
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint() or player == null or get_tree().paused:
+		return
+	if memory_drain > 0.0 and not player.is_dead() and Game.memories > 0:
+		_drain_left += memory_drain * delta
+		if _drain_left >= 1.0:
+			var lost := int(_drain_left)
+			_drain_left -= lost
+			Game.drain_memories(0.0, lost)
+	if trap_hole.x >= 0 and not _trap_running and Game.has_flag("amaro_4") and not Game.has_flag("amaro_traiu") \
+			and not _talking and player.global_position.distance_to(_cell_feet(trap_hole.x, trap_hole.y)) <= HOLE_REACH:
+		amaro_trap()
+
+
+## A ARMADILHA: perto do buraco o herói perde o controle (o jogo continua: não
+## é um corte), a câmera desce devagar para dentro, lá embaixo o Pitoco abana
+## os tentáculos — e o Amaro empurra. Sem o Pitoco: o buraco vazio e escuro.
+func amaro_trap() -> void:
+	_trap_running = true
 	begin_cutscene()
-	var front := player.global_position + Vector2(0, -20)
-	var walk := create_tween()
-	walk.tween_property(guard, "global_position", front, 0.6).set_trans(Tween.TRANS_SINE)
-	await walk.finished
-	hud.toast("“Fique atrás de mim. Já deixei um posto uma vez.”")
+	var hole := _cell_feet(trap_hole.x, trap_hole.y)
+	var look := Node2D.new()
+	entities.add_child(look)
+	look.global_position = player.global_position
+	camera.focus = look
+	var down := create_tween()
+	down.tween_property(look, "global_position", hole + Vector2(0, 30), 1.6).set_trans(Tween.TRANS_SINE)
+	await down.finished
+	var empty := Game.has_flag("pitoco_morto")
+	if not empty:
+		var dog := AnimatedSprite2D.new()
+		dog.sprite_frames = PITOCO_FRAMES
+		dog.play(&"idle")
+		dog.speed_scale = 2.5  # abanando
+		dog.modulate = Color(0.7, 0.6, 0.7, 0.9)
+		dog.z_index = -1
+		entities.add_child(dog)
+		dog.global_position = hole + Vector2(0, 2)
+		Sfx.play(&"bark", -6.0)
+		await _wait(1.6)
+		dog.queue_free()
+	else:
+		await _wait(1.2)
+	# O Amaro, atrás.
+	var amaro := _make_npc("amaro_empurra", "Amaro", AMARO_TEXTURE, 2, player.global_position + Vector2(-18, -4))
+	amaro.get_node("CollisionShape2D").disabled = true
+	camera.focus = null
+	look.queue_free()
+	await _wait(0.5)
+	hud.toast("“Foi mal, ratinho. O Pitoco tem que comer.”")
 	await _wait(1.6)
-	var from := _boss_npc.global_position + Vector2(0, -12) if _boss_npc else front + Vector2(0, -80)
-	var streak := Line2D.new()
-	streak.width = 3.0
-	streak.default_color = Color(1, 1, 1, 0.9)
-	streak.points = PackedVector2Array([from, front + Vector2(0, -10)])
-	streak.z_index = 20
-	entities.add_child(streak)
-	Sfx.play(&"hit_heavy", 0.0)
-	Fx.shake(5.0, 0.3)
-	Fx.flash(guard.get_node("Sprite") as CanvasItem, 0.2)
-	var fade := streak.create_tween()
-	fade.tween_property(streak, "modulate:a", 0.0, 0.5)
-	fade.tween_callback(streak.queue_free)
-	var fall := create_tween()
-	fall.tween_property(guard.get_node("Sprite"), "rotation", PI * 0.5, 0.5).set_trans(Tween.TRANS_BACK)
-	await _wait(1.2)
-	hud.toast("“...Eu não lembro de você. Mas lembro deste lugar.”")
-	await _wait(2.2)
-	Game.flags["guarda_sacrificado"] = true
-	Game.flags["guarda_acompanha"] = false
-	Game.add_item("anel_do_guarda")
-	_place_object({"dialogue": "posto_vazio", "name": "Posto vazio", "texture": "res://assets/props/posto_vazio.png",
-		"prompt": "Examinar"}, guard.global_position)
-	guard.queue_free()
-	await _wait(0.6)
-	end_cutscene()
+	Sfx.play(&"swing", 0.0)
+	var push := create_tween()
+	push.tween_property(player, "global_position", hole, 0.35).set_trans(Tween.TRANS_QUAD)
+	await push.finished
+	Sfx.play(&"fall", 0.0)
+	Game.set_flag("amaro_traiu")
+	if empty:
+		Game.set_flag("amaro_procura")  # lá embaixo, a voz dele: "...Pitoco?"
+	_leaving = true
+	Game.clear_carry()
+	Game.travel(TOCA_SCENE, "inicio")
+
+
+## Na Toca, depois do empurrão sem o Pitoco: a voz dele lá de cima.
+func _amaro_calls_from_above() -> void:
+	if not Game.has_flag("amaro_procura") or hud == null:
+		return
+	Game.clear_flag("amaro_procura")
+	await _wait(2.0)
+	for line in ["“...Pitoco?”", "“Pitoco, cadê você?”", "“CADÊ O PITOCO?!”"]:
+		hud.toast(line)
+		await _wait(2.2)
+
+
+## v0.51: a Cidade depois do "Apague" do Cícero (cidade_apagada).
+func _city_put_out() -> bool:
+	return theme == "cidade" and not Engine.is_editor_hint() and Game.has_flag("cidade_apagada")
+
+
+## v0.47 (Etapa 9): o Frasco de Sanidade no Tito caído. Ele levanta — mas o
+## olho castanho fica branco: não cresce mais (tito_revivido).
+func revive_tito() -> void:
+	if not Game.consume_sanity_flask():
+		return
+	Game.clear_flag("tito_caido")
+	Game.set_flag("tito_revivido")
+	Sfx.play(&"sanity", -2.0)
+	for node in entities.get_children():
+		var child := node as Tito
+		if child:
+			Fx.splash(child.global_position + Vector2(0, -8), Color(0.95, 0.97, 1.0), 16)
+			var revived := _make_npc("tito_revivido", "Tito", "res://assets/sprites/crianca_poupada.png", 2, child.global_position)
+			revived.add_to_group("npcs")
+			revived.talked.connect(_on_npc_talked)
+			child.remove_for_revival()
+			break
+	if hud:
+		hud.toast("Ele levantou. O olho castanho ficou branco.")
+
+
+## v0.46 (Etapa 8): o grito da Helena explode o Teatro. Plateia, palco e
+## lustre caem AGORA (entulho por cima da luta); da próxima vez que a área
+## carregar, o mapa já é o das ruínas (ruins_layout).
+func ruin_theater() -> void:
+	Game.set_flag("teatro_ruinas")
+	Sfx.play(&"scream", 0.0)
+	Sfx.play(&"quake", -2.0)
+	Sfx.play(&"crumble", -2.0)
+	Fx.shake(10.0, 1.4)
+	Fx.vibrate(400)
+	if hud:
+		var flash := ColorRect.new()
+		flash.color = Color(1, 1, 1, 0.85)
+		flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+		flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hud.add_child(flash)
+		var fade := flash.create_tween()
+		fade.tween_property(flash, "color:a", 0.0, 1.2)
+		fade.tween_callback(flash.queue_free)
+	# O lustre despenca do alto até a boca do palco.
+	var lustre := _make_prop({"tex": "res://assets/props/lustre_caido.png"}, _landing + Vector2(70, 110))
+	lustre.position.y -= 220.0
+	entities.add_child(lustre)
+	var drop := lustre.create_tween()
+	drop.tween_property(lustre, "position:y", lustre.position.y + 220.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	drop.tween_callback(func():
+		Sfx.play(&"shatter", 0.0)
+		Fx.shake(6.0, 0.4)
+		Fx.dust(lustre.global_position, 14))
+	# Entulho do palco e do teto, espalhado (sempre o mesmo: semente fixa).
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 8
+	var area := boss_arena.arena_rect if boss_arena else Rect2(_landing - Vector2(200, 60), Vector2(400, 160))
+	for i in 16:
+		var spot := area.position + Vector2(rng.randf() * area.size.x, rng.randf() * area.size.y)
+		var tex := "res://assets/props/rubble.png" if i % 3 else "res://assets/props/debris.png"
+		var piece := _make_prop({"tex": tex}, spot)
+		piece.modulate.a = 0.0
+		entities.add_child(piece)
+		var show := piece.create_tween()
+		show.tween_interval(rng.randf() * 0.8)
+		show.tween_property(piece, "modulate:a", 1.0, 0.15)
+		Fx.dust(spot, 4)
+
+
+## v0.45 (Etapa 8): salvo três vezes (poço, estátua, gelo), o Heitor entra
+## com você na luta da Helena. Ela ainda não sabe que é ele.
+func _heitor_joins() -> void:
+	if not Game.has_flag("heitor_gelo") or Game.has_flag("heitor_morto") or player == null:
+		return
+	for node in get_tree().get_nodes_in_group(&"allies"):
+		if (node as Ally).ally_id == "heitor":
+			return
+	Ally.spawn_by_id("heitor", entities, player)
+
+
+## Venceram juntos: quem estava de pé sobe de nível. A chamada para a arena
+## ("Lute comigo") vale para UMA luta.
+func _reward_allies(victory: bool) -> void:
+	for node in get_tree().get_nodes_in_group(&"allies"):
+		var ally := node as Ally
+		if ally == null:
+			continue
+		if victory and not ally.fallen:
+			Game.raise_ally(ally.ally_id)
+			ally._on_victory()
+		Game.flags.erase("%s_na_arena" % ally.ally_id)
 
 
 ## Cria o herói no ponto pedido pelo Game e devolve o id do ponto usado.
@@ -1298,10 +1822,10 @@ func _connect_world() -> void:
 			if not (node as NPC).talked.is_connected(_on_npc_talked):
 				(node as NPC).talked.connect(_on_npc_talked)
 			node.add_to_group("npcs")
-	if rest_chamber:
-		rest_chamber.rest_requested.connect(_on_rest_requested)
+	for chamber in rest_chambers:
+		chamber.rest_requested.connect(_on_rest_requested)
 	for node in entities.get_children():
-		if node is MiniBoss:
+		if node is MiniBoss and (node as MiniBoss).shows_boss_bar:
 			register_miniboss(node as MiniBoss)
 		if node is VigiaQueDormiu:
 			(node as VigiaQueDormiu).sneaked_past.connect(func(): hud.toast("O Vigia não acordou. Você passou em silêncio."))
@@ -1311,6 +1835,7 @@ func _connect_world() -> void:
 		add_child(boss_arena)
 		boss_arena.setup(_boss, _boss_npc, _fog_walls, rect, _landing)
 		boss_arena.sealed.connect(func(boss: Boss): camera.focus = boss)  # a câmera revela o chefe
+		boss_arena.fight_started.connect(_on_arena_fight_started)
 		boss_arena.fight_started.connect(_on_fight_started)
 		boss_arena.fight_ended.connect(_on_fight_ended)
 		if boss_arena.state == BossArena.State.DONE:
@@ -1334,7 +1859,7 @@ func _on_npc_talked(npc: NPC) -> void:
 	var ids := npc.dialogue_id.split(",")
 	var talk_count: int = npc.get_meta("talks", 0)
 	npc.set_meta("talks", talk_count + 1)
-	var entry := DialogueData.get_entry(_dialogue_variant(ids[talk_count % ids.size()].strip_edges()))
+	var entry := DialogueData.get_entry(resolve_dialogue(ids[talk_count % ids.size()].strip_edges()))
 	if entry.is_empty():
 		entry = DialogueData.get_entry(ids[0].strip_edges())
 	var action: String = await hud.dialogue.run(entry, npc.display_name)
@@ -1346,8 +1871,39 @@ func _on_npc_talked(npc: NPC) -> void:
 
 ## Conversas que mudam o mundo (marcam uma flag no save).
 func _after_talk(dialogue_id: String) -> void:
-	if dialogue_id == "guarda_cidade":
-		Game.flags["guarda_conhecido"] = true  # da próxima vez, ele está no Teatro
+	# v0.53 (Etapa 12): a Criança Poupada dá o Botão de Pijama (só se não feriu ninguém).
+	if dialogue_id == SPARED_CHILD_TALKS and Game.spared_child and not Game.has_flag("pijama_dado"):
+		Game.set_flag("pijama_dado")
+		Game.add_item("botao_pijama")
+		hud.toast("Ela te deu um botão. Tem um ursinho desenhado.")
+	# v0.45: as visitas à Helena bêbada contam (uma fala nova por visita).
+	match dialogue_id:
+		"helena":
+			if not Game.has_flag("helena_visita_1"):
+				Game.set_flag("helena_visita_1")
+			elif not Game.has_flag("helena_visita_2"):
+				Game.set_flag("helena_visita_2")
+				Game.set_flag("helena_contou_flor")  # a pedra que era flor
+
+
+## Qual versão da fala usar. Primeiro as regras escritas no dialogos.json
+## ("variantes": [{"quando": "flag:x", "usar": "outra_fala"}], a 1ª que valer),
+## depois as regras antigas daqui de baixo. Assim, história nova entra só
+## editando o .json, sem mexer neste match (v0.31).
+func resolve_dialogue(dialogue_id: String) -> String:
+	var from_json := DialogueData.variant(dialogue_id)
+	return from_json if from_json != dialogue_id else _dialogue_variant(dialogue_id)
+
+
+## Abre uma fala solta (Examinar de um objeto, fala encadeada "falar:<id>").
+func examine(dialogue_id: String, display_name: String) -> void:
+	if _talking:
+		return
+	_begin_modal()
+	var action: String = await hud.dialogue.run(DialogueData.get_entry(resolve_dialogue(dialogue_id)), display_name)
+	await _on_dialogue_action(action)
+	if not _leaving:
+		_end_modal()
 
 
 ## Algumas falas dependem do estado do jogo. Um ponto só decide qual versão
@@ -1361,11 +1917,6 @@ func _dialogue_variant(dialogue_id: String) -> String:
 			# Bíblia: "A Fada do Teatro — diálogo novo depois de Nyssa (irmã)".
 			if Game.is_boss_defeated("nyssa"):
 				return "fada_irma"
-		"guarda":
-			# Bíblia: "A cada ilha conta um fragmento: um anel, uma voz de mulher, um posto vazio."
-			var islands := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"].filter(
-				func(id): return Game.is_boss_defeated(id)).size()
-			return "guarda_%d" % clampi(islands, 1, 6)
 		"mulher_do_nucleo":
 			# Vencido o Cavaleiro, aproximar-se dela é a escolha (Bíblia: os dois finais).
 			if Game.is_boss_defeated("cavaleiro"):
@@ -1428,20 +1979,98 @@ func end_cutscene() -> void:
 
 
 ## A cápsula se abre "com um som baixo, quase respeitoso" e o herói sai dela.
-func _play_wake_up() -> void:
+func _play_wake_up(chamber: RestChamber = null) -> void:
+	if chamber == null:
+		chamber = rest_chamber
 	begin_cutscene()
-	player.global_position = rest_chamber.front_point()
-	rest_chamber.show_sleeping()
+	player.global_position = chamber.front_point()
+	player.reset_physics_interpolation()
+	chamber.show_sleeping()
 	player.visual.visible = false
 	camera.snap_to_target()
 	await _wait(0.6)
-	await rest_chamber.play_exit(player)
+	await chamber.play_exit(player)
 	if not player.is_dead():
 		end_cutscene()
 
 
 func _on_dialogue_action(action: String) -> void:
+	# v0.31 — ações genéricas, escritas direto no dialogos.json:
+	#   "flag:<nome>"            liga uma flag de história
+	#   "falar:<id>"             emenda outra fala (conversa em várias partes)
+	#   "lute_comigo:<aliado>"   o aliado entra na próxima luta de chefe
+	#   "nome:<personagem>:sim"  você disse o seu nome a ele (nome_dito_<personagem>)
+	#   "dar:<item>"             entrega um item (sai da bolsa; liga a flag "dado_<item>")
+	#   "comer:<zona>"           MESA POSTA: cura, mas a sineta chama a zona (Raízes)
+	#   "pedir_nome"             a tela de digitar o nome (obrigatório; Etapa 5)
+	#   várias de uma vez, separadas por ";"  ("flag:x;falar:y")
+	if action.contains(";"):
+		for part in action.split(";"):
+			await _on_dialogue_action(part.strip_edges())
+		return
+	if action.contains(":"):
+		var kind := action.get_slice(":", 0)
+		var value := action.get_slice(":", 1)
+		match kind:
+			"flag":
+				Game.set_flag(value)
+				return
+			"falar":
+				var entry := DialogueData.get_entry(resolve_dialogue(value))
+				var next: String = await hud.dialogue.run(entry, str(entry.get("nome", "")))
+				await _on_dialogue_action(next)
+				return
+			"lute_comigo":
+				Game.flags["%s_na_arena" % value] = true
+				hud.toast("Na próxima luta, vocês entram juntos.")
+				return
+			"comer":
+				eat_at_table(value)
+				return
+			"lucia_final":
+				await lucia_final()
+				return
+			"desliga":
+				Game.clear_flag(value)
+				return
+			"ganhar":
+				Game.add_item(value, 1)
+				return
+			"chama":
+				call_brawler(value)
+				return
+			"memorias":  # v0.52: "memorias:10000" — alguém joga memórias em você
+				Game.add_memories(int(value))
+				Fx.memory_motes(player.global_position + Vector2(0, -40), player, 24)
+				return
+			"presente":  # v0.51: "presente:<flag>:<item>" — um presente, uma vez só
+				if not Game.has_flag(value):
+					Game.set_flag(value)
+					Game.add_item(action.get_slice(":", 2), 1)
+				return
+			"contar_chefes":  # v0.51: "contar_chefes:<flag>" — guarda quantos chefes já viu
+				Game.flags[value] = Game.seven_memories()
+				return
+			"loja":  # v0.49: "loja:damiao" — a loja de outro vendedor
+				await hud.shop_menu.open_shop(player, value)
+				return
+			"cena":  # v0.49: "cena:<id>" — várias falas, cada uma com quem fala
+				await play_scene_lines(value)
+				return
+			"duelo_sebastioes":
+				start_sebastioes_duel()
+				return
+			"dar":
+				if Game.remove_item(value, 1):
+					Game.set_flag("dado_%s" % value)
+				return
+			"nome":
+				if action.get_slice(":", 2) == "sim":
+					Game.set_flag("nome_dito_%s" % value)
+				return
 	match action:
+		"pedir_nome":
+			await ask_player_name("VOCÊ LEMBRA O SEU NOME?")
 		"subir_nivel":
 			await hud.level_up_menu.run(player)
 		"melhorar_arma":
@@ -1469,18 +2098,14 @@ func _on_dialogue_action(action: String) -> void:
 			else:
 				Sfx.play(&"ui_click")
 				hud.toast("Memórias insuficientes.")
+		"reviver_tito":
+			revive_tito()
+		"luta_galeno":
+			start_galeno_fight()
 		"desafiar_helena":
 			if boss_arena:
-				var guard := get_tree().get_first_node_in_group(&"guarda_npc") as NPC
-				if guard and Game.flags.get("guarda_conhecido", false):
-					await _guard_sacrifice(guard)
 				boss_arena.arm()
-		"chamar_guarda":
-			Game.flags["guarda_acompanha"] = true
-			hud.toast("O Guarda vai com você pelas ilhas (não nas arenas dos Pecados).")
-		"dispensar_guarda":
-			Game.flags["guarda_acompanha"] = false
-			hud.toast("O Guarda fica no Teatro.")
+				_heitor_joins()
 		"final_proteger":
 			_play_ending("proteger")
 		"final_destruir":
@@ -1540,12 +2165,13 @@ func _on_rest_requested(chamber: RestChamber) -> void:
 	player.rest()
 	player.global_position = spawns.get(chamber.spawn_id, player.global_position)
 	_respawn_enemies()
+	Game.damiao_tick()  # v0.49: o Damião sai (ou volta) de viagem enquanto você dorme
 	Game.set_rest_point(scene_file_path, chamber.spawn_id)
 	camera.snap_to_target()
 	await _wait(0.3)
 	await Fader.fade_in(0.6)
 	# Menu da Câmara: o herói desce na cápsula; dá para viajar para outra.
-	var destination := await hud.rest_menu.run(scene_file_path)
+	var destination := await hud.rest_menu.run(Game.capsule_key(scene_file_path, chamber.spawn_id))
 	if destination == RestMenu.NEW_JOURNEY:
 		var choice := await hud.pick_new_journey()
 		if not choice.is_empty():
@@ -1609,13 +2235,16 @@ func _on_fight_started(boss: Boss) -> void:
 	hud.show_boss(boss)
 	camera.focus = boss
 	Sfx.play_ambience(&"amb_boss", -12.0)
-	if rest_chamber:
-		rest_chamber.set_available(false)
+	for chamber in rest_chambers:
+		chamber.set_available(false)
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		(npc as NPC).interactable.enabled = false
 
 
 func _on_fight_ended(victory: bool) -> void:
+	_reward_allies(victory)
+	if victory:
+		Game.damiao_tick()  # v0.49: chefe vencido também conta para a viagem do Damião
 	camera.focus = null
 	var subtitle := ""
 	if is_instance_valid(boss_arena.boss):
@@ -1628,8 +2257,8 @@ func _on_fight_ended(victory: bool) -> void:
 		await _celebrate_victory(subtitle)
 		unlock_exits()
 	Sfx.play_ambience(ambience, -12.0)
-	if rest_chamber:
-		rest_chamber.set_available(true)
+	for chamber in rest_chambers:
+		chamber.set_available(true)
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		(npc as NPC).interactable.enabled = true
 
@@ -1641,6 +2270,12 @@ func register_miniboss(mini: MiniBoss) -> void:
 	mini.fight_started.connect(_on_miniboss_started)
 	mini.fight_reset.connect(_on_miniboss_ended.bind(false))
 	mini.fight_won.connect(_on_miniboss_ended.bind(true))
+	for def in collapse_fights:
+		if mini.data and str(def.get("boss", "")) == mini.data.id:
+			var collapse := CollapsingFloor.create(self, def)
+			mini.fight_started.connect(func(_b): collapse.start())
+			mini.fight_reset.connect(func(_b): collapse.stop())
+			mini.fight_won.connect(func(_b): collapse.stop())
 
 
 func _add_farm() -> void:
@@ -1661,6 +2296,8 @@ func _on_miniboss_started(mini: Boss) -> void:
 
 
 func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
+	if victory:
+		_reward_allies(true)
 	hud.hide_boss()
 	Sfx.play_ambience(ambience, -12.0)
 	if victory:
@@ -1668,6 +2305,11 @@ func _on_miniboss_ended(mini: Boss, victory: bool) -> void:
 		unlock_exits()
 		if mini.has_meta(&"memorial"):
 			_place_object(mini.get_meta(&"memorial"), mini.global_position)
+
+
+func _on_progress_changed() -> void:
+	if not _locked_exits.is_empty():
+		unlock_exits()
 
 
 ## Abre as saídas cujo chefe acabou de cair (sem precisar sair e voltar).
@@ -1679,7 +2321,7 @@ func unlock_exits() -> void:
 		_locked_exits.remove_at(i)
 		if is_instance_valid(lock["npc"]):
 			(lock["npc"] as Node).queue_free()
-		_add_side_exit(lock["x"], lock["y"], lock["scene"], lock["spawn"], "", "", lock["arrival"])
+		_add_side_exit(lock["x"], lock["y"], lock["scene"], lock["spawn"], "", "", lock["arrival"], lock.get("opens", ""))
 		Sfx.play(&"door", -4.0)
 		if hud:
 			hud.toast("Uma passagem se abriu.")

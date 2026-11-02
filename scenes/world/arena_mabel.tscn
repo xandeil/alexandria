@@ -14,9 +14,10 @@ ambience = &"amb_roots"
 darkness = Color(0.8, 0.72, 0.72, 1)
 outdoor = true
 arena_rect_tiles = Rect2i(4, 3, 26, 18)
-exit_scene = "res://scenes/world/raizes.tscn"
+exit_scene = "res://scenes/world/raizes_varanda.tscn"
 exit_spawn = "lateral"
 lore_points = {"1": "salao_mabel"}
+decor = Array[Dictionary]([{"cell": Vector2i(10, 8), "texture": "res://assets/props/mabel_table.png", "group": "mesas"}, {"cell": Vector2i(23, 13), "texture": "res://assets/props/mabel_table.png", "group": "mesas"}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

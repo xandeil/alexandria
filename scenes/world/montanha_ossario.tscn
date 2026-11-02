@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/montanha_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Ossario" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/montanha_ossario.txt"
+pickups = Array[Dictionary]([{"cell": Vector2i(10, 8), "item": "botao_escama"}])
+area_name = "Ossário"
+area_subtitle = "Os ossos estão em ordem. Alguém ainda arruma."
+theme = "montanha"
+ambience = &"amb_volcano"
+darkness = Color(0.66, 0.54, 0.5, 1)
+exit_scene = "res://scenes/world/montanha.tscn"
+exit_spawn = "lateral"
+enemy_power = 1.3
+exits = Array[Dictionary]([{"cell": Vector2i(34, 1), "scene": "res://scenes/world/montanha_encosta.tscn", "spawn": "trilha", "requires": "flag:atalho_trilha", "locked_dialogue": "trilha_trancada", "arrival": "trilha"}])
+traps = Array[Dictionary]([{"kind": "lava", "cells": Array[Vector2i]([Vector2i(11, 7), Vector2i(11, 8), Vector2i(11, 9), Vector2i(11, 10), Vector2i(11, 11)]), "period": 2.8, "offset": 0.0, "damage": 28}, {"kind": "lava", "cells": Array[Vector2i]([Vector2i(16, 7), Vector2i(16, 8), Vector2i(16, 9), Vector2i(16, 10), Vector2i(16, 11)]), "period": 2.8, "offset": 1.4, "damage": 28}, {"kind": "lava", "cells": Array[Vector2i]([Vector2i(13, 12), Vector2i(13, 13), Vector2i(13, 14)]), "period": 2.8, "offset": 0.7, "damage": 28}])
+exit2_scene = "res://scenes/world/montanha_encosta.tscn"
+exit2_spawn = "porta"
+exit2_requires = "matriarca"
+exit2_locked_dialogue = "ossario_porta_fechada"
+lore_points = {"1": "ossario"}
+people = Array[Dictionary]([{"cell": Vector2i(20, 11), "dialogue": "bastiao_montanha_ossario", "name": "Bastião", "texture": "res://assets/sprites/bastiao_npc.png", "frames": 2}])
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

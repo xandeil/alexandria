@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/raizes_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Toca" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/raizes_toca.txt"
+area_name = "Toca do Pitoco"
+area_subtitle = "Lá embaixo, alguém abana o rabo. Muitos rabos."
+theme = "raizes"
+ambience = &"amb_roots"
+darkness = Color(0.5, 0.42, 0.46, 1)
+memory_drain = 3.0
+exits = Array[Dictionary]([{"cell": Vector2i(9, 1), "scene": "res://scenes/world/raizes_varanda.tscn", "spawn": "toca", "arrival": "escalada"}])
+pickups = Array[Dictionary]([{"cell": Vector2i(33, 4), "item": "botas_banquete"}])
+decor = Array[Dictionary]([{"cell": Vector2i(9, 4), "dialogue": "toca_restos", "name": "Restos", "texture": "res://assets/props/ribcage.png"}, {"cell": Vector2i(12, 2), "dialogue": "toca_escalada", "name": "Escalada"}])
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

@@ -53,10 +53,65 @@ const SETS := {
 		"name": "Manto do Arconte", "suffix": "do Arconte", "effect": "memoria", "per_piece": 0.08,
 		"text": "Memórias de cada inimigo +{p}% por peça.",
 	},
+	# v0.51 (Etapa 10): Dalva, Cícero e Benedita.
+	"aprendiz": {
+		"name": "Conjunto de Aprendiz", "suffix": "de Aprendiz", "effect": "magia_poder", "per_piece": 0.05,
+		"text": "Magias +{p}% de poder por peça.",
+	},
+	"bombeiro": {
+		"name": "Conjunto do Bombeiro", "suffix": "do Bombeiro", "effect": "vida", "per_piece": 0.04,
+		"text": "Vida máxima +{p}% por peça.",
+	},
+	"romeira": {
+		"name": "Vestes de Romeira", "suffix": "de Romeira", "effect": "magia_poder", "per_piece": 0.05,
+		"text": "Magias +{p}% de poder por peça.",
+	},
 }
 
 ## Passo (Escamas de Caelis): quanto a CORRIDA ganha por peça, além do andar.
 const SPRINT_PER_PIECE := 0.1
+
+# --- v0.34 (Etapa 4): DEFESA e PESO -------------------------------------------------
+## Os tipos de dano do jogo. Todo golpe tem um (HitInfo.damage_type, "fisico" se
+## ninguém disser nada). A armadura reduz cada tipo pela sua própria defesa.
+const DAMAGE_TYPES: Array[String] = ["fisico", "fogo", "magia", "raio", "gelo"]
+const DAMAGE_NAMES := {"fisico": "Físico", "fogo": "Fogo", "magia": "Magia", "raio": "Raio", "gelo": "Gelo"}
+## Com as 5 partes vestidas (de QUALQUER conjunto): +10% em toda a defesa.
+const FULL_BODY_BONUS := 0.10
+## Teto da redução somando tudo: sem ele, armadura pesada deixaria o herói imortal.
+const DEFENSE_CAP := 0.60
+## Quanto de cada conjunto cada parte carrega (somam 1.0): o peitoral protege
+## e pesa mais que as luvas.
+const SLOT_SHARE := {"capacete": 0.18, "peitoral": 0.32, "luvas": 0.14, "calca": 0.22, "botas": 0.14}
+## Perfil do conjunto INTEIRO (as 5 peças): peso total e redução por tipo.
+## Leve ~8, médio ~16, pesado ~26. "Forte contra" = aquele tipo bem acima.
+const PROFILES := {
+	"vigilia": {"peso": 8.0, "classe": "leve", "defesa": {"fisico": 0.12, "fogo": 0.08, "magia": 0.08, "raio": 0.08, "gelo": 0.08}},
+	"sono": {"peso": 7.0, "classe": "leve", "defesa": {"fisico": 0.10, "fogo": 0.08, "magia": 0.26, "raio": 0.08, "gelo": 0.08}},
+	"arconte": {"peso": 9.0, "classe": "leve", "defesa": {"fisico": 0.10, "fogo": 0.06, "magia": 0.22, "raio": 0.08, "gelo": 0.26}},
+	"banquete": {"peso": 16.0, "classe": "medio", "defesa": {"fisico": 0.26, "fogo": 0.12, "magia": 0.12, "raio": 0.12, "gelo": 0.12}},
+	"caelis": {"peso": 17.0, "classe": "medio", "defesa": {"fisico": 0.18, "fogo": 0.34, "magia": 0.12, "raio": 0.12, "gelo": 0.10}},
+	"detentor": {"peso": 27.0, "classe": "pesado", "defesa": {"fisico": 0.32, "fogo": 0.16, "magia": 0.14, "raio": 0.16, "gelo": 0.16}},
+	"eco": {"peso": 25.0, "classe": "pesado", "defesa": {"fisico": 0.26, "fogo": 0.14, "magia": 0.14, "raio": 0.36, "gelo": 0.14}},
+	"aprendiz": {"peso": 6.0, "classe": "leve", "defesa": {"fisico": 0.08, "fogo": 0.06, "magia": 0.24, "raio": 0.08, "gelo": 0.18}},
+	"bombeiro": {"peso": 18.0, "classe": "medio", "defesa": {"fisico": 0.20, "fogo": 0.38, "magia": 0.10, "raio": 0.12, "gelo": 0.10}},
+	"romeira": {"peso": 7.0, "classe": "leve", "defesa": {"fisico": 0.08, "fogo": 0.08, "magia": 0.14, "raio": 0.30, "gelo": 0.08}},
+}
+
+
+## Quanto UMA peça (deste conjunto, neste espaço) reduz deste tipo de dano.
+static func piece_defense(set_id: String, slot: String, damage_type: String) -> float:
+	var profile: Dictionary = PROFILES.get(set_id, {})
+	return float((profile.get("defesa", {}) as Dictionary).get(damage_type, 0.0)) * float(SLOT_SHARE.get(slot, 0.2))
+
+
+static func piece_weight(set_id: String, slot: String) -> float:
+	var profile: Dictionary = PROFILES.get(set_id, {})
+	return snappedf(float(profile.get("peso", 0.0)) * float(SLOT_SHARE.get(slot, 0.2)), 0.1)
+
+
+static func weight_class(set_id: String) -> String:
+	return str((PROFILES.get(set_id, {}) as Dictionary).get("classe", "leve"))
 
 
 static func exists(set_id: String) -> bool:

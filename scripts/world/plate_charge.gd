@@ -68,6 +68,7 @@ func _physics_process(delta: float) -> void:
 			info.poise_damage = 20.0
 			info.unblockable = true
 			info.attack_name = "Raio nas placas"
+			info.damage_type = "raio"
 			info.source = source if is_instance_valid(source) else null
 			if player.hurtbox.receive_hit(info):
 				_hit = true

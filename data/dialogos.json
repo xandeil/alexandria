@@ -31,6 +31,16 @@
 			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
 			"Os números são altos demais para alguém ainda estar contando.",
 			"O seu nome não está na lista. Ou está, e você não lembra qual é."
+		],
+		"variantes": [
+			{
+				"quando": "nome+flag:nome_violento",
+				"usar": "terminal_riscado"
+			},
+			{
+				"quando": "nome",
+				"usar": "terminal_nome"
+			}
 		]
 	},
 	"capsula_ocupada": {
@@ -80,6 +90,20 @@
 		"falas": [
 			"Você não bateu na gente.",
 			"Ninguém nunca fez isso. Aí eu vim atrás. Caí também."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
+			}
 		]
 	},
 	"crianca_poupada_2": {
@@ -87,6 +111,20 @@
 		"falas": [
 			"Lá fora tem uns soldados com escudo.",
 			"Eles seguram o escudo na frente... mas esquecem de virar. Pelas costas não tem escudo."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
+			}
 		]
 	},
 	"crianca_poupada_3": {
@@ -94,6 +132,20 @@
 		"falas": [
 			"A moça brilhante troca memória por força.",
 			"Ela é a única daqui que não pede nada pra ela."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
+			}
 		]
 	},
 	"crianca_poupada_4": {
@@ -101,6 +153,20 @@
 		"falas": [
 			"A moça ruiva da plateia fica sem armadura se você esperar.",
 			"Mas aí ela fica mais brava. Tudo aqui fica."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
+			}
 		]
 	},
 	"crianca_poupada_5": {
@@ -108,6 +174,20 @@
 		"falas": [
 			"O homem do martelo quebra o chão.",
 			"Se você correr bem rápido — aquele pulinho — você passa por cima do buraco. Eu vi."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
+			}
 		]
 	},
 	"crianca_poupada_6": {
@@ -116,6 +196,20 @@
 			"O frasco branco do vendedor é gente.",
 			"Eu sei porque tem cheiro de casa.",
 			"...A Governanta contava a gente toda noite. Um dia a conta não fechou."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_lembrou",
+				"usar": "tito_reencontro"
+			},
+			{
+				"quando": "flag:galeno_esqueceu",
+				"usar": "tito_era_ele"
+			},
+			{
+				"quando": "flag:amaro_1+!flag:tito_falou_amaro",
+				"usar": "tito_amaro"
+			}
 		]
 	},
 	"fada": {
@@ -133,6 +227,16 @@
 				"texto": "Agora não",
 				"acao": ""
 			}
+		],
+		"variantes": [
+			{
+				"quando": "!flag:lata_recebida",
+				"usar": "fada_lata"
+			},
+			{
+				"quando": "nyssa+!flag:fada_botao_nyssa",
+				"usar": "fada_botao_nyssa"
+			}
 		]
 	},
 	"vendedor": {
@@ -145,6 +249,11 @@
 			{
 				"texto": "Negociar",
 				"acao": "loja"
+			},
+			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
 			},
 			{
 				"texto": "Sair",
@@ -172,6 +281,11 @@
 				"acao": "melhorar_arma"
 			},
 			{
+				"texto": "Entregar a caixa de música",
+				"acao": "dar:caixa_musica_bronze;falar:ferreiro_caixa",
+				"quando": "item:caixa_musica_bronze"
+			},
+			{
 				"texto": "Só olhando",
 				"acao": ""
 			}
@@ -186,16 +300,35 @@
 	},
 	"helena": {
 		"nome": "Mulher na plateia",
+		"variantes": [
+			{
+				"quando": "memorias:6",
+				"usar": "helena_sobria"
+			},
+			{
+				"quando": "flag:helena_visita_2",
+				"usar": "helena_3"
+			},
+			{
+				"quando": "flag:helena_visita_1",
+				"usar": "helena_2"
+			}
+		],
 		"falas": [
-			"…",
-			"Você também acordou. Eles sempre acordam.",
-			"Este teatro guarda o que restou. Não o projeto. A memória.",
-			"Ninguém ocupa o lugar de ninguém."
+			"Ah, mais um que acordou. Senta. Não, aí não. Aí é lugar de ninguém. ...É piada. Ri.",
+			"Meu marido? Morreu. Todo perfeitinho, ele. Bota engraxada, cama arrumada. Nunca saiu do posto. Saiu UMA vez. Adivinha quem pediu?",
+			"Eu. 'Vem jantar comigo.' Ha! Jantar caro, hein?"
 		],
 		"opcoes": [
 			{
-				"texto": "Desembainhar",
-				"acao": "desafiar_helena"
+				"texto": "Mostrar a Flor de Pedra",
+				"quando": "item:flor_de_pedra",
+				"acao": "falar:helena_pela_flor"
+			},
+			{
+				"texto": "Oferecer o Licor",
+				"quando": "item:licor_da_vigilia",
+				"acao": "dar:licor_da_vigilia;falar:helena_licor"
 			},
 			{
 				"texto": "Deixá-la em paz",
@@ -217,6 +350,12 @@
 			{
 				"texto": "Agora não",
 				"acao": ""
+			}
+		],
+		"variantes": [
+			{
+				"quando": "!couraca",
+				"usar": "portao_aldir_guardado"
 			}
 		]
 	},
@@ -274,6 +413,11 @@
 			{
 				"texto": "Melhorar a arma",
 				"acao": "melhorar_arma"
+			},
+			{
+				"texto": "Entregar a caixa de música",
+				"acao": "dar:caixa_musica_bronze;falar:ferreiro_caixa",
+				"quando": "item:caixa_musica_bronze"
 			},
 			{
 				"texto": "Só olhando",
@@ -397,8 +541,8 @@
 	"placa_estufa": {
 		"nome": "Placa da estufa",
 		"falas": [
-			"ESTUFA 3 — Cultivo de proteína. Responsável: M. Vorágine.",
-			"Embaixo, a giz: “Ninguém sai da minha mesa com fome.”"
+			"ESTUFA 3 — cultivo de proteína.",
+			"\"Proteína\" está riscado. Por cima, à mão: \"gente\"."
 		]
 	},
 	"cardapio": {
@@ -446,6 +590,11 @@
 			{
 				"texto": "Negociar",
 				"acao": "loja"
+			},
+			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
 			},
 			{
 				"texto": "Sair",
@@ -522,6 +671,11 @@
 				"acao": "melhorar_arma"
 			},
 			{
+				"texto": "Entregar a caixa de música",
+				"acao": "dar:caixa_musica_bronze;falar:ferreiro_caixa",
+				"quando": "item:caixa_musica_bronze"
+			},
+			{
 				"texto": "Só olhando",
 				"acao": ""
 			}
@@ -539,7 +693,7 @@
 		"nome": "Trilha do Ninho",
 		"falas": [
 			"Uma trilha estreita sobe para o topo, entre paredes de rocha derretida.",
-			"Algo enorme está deitado atravessado no caminho, respirando fumaça: a Matriarca guarda a subida."
+			"Dragonoides acampam no caminho, de lança em pé: o Capitão guarda a subida."
 		]
 	},
 	"sope_queimado": {
@@ -596,6 +750,11 @@
 				"acao": "loja"
 			},
 			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
+			},
+			{
 				"texto": "Sair",
 				"acao": ""
 			}
@@ -612,6 +771,11 @@
 			{
 				"texto": "Negociar",
 				"acao": "loja"
+			},
+			{
+				"texto": "Entregar o Fragmento de Loja",
+				"quando": "item:fragmento_de_loja",
+				"acao": "dar:fragmento_de_loja;falar:vendedor_herda"
 			},
 			{
 				"texto": "Sair",
@@ -632,7 +796,7 @@
 		"falas": [
 			"Uma porta de cristal com uma fechadura do tamanho de uma estante.",
 			"Do outro lado, alguém vira páginas. Devagar. Sem pressa nenhuma.",
-			"O Golem do Arquivo guarda a chave dentro do peito."
+			"A Curadora guarda a chave numa vitrine. Ela não abre para ninguém."
 		]
 	},
 	"praca_congelada": {
@@ -804,122 +968,2412 @@
 			}
 		]
 	},
-	"guarda_cidade": {
-		"nome": "Guarda de cabelo branco",
+	"galho_trancado": {
+		"nome": "Galho congelado",
 		"falas": [
-			"Para trás. Estes aqui não lutam mais, mas ainda andam. Alguém precisa ficar com eles.",
-			"Meu nome? ...Não sei. Acordei de cabelo branco no meio de uma rua em chamas, com este uniforme e um anel no dedo.",
-			"Só lembro de uma coisa: deixei um posto uma vez. E alguém pagou por isso.",
-			"Se você for para o teatro, eu vou depois. Aquele lugar me chama. Não sei por quê."
+			"Um galho enorme, coberto de gelo, atravessa o vazio até a ilha vizinha.",
+			"A ponta de lá está presa no gelo. Daqui, ele não se mexe."
 		]
 	},
-	"guarda_1": {
-		"nome": "Guarda de cabelo branco",
+	"espinha_trancada": {
+		"nome": "Espinha de dragão",
 		"falas": [
-			"Este palco... eu já estive aqui. Antes de tudo.",
-			"Tenho um anel no dedo. Não sei de quem é a outra metade. Às vezes ele esquenta, quando passo perto da plateia."
+			"Uma espinha de dragão faz ponte sobre o vazio. As vértebras deste lado caíram.",
+			"Lá do outro lado, ainda dá para descer por ela."
+		]
+	},
+	"tunel_trancado": {
+		"nome": "Túnel de raízes",
+		"falas": [
+			"Raízes vermelhas fecham um túnel que desce para baixo do Teatro.",
+			"Elas pulsam do outro lado. É de lá que se abre."
+		]
+	},
+	"bau_quebrado": {
+		"nome": "Baú quebrado",
+		"falas": [
+			"Você queria saber o que tinha dentro. Agora sabe."
+		]
+	},
+	"um_bau": {
+		"nome": "Baú",
+		"falas": [
+			"Um baú."
+		]
+	},
+	"placa_cidade_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 112. Vazia. Ainda morna."
+		]
+	},
+	"placa_bosque_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 58. Vazia. Ainda morna."
+		]
+	},
+	"placa_forjas_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 406. Vazia. Ainda morna."
+		]
+	},
+	"placa_raizes_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 23. Vazia. Ainda morna."
+		]
+	},
+	"placa_montanha_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 264. Vazia. Ainda morna."
+		]
+	},
+	"placa_dominio_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 9. Vazia. Ainda morna."
+		]
+	},
+	"placa_teatro_1": {
+		"nome": "Placa",
+		"falas": [
+			"O número foi raspado com a unha.",
+			"A cápsula ainda está morna. É a sua."
+		]
+	},
+	"placa_prologo_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº —. Ninguém escreveu nada.",
+			"É aqui que você acordou."
+		]
+	},
+	"placa_nucleo_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1.",
+			"Ela nunca foi aberta. Até agora."
+		]
+	},
+	"vitrine_sono": {
+		"nome": "Vitrine",
+		"falas": [
+			"Sono de fada. Peça rara."
+		]
+	},
+	"placa_cidade_quartel_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 347. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"portao_aldir_guardado": {
+		"nome": "Portão do Detentor",
+		"falas": [
+			"O portão fica do outro lado da ponte.",
+			"No meio da ponte, uma armadura parada. Queimada por dentro. Ela não deixa ninguém passar."
+		]
+	},
+	"escala_de_guarda": {
+		"nome": "Escala de guarda",
+		"falas": [
+			"Escala de guarda. Um nome em todas as noites. Ninguém riscou."
+		]
+	},
+	"quartel_portao_fechado": {
+		"nome": "Portão do quartel",
+		"falas": [
+			"Um portão de ferro, trancado por fora da guarita.",
+			"Atrás da grade, um apito pendurado num prego. Quem dá as ordens aqui ainda está de pé."
+		]
+	},
+	"portao_viaduto_trancado": {
+		"nome": "Portão lateral",
+		"falas": [
+			"Um portão baixo, preso por uma corrente.",
+			"O cadeado está do outro lado. Do lado da ponte."
+		]
+	},
+	"placa_bosque_dormitorio_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1203. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"cama_quente": {
+		"nome": "Cama",
+		"falas": [
+			"Uma cama ainda quente. Ninguém se levantou dela."
+		]
+	},
+	"placa_sino": {
+		"nome": "Placa",
+		"falas": [
+			"Unidade de despertar 2. Para quando a Fada estiver cansada."
+		]
+	},
+	"dormitorio_porta_fechada": {
+		"nome": "Porta de raízes",
+		"falas": [
+			"Raízes fecham a passagem. Do outro lado, barulho de água.",
+			"Elas tremem cada vez que o Vigia respira."
+		]
+	},
+	"raiz_trancada": {
+		"nome": "Raiz grossa",
+		"falas": [
+			"Uma raiz grossa desce pela parede.",
+			"Ela se solta lá de cima. Da Borda."
+		]
+	},
+	"placa_forjas_fornalha_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 771. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"martelo_de_crianca": {
+		"nome": "Martelo pequeno",
+		"falas": [
+			"Um martelo pequeno, de criança. Dois nomes no cabo. Um foi raspado."
+		]
+	},
+	"palco_da_dancarina": {
+		"nome": "Palco",
+		"falas": [
+			"Feita para dançar para alguém. Ninguém veio ver."
+		]
+	},
+	"estatua_sem_rosto": {
+		"nome": "Estátua",
+		"falas": [
+			"Uma estátua de bronze, igual às outras. Esta não tem rosto."
+		]
+	},
+	"fornalha_porta_fechada": {
+		"nome": "Porta da fornalha",
+		"falas": [
+			"Uma porta de ferro, quente demais para tocar.",
+			"Do outro lado, alguma coisa grande respira vapor."
+		]
+	},
+	"elevador_parado": {
+		"nome": "Elevador",
+		"falas": [
+			"Um elevador de carga, parado lá em cima.",
+			"A alavanca fica do outro lado. Na Passarela."
+		]
+	},
+	"ferreiro_caixa": {
+		"nome": "Ferreiro Anão",
+		"falas": [
+			"...Ele fazia isso? Eu nunca soube."
 		],
-		"opcoes": [
+		"variantes": [
 			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
+				"quando": "chefe:durgan",
+				"usar": "ferreiro_caixa_durgan"
 			}
 		]
 	},
-	"guarda_2": {
-		"nome": "Guarda de cabelo branco",
+	"ferreiro_caixa_durgan": {
+		"nome": "Ferreiro Anão",
 		"falas": [
-			"Sonhei com uma voz de mulher. Dizia “volte para o posto”. Ou “não volte”. Acordei sem saber qual das duas.",
-			"Se precisar de alguém do seu lado nas ilhas, é só chamar."
+			"Ele fez para mim. E eu nunca fui lá ver."
+		]
+	},
+	"placa_raizes_despensa_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 911. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"mesa_posta_1": {
+		"nome": "Mesa posta",
+		"falas": [
+			"Ainda quente. Ninguém sabe de quem é."
 		],
 		"opcoes": [
 			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
+				"texto": "Comer",
+				"acao": "comer:mesa_1"
 			},
 			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
+				"texto": "Deixar",
+				"acao": ""
 			}
 		]
 	},
-	"guarda_3": {
-		"nome": "Guarda de cabelo branco",
+	"mesa_posta_2": {
+		"nome": "Mesa posta",
 		"falas": [
-			"Toda noite vejo um posto vazio e alguém correndo para ele. Nunca chego a tempo.",
-			"Talvez seja por isso que eu não consigo ficar parado."
+			"Ainda quente. Ninguém sabe de quem é."
 		],
 		"opcoes": [
 			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
+				"texto": "Comer",
+				"acao": "comer:mesa_2"
 			},
 			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
+				"texto": "Deixar",
+				"acao": ""
 			}
 		]
 	},
-	"guarda_4": {
-		"nome": "Guarda de cabelo branco",
+	"veia_trancada": {
+		"nome": "Veia grossa",
 		"falas": [
-			"Os soldados da Cidade me olham como se me conhecessem. Talvez eu tenha dado ordens a eles. Talvez tenha desobedecido.",
-			"Ninguém aqui morre de verdade. Então todos nós devemos alguma coisa a alguém."
+			"Uma veia grossa desce pela parede, apertada como um nó.",
+			"Do outro lado, ela pulsa. É de lá que se solta."
+		]
+	},
+	"varanda_porta_fechada": {
+		"nome": "Porta do salão",
+		"falas": [
+			"Uma porta de madeira, fechada por fios de seiva.",
+			"Atrás dela, cheiro de banquete. Algo se mexe nos fios."
+		]
+	},
+	"placa_montanha_ossario_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 630. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"soldado_queimado": {
+		"nome": "Soldado queimado",
+		"falas": [
+			"Ele não recuou. O escudo também não."
+		]
+	},
+	"trilha_trancada": {
+		"nome": "Trilha estreita",
+		"falas": [
+			"Uma trilha sobe pela rocha, fechada por pedras soltas.",
+			"Lá de cima dá para empurrar. Daqui, não."
+		]
+	},
+	"ossario_porta_fechada": {
+		"nome": "Saída do Ossário",
+		"falas": [
+			"Ossos empilhados fecham a passagem.",
+			"Alguma coisa grande dorme em cima deles."
+		]
+	},
+	"placa_dominio_arquivo_1": {
+		"nome": "Placa",
+		"falas": [
+			"Nº 1487. Vazia. Ainda morna.",
+			"Do lado, alguém deixou uma coisa pequena. Como quem vai voltar para buscar."
+		]
+	},
+	"mesa_de_cha": {
+		"nome": "Mesa de chá",
+		"falas": [
+			"Duas xícaras. Uma ainda cheia. Congelou antes de esfriar."
+		]
+	},
+	"vitrine_risada": {
+		"nome": "Vitrine",
+		"falas": [
+			"Uma vitrine vazia. A placa diz: \"A primeira risada.\"",
+			"Alguém catalogou o vidro por dentro, com cuidado. Não sobrou nada para ver."
+		]
+	},
+	"catalogo_eco": {
+		"nome": "Fichário",
+		"falas": [
+			"Fichas em ordem, congeladas na gaveta.",
+			"Uma diz: \"Couraça do Eco, botas. Forjas. Catalogada.\""
+		]
+	},
+	"escada_trancada": {
+		"nome": "Escada de serviço",
+		"falas": [
+			"Uma escada de ferro sobe pela parede. A tampa lá em cima está fechada.",
+			"O trinco fica do outro lado. Na Galeria."
+		]
+	},
+	"arquivo_porta_fechada": {
+		"nome": "Porta do Arquivo",
+		"falas": [
+			"Uma porta de gelo com uma fechadura de livro.",
+			"Alguém grande guarda a chave. Ele não sai do lugar."
+		]
+	},
+	"governanta_conta": {
+		"nome": "Governanta",
+		"falas": [
+			"Eu contei. Todas as noites, eu contei...",
+			"Espera. ESPERA. A conta... eu preciso fechar a conta...",
+			"QUAL É O SEU NOME?"
+		]
+	},
+	"governanta_riscar": {
+		"nome": "Governanta",
+		"falas": [
+			"...Agora eu sei quem riscar."
+		]
+	},
+	"terminal_nome": {
+		"nome": "Terminal",
+		"escrito": true,
+		"falas": [
+			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
+			"Os números são altos demais para alguém ainda estar contando.",
+			"No fim da lista, uma linha nova: {nome} — tentativa {tentativa}."
+		]
+	},
+	"terminal_riscado": {
+		"nome": "Terminal",
+		"escrito": true,
+		"falas": [
+			"Na tela verde, uma lista de nomes. Ao lado de cada um, um número de tentativas.",
+			"No fim da lista: {nome} — tentativa {tentativa}.",
+			"O nome está riscado. Riscado de novo, por cima, com mais força."
+		]
+	},
+	"lucia_nome_sim": {
+		"nome": "Lúcia",
+		"falas": [
+			"Pronto. Agora eu guardo o seu também."
+		]
+	},
+	"lucia_nome_nao": {
+		"nome": "Lúcia",
+		"falas": [
+			"...Então somos duas. Eu guardo o vazio por você."
+		]
+	},
+	"galeno_nome_sim": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Nome de gente forte!"
+		]
+	},
+	"galeno_nome_nao": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Eu também não! Somos dois!"
+		]
+	},
+	"helena_nome_sim": {
+		"nome": "Helena",
+		"falas": [
+			"Bonito. O meu também era bonito, antes."
+		]
+	},
+	"helena_nome_nao": {
+		"nome": "Helena",
+		"falas": [
+			"Sorte sua."
+		]
+	},
+	"amaro_nome_sim": {
+		"nome": "Amaro",
+		"falas": [
+			"Ah, então é assim que chama o meu ratinho preferido!"
+		]
+	},
+	"amaro_nome_nao": {
+		"nome": "Amaro",
+		"falas": [
+			"Sem nome? Melhor."
+		]
+	},
+	"experimento_nome_sim": {
+		"nome": "O Experimento Anterior",
+		"falas": [
+			"...Era o meu também."
+		]
+	},
+	"experimento_nome_nao": {
+		"nome": "O Experimento Anterior",
+		"falas": [
+			"Ela vai te dar um. Como deu pra mim."
+		]
+	},
+	"experimento_pergunta": {
+		"nome": "O Experimento Anterior",
+		"falas": [
+			"...Você ainda lembra o seu nome?"
 		],
 		"opcoes": [
 			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
-			},
-			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
+				"tipo": "nome",
+				"personagem": "experimento",
+				"sim": "falar:experimento_nome_sim",
+				"nao": "falar:experimento_nome_nao"
 			}
 		]
 	},
-	"guarda_5": {
-		"nome": "Guarda de cabelo branco",
+	"lucia_ponte": {
+		"nome": "Lúcia",
+		"some_quando": "aldir",
 		"falas": [
-			"A mulher da plateia não olha para mim. E eu não consigo parar de olhar para ela.",
-			"Ela segura a espada como quem segura um posto. Eu sei como é."
+			"Não olhe para o meu rosto. Ele está virando de outra pessoa.",
+			"Eu tinha um irmão. Combinamos de nos encontrar. Agora só tenho o combinado.",
+			"Meu nome é Lúcia. Repita. ...De novo. Pronto. Agora somos dois guardando."
+		],
+		"variantes": [
+			{
+				"quando": "flag:lucia_quedas",
+				"usar": "lucia_depois_de_cair"
+			},
+			{
+				"quando": "flag:lucia_conhecida",
+				"usar": "lucia_de_novo"
+			}
 		],
 		"opcoes": [
 			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
+				"texto": "Lute comigo",
+				"acao": "flag:lucia_conhecida;lute_comigo:lucia"
 			},
 			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
+				"texto": "Até logo",
+				"acao": "flag:lucia_conhecida"
 			}
 		]
 	},
-	"guarda_6": {
-		"nome": "Guarda de cabelo branco",
+	"lucia_de_novo": {
+		"nome": "Lúcia",
 		"falas": [
-			"Se um dia você subir naquele palco para lutar com ela... eu vou junto.",
-			"Não me pergunte por quê. Eu também não sei. Só sei que, desta vez, eu não saio do lugar."
+			"Se eu esquecer, você lembra por mim? ...É pedir muito. Eu sei."
 		],
 		"opcoes": [
 			{
-				"texto": "Venha comigo",
-				"acao": "chamar_guarda"
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:lucia"
 			},
 			{
-				"texto": "Fique aqui",
-				"acao": "dispensar_guarda"
+				"texto": "Até logo",
+				"acao": ""
 			}
 		]
 	},
-	"posto_vazio": {
-		"nome": "Posto vazio",
+	"lucia_depois_de_cair": {
+		"nome": "Lúcia",
 		"falas": [
-			"Um elmo amassado e uma espada cravada no assoalho, de pé.",
-			"Desta vez, ele não saiu do lugar."
+			"Quem... Desculpe. Você tem cara de alguém que eu devia conhecer."
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:lucia"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"lucia_bosque": {
+		"nome": "Lúcia",
+		"aparece_quando": "flag:lucia_conhecida",
+		"some_quando": "nyssa",
+		"falas": [
+			"Se eu dormir, acordo menos."
+		],
+		"variantes": [
+			{
+				"quando": "flag:lucia_quedas",
+				"usar": "lucia_depois_de_cair"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:lucia"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"lucia_dominio": {
+		"nome": "Lúcia",
+		"aparece_quando": "flag:lucia_conhecida",
+		"some_quando": "cassian|flag:lucia_congelada",
+		"falas": [
+			"Ele disse que, no gelo, ninguém esquece. Nunca mais."
+		],
+		"opcoes": [
+			{
+				"texto": "Vá",
+				"acao": "flag:lucia_congelada"
+			},
+			{
+				"texto": "Fique",
+				"acao": "lute_comigo:lucia"
+			}
+		]
+	},
+	"vitrine_lucia": {
+		"nome": "Vitrine",
+		"aparece_quando": "flag:lucia_congelada",
+		"falas": [
+			"Mulher que lembrava. Peça rara. Não exibir."
+		]
+	},
+	"lucia_teatro": {
+		"nome": "Lúcia",
+		"aparece_quando": "cassian+flag:lucia_conhecida",
+		"some_quando": "flag:lucia_lembrada|flag:lucia_esquecida|flag:lucia_congelada",
+		"falas": [
+			"Ela tirou a máscara. Os olhos estão brancos."
+		],
+		"variantes": [
+			{
+				"quando": "conta:lucia_quedas:3",
+				"usar": "lucia_teatro_esqueceu"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Mostrar o meio pingente",
+				"quando": "item:meio_pingente+!flag:damiao_morto",
+				"acao": "dar:meio_pingente;cena:reencontro_avelar"
+			},
+			{
+				"texto": "Mostrar o meio pingente",
+				"quando": "item:meio_pingente+flag:damiao_morto",
+				"acao": "dar:meio_pingente;falar:lucia_pingente_sozinha"
+			},
+			{
+				"texto": "Ficar",
+				"acao": "lucia_final"
+			}
+		]
+	},
+	"lucia_teatro_esqueceu": {
+		"nome": "Lúcia",
+		"falas": [
+			"Ela tirou a máscara. Os olhos estão brancos.",
+			"Ela olha para você. Não pergunta nada."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:lucia_esquecida"
+			}
+		]
+	},
+	"lucia_certo": {
+		"nome": "Lúcia",
+		"falas": [
+			"...É isso. Obrigada por guardar."
+		]
+	},
+	"lucia_errado": {
+		"nome": "Lúcia",
+		"falas": [
+			"...Também não lembro mais."
+		]
+	},
+	"lucia_e_o_seu": {
+		"nome": "Lúcia",
+		"falas": [
+			"E o seu? ...Ainda lembra?"
+		],
+		"opcoes": [
+			{
+				"tipo": "nome",
+				"personagem": "lucia",
+				"sim": "falar:lucia_nome_sim",
+				"nao": "falar:lucia_nome_nao"
+			}
+		]
+	},
+	"lucia_mascara": {
+		"nome": "Máscara e espada",
+		"aparece_quando": "flag:lucia_lembrada",
+		"falas": [
+			"Uma máscara de pano dobrada sobre uma espada.",
+			"Quem usava foi embora em paz."
+		]
+	},
+	"lucia_cinzenta": {
+		"nome": "Mulher cinzenta",
+		"aparece_quando": "flag:lucia_esquecida",
+		"falas": [
+			"Ela anda devagar entre as poltronas. Não olha para ninguém."
+		]
+	},
+	"galeno_forjas": {
+		"nome": "Galeno",
+		"some_quando": "durgan",
+		"falas": [
+			"Ha! Outro andarilho! Esta ilha tem mais gente perdida do que pedra.",
+			"Procuro força! Ou uma coisa que precisava de força. Uma das duas.",
+			"Coitado. Nem cara tem. Eu pelo menos tenho barba!",
+			"Ha! E você, amigo? Como se chama?"
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_caiu",
+				"usar": "galeno_depois_de_cair"
+			},
+			{
+				"quando": "flag:galeno_conhecido",
+				"usar": "galeno_de_novo"
+			}
+		],
+		"opcoes": [
+			{
+				"tipo": "nome",
+				"personagem": "galeno",
+				"sim": "flag:galeno_conhecido;falar:galeno_nome_sim",
+				"nao": "flag:galeno_conhecido;falar:galeno_nome_nao"
+			}
+		]
+	},
+	"galeno_de_novo": {
+		"nome": "Galeno",
+		"falas": [
+			"Não lembro o que eu protegia. Mas olha estes braços! Alguma coisa valia a pena."
+		],
+		"variantes": [
+			{
+				"quando": "flag:amaro_1+!flag:galeno_falou_amaro",
+				"usar": "galeno_amaro"
+			},
+			{
+				"quando": "flag:galeno_fragmentos",
+				"usar": "galeno_giz"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_giz": {
+		"nome": "Galeno",
+		"falas": [
+			"...Giz. Por que eu lembro de giz?"
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_depois_de_cair": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Já nos conhecemos? Que ótimo!"
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "desliga:galeno_caiu;lute_comigo:galeno"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "desliga:galeno_caiu"
+			}
+		]
+	},
+	"galeno_raizes": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_conhecido",
+		"some_quando": "mabel",
+		"falas": [
+			"Comida ruim também é comida!"
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_caiu",
+				"usar": "galeno_depois_de_cair"
+			},
+			{
+				"quando": "conta:galeno_fragmentos:2",
+				"usar": "galeno_raizes_depois"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_raizes_depois": {
+		"nome": "Galeno",
+		"falas": [
+			"...Alguém fazia comida pra mim. Ou eu fazia pra alguém. Pequeno. Era pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_montanha": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_conhecido",
+		"some_quando": "rachel",
+		"falas": [
+			"Um dragão? Ha! Vamos ver quem é mais teimoso."
+		],
+		"variantes": [
+			{
+				"quando": "flag:galeno_caiu",
+				"usar": "galeno_depois_de_cair"
+			},
+			{
+				"quando": "conta:galeno_fragmentos:2",
+				"usar": "galeno_giz"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Lute comigo",
+				"acao": "lute_comigo:galeno"
+			},
+			{
+				"texto": "Mostrar a espadinha de madeira",
+				"acao": "falar:galeno_espadinha",
+				"quando": "item:espada_madeira_pequena"
+			},
+			{
+				"texto": "Até logo",
+				"acao": ""
+			}
+		]
+	},
+	"galeno_espadinha": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Que espadinha! Alguém fez isso com carinho."
+		]
+	},
+	"galeno_teatro": {
+		"nome": "Galeno",
+		"aparece_quando": "conta:galeno_fragmentos:3",
+		"some_quando": "flag:galeno_lembrou|flag:galeno_esqueceu|flag:tito_morto",
+		"falas": [
+			"Você vive esquecendo, não é? ...Vale a pena lembrar?"
+		],
+		"opcoes": [
+			{
+				"texto": "Lembre",
+				"acao": "flag:galeno_lembrou;falar:galeno_lembrou"
+			},
+			{
+				"texto": "Esqueça",
+				"acao": "flag:galeno_esqueceu;ganhar:desenho_a_giz;falar:galeno_esqueceu"
+			}
+		]
+	},
+	"galeno_lembrou": {
+		"nome": "Galeno",
+		"falas": [
+			"(Ele vira o escudo e olha o desenho por dentro.)",
+			"Eu ria porque não lembrava. Agora lembro. ...Me dá um tempo sem rir, amigo."
+		]
+	},
+	"galeno_esqueceu": {
+		"nome": "",
+		"falas": [
+			"Ele te entrega um papel dobrado e sai rindo, sem rumo."
+		]
+	},
+	"tiao_cidade_quartel": {
+		"nome": "Tião",
+		"some_quando": "sargento|flag:tiao_cinzento",
+		"falas": [
+			"Vou te contar um segredo: eu não sou muito esperto. Mas sou MUITO forte. ...Não. Também não."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_cidade_viaduto": {
+		"nome": "Bastião",
+		"some_quando": "couraca|flag:bastiao_cinzento",
+		"falas": [
+			"Você viu um baixinho com uma panela na cabeça? Não? Ótimo. Se vir, diga que eu não estou."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_bosque_dormitorio": {
+		"nome": "Tião",
+		"some_quando": "vigia|flag:tiao_cinzento",
+		"falas": [
+			"AH! Caramba, cara, que susto! Achei que fosse aquele cara!",
+			"Que cara? O Bastião! Comprido, magro, cara de colher torta!",
+			"...Não que eu tenha medo dele. Eu durmo de olho aberto. Só que fecho."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_bosque_borda": {
+		"nome": "Bastião",
+		"some_quando": "mae_esporos|flag:bastiao_cinzento",
+		"falas": [
+			"A gente briga desde... desde ontem? Desde sempre? É a mesma coisa."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_raizes_despensa": {
+		"nome": "Tião",
+		"some_quando": "banqueteiro|flag:tiao_cinzento",
+		"falas": [
+			"Dizem que esta ilha não cai. Eu caí três vezes hoje. Mentirosos."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_forjas_fornalha": {
+		"nome": "Bastião",
+		"some_quando": "prototipo|flag:bastiao_cinzento",
+		"falas": [
+			"Eu tenho um plano. Não sei qual é. Mas eu tenho."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_montanha_encosta": {
+		"nome": "Tião",
+		"some_quando": "capitao|flag:tiao_cinzento",
+		"falas": [
+			"Vou te contar um segredo: eu não sou muito esperto. Mas sou MUITO forte. ...Não. Também não."
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_montanha_ossario": {
+		"nome": "Bastião",
+		"some_quando": "matriarca|flag:bastiao_cinzento",
+		"falas": [
+			"Você bate bem! Quase igual a mim. Quase. Não conta pra ele."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_dominio_arquivo": {
+		"nome": "Tião",
+		"some_quando": "golem_arquivo|flag:tiao_cinzento",
+		"falas": [
+			"Ele disse que minha mãe era uma pedra. Eu não lembro da minha mãe. Mas não era pedra! ...Era?"
+		],
+		"variantes": [
+			{
+				"quando": "flag:bastiao_cinzento",
+				"usar": "tiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_dominio_galeria": {
+		"nome": "Bastião",
+		"some_quando": "curadora|flag:bastiao_cinzento",
+		"falas": [
+			"Você viu um baixinho com uma panela na cabeça? Não? Ótimo. Se vir, diga que eu não estou."
+		],
+		"variantes": [
+			{
+				"quando": "flag:tiao_cinzento",
+				"usar": "bastiao_quieto"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"tiao_quieto": {
+		"nome": "Tião",
+		"falas": [
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:tiao_conversou;chama:tiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:tiao_conversou"
+			}
+		]
+	},
+	"bastiao_quieto": {
+		"nome": "Bastião",
+		"falas": [
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		],
+		"opcoes": [
+			{
+				"texto": "Me ajuda aqui?",
+				"acao": "flag:bastiao_conversou;chama:bastiao"
+			},
+			{
+				"texto": "Até logo",
+				"acao": "flag:bastiao_conversou"
+			}
+		]
+	},
+	"briga_ponte": {
+		"nome": "Tião e Bastião",
+		"aparece_quando": "flag:tiao_conversou+flag:bastiao_conversou+capitao",
+		"some_quando": "flag:tiao_cinzento|flag:bastiao_cinzento|flag:brigoes_juntos",
+		"falas": [
+			"Meu nome é Sebastião!",
+			"Mentira! EU sou o Sebastião!",
+			"Então por que te chamam de Bastião?",
+			"E a ti de Tião?! Metade de nome! Ladrão de nome!"
+		],
+		"opcoes": [
+			{
+				"texto": "Ajudar o Tião",
+				"acao": "flag:bastiao_cinzento;falar:briga_tiao_fica"
+			},
+			{
+				"texto": "Ajudar o Bastião",
+				"acao": "flag:tiao_cinzento;falar:briga_bastiao_fica"
+			},
+			{
+				"texto": "Entrar no meio",
+				"acao": "falar:briga_meio;duelo_sebastioes"
+			}
+		]
+	},
+	"briga_tiao_fica": {
+		"nome": "Tião",
+		"falas": [
+			"(O Bastião cai. Quando levanta, não lembra do Tião. Não lembra de nada.)",
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		]
+	},
+	"briga_bastiao_fica": {
+		"nome": "Bastião",
+		"falas": [
+			"(O Tião cai. Quando levanta, não lembra do Bastião. Não lembra de nada.)",
+			"...Agora o nome é só meu. ...É estranho. Pesa mais."
+		]
+	},
+	"briga_meio": {
+		"nome": "Tião e Bastião",
+		"falas": [
+			"Quem é esse?",
+			"Sei lá. Mas não fui com a cara dele."
+		]
+	},
+	"tiao_cinzento_ponte": {
+		"nome": "Homem cinzento",
+		"aparece_quando": "flag:tiao_cinzento",
+		"falas": [
+			"Ele anda devagar pela ponte. Não lembra de ninguém."
+		]
+	},
+	"bastiao_cinzento_ponte": {
+		"nome": "Homem cinzento",
+		"aparece_quando": "flag:bastiao_cinzento",
+		"falas": [
+			"Ele anda devagar pela ponte. Não lembra de ninguém."
+		]
+	},
+	"poco_heitor": {
+		"nome": "Poço",
+		"falas": [
+			"Lá do fundo, alguém cantarola. Desafinado."
+		],
+		"variantes": [
+			{
+				"quando": "flag:heitor_poco",
+				"usar": "poco_vazio"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Jogar a corda",
+				"acao": "flag:heitor_poco;falar:heitor_salvo_poco"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"poco_vazio": {
+		"nome": "Poço",
+		"falas": [
+			"Só água parada lá no fundo."
+		]
+	},
+	"heitor_salvo_poco": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Ha! Salvo de novo! Eu juro que costumo ser mais útil que isso.",
+			"Toma um gole! Eu nem gosto. Bebo pra acompanhar alguém. ...Que alguém?"
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar a garrafa",
+				"acao": "ganhar:licor_da_vigilia"
+			}
+		]
+	},
+	"estatua_heitor": {
+		"nome": "Estátua caída",
+		"aparece_quando": "flag:heitor_poco",
+		"falas": [
+			"Fui eu que fiz essa música! Acho. É ruim demais pra ser de outra pessoa."
+		],
+		"variantes": [
+			{
+				"quando": "flag:heitor_estatua",
+				"usar": "estatua_vazia"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Empurrar a estátua",
+				"acao": "flag:heitor_estatua;falar:heitor_salvo_estatua"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"estatua_vazia": {
+		"nome": "Estátua caída",
+		"falas": [
+			"Só a estátua, de lado. Ninguém embaixo."
+		]
+	},
+	"heitor_salvo_estatua": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Ha! Salvo de novo! Eu juro que costumo ser mais útil que isso.",
+			"Dizem que um homem morreu por sair do posto. Coitado! ...Por que todo mundo me olha quando falam isso?"
+		]
+	},
+	"gelo_heitor": {
+		"nome": "Homem no gelo",
+		"aparece_quando": "flag:heitor_estatua",
+		"some_quando": "flag:heitor_gelo",
+		"falas": [
+			"Ha! Gelado aqui, né? ...Você não sente frio? Que inveja!"
+		],
+		"variantes": [
+			{
+				"quando": "flag:heitor_gelo",
+				"usar": "heitor_dominio"
+			}
+		],
+		"opcoes": [
+			{
+				"texto": "Quebrar o gelo",
+				"acao": "flag:heitor_gelo;falar:heitor_salvo_gelo"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"heitor_salvo_gelo": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Ha! Salvo de novo! Eu juro que costumo ser mais útil que isso.",
+			"Não lembro de nada. Mas acordo todo dia achando que estou atrasado. Atrasado pra quê? Boa pergunta!"
+		]
+	},
+	"heitor_dominio": {
+		"nome": "Homem de cabelo branco",
+		"aparece_quando": "flag:heitor_gelo",
+		"some_quando": "flag:heitor_morto",
+		"falas": [
+			"Fui eu que fiz essa música! Acho. É ruim demais pra ser de outra pessoa."
+		],
+		"variantes": [
+			{
+				"quando": "flag:helena_contou_flor+!flag:heitor_deu_flor",
+				"usar": "heitor_flor"
+			}
+		]
+	},
+	"heitor_flor": {
+		"nome": "Homem de cabelo branco",
+		"falas": [
+			"Flor de pedra! Não sei onde ouvi isso. Fica pra você."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar a pedra",
+				"acao": "flag:heitor_deu_flor;ganhar:flor_de_pedra"
+			}
+		]
+	},
+	"helena_2": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Ele cantava desafinado. Era a única coisa errada nele. Eu amava a coisa errada.",
+			"Ele compôs uma música pra mim. Era horrível.",
+			"Ele me dava flor de qualquer coisa. Uma vez me deu uma pedra. Disse que era flor de pedra."
+		],
+		"opcoes": [
+			{
+				"texto": "Mostrar a Flor de Pedra",
+				"quando": "item:flor_de_pedra",
+				"acao": "falar:helena_pela_flor"
+			},
+			{
+				"texto": "Oferecer o Licor",
+				"quando": "item:licor_da_vigilia",
+				"acao": "dar:licor_da_vigilia;falar:helena_licor"
+			},
+			{
+				"texto": "Deixá-la em paz",
+				"acao": ""
+			}
+		]
+	},
+	"helena_3": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Imortal, esse lugar. Todo mundo volta. Menos quem eu queria. Típico.",
+			"Brinde! A quem fica no posto. ...E a quem não fica.",
+			"Tem um esquisito de cabelo branco cantando por aí? Manda parar. Essa música tem dono."
+		],
+		"opcoes": [
+			{
+				"texto": "Mostrar a Flor de Pedra",
+				"quando": "item:flor_de_pedra",
+				"acao": "falar:helena_pela_flor"
+			},
+			{
+				"texto": "Oferecer o Licor",
+				"quando": "item:licor_da_vigilia",
+				"acao": "dar:licor_da_vigilia;falar:helena_licor"
+			},
+			{
+				"texto": "Deixá-la em paz",
+				"acao": ""
+			}
+		]
+	},
+	"helena_licor": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Ele odiava essa porcaria. Bebia só pra me acompanhar."
+		]
+	},
+	"helena_sobria": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"Seis. Só falta eu. ...Então é isso."
+		],
+		"opcoes": [
+			{
+				"texto": "Desembainhar",
+				"acao": "desafiar_helena"
+			},
+			{
+				"texto": "Ainda não",
+				"acao": ""
+			}
+		]
+	},
+	"helena_pela_flor": {
+		"nome": "Mulher na plateia",
+		"falas": [
+			"...Onde você achou isso?",
+			"Ninguém sabe disso. NINGUÉM. Só ele.",
+			"Ele tá vivo? Ele tá VIVO, andando por aí, e não VOLTOU pra mim?!",
+			"Eu bebi por ele! Eu ENTERREI ele aqui dentro! E ele tava CANTANDO?!"
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:helena_pela_flor;desafiar_helena"
+			}
+		]
+	},
+	"heitor_memorial": {
+		"nome": "Elmo e garrafa",
+		"aparece_quando": "flag:heitor_morto",
+		"falas": [
+			"Os dois ficaram no posto."
+		]
+	},
+	"tito_desenho": {
+		"nome": "Desenho a giz",
+		"falas": [
+			"Dois bonecos de giz. O grande está sorrindo. O pequeno desenhou os dois sorrindo."
+		]
+	},
+	"tito_no_chao": {
+		"nome": "Criança caída",
+		"falas": [
+			"Ele não levantou. Os outros sempre levantam."
+		],
+		"opcoes": [
+			{
+				"texto": "Usar um Frasco de Sanidade",
+				"quando": "prologo+sanidade+flag:tito_caido+!flag:tito_morto",
+				"acao": "reviver_tito"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"tito_revivido": {
+		"nome": "Tito",
+		"falas": [
+			"Ele desenha de novo, no canto. Os dois olhos, agora, brancos."
+		]
+	},
+	"governanta_inicio": {
+		"nome": "Governanta",
+		"falas": [
+			"...Ninguém caiu hoje.",
+			"Eu conto todas as noites. Hoje a conta fechou antes de eu chegar no fim.",
+			"Você é dos meus? ...Não. Os meus não sabem andar até a porta.",
+			"Mas eu conto tudo que passa pela porta. ...Você lembra o seu nome?"
+		]
+	},
+	"governanta_escrever": {
+		"nome": "Governanta",
+		"falas": [
+			"...Eu vou escrever. Alguém precisa escrever.",
+			"Vá. Antes que eu lembre que devia te contar também."
+		]
+	},
+	"governanta_faltou_um": {
+		"nome": "Governanta",
+		"falas": [
+			"Faltou um. O do canto. ...ELE NÃO LEVANTOU."
+		]
+	},
+	"governanta_mesa": {
+		"nome": "Governanta",
+		"variantes": [
+			{
+				"quando": "sete+flag:tito_morto+flag:galeno_morto",
+				"usar": "governanta_final_tito_galeno"
+			},
+			{
+				"quando": "sete+flag:tito_morto",
+				"usar": "governanta_final_tito"
+			},
+			{
+				"quando": "sete+flag:tito_revivido",
+				"usar": "governanta_final_revivido"
+			},
+			{
+				"quando": "sete+feriu",
+				"usar": "governanta_final_feriu"
+			},
+			{
+				"quando": "sete",
+				"usar": "governanta_final_paz"
+			},
+			{
+				"quando": "flag:tito_caido",
+				"usar": "governanta_meio"
+			}
+		],
+		"falas": [
+			"Eu conto tudo que passa pela porta."
+		]
+	},
+	"governanta_meio": {
+		"nome": "Governanta",
+		"falas": [
+			"O do canto não levanta. Eu conto ele mesmo assim.",
+			"Respira pouco. Quem respira pouco ainda é gente.",
+			"Lá em cima vendem gente em vidro. Tem cheiro de casa. ...Eu não posso ir. Eu não saio da mesa."
+		]
+	},
+	"governanta_final_paz": {
+		"nome": "Governanta",
+		"falas": [
+			"Você voltou. Ninguém volta. Eles só acordam.",
+			"Eu contei você, sabia? Na primeira noite. Eu conto tudo que passa pela porta.",
+			"Eu tirei a morte deste lugar. Achei que era o mesmo que tirar a dor. ...Não era. Eles só param de crescer.",
+			"Você vai até o coração, não vai? Se ficar lá em cima, no lugar dele... eu entendo. Eu também nunca saí da mesa.",
+			"Mas se for soltar... venha me contar antes. Eu queria contar uma última vez. Do jeito certo."
+		]
+	},
+	"governanta_final_feriu": {
+		"nome": "Governanta",
+		"falas": [
+			"Escrevi seu nome com tanta força que rasgou o papel.",
+			"Eles levantaram. Menores. Sempre levantam menores. E me olham como se fosse culpa minha.",
+			"...É culpa minha.",
+			"Vá. Termine o que veio fazer. Pelo menos alguém aqui termina alguma coisa."
+		]
+	},
+	"governanta_final_tito": {
+		"nome": "Governanta",
+		"falas": [
+			"O do canto. Eu ainda conto ele. Toda noite. É o único que eu conto e a conta FECHA.",
+			"Sabe o que é uma conta que fecha? Eu esperei tanto. E agora queria que nunca tivesse fechado.",
+			"O pai veio. Grande. Sentou no chão, do lado dele. Ficou dias. Depois foi atrás de você."
+		]
+	},
+	"governanta_final_tito_galeno": {
+		"nome": "Governanta",
+		"falas": [
+			"O do canto. Eu ainda conto ele. Toda noite. É o único que eu conto e a conta FECHA.",
+			"Sabe o que é uma conta que fecha? Eu esperei tanto. E agora queria que nunca tivesse fechado.",
+			"O pai veio. Grande. Sentou no chão, do lado dele. Ficou dias. Depois foi atrás de você.",
+			"Ele não voltou. Ninguém volta. Eu disse isso pra ele também."
+		]
+	},
+	"governanta_final_revivido": {
+		"nome": "Governanta",
+		"falas": [
+			"Você trouxe ele de volta. O olho ficou branco.",
+			"Agora ele não cresce mais.",
+			"...Agora ele é meu também."
+		]
+	},
+	"tito_reencontro": {
+		"nome": "Tito",
+		"falas": [
+			"...Pai. Você demorou."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "falar:galeno_reencontro"
+			}
+		]
+	},
+	"galeno_reencontro": {
+		"nome": "Galeno",
+		"falas": [
+			"Eu sei. Eu sei, filho. Eu tava procurando força. ...Era você. Sempre foi você."
+		]
+	},
+	"galeno_pai": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_lembrou+poupou",
+		"falas": [
+			"Você deixou ele brincar. Ninguém deixava ele brincar."
+		]
+	},
+	"tito_era_ele": {
+		"nome": "Tito",
+		"falas": [
+			"...Era ele, né?"
+		]
+	},
+	"galeno_laboratorio": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:galeno_lembrou+feriu+!flag:tito_morto",
+		"variantes": [
+			{
+				"quando": "flag:tito_revivido",
+				"usar": "galeno_ajoelhado"
+			}
+		],
+		"falas": [
+			"Ele dorme numa caminha pequena demais, do lado do Tito."
+		]
+	},
+	"galeno_ajoelhado": {
+		"nome": "Galeno",
+		"falas": [
+			"O olho dele... era castanho.",
+			"Ele não vai crescer, né?",
+			"...Tudo bem. Eu também não vou. A gente fica pequeno junto."
+		]
+	},
+	"galeno_capsula": {
+		"nome": "Galeno",
+		"aparece_quando": "flag:tito_morto+!flag:galeno_morto",
+		"falas": [
+			"Você dorme aí, né? Numa caixa. Ele dormia numa cama deste tamanho.",
+			"Eu lembrei, amigo. De tudo. O nome dele era Tito.",
+			"Ele tinha um olho castanho ainda. Sabe o que isso quer dizer? Que ainda dava tempo. Que ele ainda ia crescer.",
+			"Essa espada na sua cintura. Eu fiz. Lixei de noite, com a mão, pra não ter farpa.",
+			"Você carregou ela esse tempo todo. E eu ri. Eu olhei pra ela e RI.",
+			"Me diz que ele te atacou primeiro. Mente pra mim. ...Por favor, mente."
+		],
+		"opcoes": [
+			{
+				"texto": "Ele me atacou primeiro",
+				"acao": "falar:galeno_mentira;luta_galeno"
+			},
+			{
+				"texto": "[Silêncio]",
+				"acao": "falar:galeno_silencio;luta_galeno"
+			}
+		]
+	},
+	"galeno_mentira": {
+		"nome": "Galeno",
+		"falas": [
+			"...Ele brincava de pega-pega. Ele nunca pegou ninguém."
+		]
+	},
+	"galeno_silencio": {
+		"nome": "Galeno",
+		"falas": [
+			"...É. Eu sabia."
+		]
+	},
+	"damiao_viaduto": {
+		"nome": "Damião",
+		"some_quando": "flag:mercador_damiao_encontrado",
+		"falas": [
+			"Achado não é roubado! Achado é... achado. É outra coisa.",
+			"Os donos? Ah, os donos não vão sentir falta. Os donos esqueceram que eram donos.",
+			"Não posso ficar parado, amigo. Fico parado, esqueço. Ando, lembro. Mais ou menos."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_damiao_encontrado;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_damiao_encontrado"
+			}
+		]
+	},
+	"damiao_teatro": {
+		"nome": "Damião",
+		"variantes": [
+			{
+				"quando": "flag:damiao_salvo_cidade+!flag:damiao_contou_cidade",
+				"usar": "damiao_voltou_cidade"
+			},
+			{
+				"quando": "flag:damiao_salvo_forjas+!flag:damiao_contou_forjas",
+				"usar": "damiao_voltou_forjas"
+			},
+			{
+				"quando": "flag:damiao_salvo_raizes+!flag:damiao_contou_raizes",
+				"usar": "damiao_voltou_raizes"
+			},
+			{
+				"quando": "flag:damiao_salvo_montanha+!flag:damiao_contou_montanha",
+				"usar": "damiao_voltou_montanha"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:cidade",
+				"usar": "damiao_aviso_cidade"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:forjas",
+				"usar": "damiao_aviso_forjas"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:raizes",
+				"usar": "damiao_aviso_raizes"
+			},
+			{
+				"quando": "memorias:3+!flag:damiao_avisou+damiao:montanha",
+				"usar": "damiao_aviso_montanha"
+			}
+		],
+		"falas": [
+			"O saco? É pra ninguém ver que eu tô ficando com cara de ninguém.",
+			"Papel de pão. Cheira a casa. ...Não sei que casa."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"mochila_damiao": {
+		"nome": "Mochila",
+		"aparece_quando": "flag:damiao_morto",
+		"some_quando": "flag:mochila_pega",
+		"falas": [
+			"A mochila do Damião, largada. O sino de lata ainda balança."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar o sino",
+				"acao": "flag:mochila_pega;ganhar:fragmento_de_loja"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"vendedor_herda": {
+		"nome": "Vendedor Dragonoide",
+		"falas": [
+			"...Ele cobrava menos que eu. Eu reclamava. Agora vou cobrar menos também. Em nome dele."
+		]
+	},
+	"reencontro_avelar": {
+		"cena": [
+			[
+				"Lúcia",
+				"...Onde você achou isso? Quem te vendeu?"
+			],
+			[
+				"Damião",
+				"...Eu te conheço?"
+			],
+			[
+				"Lúcia",
+				"Não. ...Mas encaixa."
+			],
+			[
+				"Damião",
+				"Eu andei tanto... achando que ia lembrar onde era."
+			],
+			[
+				"Lúcia",
+				"Eu esperei tanto... achando que você ia lembrar de mim."
+			],
+			[
+				"Damião",
+				"Então a gente esqueceu junto. ...Já é alguma coisa."
+			]
+		],
+		"acao": "flag:irmaos_avelar_reencontrados"
+	},
+	"lucia_pingente_sozinha": {
+		"nome": "Lúcia",
+		"falas": [
+			"...Encaixa. ...E quem tinha a outra metade?"
+		]
+	},
+	"damiao_voltou_cidade": {
+		"nome": "Damião",
+		"falas": [
+			"Uma moça de máscara me salvou! Lúcia, o nome. Bonito, né? Parece nome de alguém.",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_cidade;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_cidade"
+			}
+		]
+	},
+	"damiao_aviso_cidade": {
+		"nome": "Damião",
+		"falas": [
+			"Vou dar uma volta na Cidade. Dizem que tem sucata nas ruas queimadas. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"damiao_voltou_forjas": {
+		"nome": "Damião",
+		"falas": [
+			"Um grandalhão me tirou de baixo de três bonecos de bronze. Rindo! Rindo, o maluco!",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_forjas;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_forjas"
+			}
+		]
+	},
+	"damiao_aviso_forjas": {
+		"nome": "Damião",
+		"falas": [
+			"Vou dar uma olhada nas Forjas. Dizem que tem bronze sobrando. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"damiao_voltou_raizes": {
+		"nome": "Damião",
+		"falas": [
+			"Um sujeito me salvou e ficou perguntando se eu tinha visto 'aquele cara'. Que cara?",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_raizes;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_raizes"
+			}
+		]
+	},
+	"damiao_aviso_raizes": {
+		"nome": "Damião",
+		"falas": [
+			"Vou dar uma olhada nas Raízes. Dizem que tem panela boa largada por lá. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"damiao_voltou_montanha": {
+		"nome": "Damião",
+		"falas": [
+			"Um sujeito me salvou e ficou perguntando se eu tinha visto 'aquele cara'. Que cara?",
+			"Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_contou_montanha;loja:damiao"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:damiao_contou_montanha"
+			}
+		]
+	},
+	"damiao_aviso_montanha": {
+		"nome": "Damião",
+		"falas": [
+			"Vou subir a Montanha. Dizem que tem escama de dragão pelo chão. Volto logo! ...Provavelmente."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:damiao_avisou;loja:damiao"
+			},
+			{
+				"texto": "Boa viagem",
+				"acao": "flag:damiao_avisou"
+			}
+		]
+	},
+	"dalva_bosque": {
+		"nome": "Dona Dalva",
+		"some_quando": "flag:mercador_dalva_encontrado",
+		"falas": [
+			"Shh. Ele conta tudo que sai daqui. ...Você não é dele, é? Ótimo.",
+			"Eu não escrevo nada. Escrever é guardar. Ensinar é soltar."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_dalva_encontrado;presente:dalva_presente:luvas_arconte;loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_dalva_encontrado;presente:dalva_presente:luvas_arconte"
+			}
+		]
+	},
+	"dalva_teatro": {
+		"nome": "Dona Dalva",
+		"variantes": [
+			{
+				"quando": "flag:dalva_vazia",
+				"usar": "dalva_vazia_fala"
+			},
+			{
+				"quando": "sete",
+				"usar": "dalva_fim"
+			},
+			{
+				"quando": "cassian+!flag:dalva_contou_cassian",
+				"usar": "dalva_cassian"
+			}
+		],
+		"falas": [
+			"Meus dedos? O gelo pega o que fica parado. Eu fiquei parada tempo demais olhando uma vitrine."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "presente:dalva_presente:luvas_arconte;loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": "presente:dalva_presente:luvas_arconte"
+			}
+		]
+	},
+	"dalva_cassian": {
+		"nome": "Dona Dalva",
+		"falas": [
+			"Ele caiu? ...E eu ainda lembro do nome dele. Era a única coisa que eu queria esquecer."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:dalva_contou_cassian;loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:dalva_contou_cassian"
+			}
+		]
+	},
+	"dalva_fim": {
+		"nome": "Dona Dalva",
+		"falas": [
+			"Você deixou uma coisa comigo. Obrigada. É pouco, mas é meu."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"dalva_vazia_fala": {
+		"nome": "Senhora de xale",
+		"falas": [
+			"...Bom dia! Quem é você? Quem sou eu? ...Que lugar bonito."
+		]
+	},
+	"cicero_quartel": {
+		"nome": "Seu Cícero",
+		"some_quando": "flag:mercador_cicero_encontrado",
+		"falas": [
+			"Cuidado aí. Esse fogo não apaga. Eu tentei por... quanto tempo? Muito.",
+			"Eu apagava fogo. Agora vendo fogo. Pode rir. Eu rio também, de vez em quando."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_cicero_encontrado;loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_cicero_encontrado"
+			}
+		]
+	},
+	"cicero_teatro": {
+		"nome": "Seu Cícero",
+		"variantes": [
+			{
+				"quando": "flag:cidade_apagada",
+				"usar": "cicero_apagado"
+			},
+			{
+				"quando": "flag:chama_guardada",
+				"usar": "cicero_guardou"
+			},
+			{
+				"quando": "flag:cicero_pediu+item:gelo_perpetuo",
+				"usar": "cicero_gelo"
+			},
+			{
+				"quando": "rachel+!flag:cicero_pediu",
+				"usar": "cicero_rachel"
+			}
+		],
+		"falas": [
+			"Essa chama? É da minha rua. Da esquina da padaria. Foi o que sobrou.",
+			"Eu odiava a Senhora do Céu. Agora cuido do que ela deixou. Vai entender."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"cicero_rachel": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"Ela morreu? ...E o fogo não apagou. Achei que ia apagar junto.",
+			"Se você trouxer... Não. Não traz. ...Traz."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:cicero_pediu;loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:cicero_pediu"
+			}
+		]
+	},
+	"cicero_gelo": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"Essa chama? É da minha rua. Da esquina da padaria. Foi o que sobrou."
+		],
+		"opcoes": [
+			{
+				"texto": "Apague",
+				"acao": "dar:gelo_perpetuo;flag:cidade_apagada;ganhar:capacete_bombeiro;falar:cicero_apagado"
+			},
+			{
+				"texto": "Guarde",
+				"acao": "dar:gelo_perpetuo;flag:chama_guardada;falar:cicero_guardou"
+			},
+			{
+				"texto": "Ainda não",
+				"acao": ""
+			}
+		]
+	},
+	"cicero_apagado": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"...Pronto. Agora é só uma rua."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"cicero_guardou": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"Amanhã. Eu apago amanhã."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"civil_sentado": {
+		"nome": "Civil Cinzento",
+		"falas": [
+			"Sentado na calçada, olhando a rua apagada. Parado, pela primeira vez."
+		]
+	},
+	"benedita_borda": {
+		"nome": "Dona Benedita",
+		"some_quando": "flag:mercador_benedita_encontrado",
+		"falas": [
+			"Que não caia. Que não caia.",
+			"Todo mundo reza pra cima. Eu rezo pra baixo. Foi lá que Ele ficou."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_benedita_encontrado;contar_chefes:benedita_chefes;loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_benedita_encontrado;contar_chefes:benedita_chefes"
+			}
+		]
+	},
+	"benedita_teatro": {
+		"nome": "Dona Benedita",
+		"variantes": [
+			{
+				"quando": "final_anterior:destruir+!flag:benedita_sonho",
+				"usar": "benedita_sonho"
+			},
+			{
+				"quando": "sete+!flag:rezou_com_benedita+!flag:benedita_recusou",
+				"usar": "benedita_final"
+			},
+			{
+				"quando": "novo_chefe:benedita_chefes",
+				"usar": "benedita_chefe"
+			}
+		],
+		"falas": [
+			"Ajoelha, filho. Não precisa rezar. Só ajoelha. Já ajuda.",
+			"Ele chora de noite, sabia? Lá embaixo. Quem reza escuta."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"benedita_chefe": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"Mais um descansou. Que Deus receba. ...Que alguém receba."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "contar_chefes:benedita_chefes;loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": "contar_chefes:benedita_chefes"
+			}
+		]
+	},
+	"benedita_final": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"Você vai lá embaixo, não vai? Até Ele.",
+			"Eu rezei a vida inteira pra ilha não cair. ...Mas nunca perguntei se Ele queria segurar.",
+			"Reza comigo. Uma vez só."
+		],
+		"opcoes": [
+			{
+				"texto": "Rezar com ela",
+				"acao": "flag:rezou_com_benedita;ganhar:ultimo_pedido"
+			},
+			{
+				"texto": "Recusar",
+				"acao": "flag:benedita_recusou;falar:benedita_recusa"
+			}
+		]
+	},
+	"benedita_recusa": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"Tudo bem. Eu rezo pelos dois."
+		]
+	},
+	"benedita_sonho": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"...Eu sonhei que caía. Foi bonito."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:benedita_sonho;loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:benedita_sonho"
+			}
+		]
+	},
+	"amaro_cidade": {
+		"nome": "Amaro",
+		"some_quando": "flag:amaro_1",
+		"falas": [
+			"Ratinho! Meu ratinho preferido!",
+			"Ô, menino! Quase! Senta aqui, come alguma coisa. Ninguém luta de barriga vazia."
+		],
+		"opcoes": [
+			{
+				"texto": "Valeu",
+				"acao": "flag:amaro_1"
+			}
+		]
+	},
+	"amaro_bosque": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_1",
+		"some_quando": "flag:amaro_2",
+		"falas": [
+			"Anda devagar ali. Correr, aqui, é o jeito mais rápido de dormir pra sempre."
+		],
+		"opcoes": [
+			{
+				"texto": "Valeu",
+				"acao": "flag:amaro_2"
+			}
+		]
+	},
+	"amaro_forjas": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_2",
+		"some_quando": "flag:amaro_3",
+		"falas": [
+			"Era de um amigo. Ele não vai precisar."
+		],
+		"opcoes": [
+			{
+				"texto": "Aceitar",
+				"acao": "flag:amaro_3;ganhar:botao_arrancado"
+			}
+		]
+	},
+	"amaro_varanda": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_3",
+		"some_quando": "flag:amaro_traiu",
+		"falas": [
+			"Ratinho, vem cá. Tô ouvindo uns gritos ali. Gente pedindo ajuda. Dá uma olhada? Eu tenho medo de altura."
+		],
+		"opcoes": [
+			{
+				"texto": "Dar uma olhada",
+				"acao": "flag:amaro_4"
+			},
+			{
+				"texto": "Agora não",
+				"acao": ""
+			}
+		]
+	},
+	"amaro_empurra": {
+		"nome": "Amaro",
+		"falas": [
+			"Foi mal, ratinho. O Pitoco tem que comer."
+		]
+	},
+	"amaro_teatro": {
+		"nome": "Amaro",
+		"aparece_quando": "flag:amaro_traiu+flag:pitoco_morto",
+		"some_quando": "flag:amaro_perdoado|flag:amaro_nao_perdoado",
+		"falas": [
+			"Ô, ratinho... Olha. Eu não sei por que eu fiz isso. Sério.",
+			"Acho que eu tava de mau humor. Faz uns cem anos."
+		],
+		"opcoes": [
+			{
+				"texto": "Perdoar",
+				"acao": "flag:amaro_perdoado;falar:amaro_riso"
+			},
+			{
+				"texto": "Não perdoar",
+				"acao": "flag:amaro_nao_perdoado;memorias:10000;falar:amaro_toma"
+			}
+		]
+	},
+	"amaro_riso": {
+		"nome": "Amaro",
+		"falas": [
+			"HAHAHA! Valeu, Cobaia 22! Você é gente boa demais pra esse lugar!"
+		]
+	},
+	"amaro_toma": {
+		"nome": "Amaro",
+		"falas": [
+			"Tá. Toma essa merda."
+		]
+	},
+	"tito_amaro": {
+		"nome": "Criança",
+		"falas": [
+			"Aquele moço careca chuta os cinzentos quando acha que ninguém tá olhando."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:tito_falou_amaro"
+			}
+		]
+	},
+	"galeno_amaro": {
+		"nome": "Galeno",
+		"falas": [
+			"Ha! Simpático demais, esse. Gente simpática demais sempre quer alguma coisa."
+		],
+		"opcoes": [
+			{
+				"texto": "...",
+				"acao": "flag:galeno_falou_amaro"
+			}
+		]
+	},
+	"parede_raizes": {
+		"nome": "Raízes finas",
+		"falas": [
+			"As raízes aqui são finas. Atrás delas, um vento frio — e gritos, lá embaixo."
+		],
+		"opcoes": [
+			{
+				"texto": "Quebrar",
+				"acao": "flag:parede_toca_quebrada"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"toca_restos": {
+		"nome": "Restos",
+		"falas": [
+			"Experimentos meio comidos. Alguns ainda piscam."
+		]
+	},
+	"toca_escalada": {
+		"nome": "Escalada",
+		"falas": [
+			"Dá para subir por aqui, pisando no que sobrou deles."
+		]
+	},
+	"botao_jaleco_chao": {
+		"nome": "Botão branco",
+		"falas": [
+			"Um botão de jaleco no chão do laboratório. Branco. Lavado demais."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar",
+				"acao": "flag:jaleco_pego;ganhar:botao_jaleco"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"fada_lata": {
+		"nome": "Fada",
+		"falas": [
+			"Toma. Parece de biscoito, mas não é. Nunca é.",
+			"Eu guardava os botões de quem eu acordava. Caíam das roupas. Ninguém voltava pra buscar.",
+			"Quatro cabem bem. Mais que isso, a tampa não fecha.",
+			"O que estiver aí dentro, você não esquece. Nem morrendo."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar a lata",
+				"acao": "presente:lata_recebida:lata_de_botoes"
+			}
+		]
+	},
+	"fada_botao_nyssa": {
+		"nome": "Fada",
+		"falas": [
+			"Tinha um botão dela aí. Eu tirei pra caber o seu."
+		],
+		"opcoes": [
+			{
+				"texto": "Fortalecer-se",
+				"acao": "flag:fada_botao_nyssa;subir_nivel"
+			},
+			{
+				"texto": "Agora não",
+				"acao": "flag:fada_botao_nyssa"
+			}
 		]
 	}
 }

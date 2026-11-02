@@ -46,6 +46,25 @@ const PROTOTIPO_SCENE := preload("res://scenes/bosses/prototipo.tscn")
 const GUARDIAO_SCENE := preload("res://scenes/bosses/guardiao_ancora.tscn")
 const CIDADE := "res://scenes/world/cidade.tscn"
 const MONTANHA := "res://scenes/world/montanha.tscn"
+const QUARTEL := "res://scenes/world/cidade_quartel.tscn"
+const VIADUTO := "res://scenes/world/cidade_viaduto.tscn"
+const TORRE := "res://scenes/world/cidade_torre.tscn"
+const DORMITORIO := "res://scenes/world/bosque_dormitorio.tscn"
+const SLEEPER_SCENE_FOR_TEST := preload("res://scenes/enemies/sonambulo.tscn")
+const BORDA := "res://scenes/world/bosque_borda.tscn"
+const SALA_SINO := "res://scenes/world/bosque_sino.tscn"
+const FORNALHA := "res://scenes/world/forjas_fornalha.tscn"
+const PASSARELA := "res://scenes/world/forjas_passarela.tscn"
+const SALA_DANCARINA := "res://scenes/world/forjas_dancarina.tscn"
+const DESPENSA := "res://scenes/world/raizes_despensa.tscn"
+const VARANDA := "res://scenes/world/raizes_varanda.tscn"
+const ENFERMARIA := "res://scenes/world/raizes_enfermaria.tscn"
+const OSSARIO := "res://scenes/world/montanha_ossario.tscn"
+const ENCOSTA := "res://scenes/world/montanha_encosta.tscn"
+const FOSSO := "res://scenes/world/montanha_fosso.tscn"
+const ARQUIVO := "res://scenes/world/dominio_arquivo.tscn"
+const GALERIA := "res://scenes/world/dominio_galeria.tscn"
+const AULA := "res://scenes/world/dominio_aula.tscn"
 const ARENA_RACHEL := "res://scenes/world/arena_rachel.tscn"
 const ATIRADOR_DRAGAO_SCENE := preload("res://scenes/enemies/dragonoide_atirador.tscn")
 const BESTIAL_SCENE := preload("res://scenes/enemies/dragao_bestial.tscn")
@@ -119,6 +138,25 @@ func _ready() -> void:
 		"test_governess_attacks",
 		"test_prologue_peaceful",
 		"test_prologue_governess_fight",
+		"test_governess_peaceful_greeting",
+		"test_tito_falls_and_revives",
+		"test_tito_deadline_and_governess_lines",
+		"test_galeno_destinies",
+		"test_galeno_shield_boss",
+		"test_damiao_shop",
+		"test_damiao_trips_and_backpack",
+		"test_spell_projectile_and_area",
+		"test_spell_heal_barrier_and_menu",
+		"test_new_vendors_and_shops",
+		"test_cicero_puts_out_the_city",
+		"test_benedita_prayer",
+		"test_amaro_encounters",
+		"test_amaro_trap_and_toca",
+		"test_pitoco_and_forgiveness",
+		"test_button_tin",
+		"test_button_effects",
+		"test_buttons_in_the_world",
+		"test_cassian_steals_a_button",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -129,6 +167,37 @@ func _ready() -> void:
 		"test_sargento_whistles_and_platoon",
 		"test_miniboss_resets_when_player_flees",
 		"test_couraca_back_only",
+		"test_city_expansion",
+		"test_corneteiro_silences_city",
+		"test_arena_shift_fire_ring",
+		"test_bosque_expansion",
+		"test_breathing_flowers",
+		"test_sino_despertar",
+		"test_nyssa_nightmare_arena",
+		"test_forjas_expansion",
+		"test_dancarina",
+		"test_durgan_replays_combo",
+		"test_raizes_expansion",
+		"test_feast_tables",
+		"test_socorro",
+		"test_mabel_inhale",
+		"test_montanha_expansion",
+		"test_ultimo_igual",
+		"test_rachel_dive",
+		"test_dominio_expansion",
+		"test_still_trap",
+		"test_mestre_arconte",
+		"test_cassian_collects_flasks",
+		"test_name_entry_screen",
+		"test_name_in_anger_and_terminal",
+		"test_name_reactions_and_ng_plus",
+		"test_lucia_journey",
+		"test_lucia_ally_falls_and_sleeps",
+		"test_lucia_final",
+		"test_galeno_journey",
+		"test_brawlers_help",
+		"test_bridge_fight_choices",
+		"test_sebastioes_duel",
 		"test_inventory_and_save_v3",
 		"test_smith_upgrade",
 		"test_orb_purifies_fragments",
@@ -197,9 +266,11 @@ func _ready() -> void:
 		"test_tutorial_hints",
 		"test_release_secrets_stay_out",
 		"test_version_consistency",
-		"test_guard_meeting_and_fragments",
-		"test_guard_companion",
-		"test_guard_sacrifice",
+		"test_heitor_rescues",
+		"test_helena_drunk_visits",
+		"test_helena_fury_with_heitor",
+		"test_heitor_falls_and_theater_explodes",
+		"test_theater_ruins_layout",
 		"test_helena_recognizes_ring",
 		"test_title_souls_style",
 		"test_controller_mode",
@@ -230,6 +301,21 @@ func _ready() -> void:
 		"test_starting_bow_and_spear_attacks",
 		"test_slain_enemies_stay_dead_until_rest",
 		"test_sniper_friendly_fire",
+		"test_conditions_language",
+		"test_listed_exits_open_by_flag",
+		"test_world_objects_remember",
+		"test_zones_alarm_and_spawn_rules",
+		"test_periodic_trap",
+		"test_dialogue_conditions_and_name",
+		"test_ally_base_levels_and_arena",
+		"test_free_map_layout",
+		"test_area_power",
+		"test_second_capsule_per_island",
+		"test_chests_open_and_break",
+		"test_mimic",
+		"test_lab_capsule_after_prologue",
+		"test_armor_defense",
+		"test_equip_load_and_roll",
 		"test_save_slots",
 		"test_title_with_slots",
 		"test_weapon_drops",
@@ -711,7 +797,7 @@ func test_title_pause_keeps_save() -> void:
 
 
 func test_levels_build() -> void:
-	for path in ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn", "res://scenes/world/arena_aldir.tscn", PROLOGO, BOSQUE, ARENA_NYSSA]:
+	for path in ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn", "res://scenes/world/arena_aldir.tscn", PROLOGO, BOSQUE, ARENA_NYSSA, QUARTEL, VIADUTO, TORRE, DORMITORIO, BORDA, SALA_SINO]:
 		Game.pending_spawn = "camara" if path.contains("teatro") or path.contains("prologo") else "porta"
 		var level := (load(path) as PackedScene).instantiate() as Level
 		_world.add_child(level)
@@ -733,7 +819,7 @@ func test_levels_build() -> void:
 			for npc in level.get_tree().get_nodes_in_group("npcs"):
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
-			check(lore == 7, "Prólogo: 7 pontos de inspeção (%d)" % lore)
+			check(lore == 9, "Prólogo: 8 pontos de inspeção (o 8º é o desenho do Tito) + a placa da cápsula (%d)" % lore)
 		elif path.contains("nyssa"):
 			check(level.boss_arena != null and level.boss_arena.boss is NyssaLumevel, "Clareira: Nyssa deitada no ar")
 			check(level.boss_arena.state == BossArena.State.ARMED, "Clareira: névoa armada ao chegar")
@@ -752,7 +838,7 @@ func test_levels_build() -> void:
 			check(covers == 10, "Arena: 10 coberturas (%d)" % covers)
 			var rect := level.boss_arena.arena_rect
 			check(not rect.has_point(level.player.global_position), "Arena: herói chega no corredor, fora da arena")
-		elif path.contains("bosque"):
+		elif path == BOSQUE:
 			var kinds := {}
 			for node in level.get_tree().get_nodes_in_group("respawnable"):
 				var kind: String = node.get_script().get_global_name()
@@ -762,7 +848,8 @@ func test_levels_build() -> void:
 			for node in level.get_tree().get_nodes_in_group("minibosses"):
 				minis.append(str(node.get_script().get_global_name()))
 			minis.sort()
-			check(minis == ["MaeDosEsporos", "VigiaQueDormiu"], "Bosque: os 2 mini-chefes (%s)" % [minis])
+			# v0.35: o Vigia mudou para o Dormitório e a Mãe para a Borda.
+			check(minis.is_empty(), "Margem: os mini-chefes saíram para as fases anexas (%s)" % [minis])
 			check(level.rest_chamber != null and level.spawns.has("camara"), "Bosque: Câmara de descanso na entrada")
 			check(level.spawns["porta"].x < 3 * 16 + 8, "Bosque: chega pela borda oeste, 2 células para dentro")
 			var waterfalls := 0
@@ -779,12 +866,12 @@ func test_levels_build() -> void:
 				if (npc as NPC).interactable.prompt == "Examinar":
 					lore += 1
 			# 4 de lore + a trilha das Forjas (trancada até vencer Mabel).
-			check(lore == 5, "Bosque: 5 pontos de inspeção (%d)" % lore)
+			check(lore == 5, "Margem: lore, a espinha trancada e a placa da cápsula (%d)" % lore)
 			var items := 0
 			for node in level.entities.get_children():
 				if node is ItemPickup:
 					items += 1
-			check(items == 8, "Bosque: 3 itens + as 5 peças do Sono Leve no chão (%d)" % items)
+			check(items == 5, "Bosque: 4 itens + as botas do Arconte (%d)" % items)
 		elif path.contains("teatro"):
 			check(level.rest_chamber != null, "Teatro: tem a Câmara de descanso")
 			check(level.spawns.has("camara"), "Teatro: spawn na Câmara")
@@ -793,6 +880,8 @@ func test_levels_build() -> void:
 			var npcs := level.get_tree().get_nodes_in_group("npcs").size()
 			check(npcs >= 5, "Teatro: NPCs (Fada, Vendedor, Ferreiro, Orbe, Helena) = %d" % npcs)
 			check(find_npc(Level.SPARED_CHILD_TALKS) == null, "Teatro: sem a Criança Poupada (ninguém foi poupado ainda)")
+		elif path.contains("cidade_") or path.contains("bosque_"):
+			pass  # Quartel, Viaduto e Torre: conteúdo em test_city_expansion
 		else:
 			var kinds := {}
 			for node in level.get_tree().get_nodes_in_group("respawnable"):
@@ -803,11 +892,13 @@ func test_levels_build() -> void:
 			for node in level.get_tree().get_nodes_in_group("minibosses"):
 				minis.append(str(node.get_script().get_global_name()))
 			minis.sort()
-			check(minis == ["CouracaAndante", "SargentoSemPelotao"], "Cidade: os 2 mini-chefes (%s)" % [minis])
-			check(kinds.get("CaoDeGuerra", 0) == 3 and kinds.get("AtiradorDeTelhado", 0) == 3 and kinds.get("CivilCinzento", 0) == 5, "Cidade: 3 cães, 3 atiradores, 5 civis (%s)" % kinds)
+			# v0.35: o Sargento mudou para o Quartel e a Couraça para o Viaduto.
+			check(minis.is_empty(), "Avenida: os mini-chefes saíram para as fases anexas (%s)" % [minis])
+			check(kinds.get("CaoDeGuerra", 0) == 3 and kinds.get("AtiradorDeTelhado", 0) == 3 and kinds.get("CivilCinzento", 0) == 7, "Cidade: 3 cães, 3 atiradores, 7 civis (2 no quartel de bombeiros) (%s)" % kinds)
 			check(level.rest_chamber != null and level.spawns.has("camara"), "Cidade: Câmara de descanso perto do portão")
-			check(level.spawns.has("portao"), "Cidade: ponto de chegada diante do portão do Aldir")
-		check(level.floor_layer.get_used_cells().size() > 300, "%s: piso desenhado" % path)
+			check(level.spawns.has("torre"), "Cidade: chegada de quem desce da Torre")
+		var min_floor := 100 if path in [TORRE, SALA_SINO] else 300  # salas pequenas de propósito
+		check(level.floor_layer.get_used_cells().size() > min_floor, "%s: piso desenhado" % path)
 		var leaks := _find_open_edges(level)
 		check(leaks.is_empty(), "%s: mapa fechado (bordas abertas em %s)" % [path, leaks.slice(0, 5)])
 		check(level.wall_layer.get_used_cells().size() > 50, "%s: paredes com colisão" % path)
@@ -1298,7 +1389,7 @@ func test_aldir_arena_and_gate() -> void:
 	check(not fog_up, "sem névoa depois da vitória")
 	level.queue_free()
 	await frames(2)
-	level = await open_level("res://scenes/world/cidade.tscn", "porta")
+	level = await open_level(VIADUTO, "porta")
 	check(find_npc("portao_aldir_aberto") != null, "o portão muda depois da vitória")
 	level.queue_free()
 	await frames(2)
@@ -1470,7 +1561,9 @@ func test_prologue_peaceful() -> void:
 	var free := await wait_for(func(): return level.player.state == Player.State.FREE, 240)
 	check(free, "depois de sair da cápsula, o controle volta")
 	check(not Game.wake_from_capsule, "a cena de acordar roda uma vez só")
-	# Sem nenhuma criança ferida: ela só observa, sem luta e sem diálogo.
+	# Sem nenhuma criança ferida: ela só observa, sem luta. (A conversa da Etapa 9
+	# — "Ninguém caiu hoje" — é testada à parte: test_governess_peaceful_greeting.)
+	Game.set_flag("governanta_contou")
 	var gov := level.governess
 	level.player.global_position = gov.global_position + Vector2(40, 60)
 	await seconds(0.6)
@@ -1503,8 +1596,702 @@ func test_prologue_peaceful() -> void:
 	await frames(2)
 
 
+## v0.47 (Etapa 9): ninguém caiu — ela fala, pede o nome e escreve.
+func test_governess_peaceful_greeting() -> void:
+	Game.reset_progress()
+	var level := await open_level(PROLOGO, "camara") as Prologo
+	check(level.tito != null and not level.tito.down, "o Tito está no canto, desenhando")
+	level.player.global_position = level.governess.global_position + Vector2(40, 60)
+	await frames(4)
+	check(level.hud.dialogue.visible and Game.has_flag("governanta_contou"), "'...Ninguém caiu hoje.'")
+	var guard := 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	check(level.hud.name_entry.visible, "'Você lembra o seu nome?' — digitar")
+	level.hud.name_entry.field.text = "Cobaia"
+	level.hud.name_entry.confirm()
+	await frames(3)
+	guard = 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	await frames(3)
+	check(Game.player_name == "Cobaia" and not get_tree().paused, "'Eu vou escrever.' — e o mundo volta")
+	check(level.boss_arena.state == BossArena.State.IDLE, "sem luta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## O Tito cai e não levanta: a espada de madeira; no laboratório, o Frasco de Sanidade.
+func test_tito_falls_and_revives() -> void:
+	Game.reset_progress()
+	Game.set_flag("governanta_contou")
+	var level := await open_level(PROLOGO, "camara") as Prologo
+	var tito := level.tito
+	var hp := tito.stats.max_health
+	check(is_equal_approx(hp, 40.0), "mesma vida das outras crianças (%.0f)" % hp)
+	var info := HitInfo.create(hp + 10.0, tito.global_position + Vector2(10, 0), tito.global_position)
+	info.source = level.player
+	tito.hurtbox.receive_hit(info)
+	await frames(3)
+	check(Game.criancas_feridas == 1, "conta como criança ferida, igual às outras")
+	check(tito.down and Game.has_flag("tito_caido"), "zerou a vida: caído, respirando pouco")
+	check(Game.has_item("espada_madeira_pequena"), "a Espada de Madeira Pequena vai para você")
+	await seconds(tito.regression_per_fall + 5.0)
+	check(tito.down, "ele não levanta (as outras sempre levantam)")
+	check(find_npc("tito_no_chao") != null, "Examinar: 'Ele não levantou.'")
+	Game.sanity_flasks = 1
+	var options := DialogueBox.expand_options(DialogueData.get_entry("tito_no_chao")["opcoes"])
+	check(options.size() == 1, "no prólogo, ainda não dá para reviver")
+	level.queue_free()
+	await frames(2)
+	Game.prologue_done = true
+	level = await open_level(PROLOGO, "camara") as Prologo
+	check(level.tito != null and level.tito.down, "de volta ao laboratório: ele continua no chão")
+	check(find_npc("governanta_mesa") != null and level.governess == null, "a Governanta voltou à mesa (só conversa)")
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_meio", "'O do canto não levanta.'")
+	options = DialogueBox.expand_options(DialogueData.get_entry("tito_no_chao")["opcoes"])
+	check(options.size() == 2, "com o Frasco de Sanidade: dá para usar nele")
+	await level._on_dialogue_action("reviver_tito")
+	await frames(3)
+	check(Game.has_flag("tito_revivido") and not Game.has_flag("tito_caido") and Game.sanity_flasks == 0, "ele levanta; o frasco foi gasto")
+	check(find_npc("tito_revivido") != null and not is_instance_valid(level.tito), "o olho castanho ficou branco")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(PROLOGO, "camara") as Prologo
+	check(find_npc("tito_revivido") != null and level.tito == null, "revivido, fica assim")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## O prazo (último fragmento do Galeno) e as falas da Governanta à mesa.
+func test_tito_deadline_and_governess_lines() -> void:
+	Game.reset_progress()
+	Game.set_flag("tito_caido")
+	Game.set_flag("galeno_esqueceu")
+	check(Game.has_flag("tito_morto"), "caído no último fragmento do Galeno: tito_morto")
+	Game.reset_progress()
+	Game.set_flag("tito_revivido")
+	Game.set_flag("galeno_lembrou")
+	check(not Game.has_flag("tito_morto"), "revivido a tempo: não morre")
+	Game.reset_progress()
+	Game.set_flag("tito_caido")
+	Game.flags["galeno_fragmentos"] = 2
+	GalenoAliado.new()._on_victory()
+	check(Game.has_flag("tito_morto"), "o 3º fragmento (o último) também fecha o prazo")
+	Game.reset_progress()
+	var level := await open_level(PROLOGO, "camara")
+	var seven := ["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian", "helena"]
+	Game.defeated_bosses.assign(seven)
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_paz", "pacífico: 'Você voltou.'")
+	Game.criancas_feridas = 2
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_feriu", "feriu: 'rasgou o papel'")
+	Game.flags["tito_revivido"] = true
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_revivido", "revivido: 'Agora ele é meu também.'")
+	Game.flags["tito_morto"] = true
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_tito", "morto: 'a conta FECHA'")
+	Game.flags["galeno_morto"] = true
+	check(level.resolve_dialogue("governanta_mesa") == "governanta_final_tito_galeno", "com o Galeno morto: 'Ele não voltou.'")
+	check(DialogueData.get_entry("governanta_faltou_um")["falas"][0].contains("ELE NÃO LEVANTOU"), "violento: 'Faltou um.'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.48: os destinos — reencontro, "Era ele, né?", a caminha pequena, o joelho no chão.
+func test_galeno_destinies() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.spared_child = true
+	Game.set_flag("galeno_lembrou")
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("crianca_poupada_1") == "tito_reencontro", "não feriu ninguém + lembrou: '...Pai. Você demorou.'")
+	check(find_npc("galeno_pai") != null, "o Galeno fica do lado do filho, no Teatro")
+	Game.clear_flag("galeno_lembrou")
+	Game.set_flag("galeno_esqueceu")
+	check(level.resolve_dialogue("crianca_poupada_3") == "tito_era_ele", "esqueceu: '...Era ele, né?'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.criancas_feridas = 2
+	Game.set_flag("galeno_lembrou")
+	level = await open_level(PROLOGO, "camara")
+	check(find_npc("galeno_laboratorio") != null, "feriu outras, não o Tito: o Galeno numa caminha pequena demais")
+	check((level as Prologo).tito != null and not (level as Prologo).tito.down, "o Tito vivo, no canto")
+	Game.set_flag("tito_revivido")
+	check(level.resolve_dialogue("galeno_laboratorio") == "galeno_ajoelhado", "revivido: ele se ajoelha em vez de lutar")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.48: com o Tito morto, ele espera diante da cápsula — e luta.
+func test_galeno_shield_boss() -> void:
+	Game.reset_progress()
+	Game.set_flag("tito_morto")
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("galeno_capsula") != null, "diante da cápsula: 'Você dorme aí, né? Numa caixa.'")
+	var actions := (DialogueData.get_entry("galeno_capsula")["opcoes"] as Array).map(func(o): return o["acao"])
+	check(actions.size() == 2 and actions.all(func(a): return str(a).ends_with("luta_galeno")), "mentir ou ficar em silêncio: a luta vem igual")
+	level.player._iframes_left = 999.0
+	var said := []
+	var galeno := level.start_galeno_fight()
+	galeno.speech.connect(func(t: String): said.append(t))
+	await frames(3)
+	check(find_npc("galeno_capsula") == null, "ele sai da frente da cápsula")
+	check(not level.rest_chambers.is_empty() and level.rest_chambers.all(func(c): return not c.interactable.enabled), "a cápsula desliga durante a luta")
+	level.player.global_position = galeno.global_position + Vector2(40, 0)
+	await seconds(1.0)
+	check(galeno.active and is_equal_approx(galeno.stats.max_health, 850.0), "a luta: 850 de vida")
+	var front := HitInfo.create(100.0, galeno.global_position + galeno.facing * 20.0, galeno.global_position)
+	check(galeno._incoming_damage_multiplier(front) < 0.5, "fase 1: o escudo segura de frente")
+	galeno.stats.take_damage(galeno.stats.max_health * 0.55)
+	level.player._iframes_left = 999.0
+	await seconds(0.5)
+	check(galeno.phase == 2 and said.has(GalenoEscudo.SPEECH_PHASE_2), "'Não tem mais nada atrás de mim.'")
+	check(is_equal_approx(galeno._incoming_damage_multiplier(front), 1.0), "sem escudo, sem defesa")
+	galeno.stats.take_damage(99999.0)
+	await seconds(1.0)
+	check(Game.has_flag("galeno_morto") and Game.is_boss_defeated("galeno_escudo"), "'...Tito. O pai chegou.'")
+	check(Game.has_item("escudo_sem_dono"), "o Escudo Sem Dono")
+	check(level.rest_chambers.all(func(c): return c.interactable.enabled), "acabou: a cápsula liga de novo")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("galeno_capsula") == null, "vencido, não volta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.49 (Etapa 10): o Damião — loja mais barata, estoque que cresce, compra Algo Quebrado.
+func test_damiao_shop() -> void:
+	Game.reset_progress()
+	var ids := Game.merchant_stock("damiao").map(func(e): return e["id"])
+	check(ids.has("sucata_temperada") and ids.has("meio_pingente") and not ids.has("fragmento_turvo"), "no começo: sucata e o meio pingente")
+	check(Game.shop_price("sucata_temperada", "damiao") < Game.shop_price("sucata_temperada"), "mais barato que o Vendedor")
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	ids = Game.merchant_stock("damiao").map(func(e): return e["id"])
+	check(ids.has("fragmento_turvo") and ids.has("lanca_cobaia"), "o estoque cresce com as ilhas")
+	check(Game.shop_price("fragmento_turvo", "damiao") < Game.shop_price("fragmento_turvo"), "fragmento também mais barato")
+	Game.memories = 5000
+	check(Game.buy_from_shop("meio_pingente", "damiao") and Game.has_item("meio_pingente"), "compra o meio pingente")
+	check(Game.shop_block_reason("meio_pingente", "damiao") == "esgotado" and Game.shop_left("meio_pingente") == -1, "um só (e o limite é da loja dele)")
+	Game.add_item("algo_quebrado", 2)
+	check(Game.sell_price("algo_quebrado", "damiao") > 0 and Game.sell_price("algo_quebrado") == 0, "só ele compra Algo Quebrado")
+	var before := Game.memories
+	check(Game.sell_to_shop("algo_quebrado", "damiao") and Game.memories > before, "vendeu para o Damião")
+	# Encontrado no Viaduto, muda-se para o Teatro.
+	var level := await open_level(VIADUTO, "porta")
+	check(find_npc("damiao_viaduto") != null, "o Damião anda pelo Viaduto")
+	var shop := level.hud.shop_menu
+	var run := func(): await shop.open_shop(level.player, "damiao")
+	run.call()
+	await frames(2)
+	check(shop.visible and shop.keeper_name == "Damião, o Sucateiro", "a loja dele (outro balcão, a mesma tela)")
+	shop.close()
+	await frames(2)
+	await level._on_dialogue_action("flag:mercador_damiao_encontrado")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(VIADUTO, "porta")
+	check(find_npc("damiao_viaduto") == null, "encontrado: não anda mais por ali")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("damiao_teatro") != null, "...mudou-se para o Teatro, num camarote")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## As viagens: avisa, some, volta salvo (desconto) ou morre (a mochila, o Fragmento de Loja).
+func test_damiao_trips_and_backpack() -> void:
+	Game.reset_progress()
+	Game.set_flag("mercador_damiao_encontrado")
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_teatro", "antes de 3 memórias, nada de viagem")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_aviso_cidade", "3 memórias: ele avisa o destino (Cidade)")
+	Game.set_flag("damiao_avisou")
+	Game.damiao_tick()
+	check(Game.has_flag("damiao_fora"), "descansou: ele sumiu")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("damiao_teatro") == null, "fora de viagem, o camarote está vazio")
+	Game.damiao_tick()
+	check(Game.has_flag("damiao_salvo_cidade") and Game.damiao_destination() == "forjas", "voltou salvo (a Lúcia o salvou)")
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_voltou_cidade", "'Uma moça de máscara me salvou!'")
+	check(Game.shop_price("sucata_temperada", "damiao") < 160, "desconto pra quem salvou a vida dele")
+	Game.set_flag("damiao_contou_cidade")
+	check(level.resolve_dialogue("damiao_teatro") == "damiao_aviso_forjas", "próxima: as Forjas")
+	Game.set_flag("galeno_morto")  # a missão das Forjas perdida
+	Game.set_flag("damiao_avisou")
+	Game.damiao_tick()
+	Game.damiao_tick()
+	check(Game.has_flag("damiao_morto") and Game.has_flag("damiao_morreu_forjas"), "ninguém o salvou nas Forjas")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("mochila_damiao") != null, "no lugar avisado: a mochila")
+	await level._on_dialogue_action("flag:mochila_pega;ganhar:fragmento_de_loja")
+	check(Game.has_item("fragmento_de_loja"), "o Fragmento de Loja")
+	level.queue_free()
+	await frames(2)
+	var vendor_options := DialogueBox.expand_options(DialogueData.get_entry("vendedor")["opcoes"]).map(func(o): return o["texto"])
+	check(vendor_options.has("Entregar o Fragmento de Loja"), "dá para entregar ao Vendedor")
+	var old_price := Game.shop_price("sucata_temperada")
+	level = await open_level(TEATRO, "camara")
+	await level._on_dialogue_action("dar:fragmento_de_loja")
+	check(Game.shop_price("sucata_temperada") < old_price, "o Vendedor baixa os preços")
+	check(Game.merchant_stock().map(func(e): return e["id"]).has("meio_pingente"), "e vende o estoque do Damião (o pingente vai junto)")
+	# O pingente na Lúcia: com o Damião morto, ninguém tinha a outra metade.
+	Game.add_item("meio_pingente")
+	var lucia := DialogueBox.expand_options(DialogueData.get_entry("lucia_teatro")["opcoes"])
+	check(lucia.any(func(o): return str(o["acao"]).contains("lucia_pingente_sozinha")), "'...E quem tinha a outra metade?'")
+	Game.flags.erase("damiao_morto")
+	lucia = DialogueBox.expand_options(DialogueData.get_entry("lucia_teatro")["opcoes"])
+	check(lucia.any(func(o): return str(o["acao"]).contains("cena:reencontro_avelar")), "vivo: o reencontro dos irmãos")
+	var scene_lines: Array = DialogueData.get_entry("reencontro_avelar")["cena"]
+	check(scene_lines.size() == 6 and DialogueData.get_entry("reencontro_avelar")["acao"] == "flag:irmaos_avelar_reencontrados", "seis falas e a flag")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.50 (Etapa 10): o sistema de magia — equipar, lançar, gastar estamina, acertar.
+func test_spell_projectile_and_area() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 999.0
+	await frames(2)
+	check(not player._start_cast(), "sem magia equipada, o botão não faz nada")
+	Game.add_item("bola_de_fogo")
+	check(Game.equip_spell("bola_de_fogo") and Game.equipped_spell == "bola_de_fogo", "equipou a Bola de Fogo")
+	var soldier := spawn_enemy_scene(SOLDIER_SCENE, Vector2(270, 200))
+	soldier.set_physics_process(false)
+	await frames(2)
+	var hp := soldier.stats.health
+	var stamina := player.stats.stamina
+	player.facing = Vector2.RIGHT
+	check(player._start_cast() and player.state == Player.State.CAST, "Magia: o herói para e prepara")
+	check(player.stats.stamina < stamina, "gasta estamina")
+	await seconds(1.2)
+	check(soldier.stats.health < hp, "a bola de fogo acerta (%.0f → %.0f)" % [hp, soldier.stats.health])
+	check(player.state == Player.State.FREE, "depois, o controle volta")
+	# Área: tudo em volta.
+	Game.add_item("explosao_curta")
+	Game.equip_spell("explosao_curta")
+	soldier.global_position = player.global_position + Vector2(0, 24)
+	hp = soldier.stats.health
+	player.stats.restore_stamina(999.0)
+	player._start_cast()
+	await seconds(0.9)
+	check(soldier.stats.health < hp, "Explosão Curta acerta quem está em volta")
+	# Sem estamina, não sai.
+	player.stats.drain_stamina(999.0)
+	check(not player._start_cast(), "sem estamina, a magia não sai")
+	# Escala: Fé para milagres, Magia para feitiços e piromancias.
+	var spear := Items.get_item("lanca_de_raio") as SpellData
+	var base := SpellCaster.power_of(spear, player)
+	player.stats.fe += 10
+	check(SpellCaster.power_of(spear, player) > base and spear.scaling_attribute() == "fe", "milagre cresce com Fé")
+	soldier.queue_free()
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_spell_heal_barrier_and_menu() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	Game.add_item("milagre_cura")
+	Game.equip_spell("milagre_cura")
+	player.stats.take_damage(80.0)
+	var hp := player.stats.health
+	player._start_cast()
+	await seconds(1.3)
+	check(player.stats.health > hp, "Cura: a vida sobe")
+	Game.add_item("escudo_de_geada")
+	Game.equip_spell("escudo_de_geada")
+	player.stats.restore_stamina(999.0)
+	player._start_cast()
+	await seconds(0.9)
+	check(player.barrier_active(), "Escudo de Geada: a barreira sobe")
+	hp = player.stats.health
+	var hit := HitInfo.create(40.0, player.global_position + Vector2(20, 0), player.global_position)
+	player.hurtbox.receive_hit(hit)
+	check(is_equal_approx(hp - player.stats.health, 20.0), "metade do golpe fica no gelo (%.0f)" % (hp - player.stats.health))
+	check(Game.equip_spell("escudo_de_geada") and Game.equipped_spell == "", "apertar de novo guarda a magia")
+	# A aba Magias do inventário.
+	var menu := InventoryMenu.new()
+	add_child(menu)
+	await frames(2)
+	var tab := InventoryMenu.TABS.find("Magias")
+	var ids := menu.entries(tab).map(func(e): return e["id"])
+	check(tab >= 0 and ids.has("milagre_cura") and ids.has("escudo_de_geada"), "a aba Magias lista as suas magias")
+	menu.queue_free()
+	check(Items.get_item("bola_de_fogo") is SpellData and Game.sell_price("bola_de_fogo") == 0, "magia é item (não se vende)")
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.51 (Etapa 10): Dalva, Cícero e Benedita — encontrados, mudam para o Teatro; as lojas.
+func test_new_vendors_and_shops() -> void:
+	Game.reset_progress()
+	var level := await open_level(BOSQUE, "porta")
+	check(find_npc("dalva_bosque") != null, "a Dalva no Bosque")
+	await level._on_dialogue_action("flag:mercador_dalva_encontrado;presente:dalva_presente:luvas_arconte")
+	await level._on_dialogue_action("presente:dalva_presente:luvas_arconte")
+	check(Game.item_count("luvas_arconte") == 1, "ela dá uma peça do Manto do Arconte (uma vez)")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BORDA, "porta")
+	check(find_npc("benedita_borda") != null, "a Benedita na beirada, acima da luz")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "porta")
+	check(find_npc("cicero_quartel") != null, "o Cícero no quartel de bombeiros")
+	level.queue_free()
+	await frames(2)
+	for id in ["cicero", "benedita"]:
+		Game.set_flag("mercador_%s_encontrado" % id)
+	level = await open_level(TEATRO, "camara")
+	for id in ["dalva_teatro", "cicero_teatro", "benedita_teatro"]:
+		check(find_npc(id) != null, "%s: mudou para o Teatro" % id)
+	level.queue_free()
+	await frames(2)
+	# A Dalva esquece o que vende.
+	Game.memories = 99999
+	check(Game.buy_from_shop("projetil_arcano", "dalva"), "comprou o Projétil Arcano")
+	var ids := Game.merchant_stock("dalva").map(func(e): return e["id"])
+	check(not ids.has("projetil_arcano"), "ela esqueceu: some da loja")
+	check(Game.sell_price("sucata_temperada", "dalva") == 0, "ela não compra nada")
+	check(Game.buy_from_shop("feitico_dalva", "dalva") and Game.has_flag("dalva_vazia"), "comprou o feitiço 'Dalva': dalva_vazia")
+	level = await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("dalva_teatro") == "dalva_vazia_fala", "'...Bom dia! Quem é você?'")
+	level.queue_free()
+	await frames(2)
+	check(not Game.merchant_stock("cicero").map(func(e): return e["id"]).has("rua_em_chamas"), "Rua em Chamas só com a chama guardada")
+	check(not Game.merchant_stock("benedita").map(func(e): return e["id"]).has("tempestade"), "Tempestade só mais tarde")
+	Game.reset_progress()
+
+
+## O Gelo Perpétuo na mão do Cícero: "Apague" ou "Guarde".
+func test_cicero_puts_out_the_city() -> void:
+	Game.reset_progress()
+	Game.set_flag("mercador_cicero_encontrado")
+	Game.defeated_bosses.assign(["rachel"])
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("cicero_teatro") == "cicero_rachel", "depois da Rachel: 'Se você trouxer... Traz.'")
+	Game.set_flag("cicero_pediu")
+	Game.add_item("gelo_perpetuo")
+	check(level.resolve_dialogue("cicero_teatro") == "cicero_gelo", "com o Gelo Perpétuo: a escolha")
+	await level._on_dialogue_action("dar:gelo_perpetuo;flag:cidade_apagada;ganhar:capacete_bombeiro")
+	check(Game.has_flag("cidade_apagada") and Game.has_item("capacete_bombeiro") and not Game.has_item("gelo_perpetuo"), "Apague: o Capacete do Bombeiro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "porta")
+	var civis := get_tree().get_nodes_in_group("enemies").filter(func(e): return e is CivilCinzento)
+	check(civis.is_empty() and find_npc("civil_sentado") != null, "os Civis Cinzentos ficam sentados")
+	check(level.canvas_modulate.color.v < level.darkness.v, "a Cidade fica escura (sem o fogo)")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+	Game.set_flag("chama_guardada")
+	check(Game.merchant_stock("cicero").map(func(e): return e["id"]).has("rua_em_chamas"), "Guarde: libera Rua em Chamas")
+	Game.reset_progress()
+
+
+## A reza antes do fim: o Último Pedido (uma vez por descanso, sobrevive com 1).
+func test_benedita_prayer() -> void:
+	Game.reset_progress()
+	Game.set_flag("mercador_benedita_encontrado")
+	var level := await open_level(TEATRO, "camara")
+	Game.defeated_bosses.assign(["aldir"])
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_chefe", "'Mais um descansou.'")
+	await level._on_dialogue_action("contar_chefes:benedita_chefes")
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_teatro", "uma vez por chefe")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian", "helena"])
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_final", "sete memórias: 'Reza comigo. Uma vez só.'")
+	await level._on_dialogue_action("flag:rezou_com_benedita;ganhar:ultimo_pedido")
+	var player := level.player
+	var lethal := HitInfo.create(99999.0, player.global_position + Vector2(10, 0), player.global_position)
+	player.hurtbox.receive_hit(lethal)
+	check(not player.is_dead() and is_equal_approx(player.stats.health, 1.0), "Último Pedido: sobreviveu com 1 de vida")
+	player.rest()
+	check(not Game.has_flag("ultimo_pedido_gasto"), "descansou: o pedido volta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+	Game.flags["final_anterior"] = "destruir"
+	Game.set_flag("mercador_benedita_encontrado")
+	level = await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_sonho", "NG+ depois de Destruir: 'Eu sonhei que caía.'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.52 (Etapa 11): os quatro encontros com o Amaro, e as pistas.
+func test_amaro_encounters() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "porta")
+	check(find_npc("amaro_cidade") != null, "1. Cidade: 'Ninguém luta de barriga vazia.'")
+	await level._on_dialogue_action("flag:amaro_1")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DORMITORIO, "porta")
+	check(find_npc("amaro_bosque") != null, "2. Bosque: avisa das flores que respiram")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("amaro_2")
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("amaro_forjas") != null, "3. Forjas: o Botão Arrancado")
+	await level._on_dialogue_action("flag:amaro_3;ganhar:botao_arrancado")
+	check(Game.has_item("botao_arrancado"), "'Era de um amigo. Ele não vai precisar.'")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(VARANDA, "porta")
+	check(find_npc("amaro_varanda") != null, "4. Raízes: 'Tô ouvindo uns gritos ali.'")
+	check(level.resolve_dialogue("galeno_de_novo") == "galeno_amaro", "Galeno: 'Gente simpática demais sempre quer alguma coisa.'")
+	check(level.resolve_dialogue("crianca_poupada_2") == "tito_amaro", "Tito: 'chuta os cinzentos quando acha que ninguém tá olhando'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## A armadilha do buraco e a Toca (perde memórias; sem cápsula; a bota do Banquete).
+func test_amaro_trap_and_toca() -> void:
+	Game.reset_progress()
+	Game.set_flag("amaro_4")
+	var level := await open_level(VARANDA, "porta")
+	level.player._iframes_left = 999.0
+	level.player.global_position = level._cell_feet(level.trap_hole.x, level.trap_hole.y) + Vector2(20, 0)
+	var pushed := await wait_for(func(): return Game.has_flag("amaro_traiu"), 600)
+	check(pushed, "perto do buraco: o Amaro empurra")
+	check(Game.last_scene_request == Level.TOCA_SCENE, "cai na Toca do Pitoco")
+	level.queue_free()
+	await frames(2)
+	Game.memories = 200
+	level = await open_level(Level.TOCA_SCENE, "inicio")
+	check(level.rest_chambers.is_empty(), "sem cápsula")
+	check(get_tree().get_nodes_in_group("minibosses").any(func(m): return m is Pitoco), "o Pitoco lá embaixo")
+	await seconds(2.5)
+	check(Game.memories < 200, "lá embaixo, as memórias vão embora aos poucos (%d)" % Game.memories)
+	var boots := false
+	for node in level.entities.get_children():
+		if node is ItemPickup and (node as ItemPickup).item_id == "botas_banquete":
+			boots = true
+	check(boots, "a peça do Banquete (as botas) está na Toca")
+	level.queue_free()
+	await frames(2)
+	# A parede quebrável: quem explora acha a Toca antes.
+	Game.reset_progress()
+	level = await open_level(VARANDA, "porta")
+	check(find_npc("parede_raizes") != null, "raízes finas no túnel (trancado)")
+	await level._on_dialogue_action("flag:parede_toca_quebrada")
+	await frames(3)
+	check(find_npc("parede_raizes") == null, "quebrou: o caminho abre")
+	level.queue_free()
+	await frames(2)
+	# Sem o Pitoco: o empurrão acontece igual; lá embaixo, a voz dele.
+	Game.reset_progress()
+	Game.set_flag("amaro_4")
+	Game.set_flag("pitoco_morto")
+	level = await open_level(VARANDA, "porta")
+	level.player.global_position = level._cell_feet(level.trap_hole.x, level.trap_hole.y)
+	pushed = await wait_for(func(): return Game.has_flag("amaro_traiu"), 600)
+	check(pushed and Game.has_flag("amaro_procura"), "o buraco vazio — o empurrão acontece sempre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(Level.TOCA_SCENE, "inicio")
+	await frames(3)
+	check(not Game.has_flag("amaro_procura"), "'...Pitoco?' / 'CADÊ O PITOCO?!'")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## O Pitoco: buscar (agarra e traz), lambida (memórias); vencido, o perdão no Teatro.
+func test_pitoco_and_forgiveness() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var pitoco := (load("res://scenes/bosses/pitoco.tscn") as PackedScene).instantiate() as Pitoco
+	pitoco.position = Vector2(270, 200)
+	_world.add_child(pitoco)
+	await frames(3)
+	pitoco.target = player
+	pitoco.start_fight()
+	pitoco._fetch_dir = Vector2.LEFT
+	pitoco._throw_tentacle()
+	check(player.is_grabbed_by(pitoco), "buscar: o tentáculo agarra de longe")
+	await seconds(Pitoco.FETCH_HOLD + 0.3)
+	check(not player.is_grabbed_by(pitoco), "depois, solta")
+	Game.memories = 500
+	player.global_position = pitoco.global_position + Vector2(-20, 0)
+	pitoco._current_attack = pitoco.lambida
+	pitoco.mode = Pitoco.Mode.ATTACK
+	pitoco._on_attack_finished()
+	check(Game.memories < 500, "a lambida leva memórias")
+	pitoco.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.has_flag("pitoco_morto") and Game.is_boss_defeated("pitoco"), "vencido: pitoco_morto")
+	player.queue_free()
+	await frames(2)
+	Game.set_flag("amaro_traiu")
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("amaro_teatro") != null, "no Teatro: 'Acho que eu tava de mau humor. Faz uns cem anos.'")
+	var memories := Game.memories
+	await level._on_dialogue_action("flag:amaro_nao_perdoado;memorias:10000")
+	check(Game.memories == memories + 10000, "não perdoar: ele joga 10.000 memórias em você")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("amaro_teatro") == null, "e vai embora")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.53 (Etapa 12): a Lata de Botões — a Fada dá; 4 espaços; só vale dentro; morrer não tira.
+func test_button_tin() -> void:
+	Game.reset_progress()
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("fada") == "fada_lata", "1º encontro: 'Parece de biscoito, mas não é.'")
+	await level._on_dialogue_action("presente:lata_recebida:lata_de_botoes")
+	check(Game.has_button_tin() and level.resolve_dialogue("fada") == "fada", "a lata é sua")
+	Game.defeated_bosses.assign(["nyssa"])
+	check(level.resolve_dialogue("fada") == "fada_botao_nyssa", "depois de Nyssa: 'Tinha um botão dela aí.'")
+	level.queue_free()
+	await frames(2)
+	for id in ["botao_pijama", "botao_farda", "botao_musgo", "botao_vidro", "botao_giz"]:
+		Game.add_item(id)
+	check(is_zero_approx(Game.button_bonus("rolamento")), "na mochila, o botão não faz nada")
+	for id in ["botao_pijama", "botao_farda", "botao_musgo", "botao_vidro"]:
+		check(Game.toggle_button(id), "%s na lata" % id)
+	check(not Game.toggle_button("botao_giz"), "o 5º não cabe: a tampa não fecha")
+	check(is_equal_approx(Game.button_bonus("rolamento"), 0.15), "dentro da lata, funciona")
+	check(Game.toggle_button("botao_pijama") and not Game.button_in_tin("botao_pijama"), "apertar de novo tira")
+	Game.toggle_button("botao_giz")
+	Game.memories = 500
+	Game.register_death()
+	check(Game.button_in_tin("botao_giz") and Game.button_in_tin("botao_vidro"), "morrer não tira nada da lata")
+	var saved := Game._to_dict()
+	Game.button_slots.assign(["", "", "", ""])
+	Game._from_dict(saved)
+	check(Game.button_in_tin("botao_giz"), "a lata volta do save")
+	var menu := InventoryMenu.new()
+	add_child(menu)
+	await frames(2)
+	var ids := menu.entries(InventoryMenu.TABS.find("Botões")).map(func(e): return e["id"])
+	check(ids.size() == 5 and Game.button_in_tin(ids[0]), "a aba Botões: primeiro os da lata")
+	menu.queue_free()
+	Game.reset_progress()
+
+
+## Alguns efeitos, cada um no sistema que já existia.
+func test_button_effects() -> void:
+	Game.reset_progress()
+	Game.add_item("lata_de_botoes")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	for id in ["botao_bombeiro", "botao_avental", "botao_corrente", "botao_giz"]:
+		Game.add_item(id)
+		Game.toggle_button(id)
+	check(Game.armor_defense("fogo") >= 0.1, "Botão de Bombeiro: menos dano de fogo")
+	player.stats.take_damage(player.stats.max_health * 0.7)
+	var hp := player.stats.health
+	player.health_flasks = 3
+	check(player._start_heal(), "bebeu um frasco")
+	await seconds(player.heal_time + 0.1)
+	check(player.stats.health - hp > player.heal_amount, "Botão de Avental: o frasco cura mais")
+	var light := HitInfo.create(5.0, player.global_position + Vector2(10, 0), player.global_position)
+	player._iframes_left = 0.0
+	player.hurtbox.receive_hit(light)
+	check(player.state != Player.State.STAGGER, "Botão de Corrente: golpe leve não interrompe")
+	Game.add_item("bola_de_fogo")
+	Game.equip_spell("bola_de_fogo")
+	player.stats.restore_stamina(999.0)
+	var before := player.stats.stamina
+	player._start_cast()
+	var cost := before - player.stats.stamina
+	check(cost < (Items.get_item("bola_de_fogo") as SpellData).stamina_cost, "Botão de Giz: magia custa menos (%.0f)" % cost)
+	Game.toggle_button("botao_giz")
+	Game.add_item("botao_arrancado")
+	Game.toggle_button("botao_arrancado")
+	check(Game.button_bonus("memoria") > 0.0 and Game.armor_defense("fisico") < 0.0, "Arrancado: mais memórias, menos defesa")
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## Cada botão tem um lugar no mundo (e um só).
+func test_buttons_in_the_world() -> void:
+	var places := {}
+	var count := func(id: String):
+		places[id] = int(places.get(id, 0)) + 1
+	for boss: String in Game.BOSS_REWARDS:
+		for id: String in Game.BOSS_REWARDS[boss]:
+			if Items.get_item(id) is ButtonData:
+				count.call(id)
+	for merchant: String in Game.MERCHANTS:
+		for entry: Dictionary in Game.MERCHANTS[merchant]["estoque"]:
+			if Items.get_item(str(entry["id"])) is ButtonData:
+				count.call(str(entry["id"]))
+	var dir := DirAccess.open("res://scenes/world")
+	for file in dir.get_files():
+		if not file.ends_with(".tscn"):
+			continue
+		var text := FileAccess.get_file_as_string("res://scenes/world/" + file)
+		for id: String in Items.CATALOG:
+			if Items.get_item(id) is ButtonData and (text.contains('"item": "%s"' % id) or text.contains('"item2": "%s"' % id)):
+				count.call(id)
+	var talks := FileAccess.get_file_as_string("res://data/dialogos.json") + FileAccess.get_file_as_string("res://scripts/world/level.gd")
+	for id: String in Items.CATALOG:
+		if Items.get_item(id) is ButtonData and (talks.contains("ganhar:" + id) or talks.contains('add_item("%s")' % id)):
+			count.call(id)
+	var buttons := Items.CATALOG.keys().filter(func(id): return Items.get_item(id) is ButtonData)
+	check(buttons.size() == 20, "vinte botões (%d)" % buttons.size())
+	var wrong := buttons.filter(func(id): return int(places.get(id, 0)) != 1).map(func(id): return "%s=%d" % [id, places.get(id, 0)])
+	check(wrong.is_empty(), "cada botão num lugar só (%s)" % [wrong])
+
+
+## Fase 2 do Cassian: um botão da lata vai para uma vitrine; quebrar devolve.
+func test_cassian_steals_a_button() -> void:
+	Game.reset_progress()
+	Game.add_item("lata_de_botoes")
+	Game.add_item("botao_vidro")
+	Game.toggle_button("botao_vidro")
+	var player := spawn_player(Vector2(200, 300))
+	var cassian := (load("res://scenes/bosses/cassian.tscn") as PackedScene).instantiate() as CassianVirel
+	cassian.position = Vector2(200, 200)
+	_world.add_child(cassian)
+	await frames(3)
+	cassian.target = player
+	var case := cassian.collect_button()
+	check(case != null and not Game.button_in_tin("botao_vidro") and Game.has_item("botao_vidro"), "o botão vai para a vitrine (não some)")
+	case.smash()
+	await frames(2)
+	check(Game.button_in_tin("botao_vidro"), "quebrou a vitrine: o botão volta para a lata")
+	cassian.queue_free()
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
 func test_prologue_governess_fight() -> void:
 	Game.criancas_feridas = 2
+	Game.player_name = "Teste"  # v0.41: já tem nome (a pergunta com raiva é testada à parte)
 	var level := await open_level(PROLOGO, "camara") as Prologo
 	var gov := level.governess
 	level.player._iframes_left = 9999.0  # o teste é do fluxo, não da luta
@@ -1938,7 +2725,7 @@ func test_pickups_and_drops() -> void:
 	for node in level.entities.get_children():
 		if node is ItemPickup:
 			pickups.append(node)
-	check(pickups.size() == 9, "4 itens + as 5 peças do Detentor no chão da Cidade (%d)" % pickups.size())
+	check(pickups.size() == 5, "5 itens (o pertence foi para o Quartel) (%d)" % pickups.size())
 	var shield: ItemPickup = null
 	for pickup in pickups:
 		if pickup.item_id == "escudo_remendado":
@@ -1955,7 +2742,7 @@ func test_pickups_and_drops() -> void:
 		if node is ItemPickup:
 			left += 1
 			check((node as ItemPickup).item_id != "escudo_remendado", "o escudo não volta")
-	check(left == 8, "sobram 8 itens (%d)" % left)
+	check(left == 4, "sobram 4 itens (%d)" % left)
 	level.queue_free()
 	await frames(2)
 	# Drop de inimigo.
@@ -2297,17 +3084,14 @@ func test_spore_mother() -> void:
 
 
 func test_forest_gate() -> void:
+	# v0.31 (mapa livre): a porta do Bosque já começa aberta.
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
-	check(find_npc("porta_bosque_fechada") != null, "antes do Aldir: a porta do Bosque está trancada")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("aldir")
-	level = await open_level("res://scenes/world/teatro.tscn", "camara")
+	check(find_npc("porta_bosque_fechada") == null, "mapa livre: a porta do Bosque não tem trava")
 	var exits := []
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("bosque"):
 			exits.append(node)
-	check(exits.size() == 2 and level.spawns.has("lateral"), "depois do Aldir: a porta abre (e há chegada 'lateral')")
+	check(exits.size() == 2 and level.spawns.has("lateral"), "a porta do Bosque está aberta (e há chegada 'lateral')")
 	check(level.spawns["lateral"].x < 34 * 16, "quem volta do Bosque aparece para DENTRO do Teatro")
 	level.queue_free()
 	await frames(2)
@@ -2317,11 +3101,14 @@ func test_forest_gate() -> void:
 		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "lateral":
 			back = true
 	check(back, "o Bosque leva de volta à porta lateral do Teatro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BORDA, "porta")  # v0.35: a trilha da Clareira fica na Borda
 	check(find_npc("espinhos_nyssa") != null, "antes da Mãe dos Esporos: os espinhos fecham a trilha")
 	level.queue_free()
 	await frames(2)
 	Game.defeated_bosses.append("mae_esporos")
-	level = await open_level(BOSQUE, "porta")
+	level = await open_level(BORDA, "porta")
 	var thorns := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_nyssa"):
@@ -2703,43 +3490,40 @@ func test_ninhada_splits_and_engulfs() -> void:
 
 
 func test_roots_gate() -> void:
-	Game.defeated_bosses.assign(["aldir"])
-	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
-	check(find_npc("raizes_fechadas") != null, "antes de Nyssa: raízes fecham a porta oeste")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("nyssa")
-	level = await open_level("res://scenes/world/teatro.tscn", "camara")
-	var exits := 0
+	# v0.31 (mapa livre): as Raízes ficam embaixo das Forjas (descida) e o
+	# túnel de raízes leva à Cidade. A porta oeste do Teatro vai às Forjas.
+	# v0.35: a descida saiu do Salão e foi para a Passarela da Âncora.
+	var level := await open_level(PASSARELA, "porta")
+	var down := 0
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("raizes"):
-			exits += 1
-	check(exits == 2 and level.spawns.has("oeste"), "depois de Nyssa: a porta oeste abre")
-	check(level.spawns["oeste"].x > 16, "quem volta das Raízes aparece para dentro")
+			down += 1
+	check(down == 1 and level.spawns.has("descida"), "das Forjas, a descida para as Raízes")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(RAIZES, "porta")
 	var kinds := {}
 	for node in level.entities.get_children():
 		kinds[node.get_class() if node.get_script() == null else (node.get_script() as Script).get_global_name()] = true
-	for name in ["BocaDeRaiz", "Inchado", "Colhedor", "LarvaSeiva", "Banqueteiro", "Ninhada", "RestChamber"]:
+	# v0.35: o Banqueteiro mudou para a Despensa e a Ninhada para a Varanda.
+	for name in ["BocaDeRaiz", "Inchado", "Colhedor", "LarvaSeiva", "RestChamber"]:
 		check(kinds.has(name), "as Raízes têm %s" % name)
 	check(not kinds.has("Sonambulo"), "o mesmo 'z' do Bosque aqui é outra coisa")
-	check(find_npc("porta_cozinha") != null, "antes do Banqueteiro: a porta dos fundos está trancada")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "oeste":
+		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas") and (node as AreaExit).target_spawn == "descida":
 			back = true
-	check(back, "volta para a porta oeste do Teatro")
+	check(back, "as Raízes sobem de volta para a descida das Forjas")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DESPENSA, "porta")
+	check(find_npc("porta_cozinha") != null, "antes do Banqueteiro: a porta dos fundos está trancada")
 	level.queue_free()
 	await frames(2)
 	Game.defeated_bosses.append("banqueteiro")
-	level = await open_level(RAIZES, "porta")
-	var to_mabel := false
-	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_mabel"):
-			to_mabel = true
-	check(to_mabel and find_npc("porta_cozinha") == null, "vencido o Banqueteiro: a porta de Mabel abre")
+	level = await open_level(DESPENSA, "porta")
+	var to_porch := _exit_to(VARANDA) != null
+	check(to_porch and find_npc("porta_cozinha") == null, "vencido o Banqueteiro: a porta da Varanda abre")
 	check(level._dialogue_variant("vendedor") == "vendedor", "o Vendedor só fala dela depois")
 	Game.defeated_bosses.append("mabel")
 	check(level._dialogue_variant("vendedor") == "vendedor_mabel" and not DialogueData.get_entry("vendedor_mabel").get("opcoes", []).is_empty(), "depois de Mabel: o Vendedor lembra dela (e ainda vende)")
@@ -2864,7 +3648,7 @@ func _unreachable(level: Level, from: Vector2) -> Array:
 
 func test_new_areas_build() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "banqueteiro"])
-	for path in [RAIZES, ARENA_MABEL, FORJAS, ARENA_DURGAN, MONTANHA, ARENA_RACHEL, DOMINIO, ARENA_CASSIAN, NUCLEO, CORACAO]:
+	for path in [RAIZES, DESPENSA, VARANDA, ENFERMARIA, ARENA_MABEL, FORJAS, FORNALHA, PASSARELA, SALA_DANCARINA, ARENA_DURGAN, MONTANHA, OSSARIO, ENCOSTA, FOSSO, ARENA_RACHEL, DOMINIO, ARQUIVO, GALERIA, AULA, ARENA_CASSIAN, NUCLEO, CORACAO]:
 		if path == NUCLEO:
 			Game.defeated_bosses.assign(Game.SEVEN)
 		if path == MONTANHA:
@@ -2883,14 +3667,16 @@ func test_new_areas_build() -> void:
 			for node in level.entities.get_children():
 				if node.get_script():
 					kinds[(node.get_script() as Script).get_global_name()] = true
-			for name in ["AutomatoBronze", "TorretaFaisca", "MineradorOco", "Imitador", "Prototipo", "GuardiaoAncora", "RestChamber"]:
+			# v0.35: o Protótipo mudou para a Fornalha e o Guardião para a Passarela.
+			for name in ["AutomatoBronze", "TorretaFaisca", "MineradorOco", "Imitador", "RestChamber"]:
 				check(kinds.has(name), "Forjas: tem %s" % name)
 		if path == MONTANHA:
 			var found := {}
 			for node in level.entities.get_children():
 				if node.get_script():
 					found[(node.get_script() as Script).get_global_name()] = true
-			for name in ["DragonoideAtirador", "DragaoBestial", "DragaoAlado", "BrasaViva", "CapitaoDragonoide", "MatriarcaBestial", "RestChamber"]:
+			# v0.35: a Matriarca mudou para o Ossário e o Capitão para a Encosta.
+			for name in ["DragonoideAtirador", "DragaoBestial", "DragaoAlado", "BrasaViva", "CouracaAndante", "RestChamber"]:
 				check(found.has(name), "Montanha: tem %s" % name)
 		if path == DOMINIO:
 			check(level.ice_cells.size() > 300, "Domínio: gelo registrado (%d)" % level.ice_cells.size())
@@ -2898,9 +3684,10 @@ func test_new_areas_build() -> void:
 			for node in level.entities.get_children():
 				if node.get_script():
 					kinds_ice[(node.get_script() as Script).get_global_name()] = true
-			for name in ["BibliotecarioGelo", "EstatuaViva", "AcaroCristal", "AprendizArcano", "CuradoraVitrines", "GolemArquivo", "RestChamber"]:
+			# v0.35: o Golem mudou para o Arquivo e a Curadora (com o Estudioso) para a Galeria.
+			for name in ["BibliotecarioGelo", "EstatuaViva", "AcaroCristal", "AprendizArcano", "RestChamber"]:
 				check(kinds_ice.has(name), "Domínio: tem %s" % name)
-			check(find_npc("estudioso") != null, "Domínio: o Estudioso congelado")
+			check(find_npc("mesa_de_cha") != null, "Domínio: a mesa de chá, junto da Câmara")
 		if path == CORACAO:
 			check(level.boss_arena != null and level.boss_arena.boss is CavaleiroDesolado, "O Coração: o Cavaleiro")
 			check(get_tree().get_first_node_in_group(&"nucleo_core") != null, "O Coração: a mulher ligada ao núcleo")
@@ -2919,7 +3706,7 @@ func test_new_areas_build() -> void:
 ## Venceu o mini-chefe que guardava a porta: ela abre NA HORA (sem descansar).
 func test_live_exit_unlock() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa"])
-	var level := await open_level(RAIZES, "porta")
+	var level := await open_level(DESPENSA, "porta")  # v0.35: o Banqueteiro mora na Despensa
 	check(find_npc("porta_cozinha") != null, "trancada")
 	var cook: Banqueteiro = null
 	for node in level.entities.get_children():
@@ -2930,9 +3717,9 @@ func test_live_exit_unlock() -> void:
 	await frames(3)
 	var open := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_mabel"):
+		if node is AreaExit and (node as AreaExit).target_scene == VARANDA:
 			open = true
-	check(open and level.spawns.has("lateral"), "a porta de Mabel abriu na hora")
+	check(open and level.spawns.has("lateral"), "a porta da Varanda abriu na hora")
 	await frames(2)
 	check(find_npc("porta_cozinha") == null, "o ponto 'trancado' sumiu")
 	level.queue_free()
@@ -3089,26 +3876,24 @@ func test_anchor_guardian() -> void:
 
 
 func test_forge_gate_and_smith() -> void:
-	Game.defeated_bosses.assign(["aldir", "nyssa"])
-	var level := await open_level(BOSQUE, "porta")
-	check(find_npc("trilha_forjas") != null, "antes de Mabel: a trilha das Forjas está presa pelas raízes")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("mabel")
-	level = await open_level(BOSQUE, "porta")
+	# v0.31 (mapa livre): as Forjas ficam a uma porta do Teatro (a oeste).
+	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var to_forge := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas"):
 			to_forge = true
-	check(to_forge and level.spawns.has("oeste"), "depois de Mabel: a trilha abre")
+	check(to_forge and level.spawns.has("oeste"), "a porta oeste do Teatro leva às Forjas")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(FORJAS, "porta")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("bosque") and (node as AreaExit).target_spawn == "oeste":
+		if node is AreaExit and (node as AreaExit).target_scene.contains("teatro") and (node as AreaExit).target_spawn == "oeste":
 			back = true
-	check(back, "as Forjas levam de volta à trilha do Bosque")
+	check(back, "as Forjas levam de volta à porta oeste do Teatro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(PASSARELA, "porta")  # v0.35: a porta da Forja do Eco fica na Passarela
 	check(find_npc("porta_ancora") != null, "antes do Guardião: a porta da Forja do Eco está presa")
 	check(level._dialogue_variant("ferreiro") == "ferreiro", "o Ferreiro só lembra do irmão depois")
 	Game.defeated_bosses.append("durgan")
@@ -3367,27 +4152,28 @@ func test_beast_matriarch() -> void:
 
 
 func test_mountain_gate() -> void:
+	# v0.31 (mapa livre): a escalada no fim do Viaduto já começa livre.
+	# v0.35: a escalada saiu da Avenida e foi para o fim do Viaduto Partido.
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
-	var level := await open_level(CIDADE, "porta")
-	check(find_npc("ponte_levadica") != null, "antes de Durgan: a ponte levadiça está erguida")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("durgan")
-	level = await open_level(CIDADE, "porta")
+	var level := await open_level(VIADUTO, "porta")
+	check(find_npc("ponte_levadica") == null, "mapa livre: nada trava a subida para a Montanha")
 	var to_mountain := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha"):
 			to_mountain = true
-	check(to_mountain and level.spawns.has("lateral"), "depois de Durgan: a ponte baixa")
+	check(to_mountain and level.spawns.has("escalada"), "a subida para a Montanha está aberta")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(MONTANHA, "porta")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("cidade") and (node as AreaExit).target_spawn == "lateral":
+		if node is AreaExit and (node as AreaExit).target_scene == VIADUTO and (node as AreaExit).target_spawn == "escalada":
 			back = true
 	check(back, "a Montanha leva de volta à ponte da Cidade")
-	check(find_npc("porta_ninho") != null, "antes da Matriarca: a trilha do Ninho está fechada")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ENCOSTA, "porta")  # v0.35: a trilha do Ninho sai da Encosta
+	check(find_npc("porta_ninho") != null, "antes do Capitão: a trilha do Ninho está fechada")
 	check(level._dialogue_variant("vendedor") == "vendedor_mabel", "o Vendedor ainda fala de Mabel")
 	Game.defeated_bosses.append("capitao")
 	check(level._dialogue_variant("vendedor") == "vendedor_capitao", "depois do Capitão: o Vendedor lembra da tropa")
@@ -3633,7 +4419,9 @@ func test_curator() -> void:
 
 func test_archive_golem() -> void:
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "curadora"])
-	var level := await open_level(DOMINIO, "porta")
+	var level := await open_level(ARQUIVO, "porta")  # v0.35: o Golem mora no Arquivo Profundo
+	for trap in get_tree().get_nodes_in_group(&"still_traps"):
+		trap.queue_free()  # o teste não anda: sem as vitrines que fecham
 	var golem: GolemArquivo = null
 	for node in level.entities.get_children():
 		if node is GolemArquivo:
@@ -3660,39 +4448,39 @@ func test_archive_golem() -> void:
 	check(Game.is_boss_defeated("golem_arquivo") and find_npc("livro_do_arquivo") != null, "vencido: o livro do Arquivo fica no chão")
 	var opened := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("arena_cassian"):
+		if node is AreaExit and (node as AreaExit).target_scene == GALERIA:
 			opened = true
-	check(opened, "a porta do Arconte abre na hora")
+	check(opened, "a porta da Galeria abre na hora")
 	level.queue_free()
 	await frames(2)
-	level = await open_level(DOMINIO, "porta")
+	level = await open_level(ARQUIVO, "porta")
 	check(find_npc("livro_do_arquivo") != null, "o livro continua lá depois de voltar")
 	level.queue_free()
 	await frames(2)
 
 
 func test_frozen_domain_gate() -> void:
+	# v0.31 (mapa livre): o Domínio fica no alto das Forjas (cascata de gelo).
 	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan"])
-	var level := await open_level(MONTANHA, "porta")
-	check(find_npc("tunel_de_gelo") != null, "antes de Rachel: o túnel de gelo está fechado")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.append("rachel")
-	level = await open_level(MONTANHA, "porta")
+	var level := await open_level(PASSARELA, "porta")  # v0.35: a cascata sai da Passarela
 	var to_ice := false
 	for node in level.entities.get_children():
 		if node is AreaExit and (node as AreaExit).target_scene.contains("dominio"):
 			to_ice = true
-	check(to_ice and level.spawns.has("oeste"), "depois de Rachel: o túnel abre")
+	check(to_ice and level.spawns.has("cascata"), "a cascata de gelo das Forjas sobe ao Domínio")
 	level.queue_free()
 	await frames(2)
 	level = await open_level(DOMINIO, "porta")
 	var back := false
 	for node in level.entities.get_children():
-		if node is AreaExit and (node as AreaExit).target_scene.contains("montanha") and (node as AreaExit).target_spawn == "oeste":
+		if node is AreaExit and (node as AreaExit).target_scene.contains("forjas") and (node as AreaExit).target_spawn == "cascata":
 			back = true
-	check(back, "o Domínio leva de volta ao túnel da Montanha")
-	check(find_npc("porta_arconte") != null, "antes do Golem: a porta do Arconte está fechada")
+	check(back, "do Domínio, a queda leva de volta às Forjas")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(GALERIA, "porta")  # v0.35: a porta do Arconte (e o Estudioso) na Galeria
+	check(find_npc("porta_arconte") != null, "antes da Curadora: a porta do Arconte está fechada")
+	check(find_npc("estudioso") != null, "o Estudioso congelado, na Galeria")
 	check(level._dialogue_variant("estudioso") == "estudioso", "o Estudioso ainda está congelado")
 	Game.defeated_bosses.append("curadora")
 	check(level._dialogue_variant("estudioso") == "estudioso_livre", "a Curadora caiu: ele está livre")
@@ -4035,79 +4823,186 @@ func test_version_consistency() -> void:
 	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == expected, "versionCode acompanha a versão (%s, esperado %d)" % [codes, expected])
 
 
-# --- O Guarda Sem Posto (o marido de Helena) --------------------------------------------
+# --- v0.45 (Etapa 8): Heitor e Helena ---------------------------------------------------
 
-func test_guard_meeting_and_fragments() -> void:
+## Poço → estátua → gelo: cada resgate liga uma flag e abre o próximo encontro.
+func test_heitor_rescues() -> void:
 	var level := await open_level(CIDADE, "porta")
-	check(find_npc("guarda_cidade") != null, "na Cidade, entre os Civis Cinzentos")
-	level._after_talk("guarda_cidade")
-	check(Game.flags.get("guarda_conhecido", false), "conversou: ele vai para o Teatro")
+	check(find_npc("poco_heitor") != null, "na Avenida, o poço (onde ficava o guarda antigo)")
+	check(level.resolve_dialogue("poco_heitor") == "poco_heitor", "lá do fundo, alguém cantarola")
+	level._begin_modal()
+	await level._on_dialogue_action("flag:heitor_poco;ganhar:licor_da_vigilia")
+	level._end_modal()
+	check(Game.has_flag("heitor_poco") and Game.has_item("licor_da_vigilia"), "salvo do poço: ele dá o Licor da Vigília")
+	check(level.resolve_dialogue("poco_heitor") == "poco_vazio", "o poço fica vazio")
 	level.queue_free()
 	await frames(2)
-	level = await open_level(CIDADE, "porta")
-	check(find_npc("guarda_cidade") == null, "não está mais na Cidade")
+	Game.flags.erase("heitor_poco")
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("estatua_heitor") == null, "sem o poço, ninguém debaixo da estátua")
 	level.queue_free()
 	await frames(2)
-	level = await open_level(TEATRO, "camara")
-	check(find_npc("guarda") != null, "está no Teatro")
-	check(level._dialogue_variant("guarda") == "guarda_1", "primeiro fragmento: o anel")
-	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel"])
-	check(level._dialogue_variant("guarda") == "guarda_3", "um fragmento por ilha")
-	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"])
-	check(level._dialogue_variant("guarda") == "guarda_6", "o último: ele vai junto no palco")
-	var actions := (DialogueData.get_entry("guarda_6").get("opcoes", []) as Array).map(func(o): return o["acao"])
-	check(actions.has("chamar_guarda") and actions.has("dispensar_guarda"), "dá para chamá-lo ou deixá-lo")
+	Game.set_flag("heitor_poco")
+	level = await open_level(FORJAS, "porta")
+	check(find_npc("estatua_heitor") != null, "depois do poço: preso debaixo da estátua nas Forjas")
 	level.queue_free()
 	await frames(2)
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("gelo_heitor") == null and find_npc("heitor_dominio") == null, "o gelo ainda espera a estátua")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("heitor_estatua")
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("gelo_heitor") != null, "depois da estátua: preso no gelo do lago")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("heitor_gelo")
+	level = await open_level(DOMINIO, "porta")
+	check(find_npc("gelo_heitor") == null and find_npc("heitor_dominio") != null, "solto: ele fica no lago, cantarolando")
+	check(level.resolve_dialogue("heitor_dominio") == "heitor_dominio", "sem a história da flor, ele só canta")
+	Game.set_flag("helena_contou_flor")
+	check(level.resolve_dialogue("heitor_dominio") == "heitor_flor", "ela contou da flor: ele dá a Flor de Pedra")
+	await level._on_dialogue_action("flag:heitor_deu_flor;ganhar:flor_de_pedra")
+	check(Game.has_item("flor_de_pedra") and level.resolve_dialogue("heitor_dominio") == "heitor_dominio", "uma flor só")
+	level.queue_free()
+	await frames(2)
+	# O guarda antigo saiu do jogo (a Etapa 8 o substitui).
+	check(not Ally.REGISTRY.has("guarda") and Ally.REGISTRY.has("heitor"), "o aliado agora é o Heitor")
+	for id in ["guarda_cidade", "guarda_1", "posto_vazio"]:
+		check(DialogueData.get_entry(id).is_empty(), "sem a fala antiga %s" % id)
 
 
-func test_guard_companion() -> void:
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
-	var level := await open_level(CIDADE, "porta")
-	var allies := get_tree().get_nodes_in_group(&"allies")
-	check(allies.size() == 1 and allies[0] is GuardaAliado, "chamado: ele vem junto para a ilha")
-	var guard := allies[0] as GuardaAliado
-	level.player._iframes_left = 999.0
-	var soldier := spawn_enemy_scene(SOLDIER_SCENE, level.player.global_position + Vector2(40, 0))
-	soldier.reparent(level.entities)
-	var hp := soldier.stats.health
-	await seconds(3.0)
-	check(not is_instance_valid(soldier) or soldier.stats.health < hp, "ele corta o inimigo perto de você")
-	var big := HitInfo.create(999.0, guard.global_position + Vector2(10, 0), guard.global_position)
-	guard._hurtbox.receive_hit(big)
-	check(guard.fallen and not Game.flags.get("guarda_acompanha", true), "caiu de joelhos: volta para o Teatro")
-	level.queue_free()
-	await frames(2)
-	Game.flags["guarda_acompanha"] = true
-	level = await open_level(TEATRO, "camara")
-	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "no Teatro ele é só conversa")
-	level.queue_free()
-	await frames(2)
-	Game.defeated_bosses.assign([])
-	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
-	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "nas arenas dos Pecados a luta é sua")
-	level.queue_free()
-	await frames(2)
-
-
-func test_guard_sacrifice() -> void:
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
+## A Helena bêbada: uma fala nova por visita; sóbria com 6 memórias.
+func test_helena_drunk_visits() -> void:
 	var level := await open_level(TEATRO, "camara")
-	check(find_npc("guarda") != null, "ele está no Teatro")
-	# Como no jogo: a escolha vem do diálogo da mulher na plateia (mundo pausado).
+	check(find_npc("helena") != null, "ela está na plateia")
+	check(level.resolve_dialogue("helena") == "helena", "1ª visita: o marido 'morreu'")
+	level._after_talk("helena")
+	check(level.resolve_dialogue("helena") == "helena_2", "2ª visita: a música horrível")
+	level._after_talk("helena")
+	check(Game.has_flag("helena_contou_flor") and level.resolve_dialogue("helena") == "helena_3", "3ª: ela contou da flor de pedra")
+	var texts := func() -> Array:
+		return DialogueBox.expand_options(DialogueData.get_entry("helena_3").get("opcoes", [])).map(func(o): return o["texto"])
+	check(not texts.call().has("Mostrar a Flor de Pedra") and not texts.call().has("Oferecer o Licor"), "sem os itens, só 'Deixá-la em paz'")
+	Game.add_item("licor_da_vigilia")
+	Game.add_item("flor_de_pedra")
+	check(texts.call().has("Mostrar a Flor de Pedra") and texts.call().has("Oferecer o Licor"), "com os itens, as opções aparecem")
+	await level._on_dialogue_action("dar:licor_da_vigilia")
+	check(not Game.has_item("licor_da_vigilia"), "o licor vai para ela")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian"])
+	check(level.resolve_dialogue("helena") == "helena_sobria", "seis memórias: 'Só falta eu.'")
+	var actions := (DialogueData.get_entry("helena_sobria").get("opcoes", []) as Array).map(func(o): return o["acao"])
+	check(actions.has("desafiar_helena"), "sóbria, ela aceita a luta")
+	var flor := DialogueData.get_entry("helena_pela_flor")
+	check((flor.get("falas", []) as Array).size() == 4 and str(flor["opcoes"][0]["acao"]).contains("desafiar_helena"), "a flor: quatro falas e a fúria")
+	level.queue_free()
+	await frames(2)
+
+
+## A fúria pela flor: ela grita no começo, e o Heitor (salvo três vezes) entra junto.
+func test_helena_fury_with_heitor() -> void:
+	Game.set_flag("heitor_gelo")
+	var level := await open_level(TEATRO, "camara")
+	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "no Teatro, antes da luta, ninguém luta")
+	var said := []
+	var helena := level._boss as HelenaAltiva
+	helena.speech.connect(func(text: String): said.append(text))
+	level.player._iframes_left = 999.0
+	level._begin_modal()
+	await level._on_dialogue_action("flag:helena_pela_flor;desafiar_helena")
+	level._end_modal()  # no jogo, a caixa de diálogo fecha e o mundo volta a andar
+	await seconds(0.5)
+	var allies := get_tree().get_nodes_in_group(&"allies")
+	check(allies.size() == 1 and allies[0] is HeitorAliado, "o Heitor entra na arena com você")
+	check(level.boss_arena.state != BossArena.State.IDLE, "a luta começa")
+	await seconds(3.0)
+	level.player.global_position = level.boss_arena.arena_rect.get_center()  # entra na arena
+	await seconds(6.0)
+	check(said.has(HelenaAltiva.SPEECH_FLOR), "'Eu fiquei no posto! EU! Por você!'")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("heitor_morto")
+	level = await open_level(TEATRO, "camara")
 	level._begin_modal()
 	level._on_dialogue_action("desafiar_helena")
-	await seconds(7.0)
-	check(not get_tree().paused, "a cena não fica congelada")
-	check(Game.flags.get("guarda_sacrificado", false) and Game.has_item("anel_do_guarda"), "ele entra na frente do golpe e deixa o anel")
-	check(find_npc("guarda") == null and find_npc("posto_vazio") != null, "no lugar dele, o posto vazio")
-	check(not Game.flags.get("guarda_acompanha", true), "não acompanha mais ninguém")
+	await seconds(0.5)
+	check(get_tree().get_nodes_in_group(&"allies").is_empty(), "morto, ele não volta")
 	level.queue_free()
 	await frames(2)
+
+
+## v0.46: fim da fase 2 — o golpe nele, o elmo, "...Heitor?", o anel; o grito explode o Teatro.
+func test_heitor_falls_and_theater_explodes() -> void:
+	Game.set_flag("heitor_gelo")
+	var level := await open_level(TEATRO, "camara")
+	var helena := level._boss as HelenaAltiva
+	var said := []
+	helena.speech.connect(func(text: String): said.append(text))
+	level.player._iframes_left = 999.0
+	level._begin_modal()
+	await level._on_dialogue_action("desafiar_helena")
+	level._end_modal()
+	await seconds(3.0)
+	level.player.global_position = level.boss_arena.arena_rect.get_center()
+	await seconds(3.0)
+	check(helena.active, "a luta começou")
+	var heitor := get_tree().get_first_node_in_group(&"allies") as HeitorAliado
+	check(heitor != null, "o Heitor está na arena")
+	level.player._iframes_left = 999.0
+	helena.stats.take_damage(99999.0)
+	await seconds(2.0)
+	helena.stats.take_damage(99999.0)
+	await seconds(3.0)
+	check(heitor.fallen and Game.has_flag("heitor_morto"), "o golpe dela acerta o Heitor")
+	check(said.has(HelenaAltiva.SPEECH_HEITOR), "'...Heitor?'")
+	check(Game.has_item("anel_do_guarda"), "o anel dele rola até você")
+	level.player._iframes_left = 999.0
+	await seconds(5.0)
+	check(Game.has_flag("teatro_ruinas"), "o grito explode o Teatro")
+	check(helena.phase == 3 and said.has(HelenaAltiva.SPEECH_RING), "fase 3 nas ruínas: ela vê o anel")
+	check(find_npc("heitor_memorial") != null, "no lugar dele: elmo e garrafa")
+	check(DialogueData.get_entry("heitor_memorial")["falas"][0] == "Os dois ficaram no posto.", "'Os dois ficaram no posto.'")
+	level.queue_free()
+	await frames(2)
+	# Sem o Heitor: a fase 3 começa pela vida, e a explosão acontece igual.
+	Game.reset_progress()
 	level = await open_level(TEATRO, "camara")
-	check(find_npc("guarda") == null and find_npc("posto_vazio") != null, "o posto vazio continua lá")
+	helena = level._boss as HelenaAltiva
+	level.player._iframes_left = 999.0
+	level._begin_modal()
+	await level._on_dialogue_action("desafiar_helena")
+	level._end_modal()
+	await seconds(3.0)
+	level.player.global_position = level.boss_arena.arena_rect.get_center()
+	await seconds(3.0)
+	level.player._iframes_left = 999.0
+	helena.stats.take_damage(99999.0)
+	await seconds(2.0)
+	helena.stats.take_damage(99999.0)
+	level.player._iframes_left = 999.0
+	await seconds(4.5)
+	check(Game.has_flag("teatro_ruinas") and not Game.has_flag("heitor_morto"), "sem o Heitor, o Teatro cai igual")
+	check(not Game.has_item("anel_do_guarda"), "e não há anel")
+	level.queue_free()
+	await frames(2)
+
+
+## O Teatro em ruínas: outro .txt, gente em lugar novo, o memorial fixo.
+func test_theater_ruins_layout() -> void:
+	var level := await open_level(TEATRO, "camara")
+	check(level.current_layout() == "res://levels/teatro.txt", "antes: o Teatro de sempre")
+	var fada_before := find_npc("fada").global_position
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("teatro_ruinas")
+	Game.set_flag("heitor_morto")
+	level = await open_level(TEATRO, "camara")
+	check(level.current_layout() == "res://levels/teatro_ruinas.txt", "depois: as ruínas")
+	check(find_npc("fada") != null and find_npc("fada").global_position != fada_before, "a Fada mudou para o camarote caído")
+	for id in ["orbe", "fada", "helena"]:
+		check(find_npc(id) != null, "%s continua no Teatro" % id)
+	check(find_npc("heitor_memorial") != null, "o memorial do Heitor fica no fosso")
+	check(level.rest_chamber != null or not level.rest_chambers.is_empty(), "a Câmara de descanso continua")
 	level.queue_free()
 	await frames(2)
 
@@ -4530,8 +5425,8 @@ func test_inventory_menu() -> void:
 	check(ids == ["espada", "pilar_estilhacada", Game.FISTS], "aba Armas (punhos no fim): %s" % [ids])
 	check(menu.entries(1).map(func(e): return e["id"]) == ["escudo_remendado"], "aba Escudos")
 	check(menu.entries(3).map(func(e): return e["id"]) == ["frasco_vida", "frasco_sanidade"], "aba Frascos")
-	check(menu.entries(4).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
-	check(menu.entries(5).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
+	check(menu.entries(InventoryMenu.TABS.find("Materiais")).map(func(e): return e["id"]) == ["sucata_temperada"], "aba Materiais")
+	check(menu.entries(InventoryMenu.TABS.find("Lembranças")).map(func(e): return e["id"]).has("lembranca_aldir"), "aba Lembranças")
 	check(get_viewport().gui_get_focus_owner() in menu._slots, "o foco começa na grade (controle)")
 	# Ficha da arma: letras de escala e habilidade.
 	menu._select("pilar_estilhacada")
@@ -4550,7 +5445,7 @@ func test_inventory_menu() -> void:
 	menu._activate("escudo_remendado")
 	await frames(1)
 	check(not Game.shield_ready(), "guardou o escudo pelo menu")
-	menu.set_tab(5)
+	menu.set_tab(InventoryMenu.TABS.find("Lembranças"))
 	menu._select("lembranca_aldir")
 	check(menu._detail_text.text.contains("impotência"), "lembrança mostra a lore")
 	hud.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
@@ -4989,7 +5884,7 @@ func test_sprint_hold_circle() -> void:
 func test_rest_menu_and_travel() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
-	check(Game.unlocked_capsules().map(func(c): return c["thumb"]) == ["teatro"], "depois do Prólogo: só o Teatro")
+	check(Game.unlocked_capsules().map(func(c): return c["thumb"]) == ["teatro", "prologo"], "depois do Prólogo: Teatro e laboratório")
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
 	level._on_rest_requested(level.rest_chamber)  # o que acontece ao apertar ✕ na cápsula
@@ -5000,7 +5895,8 @@ func test_rest_menu_and_travel() -> void:
 	await seconds(1.5)
 	check(menu._hero.position.y > start_y + 40.0, "o herói desce para dentro da cápsula")
 	check(menu._capsule.texture == RestMenu.CAPSULE_CLOSED, "e a tampa fecha")
-	check(menu.cards().size() == 1 and menu.cards()[0].disabled, "só a Câmara de onde está (marcada 'você está aqui')")
+	var real := func() -> Array: return menu.cards().filter(func(c): return not c.has_meta("gap"))
+	check(real.call().size() == 2 and real.call()[0].disabled, "a Câmara de onde está (marcada 'você está aqui') e a do laboratório")
 	check(Game.rest_scene == "res://scenes/world/teatro.tscn", "descansar salvou o ponto")
 	# ○ = Levantar.
 	var cancel := InputEventAction.new()
@@ -5012,12 +5908,15 @@ func test_rest_menu_and_travel() -> void:
 	await wait_for(func(): return level.player.state == Player.State.FREE, 300)  # sai da cápsula
 	# Desbloqueia a Cidade e viaja até ela.
 	Game.unlock_capsule("res://scenes/world/cidade.tscn")
-	Game.unlock_capsule("res://scenes/world/prologo.tscn")  # o Prólogo não é destino
+	Game.unlock_capsule("res://scenes/world/cidade_quartel.tscn")
 	level._on_rest_requested(level.rest_chamber)
 	await wait_for(func(): return menu.visible, 420)
-	var names: Array = menu.cards().map(func(c): return c.get_meta("scene"))
-	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/cidade.tscn"], "Câmaras na ordem da jornada (sem o Prólogo)")
-	var city: Button = menu.cards()[1]
+	var names: Array = real.call().map(func(c): return c.get_meta("scene"))
+	check(names == ["res://scenes/world/teatro.tscn", "res://scenes/world/prologo.tscn", "res://scenes/world/cidade.tscn",
+		"res://scenes/world/cidade_quartel.tscn"], "uma linha por ilha, na ordem do mapa (%s)" % [names])
+	check(menu.cards()[1].has_meta("gap") and menu.cards()[4].get_meta("scene") == "res://scenes/world/cidade.tscn",
+		"o Teatro sozinho na linha: um espaço completa, a Cidade começa na esquerda")
+	var city: Button = real.call()[2]
 	check(not city.disabled and city.icon != null, "a Cidade tem miniatura e dá para escolher")
 	Game.last_scene_request = ""
 	city.pressed.emit()
@@ -5031,6 +5930,14 @@ func test_rest_menu_and_travel() -> void:
 	Game.reset_progress()
 	Game._from_dict(data)
 	check(Game.is_capsule_unlocked("res://scenes/world/cidade.tscn"), "Câmaras desbloqueadas ficam no save")
+	check(Game.is_capsule_unlocked("res://scenes/world/cidade_quartel.tscn"), "a 2ª Câmara da Cidade também")
+	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/cidade.tscn", "rest_spawn": "camara_2",
+		"capsules": ["res://scenes/world/cidade.tscn#camara_2"]})
+	check(Game.rest_scene == Game.NEW_CITY_SECOND and Game.rest_spawn == "camara" and Game.is_capsule_unlocked(Game.NEW_CITY_SECOND),
+		"migração v0.35: a 2ª Câmara da Cidade vira a do Quartel")
+	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/bosque.tscn", "rest_spawn": "camara_2",
+		"capsules": ["res://scenes/world/bosque.tscn#camara_2"]})
+	check(Game.rest_scene == DORMITORIO and Game.is_capsule_unlocked(DORMITORIO), "migração v0.35: a 2ª Câmara do Bosque vira a do Dormitório")
 	Game._from_dict({"version": 3, "prologue_done": true, "rest_scene": "res://scenes/world/forjas.tscn", "rest_spawn": "camara"})
 	check(Game.is_capsule_unlocked("res://scenes/world/forjas.tscn") and Game.is_capsule_unlocked(Game.HUB_SCENE), "migração: a última Câmara e o Teatro")
 	Game.wake_from_capsule = false
@@ -5045,8 +5952,9 @@ func test_rest_menu_and_travel() -> void:
 func test_rest_menu_pad_navigation() -> void:
 	Game.reset_progress()
 	Game.prologue_done = true
-	for scene in ["cidade", "bosque", "raizes"]:
-		Game.unlock_capsule("res://scenes/world/%s.tscn" % scene)
+	Game.unlock_capsule("res://scenes/world/cidade.tscn")
+	Game.unlock_capsule("res://scenes/world/cidade_quartel.tscn")
+	Game.unlock_capsule("res://scenes/world/bosque.tscn")
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var menu := level.hud.rest_menu
 	level._on_rest_requested(level.rest_chamber)
@@ -5055,28 +5963,33 @@ func test_rest_menu_pad_navigation() -> void:
 	var focused := func() -> String:
 		var f := get_viewport().gui_get_focus_owner() as Button
 		return f.get_meta("scene", "levantar") if f else ""
-	check(focused.call() == "res://scenes/world/cidade.tscn", "abre com a primeira Câmara de destino selecionada")
+	# Grade (uma linha por ilha): [Teatro(aqui) -] / [Laboratório -] / [Cidade Cidade2] / [Bosque -].
+	check(focused.call() == "res://scenes/world/prologo.tscn", "abre com a primeira Câmara de destino selecionada (%s)" % focused.call())
 	check(menu.cards()[0].focus_mode == Control.FOCUS_NONE, "'você está aqui' nem recebe foco")
-	# Grade (3 colunas): [Teatro(aqui) Cidade Bosque] / [Raízes].
-	var seen := []
-	for i in 3:
-		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
-		seen.append(focused.call().get_file().get_basename())
-	check(seen == ["bosque", "cidade", "bosque"], "→ dá a volta NA MESMA LINHA (não pula de linha): %s" % [seen])
-	await _pad_press(JOY_BUTTON_DPAD_LEFT)
-	check(focused.call().get_file().get_basename() == "cidade", "← também fica na linha")
-	await _pad_press(JOY_BUTTON_DPAD_DOWN)
-	check(focused.call().get_file().get_basename() == "raizes", "↓ desce para a linha de baixo")
 	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
-	check(focused.call().get_file().get_basename() == "raizes", "sozinha na linha: → não sai dela")
+	check(focused.call() == "res://scenes/world/prologo.tscn", "sozinha na linha: → não sai dela")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call() == "res://scenes/world/cidade.tscn", "↓ desce para a linha da Cidade")
+	var seen := []
+	for i in 2:
+		await _pad_press(JOY_BUTTON_DPAD_RIGHT)
+		seen.append(focused.call())
+	check(seen == ["res://scenes/world/cidade_quartel.tscn", "res://scenes/world/cidade.tscn"],
+		"→ dá a volta NA MESMA LINHA (as duas Câmaras da ilha): %s" % [seen])
+	await _pad_press(JOY_BUTTON_DPAD_LEFT)
+	check(focused.call() == "res://scenes/world/cidade_quartel.tscn", "← também fica na linha")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
+	check(focused.call() == "res://scenes/world/bosque.tscn", "↓ desce para a linha do Bosque")
 	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	check(focused.call() == "levantar", "↓ vai para o Levantar")
 	await _pad_press(JOY_BUTTON_DPAD_UP)
-	check(focused.call() == "res://scenes/world/cidade.tscn", "↑ volta para as Câmaras")
+	check(focused.call() == "res://scenes/world/prologo.tscn", "↑ volta para as Câmaras")
+	await _pad_press(JOY_BUTTON_DPAD_DOWN)
 	await _pad_press(JOY_BUTTON_DPAD_RIGHT)
 	Game.last_scene_request = ""
 	await _pad_press(JOY_BUTTON_A)
-	check(Game.last_scene_request == "res://scenes/world/bosque.tscn", "✕ viaja para a Câmara escolhida")
+	check(Game.last_scene_request == "res://scenes/world/cidade_quartel.tscn" and Game.rest_spawn == "camara",
+		"✕ viaja para a 2ª Câmara da Cidade (%s, %s)" % [Game.last_scene_request, Game.rest_spawn])
 	Game.wake_from_capsule = false
 	level.queue_free()
 	await frames(2)
@@ -5296,6 +6209,524 @@ func test_sniper_friendly_fire() -> void:
 	soldier.queue_free()
 	player.queue_free()
 	await frames(2)
+
+
+# --- v0.31 · Etapa 1 do Pacote de Expansão: ajustes de base ----------------------------
+
+## Abre uma fase com as listas novas do Inspector (saídas, zonas, objetos,
+## armadilhas) montadas em volta da Câmara. 1ª passada só para achar a Câmara.
+func _open_level_with(path: String, build_defs: Callable) -> Level:
+	Game.pending_spawn = "camara"
+	var probe := (load(path) as PackedScene).instantiate() as Level
+	_world.add_child(probe)
+	await frames(2)
+	var home := Level.cell_at(probe.spawns["camara"])
+	probe.free()
+	await frames(2)
+	Game.pending_spawn = "camara"
+	var level := (load(path) as PackedScene).instantiate() as Level
+	build_defs.call(level, home)
+	_world.add_child(level)
+	await frames(5)
+	return level
+
+
+func test_conditions_language() -> void:
+	Game.reset_progress()
+	check(Game.requirement_met("") and not Game.requirement_met("aldir"), "vazio = sempre; chefe não vencido = não")
+	Game.defeated_bosses.assign(["aldir", "nyssa"])
+	check(Game.requirement_met("aldir") and Game.requirement_met("chefe:nyssa"), "chefe (jeito antigo e por extenso)")
+	check(Game.requirement_met("memorias:2") and not Game.requirement_met("memorias:3"), "memorias:N conta as memórias de chefe")
+	check(not Game.requirement_met("flag:atalho_galho") and Game.requirement_met("!flag:atalho_galho"), "flag e o contrário (!)")
+	Game.set_flag("atalho_galho")
+	check(Game.requirement_met("flag:atalho_galho"), "flag ligada")
+	check(not Game.requirement_met("item:flor_de_pedra") and Game.requirement_met("memorias:6|chefe:aldir"), "item que não tem; OU (|)")
+	check(not Game.requirement_met("chefe:aldir+item:flor_de_pedra"), "E (+) exige todas")
+	Game.set_world_state("bau_teste")
+	check(Game.requirement_met("estado:bau_teste"), "estado de objeto do mundo")
+	Game.reset_progress()
+
+
+func test_listed_exits_open_by_flag() -> void:
+	Game.reset_progress()
+	var level := await _open_level_with(CIDADE, func(l: Level, home: Vector2i):
+		l.exits = [{"cell": home + Vector2i(2, 0), "scene": TEATRO, "spawn": "porta",
+			"requires": "flag:atalho_teste", "locked_dialogue": "borda", "arrival": "atalho_teste"}])
+	var mine := func() -> int:
+		return level._locked_exits.filter(func(lock): return lock["requires"] == "flag:atalho_teste").size()
+	check(mine.call() == 1 and not level.spawns.has("atalho_teste"), "saída da lista começa trancada (flag desligada)")
+	Game.set_flag("atalho_teste")
+	await frames(2)
+	check(mine.call() == 0 and level.spawns.has("atalho_teste"), "ligou a flag: abre NA HORA")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_world_objects_remember() -> void:
+	Game.reset_progress()
+	var level := await _open_level_with(CIDADE, func(l: Level, home: Vector2i):
+		l.objects = [
+			{"kind": "bau", "cell": home + Vector2i(2, -1), "key": "bau_teste", "item": "sucata_temperada", "count": 2},
+			{"kind": "atalho", "cell": home + Vector2i(-2, -1), "key": "atalho_teste", "abre_de": "oeste", "locked_dialogue": "borda"},
+		])
+	var found := get_tree().get_nodes_in_group("world_objects")
+	check(found.size() == 2, "baú e porta de atalho no mapa")
+	var chest: WorldObject = found.filter(func(o): return o.kind == "bau")[0]
+	var door: WorldObject = found.filter(func(o): return o.kind == "atalho")[0]
+	chest.activate()
+	check(Game.item_count("sucata_temperada") == 2 and Game.world_flag("bau_teste"), "abriu o baú: item e estado")
+	check(not door.can_open_from(door.global_position + Vector2(20, -8)), "atalho: do lado de lá não abre")
+	check(door.can_open_from(door.global_position + Vector2(-20, -8)), "atalho: do lado certo (oeste) abre")
+	door.activate()
+	check(Game.has_flag("atalho_teste"), "atalho aberto liga a flag de mesmo nome")
+	level._respawn_enemies()  # descansar
+	Game.respawn()  # morrer
+	Game.wake_from_capsule = false
+	check(Game.world_flag("bau_teste") and Game.world_flag("atalho_teste"), "nem descanso nem morte fecham")
+	var keep_path := Game.save_path
+	Game.persistence_enabled = true
+	Game.save_path = "user://teste_mundo.json"
+	Game.save_game()
+	Game.world_state = {}
+	Game.load_game()
+	check(Game.world_flag("bau_teste") and Game.world_flag("atalho_teste"), "o estado vai no save")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(Game.save_path))
+	Game.save_path = keep_path
+	Game.persistence_enabled = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_zones_alarm_and_spawn_rules() -> void:
+	Game.reset_progress()
+	var probe := await _open_level_with(CIDADE, func(_l: Level, _home: Vector2i): pass)
+	var points: Array = probe._enemy_spawns.map(func(sp): return Level.cell_at(sp["at"]))
+	probe.queue_free()
+	await frames(2)
+	var first: Vector2i = points[0]
+	var rect := Rect2i(first - Vector2i(1, 1), Vector2i(3, 3))
+	var inside := points.filter(func(c): return rect.has_point(c)).size()
+	var level := await _open_level_with(CIDADE, func(l: Level, home: Vector2i):
+		l.zones = [{"id": "alarme_teste", "rect": rect, "triggers": [home + Vector2i(1, 1)]}])
+	var tagged := get_tree().get_nodes_in_group("respawnable").filter(func(e): return e.get_meta(&"zona", "") == "alarme_teste")
+	check(tagged.size() == inside and inside >= 1, "inimigos da zona levam a marca (%d)" % tagged.size())
+	var trigger := get_tree().get_first_node_in_group("zone_triggers") as ZoneTrigger
+	var called := trigger.fire()
+	check(called == inside and (tagged[0] as Enemy).is_alerted(), "o alarme chama a zona inteira (%d)" % called)
+	check((tagged[0] as Enemy).can_see(Vector2(-9999, -9999)), "alarmado: enxerga você de qualquer lugar")
+	check(trigger.fire() == 0, "o alarme toca uma vez por visita")
+	level.queue_free()
+	await frames(2)
+	# Grupo que some para sempre depois de uma flag.
+	Game.set_flag("corneteiro_teste")
+	level = await _open_level_with(CIDADE, func(l: Level, _home: Vector2i):
+		l.zones = [{"id": "grupo_teste", "rect": rect, "requires": "!flag:corneteiro_teste"}])
+	var still := get_tree().get_nodes_in_group("respawnable").filter(func(e): return e.get_meta(&"zona", "") == "grupo_teste")
+	check(still.is_empty(), "flag ligada: o grupo da zona não nasce mais")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_periodic_trap() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	var cell := Level.cell_at(player.global_position)
+	var trap := PeriodicTrap.spawn(self, {"kind": "pilao", "cells": [cell], "period": 1.0, "warning": 0.4, "damage": 15})
+	check(trap.phase() == "descanso", "começa em descanso")
+	var hp := player.stats.health
+	await seconds(1.05)
+	check(player.stats.health < hp, "no golpe, quem está em cima leva dano (%.0f → %.0f)" % [hp, player.stats.health])
+	hp = player.stats.health
+	player.global_position += Vector2(48, 0)
+	await seconds(1.0)
+	check(is_equal_approx(player.stats.health, hp), "fora da armadilha: nada")
+	trap.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+func test_dialogue_conditions_and_name() -> void:
+	Game.reset_progress()
+	DialogueData.get_entry("fada")  # carrega o arquivo
+	DialogueData._entries["teste_base"] = {"falas": ["Oi, ratinho."], "variantes": [{"quando": "flag:teste_v", "usar": "teste_outra"}],
+		"opcoes": [{"tipo": "nome", "personagem": "teste", "sim": "flag:teste_disse", "nao": ""}, {"texto": "Sair", "acao": "", "quando": "!flag:teste_v"}]}
+	DialogueData._entries["teste_outra"] = {"falas": ["Outra."]}
+	check(DialogueData.variant("teste_base") == "teste_base", "sem a flag: a fala de sempre")
+	check(DialogueData.fill("Cobaia: {nome}") == "Cobaia: ...", "texto escrito sem nome: \"...\"")
+	Game.set_player_name("  Alexandre  ")
+	check(DialogueData.fill("Cobaia: {nome}") == "Cobaia: Alexandre", "{nome} vira o nome no texto ESCRITO")
+	# Jogo DUBLADO: nenhuma fala do dialogos.json pode usar o nome do jogador.
+	var spoken_with_name := []
+	for id: String in DialogueData._entries:
+		var entry: Variant = DialogueData._entries[id]
+		if entry is Dictionary and not (entry as Dictionary).get("escrito", false):  # texto lido (terminal) pode
+			for line: Variant in (entry as Dictionary).get("falas", []):
+				if str(line).contains("{nome}"):
+					spoken_with_name.append(id)
+	check(spoken_with_name.is_empty(), "nenhuma FALA diz o nome do jogador (dublagem): %s" % [spoken_with_name])
+	var options := DialogueBox.expand_options(DialogueData.get_entry("teste_base")["opcoes"])
+	check(options.size() == 3 and options[0]["texto"] == "Não lembro" and options[1]["texto"] == "Alexandre",
+		"opção de nome: \"Não lembro\" e o nome")
+	Game.set_flag("teste_v")
+	check(DialogueData.variant("teste_base") == "teste_outra", "flag ligada: a variante do .json")
+	check(DialogueBox.expand_options(DialogueData.get_entry("teste_base")["opcoes"]).size() == 2, "\"quando\" esconde opção")
+	var level := await open_level(TEATRO, "camara")
+	await level._on_dialogue_action(options[1]["acao"])
+	check(Game.has_flag("nome_dito_teste") and Game.has_flag("teste_disse"), "disse o nome: nome_dito_<personagem> + a ação junto")
+	Game.set_flag("lata_recebida")  # v0.53: antes disso, a Fada entrega a lata
+	check(level.resolve_dialogue("teste_base") == "teste_outra" and level.resolve_dialogue("fada") == "fada",
+		"Level usa as variantes do .json e mantém as antigas")
+	level.queue_free()
+	await frames(2)
+	DialogueData._entries.erase("teste_base")
+	DialogueData._entries.erase("teste_outra")
+	Game.reset_progress()
+
+
+func test_ally_base_levels_and_arena() -> void:
+	Game.reset_progress()
+	Game.flags["tiao_acompanha"] = true
+	var level := await open_level(CIDADE, "porta")
+	var guard := get_tree().get_first_node_in_group(&"allies") as Ally
+	check(guard is TiaoAliado and guard.ally_id == "tiao", "o Tião é um Ally")
+	var base_hp := guard.max_health
+	level._reward_allies(true)
+	check(Game.ally_level("tiao") == 2, "venceram juntos: nível 2")
+	guard.fall()
+	check(Game.ally_level("tiao") == 2, "cair não tira nível")
+	level.queue_free()
+	await frames(2)
+	Game.flags["tiao_acompanha"] = true
+	level = await open_level(CIDADE, "porta")
+	guard = get_tree().get_first_node_in_group(&"allies") as Ally
+	check(is_equal_approx(guard.max_health, base_hp * (1.0 + Ally.LEVEL_BONUS)), "nível 2: mais vida (%.0f)" % guard.max_health)
+	level.queue_free()
+	await frames(2)
+	Game.flags["tiao_acompanha"] = false
+	level = await open_level(TEATRO, "camara")
+	await level._on_dialogue_action("lute_comigo:tiao")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
+	var in_arena := get_tree().get_nodes_in_group(&"allies").filter(func(a): return not a.is_queued_for_deletion())
+	check(in_arena.size() == 1, "\"Lute comigo\": ele entra na arena do Pecado")
+	level._reward_allies(false)
+	check(not Game.flags.has("tiao_na_arena"), "a chamada vale para uma luta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.31 · Etapa 2: mapa livre e atalhos ------------------------------------------------
+
+## Os destinos abertos de uma fase: cena → número de saídas para ela.
+func _open_destinations() -> Array:
+	var result: Array = []
+	for exit in _world.find_children("*", "AreaExit", true, false):
+		result.append((exit as AreaExit).target_scene.get_file().get_basename())
+	return result
+
+
+func test_free_map_layout() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(TEATRO, "camara")
+	var open := _open_destinations()
+	for area in ["cidade", "bosque", "forjas"]:
+		check(open.has(area), "Teatro: o caminho para %s já começa aberto (%s)" % [area, open])
+	check(not open.has("nucleo"), "o Núcleo continua pedindo as sete memórias")
+	level.queue_free()
+	await frames(2)
+	var expected := {
+		# v0.35: a Cidade virou Avenida → Quartel → Viaduto → Montanha (e a Torre ao lado).
+		"cidade": ["teatro", "cidade_quartel", "cidade_torre"], "forjas": ["teatro", "forjas_fornalha", "forjas_dancarina"],
+		"raizes": ["forjas_passarela", "raizes_despensa", "raizes_enfermaria"], "dominio": ["forjas_passarela", "dominio_arquivo", "dominio_aula"], "montanha": ["cidade_viaduto", "montanha_ossario", "montanha_fosso"],
+		"bosque": ["teatro", "bosque_dormitorio", "bosque_sino"],
+	}
+	for area: String in expected:
+		level = await open_level("res://scenes/world/%s.tscn" % area, "camara")
+		open = _open_destinations()
+		for target: String in expected[area]:
+			check(open.has(target), "%s → %s livre (%s)" % [area, target, open])
+		level.queue_free()
+		await frames(2)
+	# Atalhos: trancados do lado de cá, abertos para sempre por quem passa do lado de lá.
+	level = await open_level("res://scenes/world/bosque.tscn", "camara")
+	open = _open_destinations()
+	check(not open.has("dominio") and not open.has("montanha_encosta"), "Bosque: galho e espinha começam trancados")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ENCOSTA, "porta")  # v0.35: a espinha fica na Encosta
+	var spine: AreaExit = _world.find_children("*", "AreaExit", true, false).filter(
+		func(e): return e.target_scene.ends_with("bosque.tscn"))[0]
+	check(spine.opens_flag == "atalho_espinha", "a espinha, do lado da Montanha, abre o atalho")
+	Game.scene_changes_enabled = false
+	spine._armed = true
+	spine._on_body_entered(level.player)
+	check(Game.has_flag("atalho_espinha"), "passou pela espinha: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/bosque.tscn", "camara")
+	open = _open_destinations()
+	check(open.has("montanha_encosta") and not open.has("dominio"), "no Bosque, a espinha abriu e o galho continua trancado")
+	level.queue_free()
+	await frames(2)
+	Game.respawn()
+	Game.wake_from_capsule = false
+	check(Game.has_flag("atalho_espinha"), "atalho aberto nunca fecha (nem morrendo)")
+	Game.reset_progress()
+
+
+## As áreas difíceis batem e aguentam mais, mesmo para quem chega cedo.
+func test_area_power() -> void:
+	var expected := {"cidade": 1.0, "raizes": 1.15, "montanha": 1.3, "dominio": 1.45}
+	for area: String in expected:
+		var level := await open_level("res://scenes/world/%s.tscn" % area, "camara")
+		var enemies := get_tree().get_nodes_in_group("respawnable").filter(func(e): return e is Enemy and not (e is Boss))
+		check(not enemies.is_empty() and is_equal_approx((enemies[0] as Enemy).area_power, expected[area]),
+			"%s: força %.2f" % [area, expected[area]])
+		if area == "dominio" and not enemies.is_empty():
+			var enemy := enemies[0] as Enemy
+			var info := HitInfo.create(10.0, enemy.global_position, level.player.global_position)
+			info.source = enemy
+			var hp := level.player.stats.health
+			level.player._iframes_left = 0.0
+			level.player._on_hit_received(info)
+			check(is_equal_approx(hp - level.player.stats.health, 14.5), "Domínio: golpe de 10 vira 14,5 (%.1f)" % (hp - level.player.stats.health))
+		level.queue_free()
+		await frames(2)
+
+
+# --- v0.33 · Etapa 3: cápsulas, baús e mímicos ---------------------------------------------
+
+func test_second_capsule_per_island() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	# A Cidade e o Bosque (v0.35) guardam a 2ª Câmara numa fase anexa: testadas à parte.
+	# v0.35: TODAS as ilhas guardam a 2ª Câmara numa fase anexa (depois do 1º mini-chefe).
+	var archive := await open_level(ARQUIVO, "camara")
+	check(archive.chamber_for("camara") != null and find_npc("placa_dominio_arquivo_1") != null, "Arquivo: a 2ª Câmara do Domínio, com placa")
+	check(archive.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["dominio"]).size() == 1,
+		"Arquivo: o pertence do Domínio")
+	archive.queue_free()
+	await frames(2)
+	check(Game.capsule_info(FORNALHA)["place"] == "Fornalha", "a 2ª das Forjas é a Fornalha")
+	var bones := await open_level(OSSARIO, "camara")
+	check(bones.chamber_for("camara") != null and find_npc("placa_montanha_ossario_1") != null, "Ossário: a 2ª Câmara da Montanha, com placa")
+	check(bones.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["montanha"]).size() == 1,
+		"Ossário: o pertence da Montanha")
+	bones.queue_free()
+	await frames(2)
+	var pantry := await open_level(DESPENSA, "camara")
+	check(pantry.chamber_for("camara") != null and find_npc("placa_raizes_despensa_1") != null, "Despensa: a 2ª Câmara das Raízes, com placa")
+	check(pantry.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["raizes"]).size() == 1,
+		"Despensa: o pertence das Raízes")
+	pantry.queue_free()
+	await frames(2)
+	var furnace := await open_level(FORNALHA, "camara")
+	check(furnace.chamber_for("camara") != null and find_npc("placa_forjas_fornalha_1") != null, "Fornalha: a 2ª Câmara das Forjas, com placa")
+	check(furnace.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["forjas"]).size() == 1,
+		"Fornalha: o pertence das Forjas")
+	furnace.queue_free()
+	await frames(2)
+	check(Game.CAPSULES.size() == 15, "15 Câmaras no jogo (%d)" % Game.CAPSULES.size())
+	# Bosque: uma Câmara na Margem, a outra (com placa e pertence) no Dormitório.
+	var shore := await open_level(BOSQUE, "camara")
+	check(shore.rest_chambers.size() == 1, "Margem: uma Câmara")
+	shore.queue_free()
+	await frames(2)
+	var dorm := await open_level(DORMITORIO, "camara")
+	check(dorm.chamber_for("camara") != null and find_npc("placa_bosque_dormitorio_1") != null, "Dormitório: a 2ª Câmara do Bosque, com placa")
+	check(dorm.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["bosque"]).size() == 1,
+		"Dormitório: o pertence do Bosque")
+	dorm.queue_free()
+	await frames(2)
+	# Cidade: uma Câmara na Avenida, a outra (com placa e pertence) no Quartel.
+	var avenue := await open_level("res://scenes/world/cidade.tscn", "camara")
+	check(avenue.rest_chambers.size() == 1, "Avenida: uma Câmara")
+	avenue.queue_free()
+	await frames(2)
+	Game.wake_from_capsule = true
+	var level := await open_level("res://scenes/world/cidade_quartel.tscn", "camara")
+	var second := level.chamber_for("camara")
+	check(second != null, "Quartel: a 2ª Câmara da Cidade")
+	var plaques := get_tree().get_nodes_in_group("npcs").filter(func(n): return (n as NPC).dialogue_id == "placa_cidade_quartel_1")
+	check(plaques.size() == 1, "Quartel: a placa da Câmara")
+	var keepsake := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == Level.KEEPSAKES["cidade"])
+	check(keepsake.size() == 1, "Quartel: o pertence da Cidade")
+	# Descansar nela e morrer: renasce NELA (e sai dela).
+	await wait_for(func(): return level.player.state == Player.State.FREE, 600)
+	check(level.player.global_position.distance_to(second.front_point()) < 12.0, "acorda saindo da 2ª Câmara")
+	Game.set_rest_point(level.scene_file_path, "camara")
+	check(Game.rest_spawn == "camara" and Game.is_capsule_unlocked("res://scenes/world/cidade_quartel.tscn"),
+		"a 2ª vira ponto de renascer e destino de viagem")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_chests_open_and_break() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "camara")
+	var chests := get_tree().get_nodes_in_group("world_objects").filter(func(o): return o.kind == "bau")
+	check(chests.size() == 2, "a Cidade tem 2 baús (%d)" % chests.size())
+	var first: WorldObject = chests[0]
+	var second: WorldObject = chests[1]
+	first.activate()
+	check(Game.item_count(first.item) >= 1 and first.chest_state() == "aberto", "abriu: o item e o estado")
+	check(not first.interactable.enabled, "aberto fica aberto (sem botão)")
+	var lost := second.item
+	for i in WorldObject.HITS_TO_BREAK:
+		second.hurtbox.receive_hit(HitInfo.create(10.0, second.global_position + Vector2(10, 0), second.global_position))
+	await frames(2)
+	check(second.chest_state() == "quebrado" and Game.item_count(lost) == 0, "3 golpes: quebrou e o que tinha dentro se perdeu")
+	var broken := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "algo_quebrado")
+	check(broken.size() == 1, "no lugar, cai o Algo Quebrado")
+	check(second.interactable.prompt == "Examinar" and Game.world_count("quebrado") == 1 and Game.world_count("aberto") == 1,
+		"o baú quebrado vira Examinar; o jogo conta abertos e quebrados")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "camara")
+	chests = get_tree().get_nodes_in_group("world_objects").filter(func(o): return o.kind == "bau")
+	check(chests.all(func(o): return not o.chest_state().is_empty()), "voltando à área, os dois continuam como ficaram")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_mimic() -> void:
+	Game.reset_progress()
+	var level := await open_level(CIDADE, "camara")
+	var mimics := level.entities.get_children().filter(func(n): return n is Mimico)
+	check(mimics.size() == 1, "um mímico na Cidade")
+	var mimic: Mimico = mimics[0]
+	var chest: WorldObject = get_tree().get_nodes_in_group("world_objects").filter(func(o): return o.kind == "bau")[0]
+	check(mimic.body_sprite.flip_h and mimic.body_sprite.sprite_frames.get_frame_texture(&"fechado", 0) == WorldObject.CHEST_CLOSED,
+		"o mímico é o baú comum ESPELHADO")
+	check(not mimic.is_in_group("enemies") and mimic.interactable.prompt == chest.interactable.prompt, "dormindo: parece um baú (\"Abrir\")")
+	# Abrir = agarrão + mordida.
+	var player := level.player
+	await wait_for(func(): return player.state == Player.State.FREE, 300)
+	await seconds(1.0)
+	player._iframes_left = 0.0
+	player.hurtbox.invulnerable = false
+	var hp := player.stats.health
+	mimic.global_position = player.global_position + Vector2(14, 0)
+	mimic._on_opened(player)
+	check(player.is_grabbed_by(mimic) and player.stats.health < hp, "abriu: ele agarra e morde")
+	player.release_grab()
+	await frames(3)
+	check(mimic.ai == Mimico.AI.AWAKE and mimic.is_in_group("enemies"), "solto: ele está acordado")
+	mimic.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.world_state.get("mimico_cidade", "") == "morto", "vencido fica vencido (no save)")
+	var dropped := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "fragmento_turvo")
+	check(dropped.size() >= 1, "deixa o que guardava")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "camara")
+	check(level.entities.get_children().filter(func(n): return n is Mimico).is_empty(), "não volta, nem descansando")
+	level.queue_free()
+	await frames(2)
+	# Um golpe basta para acordar.
+	Game.reset_progress()
+	level = await open_level(CIDADE, "camara")
+	mimic = level.entities.get_children().filter(func(n): return n is Mimico)[0]
+	mimic.hurtbox.receive_hit(HitInfo.create(5.0, mimic.global_position + Vector2(10, 0), mimic.global_position))
+	await frames(2)
+	check(mimic.ai == Mimico.AI.AWAKE, "um golpe e ele acorda")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_lab_capsule_after_prologue() -> void:
+	Game.reset_progress()
+	check(not Game.is_capsule_unlocked(Game.START_SCENE), "antes do Prólogo acabar, o laboratório não é destino")
+	Game.prologue_done = true
+	check(Game.is_capsule_unlocked(Game.START_SCENE), "depois, a cápsula do laboratório vira destino")
+	Game.scene_changes_enabled = false
+	var level := await open_level(Game.START_SCENE, "camara") as Prologo
+	await wait_for(func(): return level.player.state == Player.State.FREE, 600)
+	Game.last_scene_request = ""
+	level.start_fall()
+	await wait_for(func(): return not Game.last_scene_request.is_empty(), 300)
+	check(Game.last_scene_request == Game.HUB_SCENE and Game.prologue_done, "cair de novo leva ao Teatro, sem refazer o fim do prólogo")
+	Game.wake_from_capsule = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.34 · Etapa 4: armaduras com defesa e peso ------------------------------------------
+
+func test_armor_defense() -> void:
+	Game.reset_progress()
+	check(is_zero_approx(Game.armor_defense("fisico")), "sem armadura: nada protege")
+	_wear_set("detentor")
+	check(is_equal_approx(Game.armor_defense("fisico"), 0.32 * 1.1), "Detentor inteiro: 32%% físico +10%% de corpo completo (%.3f)" % Game.armor_defense("fisico"))
+	Game.unequip_armor("botas")
+	check(Game.armor_defense("fisico") < 0.32, "faltou uma parte: sem o bônus de corpo completo")
+	Game.equip_armor("botas_caelis")
+	Game.add_item("botas_caelis", 1, false)
+	Game.equip_armor("botas_caelis")
+	var mixed := Game.armor_defense("fisico")
+	check(mixed > 0.25 and mixed < 0.352, "misturando conjuntos o bônus também vale (%.3f)" % mixed)
+	for set_id: String in ArmorSets.PROFILES:
+		for kind in ArmorSets.DAMAGE_TYPES:
+			var full := 0.0
+			for slot in ArmorData.SLOTS:
+				full += ArmorSets.piece_defense(set_id, slot, kind)
+			check(full * 1.1 <= ArmorSets.DEFENSE_CAP, "%s/%s abaixo do teto" % [set_id, kind])
+	# O golpe de verdade, no herói.
+	Game.reset_progress()
+	_wear_set("caelis")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	var fire := HitInfo.create(100.0, Vector2(180, 200), player.global_position)
+	fire.damage_type = "fogo"
+	var hp := player.stats.health
+	player._on_hit_received(fire)
+	check(is_equal_approx(hp - player.stats.health, 100.0 * (1.0 - 0.34 * 1.1)), "Caelis segura fogo (%.1f)" % (hp - player.stats.health))
+	player.stats.health = player.stats.max_health
+	player._iframes_left = 0.0
+	player._set_state(Player.State.FREE)
+	var cut := HitInfo.create(100.0, Vector2(180, 200), player.global_position)
+	hp = player.stats.health
+	player._on_hit_received(cut)
+	check(is_equal_approx(hp - player.stats.health, 100.0 * (1.0 - 0.18 * 1.1)), "e menos o físico (%.1f)" % (hp - player.stats.health))
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_equip_load_and_roll() -> void:
+	Game.reset_progress()
+	Game.equipped_weapon = "espada"
+	check(Game.load_tier() == "rapido", "quase nada no corpo: rolamento rápido (%.0f%%)" % (Game.load_ratio() * 100.0))
+	_wear_set("detentor")
+	Game.add_item("escudo_remendado", 1, false)
+	Game.left_hand = "escudo_remendado"
+	check(is_equal_approx(Game.equip_load(), 27.0 + 3.0 + Game.SHIELD_WEIGHT), "carga = armadura + espada + escudo (%.1f)" % Game.equip_load())
+	check(Game.load_tier() == "lento", "Detentor inteiro com Força 10: lento (%.0f%%)" % (Game.load_ratio() * 100.0))
+	Game.attributes["forca"] = 30
+	check(Game.load_tier() == "normal", "mais Força, mais carga: normal")
+	Game.attributes["forca"] = 1
+	check(Game.load_tier() == "pesado", "Força baixa: pesado demais")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	player.stats.stamina = player.stats.max_stamina
+	check(not player._start_dash(), "pesado demais: não rola")
+	Game.attributes["forca"] = 10
+	for slot in ArmorData.SLOTS:
+		Game.unequip_armor(slot)
+	Game.left_hand = ""
+	check(player._start_dash() and is_equal_approx(player._dash_speed_scale, 1.1), "leve: rolamento rápido e longo")
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
 
 
 ## v0.30.2: "Gráficos: Leve" desenha a 480x270 e amplia (bem mais rápido).
@@ -5524,7 +6955,7 @@ func _wear_set(set_id: String) -> void:
 
 func test_armor_rules() -> void:
 	Game.reset_progress()
-	check(ArmorSets.SETS.size() == 7, "sete conjuntos")
+	check(ArmorSets.SETS.size() == 10, "dez conjuntos (v0.51: Aprendiz, Bombeiro, Romeira)")
 	for set_id: String in ArmorSets.SETS:
 		for id in ArmorSets.pieces(set_id):
 			var piece := Items.get_armor(id)
@@ -5613,19 +7044,45 @@ func test_armor_rules() -> void:
 
 func test_armor_in_world_and_menu() -> void:
 	Game.reset_progress()
-	# Um conjunto escondido em cada região de chefe (e nenhum repetido).
-	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio"]
-	var placed: Array[String] = []
+	# v0.34 (Etapa 4): cada peça dos 6 conjuntos de chefe está em UM lugar só —
+	# baú (capacete, luvas), mímico (peitoral), 1º mini-chefe (calça) e outra
+	# ilha (botas). A Vigília continua inteira no Teatro.
+	var regions := ["teatro", "cidade", "bosque", "raizes", "forjas", "montanha", "dominio",
+		"cidade_quartel", "cidade_viaduto", "bosque_dormitorio", "bosque_borda", "forjas_fornalha", "forjas_passarela",
+		"raizes_despensa", "raizes_varanda", "raizes_toca", "montanha_ossario", "montanha_encosta", "dominio_arquivo", "dominio_galeria"]  # v0.35: as fases anexas também
+	var found := {}
 	for region in regions:
 		var level := (load("res://scenes/world/%s.tscn" % region) as PackedScene).instantiate() as Level
 		for spec in level.item_points:
 			if spec.begins_with("conjunto:"):
-				placed.append(spec.trim_prefix("conjunto:"))
+				for id in ArmorSets.pieces(spec.trim_prefix("conjunto:")):
+					found[id] = found.get(id, 0) + 1
+		for def in level.objects + level.pickups:
+			var id := str(def.get("item", ""))
+			if Items.get_armor(id):
+				found[id] = found.get(id, 0) + 1
 		level.free()
-	placed.sort()
-	var all_sets: Array = ArmorSets.SETS.keys()
-	all_sets.sort()
-	check(placed == all_sets, "os 7 conjuntos, um por região: %s" % [placed])
+	for boss: String in Game.BOSS_REWARDS:
+		for id: String in Game.BOSS_REWARDS[boss]:
+			if Items.get_armor(id):
+				found[id] = found.get(id, 0) + 1
+	# v0.51 (Etapa 10): os conjuntos dos vendedores — na loja, ou dado numa conversa.
+	for merchant: String in Game.MERCHANTS:
+		for entry: Dictionary in Game.MERCHANTS[merchant]["estoque"]:
+			if Items.get_armor(str(entry["id"])):
+				found[entry["id"]] = found.get(entry["id"], 0) + 1
+	var talks := JSON.stringify(JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogos.json")))
+	for set_id in ["aprendiz", "bombeiro", "romeira"]:
+		for id in ArmorSets.pieces(set_id):
+			if talks.contains("ganhar:" + id):
+				found[id] = found.get(id, 0) + 1
+	var missing := []
+	for set_id: String in ArmorSets.SETS:
+		for id in ArmorSets.pieces(set_id):
+			if found.get(id, 0) != 1:
+				missing.append("%s=%d" % [id, found.get(id, 0)])
+	check(missing.is_empty(), "as 50 peças, cada uma num lugar só (%s)" % [missing])
+	check(found.size() == 50, "nenhuma peça a mais (%d)" % found.size())
 	# No chão: as 5 peças em volta do ponto, cada uma com a própria chave.
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var pile := level.entities.get_children().filter(func(n): return n is ItemPickup and Items.get_armor(n.item_id) != null)
@@ -5674,7 +7131,7 @@ func _kill_calf(calf: BezerroDourado) -> void:
 
 func test_farm_calf_seven_hits() -> void:
 	Game.reset_progress()
-	var level := await open_level("res://scenes/world/montanha.tscn", "camara")
+	var level := await open_level(ENCOSTA, "porta")  # v0.35: o farm fica na Encosta
 	var farm := level.get_node_or_null("Farm") as FarmSpot
 	check(farm != null and is_instance_valid(farm.calf), "a Montanha tem o farm, com o Bezerro pastando")
 	var calf := farm.calf
@@ -5712,8 +7169,9 @@ func test_farm_calf_seven_hits() -> void:
 
 func test_farm_minotaur_cycle() -> void:
 	Game.reset_progress()
-	var level := await open_level("res://scenes/world/montanha.tscn", "camara")
+	var level := await open_level(ENCOSTA, "porta")
 	var farm := level.get_node("Farm") as FarmSpot
+	level.player.global_position = farm.field.get_center()  # v0.35: o campo fica do outro lado do rio, na Encosta
 	_kill_calf(farm.calf)
 	var came := await wait_for(func(): return farm.is_minotaur_active() and farm.minotaur.active, 300)
 	check(came, "o bezerro caiu: o Minotauro despenca e a luta começa")
@@ -5749,7 +7207,7 @@ func test_farm_minotaur_cycle() -> void:
 	level.queue_free()
 	await frames(2)
 	# Morreu? A fase recarrega e começa com o bezerro.
-	level = await open_level("res://scenes/world/montanha.tscn", "camara")
+	level = await open_level(ENCOSTA, "porta")
 	farm = level.get_node("Farm") as FarmSpot
 	check(is_instance_valid(farm.calf) and not farm.is_minotaur_active(), "fase nova: só o bezerro")
 	level.queue_free()
@@ -5904,6 +7362,7 @@ func test_ng_guardian_fight() -> void:
 	Game.cycle = 1
 	Game.guardian = _guardian_build("lamina_desolada", Game.SHIELD, "vigilia")
 	Game.defeated_bosses.assign(Game.SEVEN)
+	Game.flags["experimento_perguntou"] = true  # v0.41: a pergunta do nome é testada à parte
 	var level := await open_level(CORACAO, "porta")
 	var boss := level.boss_arena.boss as ExperimentoAnterior
 	check(boss != null, "NG+ depois de Proteger: no lugar do Cavaleiro, o experimento anterior")
@@ -6152,3 +7611,1138 @@ func test_pad_style() -> void:
 	check(seen.back() == "auto" and seen.size() == 5, "Opções: Automático → PlayStation → Xbox → Nintendo → Genérico → Automático")
 	Settings.pad_style = saved
 	PadStyle.detected = "generico"
+
+
+# --- v0.35 · Etapa 6: a Cidade expandida ----------------------------------------------
+
+func _minis_named(kind: String) -> Array:
+	return get_tree().get_nodes_in_group("minibosses").filter(func(n): return n.get_script().get_global_name() == kind)
+
+
+func test_city_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	# Avenida → Quartel (livre) e → Torre.
+	var level := await open_level(CIDADE, "porta")
+	var targets := {}
+	for node in level.entities.get_children():
+		if node is AreaExit:
+			targets[(node as AreaExit).target_scene] = (node as AreaExit).target_spawn
+	check(targets.get(QUARTEL, "") == "porta", "Avenida: o quartel está aberto (%s)" % [targets])
+	check(targets.get(TORRE, "") == "porta", "Avenida: a porta da Torre")
+	check(find_npc("portao_aldir") == null, "o portão do Aldir saiu da Avenida")
+	level.queue_free()
+	await frames(2)
+	# Quartel: Sargento, fio de alarme, portão para o Viaduto fechado até ele cair.
+	level = await open_level(QUARTEL, "porta")
+	check(_minis_named("SargentoSemPelotao").size() == 1, "Quartel: o Sargento mora aqui")
+	check(find_npc("quartel_portao_fechado") != null, "Quartel: o portão para o Viaduto está fechado")
+	check(find_npc("portao_viaduto_trancado") != null, "Quartel: o atalho do Viaduto abre do outro lado")
+	check(find_npc("escala_de_guarda") != null, "Quartel: a escala de guarda")
+	var wires := get_tree().get_nodes_in_group("zone_triggers")
+	check(wires.size() == 1, "Quartel: um fio de alarme (%d)" % wires.size())
+	var called := (wires[0] as ZoneTrigger).fire()
+	check(called == 2, "o fio chama os dois soldados do alojamento (%d)" % called)
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("sargento")
+	level = await open_level(QUARTEL, "porta")
+	var to_bridge := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene == VIADUTO:
+			to_bridge = true
+	check(to_bridge and find_npc("quartel_portao_fechado") == null, "vencido o Sargento: o portão abre")
+	level.queue_free()
+	await frames(2)
+	# Viaduto: a Couraça na ponte, o portão do Aldir guardado.
+	level = await open_level(VIADUTO, "porta")
+	var armors := _minis_named("CouracaAndante")
+	check(armors.size() == 1, "Viaduto: a Couraça na ponte")
+	check(level.resolve_dialogue("portao_aldir") == "portao_aldir_guardado", "o portão fica do outro lado da Couraça")
+	var collapse: Array = level.get_children().filter(func(n): return n is CollapsingFloor)
+	check(collapse.size() == 1, "Viaduto: a ponte pode desabar")
+	var floor_node := collapse[0] as CollapsingFloor
+	var armor := armors[0] as MiniBoss
+	armor.fight_started.emit(armor)
+	check(floor_node.active, "a luta começa: a ponte racha")
+	await seconds(4.5)
+	var pits := get_tree().get_nodes_in_group("pits").filter(func(p): return (p as ArenaPit).is_active())
+	check(pits.size() >= 1, "abriram buracos na ponte (%d)" % pits.size())
+	check(pits.all(func(p): return floor_node.rect.has_point((p as Node2D).global_position)), "só na ponte")
+	armor.fight_won.emit(armor)
+	check(not floor_node.active and get_tree().get_nodes_in_group("pits").all(func(p): return not (p as ArenaPit).is_active()),
+		"fim da luta: o entulho tapa os buracos")
+	Game.defeated_bosses.append("couraca")
+	check(level.resolve_dialogue("portao_aldir") == "portao_aldir", "sem a Couraça, o portão chama")
+	var shortcut := false
+	for node in level.entities.get_children():
+		if node is AreaExit and (node as AreaExit).target_scene == QUARTEL and (node as AreaExit).opens_flag == "atalho_viaduto":
+			shortcut = true
+	check(shortcut and level.spawns.has("escalada"), "Viaduto: o atalho para o Quartel e a escalada da Montanha")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_corneteiro_silences_city() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(TORRE, "porta")
+	var horns := _minis_named("Corneteiro")
+	check(horns.size() == 1, "Torre: o Corneteiro lá em cima")
+	var horn := horns[0] as Corneteiro
+	check(horn.reinforcements_per_whistle == 3, "a corneta chama três")
+	horn.target = level.player
+	horn.start_fight()
+	horn._start_whistle()
+	await seconds(1.2)
+	var rings := 0
+	for node in level.get_children() + level.entities.get_children():
+		if node is ScreamRing:
+			rings += 1
+	check(rings >= 1 and horn.summoned.size() == 3, "o toque é um anel e chama três (%d anéis, %d)" % [rings, horn.summoned.size()])
+	horn.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("corneteiro") and Game.has_flag("corneteiro_morto"), "vencido: a Cidade fica sem toque")
+	level.queue_free()
+	await frames(2)
+	# Daí em diante, soldado da Cidade morto não volta mais.
+	level = await open_level(CIDADE, "porta")
+	var soldier: SoldadoRemendado = null
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		if node is SoldadoRemendado:
+			soldier = node
+			break
+	var index: int = (soldier.defeated.get_connections()[0]["callable"] as Callable).get_bound_arguments()[0]
+	check(index >= 0, "o índice do inimigo no mapa")
+	level._on_enemy_slain(soldier, index)
+	var dog: CaoDeGuerra = null
+	for node in get_tree().get_nodes_in_group("respawnable"):
+		if node is CaoDeGuerra:
+			dog = node
+			break
+	var dog_index: int = (dog.defeated.get_connections()[0]["callable"] as Callable).get_bound_arguments()[0]
+	check(dog_index >= 0, "o índice do inimigo no mapa")
+	level._on_enemy_slain(dog, dog_index)
+	Game.slain = {}  # descansou
+	var data := Game._to_dict()
+	Game._from_dict(data)
+	check(Game.is_slain(CIDADE, index), "o soldado não volta no descanso (nem depois de carregar)")
+	check(not Game.is_slain(CIDADE, dog_index), "o cão volta (só os soldados obedeciam à corneta)")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_arena_shift_fire_ring() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(100, 100))
+	player.set_physics_process(false)
+	await frames(2)
+	var shift := ArenaShift.apply(_world, Rect2(0, 0, 320, 240), {"fogo_borda": 2, "cresce": 0.5, "max": 3, "dps": 20.0})
+	check(shift.burns(Vector2(10, 10)) and not shift.burns(Vector2(160, 120)), "a borda queima, o meio não")
+	player.global_position = Vector2(8, 120)
+	var hp := player.stats.health
+	await seconds(1.2)
+	check(player.stats.health < hp, "quem fica no fogo queima (%.0f → %.0f)" % [hp, player.stats.health])
+	check(shift.border_tiles == 3.0, "o anel cresce até o máximo (%.0f)" % shift.border_tiles)
+	var aldir := spawn_aldir(Vector2(160, 120))
+	await frames(2)
+	check(aldir.phase_arena.has(2), "o Aldir tem a praça em chamas na fase 2")
+	aldir.arena_rect = Rect2(0, 0, 320, 240)
+	var made := aldir.shift_arena(2)
+	check(made != null and made.border_tiles == 2.0, "a fase 2 acende o anel de fogo")
+	shift.queue_free()
+	made.queue_free()
+	aldir.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+# --- v0.35 · Etapa 6: o Bosque expandido ----------------------------------------------
+
+func _exit_to(scene: String) -> AreaExit:
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).target_scene == scene:
+			return node
+	return null
+
+
+func test_bosque_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	# Margem → Dormitório (livre) e a sala escondida do Sino.
+	var level := await open_level(BOSQUE, "porta")
+	check(_exit_to(DORMITORIO) != null, "Margem: a descida para o Dormitório está aberta")
+	check(_exit_to(SALA_SINO) != null and level.spawns.has("sino"), "Margem: a sala do Sino")
+	check(find_npc("galho_trancado") == null, "o galho congelado saiu da Margem")
+	level.queue_free()
+	await frames(2)
+	# Dormitório: Vigia, flores que respiram, porta da Borda fechada até passar por ele.
+	level = await open_level(DORMITORIO, "porta")
+	check(_minis_named("VigiaQueDormiu").size() == 1, "Dormitório: o Vigia")
+	check(get_tree().get_nodes_in_group("breathing_flowers").size() == 6, "Dormitório: 6 flores que respiram")
+	check(find_npc("cama_quente") != null, "Dormitório: a cama ainda quente")
+	check(find_npc("dormitorio_porta_fechada") != null and _exit_to(BORDA) == null, "a Borda fecha até passar pelo Vigia")
+	check(find_npc("raiz_trancada") != null, "a raiz da Borda abre do outro lado")
+	Game.set_flag("vigia_evitado")
+	await frames(2)
+	check(_exit_to(BORDA) != null, "passou escondido pelo Vigia: a porta abre na hora")
+	level.queue_free()
+	await frames(2)
+	Game.clear_flag("vigia_evitado")
+	Game.defeated_bosses.append("vigia")
+	level = await open_level(DORMITORIO, "porta")
+	check(_exit_to(BORDA) != null, "vencido o Vigia: também abre")
+	level.queue_free()
+	await frames(2)
+	# Borda: a Mãe, o galho trancado, a raiz que abre o atalho.
+	level = await open_level(BORDA, "porta")
+	check(_minis_named("MaeDosEsporos").size() == 1, "Borda: a Mãe dos Esporos")
+	check(find_npc("galho_trancado") != null, "Borda: o lado trancado do galho congelado")
+	var root := _exit_to(DORMITORIO)
+	var root_shortcut: AreaExit = null
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_raiz":
+			root_shortcut = node
+	check(root_shortcut != null and root != null, "Borda: a raiz desce até o Dormitório")
+	Game.scene_changes_enabled = false
+	root_shortcut._armed = true
+	root_shortcut._on_body_entered(level.player)
+	check(Game.has_flag("atalho_raiz"), "desceu pela raiz: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DORMITORIO, "raiz")
+	check(find_npc("raiz_trancada") == null and level.spawns.has("raiz"), "o Dormitório chega na Borda pela raiz")
+	level.queue_free()
+	await frames(2)
+	# Domínio e Clareira apontam para a Borda.
+	check((load("res://scenes/world/arena_nyssa.tscn") as PackedScene).instantiate().get("exit_scene") == BORDA, "a Clareira volta para a Borda")
+	Game.reset_progress()
+
+
+func test_breathing_flowers() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	player.set_physics_process(false)
+	var flowers := BreathingFlower.spawn_all(_world, {"cells": [Vector2i(12, 12)]})
+	var flower := flowers[0]
+	await frames(2)
+	player.global_position = flower.global_position + Vector2(20, 0)
+	player.sprinting = false
+	check(not flower.disturbed_by(player), "andando devagar perto: nada")
+	player.sprinting = true
+	check(flower.disturbed_by(player), "correndo perto: a flor sente o ar mexer")
+	await frames(2)
+	var clouds := get_tree().get_nodes_in_group("pollen_clouds").size()
+	check(clouds >= 1, "ela solta pólen (%d nuvens)" % clouds)
+	await frames(10)
+	check(get_tree().get_nodes_in_group("pollen_clouds").size() == clouds, "e respira de novo só depois de um tempo")
+	player.sprinting = false
+	player.global_position = flower.global_position + Vector2(200, 0)
+	player.sprinting = true
+	check(not flower.disturbed_by(player), "longe dela, correr não importa")
+	for cloud in get_tree().get_nodes_in_group("pollen_clouds"):
+		cloud.queue_free()
+	flower.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+func test_sino_despertar() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	check(is_equal_approx(SinoDespertar.bosque_aggro_scale(), SinoDespertar.AGGRO_RINGING), "o Sino toca: o Bosque enxerga mais longe")
+	var level := await open_level(SALA_SINO, "porta")
+	var bells := _minis_named("SinoDespertar")
+	check(bells.size() == 1 and find_npc("placa_sino") != null, "a sala do Sino, com a placa")
+	var bell := bells[0] as SinoDespertar
+	var sleepers_before := get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Enemy and not n.dead)
+	bell.target = level.player
+	bell.start_fight()
+	bell._ring()
+	await frames(3)
+	check(bell.sleepers.size() == 1, "o toque chama um Sonâmbulo")
+	check(sleepers_before.all(func(e): return (e as Enemy).is_alerted()), "e acorda os da sala")
+	var rings := level.entities.get_children().filter(func(n): return n is ScreamRing).size()
+	check(rings >= 1, "o toque é um anel de som")
+	bell.stats.take_damage(bell.stats.max_health * 0.55)
+	bell._fight(0.016)
+	check(bell.phase == 2, "metade da vida: toca mais rápido")
+	bell.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("sino") and Game.has_flag("sino_silenciado"), "silenciado")
+	check(is_equal_approx(SinoDespertar.bosque_aggro_scale(), SinoDespertar.AGGRO_SILENCED), "o Bosque passa a enxergar menos")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BOSQUE, "porta")
+	var sleeper := SLEEPER_SCENE_FOR_TEST.instantiate() as Enemy
+	var base := sleeper.aggro_range
+	sleeper.free()
+	var shore_enemy: Enemy = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is Sonambulo)[0]
+	check(is_equal_approx(shore_enemy.aggro_range, base * SinoDespertar.AGGRO_SILENCED), "um Sonâmbulo da Margem enxerga menos (%.0f)" % shore_enemy.aggro_range)
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_nyssa_nightmare_arena() -> void:
+	Game.reset_progress()
+	var level := await open_level(ARENA_NYSSA, "porta")
+	var nyssa := level.boss_arena.boss as NyssaLumevel
+	check(nyssa.phase_arena.has(2), "Nyssa tem a clareira no escuro")
+	var shift := nyssa.shift_arena(2)
+	check(shift != null, "a fase 2 muda a arena")
+	await frames(2)
+	check(is_equal_approx(level.player.drowsiness_scale, 1.5), "o sono enche 1,5× mais rápido")
+	var lights := get_tree().get_nodes_in_group("flower_lights").size()
+	check(lights >= 2, "as flores acendem no escuro (%d)" % lights)
+	nyssa.fight_won.emit(nyssa)
+	await frames(2)
+	check(is_equal_approx(level.player.drowsiness_scale, 1.0), "vencida: o sono volta ao normal")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.35 · Etapa 6: as Forjas expandidas --------------------------------------------
+
+func test_forjas_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(FORJAS, "porta")
+	check(_exit_to(FORNALHA) != null, "Salão: a descida para a Fornalha está aberta")
+	check(_exit_to(SALA_DANCARINA) != null and level.spawns.has("dancarina"), "Salão: o salão de cima, da Dançarina")
+	check(find_npc("estatua_sem_rosto") != null, "a estátua sem rosto, na frente da 1ª Câmara")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORNALHA, "porta")
+	check(_minis_named("Prototipo").size() == 1, "Fornalha: o Protótipo")
+	var hammers := get_tree().get_nodes_in_group("traps").filter(func(t): return t is PeriodicTrap and t.kind == "pilao")
+	check(hammers.size() == 3, "Fornalha: três fileiras de marteletes (%d)" % hammers.size())
+	check(find_npc("martelo_de_crianca") != null, "o martelo pequeno, de criança")
+	check(find_npc("fornalha_porta_fechada") != null and _exit_to(PASSARELA) == null, "a Passarela fecha até o Protótipo cair")
+	check(find_npc("elevador_parado") != null, "o elevador está parado lá em cima")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("prototipo")
+	level = await open_level(FORNALHA, "porta")
+	check(_exit_to(PASSARELA) != null, "vencido o Protótipo: a Passarela abre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(PASSARELA, "porta")
+	check(_minis_named("GuardiaoAncora").size() == 1 and find_npc("placa_ancora") != null, "Passarela: o Guardião e a placa ÂNCORA 5")
+	check(_exit_to("res://scenes/world/dominio.tscn") != null and _exit_to("res://scenes/world/raizes.tscn") != null,
+		"Passarela: a subida para o Domínio e a descida para as Raízes")
+	var lift: AreaExit = null
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_elevador":
+			lift = node
+	check(lift != null, "Passarela: o elevador desce até a Fornalha")
+	Game.scene_changes_enabled = false
+	lift._armed = true
+	lift._on_body_entered(level.player)
+	check(Game.has_flag("atalho_elevador"), "desceu de elevador: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(FORNALHA, "elevador")
+	check(find_npc("elevador_parado") == null and level.spawns.has("elevador"), "a Fornalha sobe de elevador até a Passarela")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_dancarina() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(SALA_DANCARINA, "porta")
+	var dancers := _minis_named("DancarinaEngrenagem")
+	check(dancers.size() == 1 and find_npc("palco_da_dancarina") != null, "o salão da Dançarina, com o palco")
+	var dancer := dancers[0] as DancarinaEngrenagem
+	dancer.target = level.player
+	dancer.start_fight()
+	dancer._on_wake()
+	check(dancer.mode == DancarinaEngrenagem.Mode.SPIN, "acorda girando")
+	var gaps: Array[float] = []
+	var guard := 0
+	while dancer.mode == DancarinaEngrenagem.Mode.SPIN and guard < 50:
+		gaps.append(dancer._note_gap)
+		dancer.play_note()
+		guard += 1
+	check(gaps.size() >= 7 and gaps[-1] < gaps[0], "a música acelera (%.2f → %.2f s)" % [gaps[0], gaps[-1]])
+	check(dancer.mode == DancarinaEngrenagem.Mode.SILENCE and dancer.darts_left == 1, "a música para: silêncio, um disparo")
+	dancer.start_dart()
+	check(dancer.mode == DancarinaEngrenagem.Mode.DART and dancer.hitbox.active, "dispara (e machuca)")
+	# Fase 2: dois ou três disparos.
+	dancer.stats.take_damage(dancer.stats.max_health * 0.55)
+	dancer._start_song()
+	dancer._fight(0.016)
+	check(dancer.phase == 2, "metade da vida: fase 2")
+	dancer.notes_played = dancer.notes_this_song - 1
+	dancer.play_note()
+	check(dancer.darts_left >= 2, "fase 2: %d disparos seguidos" % dancer.darts_left)
+	dancer.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("dancarina") and Game.has_item("caixa_musica_bronze"), "vencida: a Caixa de Música de Bronze")
+	level.queue_free()
+	await frames(2)
+	# A caixa para o Ferreiro: a fala muda se Durgan já caiu.
+	check(DialogueData.variant("ferreiro_caixa") == "ferreiro_caixa", "Durgan vivo: '...Ele fazia isso?'")
+	Game.defeated_bosses.append("durgan")
+	check(DialogueData.variant("ferreiro_caixa") == "ferreiro_caixa_durgan", "Durgan morto: 'Ele fez para mim.'")
+	var options := DialogueBox.expand_options(DialogueData.get_entry("ferreiro_irmao").get("opcoes", []))
+	check(options.any(func(o): return str(o.get("acao", "")).begins_with("dar:caixa_musica_bronze")), "o Ferreiro aceita a caixa")
+	level = await open_level(TEATRO, "camara")
+	await level._on_dialogue_action("dar:caixa_musica_bronze")
+	check(not Game.has_item("caixa_musica_bronze") and Game.has_flag("dado_caixa_musica_bronze"), "entregue: sai da bolsa")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_durgan_replays_combo() -> void:
+	Game.reset_progress()
+	var durgan := (load("res://scenes/bosses/durgan.tscn") as PackedScene).instantiate() as DurganVell
+	_world.add_child(durgan)
+	await frames(2)
+	for action in [&"leve", &"leve", &"forte", &"dash"]:
+		durgan._on_player_action(action)
+	check(durgan.last_player_combo == [&"leve", &"leve", &"forte", &"dash"], "guarda o combo inteiro (%s)" % [durgan.last_player_combo])
+	var attacks := durgan.combo_as_attacks(durgan.last_player_combo)
+	check(attacks == [durgan.copy_light[0], durgan.copy_light[1], durgan.copy_heavy, durgan.dash_strike], "e traduz golpe por golpe")
+	durgan._clock += 2.0
+	durgan._on_player_action(&"forte")
+	check(durgan.last_player_combo.size() == 4, "um golpe solto depois de uma pausa não apaga o último combo")
+	check(durgan.phase_arena.has(2), "a forja escurece na fase 2")
+	durgan.queue_free()
+	await frames(2)
+
+
+# --- v0.35 · Etapa 6: as Raízes expandidas --------------------------------------------
+
+func test_raizes_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(RAIZES, "porta")
+	check(_exit_to(DESPENSA) != null, "Estufa: a descida para a Despensa está aberta")
+	check(_exit_to(ENFERMARIA) != null and level.spawns.has("enfermaria"), "Estufa: o corredor da Enfermaria")
+	check(find_npc("placa_estufa") != null, "a placa da Estufa 3")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DESPENSA, "porta")
+	check(_minis_named("Banqueteiro").size() == 1, "Despensa: o Banqueteiro")
+	check(find_npc("mesa_posta_1") != null and find_npc("mesa_posta_2") != null, "Despensa: duas mesas postas")
+	check(find_npc("veia_trancada") != null, "a veia abre do outro lado")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("banqueteiro")
+	level = await open_level(VARANDA, "porta")
+	check(_minis_named("Ninhada").size() == 1, "Varanda: a Ninhada")
+	var hungry: Array = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n is MaeFaminta)
+	check(hungry.size() == 1 and not (hungry[0] as MiniBoss).shows_boss_bar, "Varanda: a Mãe Faminta, inimiga comum (sem barra de chefe)")
+	check(_minis_named("MaeFaminta").is_empty(), "ela não entra na lista de mini-chefes")
+	var hungry_index: int = ((hungry[0] as Enemy).defeated.get_connections()[0]["callable"] as Callable).get_bound_arguments()[0]
+	(hungry[0] as Enemy).stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_slain(VARANDA, hungry_index) and not Game.is_boss_defeated("mae_faminta"), "morta: fica morta até descansar (e não vira 'chefe vencido')")
+	Game.slain = {}
+	check(not Game.is_slain(VARANDA, hungry_index), "descansou: ela volta")
+	check(find_npc("varanda_porta_fechada") != null and _exit_to(ARENA_MABEL) == null, "o salão de Mabel fecha até a Ninhada cair")
+	var tunnel := false
+	var vein: AreaExit = null
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_tunel":
+			tunnel = true
+		if (node as AreaExit).opens_flag == "atalho_veia":
+			vein = node
+	check(tunnel, "Varanda: a entrada do túnel de raízes (abre a Cidade)")
+	Game.scene_changes_enabled = false
+	vein._armed = true
+	vein._on_body_entered(level.player)
+	check(Game.has_flag("atalho_veia"), "desceu pela veia: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("ninhada")
+	level = await open_level(VARANDA, "porta")
+	check(_exit_to(ARENA_MABEL) != null, "vencida a Ninhada: o salão abre")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DESPENSA, "veia")
+	check(find_npc("veia_trancada") == null and level.spawns.has("veia"), "a Despensa sobe pela veia até a Varanda")
+	level.queue_free()
+	await frames(2)
+	check((load(ARENA_MABEL) as PackedScene).instantiate().get("exit_scene") == VARANDA, "o salão de Mabel volta para a Varanda")
+	Game.reset_progress()
+
+
+func test_feast_tables() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(DESPENSA, "porta")
+	var bloated := get_tree().get_nodes_in_group("enemies").filter(func(e): return str(e.get_meta(&"zona", "")) == "mesa_1")
+	check(bloated.size() == 2, "dois Inchados na cozinha da mesa 1 (%d)" % bloated.size())
+	level.player.stats.take_damage(level.player.stats.max_health * 0.6)
+	var healed := level.eat_at_table("mesa_1")
+	check(healed > 0.0, "comer cura (%.0f)" % healed)
+	check(bloated.all(func(e): return (e as Enemy).is_alerted()), "mas a sineta chama os Inchados da mesa")
+	var others := get_tree().get_nodes_in_group("enemies").filter(func(e): return str(e.get_meta(&"zona", "")) == "mesa_2")
+	check(not others.is_empty() and others.all(func(e): return not (e as Enemy).is_alerted()), "a outra cozinha nem ouve")
+	check(level.eat_at_table("mesa_1") == 0.0, "o prato está vazio (até a fase recarregar)")
+	var entry := DialogueData.get_entry("mesa_posta_2")
+	check(str(entry["falas"][0]) == "Ainda quente. Ninguém sabe de quem é.", "examinar o prato")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_socorro() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(ENFERMARIA, "porta")
+	var nurses := _minis_named("Socorro")
+	check(nurses.size() == 1, "a Enfermaria, com a Socorro")
+	var nurse := nurses[0] as Socorro
+	nurse.target = level.player
+	nurse.start_fight()
+	nurse._on_wake()
+	nurse.stats.take_damage(100.0)
+	var hp := nurse.stats.health
+	var info := HitInfo.create(14.0, nurse.global_position, level.player.global_position)
+	check(is_equal_approx(nurse.feed(info, false), 21.0) and is_equal_approx(nurse.stats.health, hp + 21.0), "golpe que entra: cura 150%")
+	check(is_equal_approx(nurse.feed(info, true), 10.5), "com bloqueio: metade disso")
+	nurse.stats.take_damage(nurse.stats.max_health * 0.6)
+	nurse._fight(0.016)
+	check(nurse.phase == 2, "Ronda da Noite")
+	nurse.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("socorro") and Game.has_item("botao_socorro"), "vencida: o Botão de Socorro")
+	# O Botão de Socorro: cada golpe devolve vida; a morte cobra mais memórias.
+	# v0.53: só vale DENTRO da Lata de Botões.
+	Game.add_item("lata_de_botoes")
+	Game.toggle_button("botao_socorro")
+	Game.memories = 1000
+	var lost := Game.register_death()
+	check(lost == int(floor(1000 * Game.MEMORY_LOSS_RATIO * Game.SOCORRO_LOSS_MULTIPLIER)), "com o Botão de Socorro, a morte cobra mais (%d)" % lost)
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_mabel_inhale() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "banqueteiro", "ninhada"])
+	var level := await open_level(ARENA_MABEL, "porta")
+	var mabel := level.boss_arena.boss as MabelVoragine
+	check(mabel.phase_arena.has(2), "a arena de Mabel muda na fase 2")
+	check(get_tree().get_nodes_in_group("mesas").size() == 2, "duas mesas no salão")
+	mabel.target = level.player
+	var shift := mabel.shift_arena(2)
+	await seconds(1.0)
+	check(shift != null and shift.is_roots() and get_tree().get_nodes_in_group("mesas").is_empty(), "fase 2: as mesas somem e as raízes fecham a borda")
+	level.player.global_position = mabel.global_position + Vector2(0, 90)
+	await seconds(0.5)  # chegou perto da mesa: a luta começa (senão o início da luta interrompe a inspiração)
+	mabel.phase = 2
+	level.player.global_position = mabel.global_position + Vector2(0, 90)
+	var start := level.player.global_position.distance_to(mabel.global_position)
+	mabel.start_inhale()
+	await seconds(mabel.inhale_windup + 0.6)
+	var now := level.player.global_position.distance_to(mabel.global_position)
+	check(now < start - 10.0, "ela inspira: o herói é puxado (%.0f → %.0f px)" % [start, now])
+	level.player.global_position = mabel.global_position + Vector2(0, 10)
+	await seconds(0.2)
+	check(level.player.is_grabbed_by(mabel), "chegou na boca: o bocado (engolido)")
+	level.player.release_grab()
+	shift.queue_free()
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.35 · Etapa 6: a Montanha expandida --------------------------------------------
+
+func test_montanha_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(MONTANHA, "porta")
+	check(_exit_to(OSSARIO) != null, "Floresta: a descida para o Ossário está aberta")
+	check(_exit_to(FOSSO) != null and level.spawns.has("fosso"), "Floresta: o Fosso das Correntes")
+	check(find_npc("soldado_queimado") != null, "o soldado queimado, com o escudo")
+	var burnt: Array = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n.get_script().get_global_name() == "CouracaAndante")
+	check(burnt.size() == 2 and burnt.all(func(c): return not (c as MiniBoss).shows_boss_bar), "duas Couraças Queimadas, inimigas comuns (%d)" % burnt.size())
+	level.queue_free()
+	await frames(2)
+	level = await open_level(OSSARIO, "porta")
+	check(_minis_named("MatriarcaBestial").size() == 1, "Ossário: a Matriarca")
+	var cracks := get_tree().get_nodes_in_group("traps").filter(func(t): return t is PeriodicTrap and t.kind == "lava")
+	check(cracks.size() == 3, "Ossário: três fileiras de fendas de lava (%d)" % cracks.size())
+	check(find_npc("ossario_porta_fechada") != null and _exit_to(ENCOSTA) == null, "a Encosta fecha até a Matriarca cair")
+	check(find_npc("trilha_trancada") != null, "a trilha abre do outro lado")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("matriarca")
+	level = await open_level(ENCOSTA, "porta")
+	check(_minis_named("CapitaoDragonoide").size() == 1, "Encosta: o Capitão")
+	check(level.get_node_or_null("Farm") != null, "Encosta: o Bezerro e o Minotauro")
+	check(level.entities.get_children().any(func(n): return n is ItemPickup and n.item_id == "botas_caelis"), "as botas de Caelis, na espinha")
+	var trail: AreaExit = null
+	var spine := false
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_trilha":
+			trail = node
+		if (node as AreaExit).opens_flag == "atalho_espinha":
+			spine = true
+	check(spine and trail != null, "Encosta: a espinha de dragão e a trilha até o Ossário")
+	Game.scene_changes_enabled = false
+	trail._armed = true
+	trail._on_body_entered(level.player)
+	check(Game.has_flag("atalho_trilha"), "desceu pela trilha: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(OSSARIO, "trilha")
+	check(find_npc("trilha_trancada") == null and level.spawns.has("trilha"), "o Ossário sobe pela trilha até a Encosta")
+	level.queue_free()
+	await frames(2)
+	check((load(ARENA_RACHEL) as PackedScene).instantiate().get("exit_scene") == ENCOSTA, "o Ninho volta para a Encosta")
+	Game.reset_progress()
+
+
+func test_ultimo_igual() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(FOSSO, "porta")
+	var dragons := _minis_named("UltimoIgual")
+	check(dragons.size() == 1, "o Fosso, com O Último Igual")
+	var dragon := dragons[0] as UltimoIgual
+	dragon.target = level.player
+	dragon.start_fight()
+	check(dragon.chained, "acorrentado")
+	dragon.global_position = dragon.home_position + Vector2(dragon.chain_radius + 60.0, 0)
+	dragon.clamp_to_chain()
+	check(dragon.global_position.distance_to(dragon.home_position) <= dragon.chain_radius + 0.5, "não passa do raio da corrente")
+	dragon.stats.take_damage(dragon.stats.max_health * 0.55)
+	dragon._fight(0.016)
+	check(not dragon.chained, "metade da vida: a corrente arrebenta")
+	dragon.global_position = dragon.home_position + Vector2(dragon.chain_radius + 60.0, 0)
+	dragon.clamp_to_chain()
+	check(dragon.global_position.distance_to(dragon.home_position) > dragon.chain_radius + 30.0, "livre: vai aonde quiser")
+	dragon.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("ultimo_igual") and Game.has_item("corrente_igual"), "vencido: a Corrente do Igual")
+	var whip := Items.get_weapon("corrente_igual")
+	check(whip != null and whip.weapon_class == "Chicote" and whip.weight() >= 7.0, "uma arma-chicote pesada")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_rachel_dive() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "capitao"])
+	var level := await open_level(ARENA_RACHEL, "porta")
+	var rachel := level.boss_arena.boss as RachelCaelis
+	level.player.global_position = rachel.global_position + Vector2(0, 90)
+	await seconds(0.6)
+	rachel.stats.take_damage(rachel.stats.max_health * 0.55)
+	await frames(3)
+	check(rachel.phase == 2 and rachel.crumbled >= 2, "metade da vida: fase 2 (e a borda já cedeu)")
+	level.player.hurtbox.invulnerable = true
+	rachel.start_dive()
+	await seconds(rachel.dive_fly_time + 0.2)
+	check(rachel.mode == RachelCaelis.Mode.UNDER and not rachel.visual.visible and rachel.hurtbox.invulnerable, "mergulhou pela borda: some")
+	var near_edge := rachel.edge_pits.any(func(p): return is_instance_valid(p) and p.global_position.distance_to(rachel.emerge_at) < 1.0)
+	check(near_edge, "vai sair por uma beirada desabada")
+	check(rachel.telegraph.circle_visible, "o círculo no chão avisa onde")
+	await seconds(rachel.dive_under_time + 0.1)
+	check(rachel.visual.visible and not rachel.hurtbox.invulnerable and rachel.global_position.distance_to(rachel.emerge_at) < 1.0, "irrompe de baixo")
+	level.player.hurtbox.invulnerable = false
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.35 · Etapa 6: o Domínio expandido ---------------------------------------------
+
+func test_dominio_expansion() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(DOMINIO, "porta")
+	check(_exit_to(ARQUIVO) != null, "Lago: a descida para o Arquivo está aberta")
+	check(_exit_to(AULA) != null and level.spawns.has("aula"), "Lago: a sala de aula congelada")
+	check(find_npc("mesa_de_cha") != null and level.rest_chamber != null, "a mesa de chá, junto da Câmara, do outro lado do lago")
+	check(level.rest_chamber.global_position.x > 60 * 16, "a Câmara fica do outro lado do lago")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ARQUIVO, "porta")
+	check(_minis_named("GolemArquivo").size() == 1, "Arquivo: o Golem")
+	check(get_tree().get_nodes_in_group(&"still_traps").size() == 1, "Arquivo: as vitrines que fecham")
+	check(find_npc("arquivo_porta_fechada") != null and _exit_to(GALERIA) == null, "a Galeria fecha até o Golem cair")
+	check(level.entities.get_children().any(func(n): return n is ItemPickup and n.item_id == "botas_eco"), "as botas do Eco, catalogadas no Arquivo")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("golem_arquivo")
+	level = await open_level(GALERIA, "porta")
+	check(_minis_named("CuradoraVitrines").size() == 1, "Galeria: a Curadora")
+	check(find_npc("estudioso") != null and find_npc("vitrine_risada") != null, "Galeria: o Estudioso e a vitrine da primeira risada")
+	var frozen: Array = get_tree().get_nodes_in_group("respawnable").filter(func(n): return n.get_script().get_global_name() == "Prototipo")
+	check(frozen.size() == 1 and not (frozen[0] as MiniBoss).shows_boss_bar, "Galeria: o Protótipo numa vitrine (inimigo comum)")
+	var ice := level.entities.get_children().filter(func(n): return n is ItemPickup and n.item_id == "gelo_perpetuo")
+	var fake := get_tree().get_nodes_in_group("covers").filter(func(c): return (c as Node2D).global_position.distance_to((ice[0] as Node2D).global_position) < 40.0) if not ice.is_empty() else []
+	check(ice.size() == 1 and fake.size() == 1, "o Gelo Perpétuo, atrás de uma vitrine falsa")
+	var stairs: AreaExit = null
+	var branch := false
+	for node in _world.find_children("*", "AreaExit", true, false):
+		if (node as AreaExit).opens_flag == "atalho_escada":
+			stairs = node
+		if (node as AreaExit).opens_flag == "atalho_galho":
+			branch = true
+	check(branch and stairs != null, "Galeria: o galho congelado e a escada até o Arquivo")
+	Game.scene_changes_enabled = false
+	stairs._armed = true
+	stairs._on_body_entered(level.player)
+	check(Game.has_flag("atalho_escada"), "desceu pela escada: atalho aberto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ARQUIVO, "escada")
+	check(find_npc("escada_trancada") == null and level.spawns.has("escada"), "o Arquivo sobe pela escada até a Galeria")
+	level.queue_free()
+	await frames(2)
+	check((load(ARENA_CASSIAN) as PackedScene).instantiate().get("exit_scene") == GALERIA, "a Sala do Arconte volta para a Galeria")
+	Game.reset_progress()
+
+
+func test_still_trap() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var trap := StillTrap.attach(_world, 1.0)
+	await frames(2)
+	player.velocity = Vector2.ZERO
+	await seconds(0.6)
+	check(trap.still_time > 0.4 and not player.is_grabbed(), "parado: a conta corre (e o vidro avisa)")
+	await seconds(0.6)
+	check(player.is_grabbed(), "parado demais: a vitrine fecha")
+	player.release_grab()
+	trap.still_time = 0.5
+	player.velocity = Vector2(60, 0)
+	trap._physics_process(0.016)
+	check(trap.still_time == 0.0, "andar zera a conta")
+	trap.queue_free()
+	for block in get_tree().get_nodes_in_group(&"ice_blocks"):
+		block.queue_free()
+	player.queue_free()
+	await frames(2)
+
+
+func test_mestre_arconte() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(AULA, "porta")
+	var masters := _minis_named("MestreArconte")
+	check(masters.size() == 1, "a sala de aula, com o Mestre")
+	var master := masters[0] as MestreArconte
+	var said := []
+	master.speech.connect(func(t: String): said.append(t))
+	master.target = level.player
+	master.start_fight()
+	master.announce()
+	check(said[-1] == "Lição um: o gelo guarda!", "anuncia a lição antes do feitiço")
+	master.cast_spell(0, true)
+	check(not get_tree().get_nodes_in_group("frost_zones").is_empty(), "lição um: geada no chão")
+	master.announce()
+	check(said[-1] == "Lição dois: o que é guardado não muda!", "lição dois")
+	master.cast_spell(1, true)
+	master.announce()
+	check(said[-1] == "Lição três...", "lição três...")
+	master.forget()
+	check(said[-1] == "...Lição três. Qual era a lição três?" and master._can_be_staggered(), "esquece: a janela para bater")
+	master.stats.take_damage(master.stats.max_health * 0.55)
+	master._fight(0.016)
+	check(master.phase == 2, "fase 2: feitiços sem aviso")
+	master.stats.take_damage(99999.0)
+	await frames(3)
+	check(Game.is_boss_defeated("mestre_arconte"), "vencido")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_cassian_collects_flasks() -> void:
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "golem_arquivo", "curadora"])
+	var level := await open_level(ARENA_CASSIAN, "porta")
+	for trap in get_tree().get_nodes_in_group(&"still_traps"):
+		trap.queue_free()
+	check(level.still_trap > 0.0, "na Sala do Arconte, ficar parado também conta")
+	var cassian := level.boss_arena.boss as CassianVirel
+	cassian.target = level.player
+	var before := level.player.health_flasks
+	var case := cassian.collect_flask()
+	check(case != null and level.player.health_flasks == before - 1, "fase 2: um Frasco de Vida vai para a vitrine")
+	await frames(2)
+	case.take_damage(9999.0)
+	await frames(3)
+	check(level.player.health_flasks == before, "quebrou a vitrine: o frasco volta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.41 · Etapa 5: o nome do personagem --------------------------------------------
+
+func test_name_entry_screen() -> void:
+	Game.reset_progress()
+	var creation := CharacterCreation.new()
+	_world.add_child(creation)
+	await frames(2)
+	check(creation.name_value.text == "???", "na criação, o nome aparece como ???")
+	creation.queue_free()
+	var entry := NameEntry.new()
+	_world.add_child(entry)
+	await frames(2)
+	var got := [""]
+	entry.submitted.connect(func(t: String): got[0] = t)
+	entry.field.text = ""
+	entry.confirm()
+	check(got[0] == "", "nome vazio não passa (é obrigatório)")
+	entry.field.text = "   "
+	entry.confirm()
+	check(got[0] == "", "só espaços também não")
+	entry.field.text = ""
+	for letter in ["A", "L", "E", "X"]:
+		entry.type_letter(letter)
+	entry.toggle_case()
+	entry.type_letter("a")
+	entry.backspace()
+	check(entry.field.text == "ALEX", "a grade de letras digita e apaga (controle)")
+	check(entry.field.virtual_keyboard_enabled, "no celular, o campo abre o teclado do aparelho")
+	entry.field.text = "  Ana   Clara  "
+	entry.confirm()
+	check(got[0] == "Ana Clara", "o nome sai limpo (%s)" % got[0])
+	entry.field.text = "x".repeat(40)
+	check(NameEntry.clean(entry.field.text).length() <= NameEntry.MAX_LENGTH, "tem limite de tamanho")
+	entry.queue_free()
+	await frames(2)
+	# Pela ação de diálogo "pedir_nome" (o caminho pacífico, Etapa 9, vai usar).
+	var level := await open_level(TEATRO, "camara")
+	var ask := func(): await level._on_dialogue_action("pedir_nome")
+	ask.call()
+	await frames(2)
+	check(level.hud.name_entry.visible, "\"pedir_nome\" abre a tela")
+	level.hud.name_entry.field.text = "Cobaia"
+	level.hud.name_entry.confirm()
+	await frames(2)
+	check(Game.player_name == "Cobaia" and not level.hud.name_entry.visible, "salvo em player_name")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_name_in_anger_and_terminal() -> void:
+	Game.reset_progress()
+	Game.criancas_feridas = 1
+	var level := await open_level(PROLOGO, "camara")
+	var prologo := level as Prologo
+	var done := [false]
+	var run := func():
+		await prologo.ask_name_in_anger()
+		done[0] = true
+	run.call()
+	await frames(3)
+	check(level.hud.dialogue.visible, "caminho violento: ela pergunta com raiva antes de morrer")
+	var guard := 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	check(level.hud.name_entry.visible, "QUAL É O SEU NOME? — a tela de digitar")
+	level.hud.name_entry.field.text = "Rato"
+	level.hud.name_entry.confirm()
+	await frames(3)
+	guard = 0
+	while level.hud.dialogue.visible and guard < 40:
+		level.hud.dialogue._advance.emit()
+		await frames(2)
+		guard += 1
+	await frames(3)
+	check(done[0] and Game.player_name == "Rato" and Game.has_flag("nome_violento"), "...Agora eu sei quem riscar.")
+	check(DialogueData.variant("terminal") == "terminal_riscado", "o terminal mostra o nome riscado duas vezes")
+	var lines: Array = DialogueData.get_entry("terminal_riscado")["falas"]
+	check(DialogueData.fill(str(lines[1])).contains("Rato"), "o nome aparece no fim da lista (texto escrito)")
+	Game.clear_flag("nome_violento")
+	check(DialogueData.variant("terminal") == "terminal_nome", "caminho pacífico: o nome com o número da tentativa")
+	Game.player_name = ""
+	check(DialogueData.variant("terminal") == "terminal", "sem nome: o terminal de antes")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_name_reactions_and_ng_plus() -> void:
+	Game.reset_progress()
+	for who in ["lucia", "galeno", "helena", "amaro", "experimento"]:
+		check(not DialogueData.get_entry("%s_nome_sim" % who).is_empty() and not DialogueData.get_entry("%s_nome_nao" % who).is_empty(),
+			"%s reage ao nome (disse / não lembro)" % who)
+	check(str(DialogueData.get_entry("lucia_nome_sim")["falas"][0]) == "Pronto. Agora eu guardo o seu também.", "a fala da Lúcia")
+	Game.set_player_name("Tito")
+	var snapshot := Game._guardian_snapshot()
+	check(snapshot.get("nome", "") == "Tito", "NG+: o nome antigo vai junto com o guardião")
+	Game.guardian = snapshot
+	Game.start_new_journey({})
+	check(Game.player_name.is_empty(), "o novo experimento acorda sem nome")
+	var guardian := (load("res://scenes/bosses/experimento_anterior.tscn") as PackedScene).instantiate() as ExperimentoAnterior
+	_world.add_child(guardian)
+	await frames(2)
+	check(guardian.display_name() == "Tito, O Experimento Anterior", "a barra: \"{nome antigo}, O Experimento Anterior\" (%s)" % guardian.display_name())
+	guardian.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.42 · Etapa 7: Lúcia ---------------------------------------------------------------
+
+func test_lucia_journey() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(VIADUTO, "porta")
+	check(find_npc("lucia_ponte") != null, "Cidade: Lúcia sentada na ponte do Viaduto")
+	var entry := DialogueData.get_entry("lucia_ponte")
+	check(str(entry["falas"][2]).begins_with("Meu nome é Lúcia. Repita."), "ela pede que você repita o nome dela")
+	await level._on_dialogue_action("flag:lucia_conhecida;lute_comigo:lucia")
+	check(Game.has_flag("lucia_na_arena"), "\"Lute comigo\": ela vai na próxima luta")
+	level.queue_free()
+	await frames(2)
+	level = await open_level("res://scenes/world/arena_aldir.tscn", "porta")
+	var allies := get_tree().get_nodes_in_group(&"allies").filter(func(a): return a is LuciaAliada)
+	check(allies.size() == 1, "na Praça do Detentor, Lúcia luta ao seu lado")
+	level._reward_allies(true)
+	check(Game.ally_level("lucia") == 2 and not Game.has_flag("lucia_na_arena"), "venceram juntos: ela sobe de nível")
+	level.queue_free()
+	await frames(2)
+	Game.defeated_bosses.append("aldir")
+	level = await open_level(VIADUTO, "porta")
+	check(find_npc("lucia_ponte") == null, "depois do Aldir, ela sai da ponte")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BORDA, "porta")
+	check(find_npc("lucia_bosque") != null, "Bosque: \"Se eu dormir, acordo menos.\"")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(GALERIA, "porta")
+	check(find_npc("lucia_dominio") != null and find_npc("vitrine_lucia") == null, "Domínio: ela espera na antessala do Cassian")
+	await level._on_dialogue_action("flag:lucia_congelada")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(GALERIA, "porta")
+	check(find_npc("lucia_dominio") == null and find_npc("vitrine_lucia") != null, "\"Vá\": ela vira peça de vitrine")
+	check(str(DialogueData.get_entry("vitrine_lucia")["falas"][0]) == "Mulher que lembrava. Peça rara. Não exibir.", "a placa da vitrine")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_lucia_ally_falls_and_sleeps() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 200))
+	var lucia := Ally.spawn_by_id("lucia", _world, player) as LuciaAliada
+	await frames(2)
+	check(lucia != null and lucia.display_name.contains("Lúcia"), "a Lúcia é uma aliada (base Ally)")
+	player.add_drowsiness(60.0)
+	player.add_drowsiness(45.0)
+	await frames(2)
+	check(lucia.is_asleep(), "o sono que chega em você chega nela: dormiu")
+	await seconds(LuciaAliada.SLEEP_TIME + 0.2)
+	check(not lucia.is_asleep(), "e acorda depois")
+	lucia.fall()
+	check(int(Game.flags.get("lucia_quedas", 0)) == 1 and Game.ally_level("lucia") == 1, "caiu: perde memória (lucia_quedas), não força")
+	check(DialogueData.variant("lucia_ponte") == "lucia_depois_de_cair", "\"Quem... Desculpe.\"")
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_lucia_final() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.defeated_bosses.assign(["cassian"])
+	Game.set_flag("lucia_conhecida")
+	var level := await open_level(TEATRO, "camara")
+	check(find_npc("lucia_teatro") != null, "depois do Cassian: Lúcia no Teatro, sem máscara")
+	var order := level.lucia_name_order()
+	check(order.size() == 3 and order.has("Lúcia") and level.lucia_name_order() == order, "três nomes, embaralhados uma vez por jogo")
+	var run := func(): await level.lucia_final()
+	run.call()
+	await frames(2)
+	check(level.hud.dialogue.visible, "\"Qual é o meu nome?\"")
+	level.hud.dialogue._advance.emit()
+	await frames(2)
+	var right: Button = null
+	for button in level.hud.dialogue.find_children("*", "Button", true, false):
+		if (button as Button).text == "Lúcia":
+			right = button
+	check(right != null, "o nome certo está entre as opções")
+	right.pressed.emit()
+	for i in 10:
+		await frames(2)
+		if level.hud.dialogue.visible:
+			level.hud.dialogue._advance.emit()
+	check(Game.has_flag("lucia_lembrada") and not Game.has_flag("lucia_esquecida"), "certo: \"...É isso. Obrigada por guardar.\"")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("lucia_teatro") == null and find_npc("lucia_mascara") != null, "ela some em paz; ficam a máscara e a espada")
+	level.queue_free()
+	await frames(2)
+	Game.clear_flag("lucia_lembrada")
+	Game.flags["lucia_quedas"] = 3
+	check(DialogueData.variant("lucia_teatro") == "lucia_teatro_esqueceu", "caiu demais: ela nem pergunta")
+	Game.set_flag("lucia_esquecida")
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("lucia_cinzenta") != null and find_npc("lucia_teatro") == null, "esquecida: vira uma Civil Cinzenta no Teatro")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.42 · Etapa 7: Galeno --------------------------------------------------------------
+
+func test_galeno_journey() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(FORJAS, "porta")
+	check(find_npc("galeno_forjas") != null, "Forjas: Galeno diante da estátua sem rosto")
+	check(str(DialogueData.get_entry("galeno_forjas")["falas"][2]) == "Coitado. Nem cara tem. Eu pelo menos tenho barba!", "\"Nem cara tem.\"")
+	var options := DialogueBox.expand_options(DialogueData.get_entry("galeno_forjas")["opcoes"])
+	check(options[0]["texto"] == "Não lembro", "ele pergunta o nome (\"Não lembro\" / o nome)")
+	await level._on_dialogue_action(options[0]["acao"].get_slice(";", 0))
+	check(DialogueData.variant("galeno_forjas") == "galeno_de_novo", "depois de conhecer: \"Não lembro o que eu protegia...\"")
+	await level._on_dialogue_action("lute_comigo:galeno")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ARENA_DURGAN, "porta")
+	var galeno := get_tree().get_nodes_in_group(&"allies").filter(func(a): return a is GalenoAliado)
+	check(galeno.size() == 1, "na Forja do Eco, Galeno luta ao seu lado")
+	level._reward_allies(true)
+	check(int(Game.flags.get("galeno_fragmentos", 0)) == 1, "venceram: um fragmento volta")
+	check(DialogueData.variant("galeno_de_novo") == "galeno_giz", "\"...Giz. Por que eu lembro de giz?\"")
+	level.queue_free()
+	await frames(2)
+	# Cair: esquece um fragmento e fica mais feliz.
+	var player := spawn_player(Vector2(200, 200))
+	var big := Ally.spawn_by_id("galeno", _world, player) as GalenoAliado
+	await frames(2)
+	var hp := big.health
+	var hit := HitInfo.create(40.0, Vector2(180, 200), big.global_position)
+	big._on_hit(hit)
+	check(is_equal_approx(hp - big.health, 40.0 * 0.5 * 0.7), "o escudo gigante segura metade")
+	big.fall()
+	check(int(Game.flags.get("galeno_fragmentos", 0)) == 0 and Game.has_flag("galeno_caiu"), "caiu: esqueceu um fragmento")
+	check(DialogueData.variant("galeno_raizes") == "galeno_depois_de_cair", "\"Ha! Já nos conhecemos? Que ótimo!\"")
+	player.queue_free()
+	await frames(2)
+	Game.clear_flag("galeno_caiu")
+	Game.flags["galeno_fragmentos"] = 2
+	check(DialogueData.variant("galeno_raizes") == "galeno_raizes_depois", "Raízes, mais fragmentos: \"Pequeno. Era pequeno.\"")
+	Game.add_item("espada_madeira_pequena")
+	var sword := DialogueBox.expand_options(DialogueData.get_entry("galeno_raizes_depois")["opcoes"])
+	check(sword.any(func(o): return str(o.get("acao", "")) == "falar:galeno_espadinha"), "a espadinha de madeira tem resposta")
+	# O final: Lembre / Esqueça.
+	Game.flags["galeno_fragmentos"] = 3
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("galeno_teatro") != null, "o último fragmento: Galeno no Teatro, sem rir")
+	await level._on_dialogue_action("flag:galeno_esqueceu;ganhar:desenho_a_giz")
+	check(Game.has_item("desenho_a_giz"), "\"Esqueça\": ele entrega o Desenho a Giz")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(TEATRO, "camara")
+	check(find_npc("galeno_teatro") == null, "e volta a andar sem rumo")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.43 · Etapa 7: Tião e Bastião ------------------------------------------------------
+
+func test_brawlers_help() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	var level := await open_level(QUARTEL, "porta")
+	check(find_npc("tiao_cidade_quartel") != null, "Cidade: o Tião ajuda contra o Sargento")
+	var came := level.call_brawler("tiao")
+	check(came.size() == 1 and came[0] is TiaoAliado, "\"Me ajuda aqui?\": ele entra na hora")
+	level._reward_allies(true)
+	check(int(Game.flags.get("tiao_ajudas", 0)) == 1 and not Game.flags.get("tiao_acompanha", false), "venceram: conta a ajuda, e ele volta para o canto")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(DORMITORIO, "porta")
+	check(str(DialogueData.get_entry("tiao_bosque_dormitorio")["falas"][0]).begins_with("AH! Caramba"), "o Tião dormindo no Dormitório")
+	level.queue_free()
+	await frames(2)
+	for spot in ["bastiao_cidade_viaduto", "bastiao_bosque_borda", "tiao_raizes_despensa", "bastiao_forjas_fornalha",
+			"tiao_montanha_encosta", "bastiao_montanha_ossario", "tiao_dominio_arquivo", "bastiao_dominio_galeria"]:
+		check(not DialogueData.get_entry(spot).is_empty(), "%s: pronto ao lado do mini-chefe" % spot)
+	Game.set_flag("brigoes_juntos")
+	level = await open_level(QUARTEL, "porta")
+	came = level.call_brawler("tiao")
+	check(came.size() == 2, "juntos: chamar um traz os dois")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_bridge_fight_choices() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.defeated_bosses.assign(["matriarca", "capitao"])
+	var level := await open_level(ENCOSTA, "porta")
+	check(find_npc("briga_ponte") == null, "sem conversar com os dois: nada de briga")
+	level.queue_free()
+	await frames(2)
+	Game.set_flag("tiao_conversou")
+	Game.set_flag("bastiao_conversou")
+	level = await open_level(ENCOSTA, "porta")
+	check(find_npc("briga_ponte") != null, "conversou com os dois: a briga na espinha de dragão")
+	await level._on_dialogue_action("flag:bastiao_cinzento")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(ENCOSTA, "porta")
+	check(find_npc("briga_ponte") == null and find_npc("bastiao_cinzento_ponte") != null, "ajudou o Tião: o Bastião vira cinzento na ponte")
+	level.queue_free()
+	await frames(2)
+	check(DialogueData.variant("tiao_cidade_quartel") == "tiao_quieto", "o Tião, mais quieto: \"Pesa mais.\"")
+	level = await open_level(VIADUTO, "porta")
+	check(find_npc("bastiao_cidade_viaduto") == null, "o Bastião não ajuda mais ninguém")
+	check(level.call_brawler("bastiao").is_empty(), "nem se chamar")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+func test_sebastioes_duel() -> void:
+	Game.reset_progress()
+	Game.prologue_done = true
+	Game.defeated_bosses.assign(["matriarca", "capitao"])
+	Game.set_flag("tiao_conversou")
+	Game.set_flag("bastiao_conversou")
+	var level := await open_level(ENCOSTA, "porta")
+	var duo := level.start_sebastioes_duel()
+	await frames(3)
+	check(find_npc("briga_ponte") == null, "entrou no meio: os dois viram um só mini-chefe")
+	check(duo.partner != null and is_instance_valid(duo.partner), "dois corpos (Tião e Bastião)")
+	duo.target = level.player
+	duo.start_fight()
+	duo._on_wake()
+	level._on_miniboss_started(duo)
+	await frames(2)
+	check(level.hud._boss_bar.visible and level.hud._partner_bar.visible, "duas barras, uma em cima da outra (Dark Souls)")
+	check(level.hud._boss_bar.boss_name == "Tião" and level.hud._partner_bar.boss_name == "Bastião", "uma do Tião, outra do Bastião")
+	var hp := duo.stats.health
+	duo.partner._on_hit(HitInfo.create(30.0, level.player.global_position, duo.partner.global_position))
+	await frames(2)
+	check(duo.stats.health == hp and duo.partner.health_ratio() < 1.0, "bater no Bastião desce a barra DELE")
+	duo.stats.take_damage(99999.0)
+	await frames(3)
+	check(duo.downed and not duo.dead and not Game.has_flag("brigoes_juntos"), "o Tião caiu, mas o Bastião ainda luta")
+	check(duo.partner.speed > duo.partner_speed, "e o Bastião fica com raiva")
+	duo.partner._on_hit(HitInfo.create(99999.0, level.player.global_position, duo.partner.global_position))
+	await frames(3)
+	check(Game.has_flag("brigoes_juntos") and Game.is_boss_defeated("sebastioes"), "os dois no chão: \"Sebastião e Sebastião.\" (brigoes_juntos)")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+

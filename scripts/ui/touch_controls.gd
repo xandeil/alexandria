@@ -24,6 +24,8 @@ var heal_button: TouchButton
 var sanity_button: TouchButton
 var block_button: TouchButton
 var special_button: TouchButton
+## v0.50: lança a magia equipada (só aparece com uma magia equipada).
+var magic_button: TouchButton
 
 var pad_hints: PadHints
 var _player: Player
@@ -47,6 +49,7 @@ func _ready() -> void:
 	sanity_button = _make_button(&"sanity", ICON_SANITY, 13.0, "", Color(0.9, 0.95, 1.0))
 	block_button = _make_button(&"block", ICON_BLOCK, 17.0, "", Color(0.75, 0.8, 0.95))
 	special_button = _make_button(&"special", ICON_BLOCK, 12.0, "Aparar", Color(1.0, 0.85, 0.45))
+	magic_button = _make_button(&"cast", ICON_ATTACK, 13.0, "Magia", Color(0.7, 0.85, 1.0))
 	pad_hints = PadHints.new()
 	add_child(pad_hints)
 	get_viewport().size_changed.connect(_layout)
@@ -56,9 +59,11 @@ func _ready() -> void:
 	Game.vision_changed.connect(func(_v: int): _refresh_sanity())
 	Game.items_changed.connect(_refresh_block)
 	Game.weapon_changed.connect(func(_id: String): _refresh_block())
+	Game.spell_changed.connect(func(_id: String): _refresh_magic())
 	_layout()
 	_refresh_sanity()
 	_refresh_block()
+	_refresh_magic()
 	_apply_mode()
 
 
@@ -100,7 +105,7 @@ func _apply_mode() -> void:
 ## Solta joystick e botões (diálogo abrindo, morte, pausa...).
 func release_all() -> void:
 	joystick.release()
-	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button, special_button]:
+	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button, special_button, magic_button]:
 		button.release()
 
 
@@ -123,7 +128,7 @@ func _layout() -> void:
 	var safe := _safe_margins(view)
 	var corner := Vector2(view.x - safe.y, view.y)
 	var k := Settings.button_scale()
-	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button, special_button]:
+	for button: TouchButton in [attack_button, dash_button, heal_button, sanity_button, block_button, special_button, magic_button]:
 		button.radius = float(button.get_meta(&"base_radius", button.radius)) * k
 		button.queue_redraw()
 	attack_button.place_at(corner + Vector2(-40, -44) * k)
@@ -132,6 +137,7 @@ func _layout() -> void:
 	sanity_button.place_at(corner + Vector2(-36, -100) * k)
 	block_button.place_at(corner + Vector2(-132, -62) * k)
 	special_button.place_at(corner + Vector2(-140, -100) * k)
+	magic_button.place_at(corner + Vector2(-90, -130) * k)
 	joystick.max_radius = 28.0 * k
 	joystick.rest_position = Vector2(safe.x + 52 * k, view.y - 52 * k)
 	joystick._reset()
@@ -161,6 +167,19 @@ func _refresh_sanity() -> void:
 
 ## Os botões da mão esquerda seguem o que está nas mãos. Sem nada útil para
 ## o L1 (mão vazia), o botão some (botão inútil na tela confunde).
+## v0.50: o botão Magia mostra o ícone da magia equipada (sem magia, some).
+func _refresh_magic() -> void:
+	var spell := Items.get_item(Game.equipped_spell) if not Game.equipped_spell.is_empty() else null
+	magic_button.visible = spell != null
+	pad_hints.spell_label = spell.display_name if spell else ""
+	pad_hints.queue_redraw()
+	if spell == null:
+		magic_button.release()
+		return
+	magic_button.icon = spell.icon
+	magic_button.queue_redraw()
+
+
 func _refresh_block() -> void:
 	var mode := Game.hand_mode()
 	var labels := PadHints.hand_labels(mode)

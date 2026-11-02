@@ -24,6 +24,7 @@ REGIONS = {
     "montanha": ("montanha", (1, 1), (0, 0)),
     "dominio": ("gelo", (1, 1), (0, 0)),
     "nucleo": ("nucleo", (1, 1), (0, 0)),
+    "prologo": ("laboratorio", (1, 1), (0, 0)),
 }
 
 

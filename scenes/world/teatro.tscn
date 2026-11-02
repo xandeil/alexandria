@@ -7,6 +7,8 @@
 [node name="Teatro" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/teatro.txt"
+ruins_layout = "res://levels/teatro_ruinas.txt"
+ruins_flag = "teatro_ruinas"
 item_points = Array[String](["conjunto:vigilia"])
 area_name = "Teatro Alexandria"
 area_subtitle = "Todos aqui estão presos a um papel numa peça que nunca termina."
@@ -17,16 +19,17 @@ exit_scene = "res://scenes/world/cidade.tscn"
 exit_spawn = "porta"
 exit2_scene = "res://scenes/world/bosque.tscn"
 exit2_spawn = "porta"
-exit2_requires = "aldir"
+exit2_requires = ""
 exit2_locked_dialogue = "porta_bosque_fechada"
-exit3_scene = "res://scenes/world/raizes.tscn"
+exit3_scene = "res://scenes/world/forjas.tscn"
 exit3_spawn = "porta"
-exit3_requires = "nyssa"
+exit3_requires = ""
 exit3_locked_dialogue = "raizes_fechadas"
 exit4_scene = "res://scenes/world/nucleo.tscn"
 exit4_spawn = "porta"
 exit4_requires = "sete"
 exit4_locked_dialogue = "escada_de_luz"
+people = Array[Dictionary]([{"cell": Vector2i(8, 26), "dialogue": "lucia_teatro", "name": "Lúcia", "texture": "res://assets/sprites/lucia_npc.png", "frames": 2}, {"cell": Vector2i(8, 26), "dialogue": "lucia_mascara", "name": "Máscara e espada", "texture": "res://assets/props/lore_book.png", "prompt": "Examinar"}, {"cell": Vector2i(8, 26), "dialogue": "lucia_cinzenta", "name": "Mulher cinzenta", "texture": "res://assets/sprites/civil.png", "frames": 5, "prompt": "Examinar"}, {"cell": Vector2i(28, 26), "dialogue": "galeno_teatro", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(12, 13), "dialogue": "heitor_memorial", "name": "Elmo e garrafa", "texture": "res://assets/props/heitor_memorial.png", "prompt": "Examinar"}, {"cell": Vector2i(17, 13), "dialogue": "galeno_capsula", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(22, 11), "dialogue": "galeno_pai", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(2, 21), "dialogue": "damiao_teatro", "name": "Damião", "texture": "res://assets/sprites/damiao_npc.png", "frames": 2, "requires": "flag:mercador_damiao_encontrado+!flag:damiao_morto+!flag:damiao_fora+!flag:teatro_ruinas"}, {"cell": Vector2i(33, 20), "dialogue": "damiao_teatro", "name": "Damião", "texture": "res://assets/sprites/damiao_npc.png", "frames": 2, "requires": "flag:mercador_damiao_encontrado+!flag:damiao_morto+!flag:damiao_fora+flag:teatro_ruinas"}, {"cell": Vector2i(2, 26), "dialogue": "dalva_teatro", "name": "Dona Dalva", "texture": "res://assets/sprites/dalva_npc.png", "frames": 2, "requires": "flag:mercador_dalva_encontrado+!flag:dalva_vazia+!flag:teatro_ruinas"}, {"cell": Vector2i(2, 26), "dialogue": "dalva_teatro", "name": "Dona Dalva", "texture": "res://assets/sprites/dalva_xale_npc.png", "frames": 2, "requires": "flag:mercador_dalva_encontrado+flag:dalva_vazia+!flag:teatro_ruinas"}, {"cell": Vector2i(2, 26), "dialogue": "dalva_teatro", "name": "Dona Dalva", "texture": "res://assets/sprites/dalva_npc.png", "frames": 2, "requires": "flag:mercador_dalva_encontrado+!flag:dalva_vazia+flag:teatro_ruinas"}, {"cell": Vector2i(2, 26), "dialogue": "dalva_teatro", "name": "Dona Dalva", "texture": "res://assets/sprites/dalva_xale_npc.png", "frames": 2, "requires": "flag:mercador_dalva_encontrado+flag:dalva_vazia+flag:teatro_ruinas"}, {"cell": Vector2i(33, 26), "dialogue": "cicero_teatro", "name": "Seu Cícero", "texture": "res://assets/sprites/cicero_npc.png", "frames": 2, "requires": "flag:mercador_cicero_encontrado+!flag:teatro_ruinas"}, {"cell": Vector2i(33, 25), "dialogue": "cicero_teatro", "name": "Seu Cícero", "texture": "res://assets/sprites/cicero_npc.png", "frames": 2, "requires": "flag:mercador_cicero_encontrado+flag:teatro_ruinas"}, {"cell": Vector2i(33, 21), "dialogue": "benedita_teatro", "name": "Dona Benedita", "texture": "res://assets/sprites/benedita_npc.png", "frames": 2, "requires": "flag:mercador_benedita_encontrado+!flag:teatro_ruinas"}, {"cell": Vector2i(2, 21), "dialogue": "benedita_teatro", "name": "Dona Benedita", "texture": "res://assets/sprites/benedita_npc.png", "frames": 2, "requires": "flag:mercador_benedita_encontrado+flag:teatro_ruinas"}, {"cell": Vector2i(24, 27), "dialogue": "amaro_teatro", "name": "Amaro", "texture": "res://assets/sprites/amaro_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ButtonData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/button_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/botao_vestido.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "botao_vestido"
+display_name = "Botão do Vestido Vermelho"
+description = "Ela costurou de volta três vezes. Ele sempre arrancava dançando."
+kind = 6
+icon = ExtResource("2_icon")
+max_stack = 1
+effects = {"pouca_vida": 0.2}
+effect_text = "Com pouca vida (até 30%), +20% de dano."

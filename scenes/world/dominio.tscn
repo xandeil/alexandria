@@ -7,20 +7,26 @@
 [node name="Dominio" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/dominio.txt"
+people = Array[Dictionary]([{"cell": Vector2i(38, 22), "dialogue": "gelo_heitor", "name": "Homem no gelo", "texture": "res://assets/props/heitor_no_gelo.png", "prompt": "Examinar"}, {"cell": Vector2i(38, 22), "dialogue": "heitor_dominio", "name": "Homem de cabelo branco", "texture": "res://assets/sprites/heitor_npc.png", "frames": 2}])
 area_name = "Domínio Congelado"
 area_subtitle = "Bibliotecas inteiras sob o gelo. Pessoas paradas no meio de uma página."
 theme = "gelo"
 ambience = &"amb_ice"
 darkness = Color(0.86, 0.9, 1.0, 1)
 outdoor = true
-exit_scene = "res://scenes/world/montanha.tscn"
-exit_spawn = "oeste"
-exit2_scene = "res://scenes/world/arena_cassian.tscn"
+exit_scene = "res://scenes/world/forjas_passarela.tscn"
+exit_spawn = "cascata"
+decor = Array[Dictionary]([{"cell": Vector2i(23, 5), "dialogue": "vitrine_sono", "name": "Vitrine"}, {"cell": Vector2i(75, 15), "dialogue": "mesa_de_cha", "name": "Mesa de chá", "texture": "res://assets/props/mesa_de_cha.png"}])
+pickups = Array[Dictionary]([{"cell": Vector2i(22, 5), "item": "botas_sono"}])
+objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(10, 22), "key": "bau_dominio_1", "item": "capacete_arconte"}, {"kind": "bau", "cell": Vector2i(32, 15), "key": "bau_dominio_2", "item": "luvas_arconte"}, {"kind": "mimico", "cell": Vector2i(79, 25), "key": "mimico_dominio", "item": "peitoral_arconte", "item2": "botao_vidro"}])
+exits = Array[Dictionary]([{"cell": Vector2i(3, 12), "scene": "res://scenes/world/dominio_aula.tscn", "spawn": "porta", "arrival": "aula"}])
+enemy_power = 1.45
+exit2_scene = "res://scenes/world/dominio_arquivo.tscn"
 exit2_spawn = "porta"
-exit2_requires = "golem_arquivo"
-exit2_locked_dialogue = "porta_arconte"
-lore_points = {"1": "praca_congelada", "2": "lago_congelado", "3": "galeria_vitrines", "4": "porta_do_arconte"}
-item_points = Array[String](["fragmento_turvo", "conjunto:arconte", "sucata_temperada:3", "sucata_temperada:4"])
+exit2_requires = ""
+exit2_locked_dialogue = ""
+lore_points = {"1": "praca_congelada", "2": "lago_congelado", "3": "galeria_vitrines"}
+item_points = Array[String](["fragmento_turvo", "sucata_temperada:2", "sucata_temperada:3", "sucata_temperada:4"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

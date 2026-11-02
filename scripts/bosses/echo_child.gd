@@ -82,6 +82,7 @@ func _try_hit() -> void:
 	info.knockback = 110.0
 	info.source = source
 	info.attack_name = "Eco"
+	info.damage_type = "magia"
 	if player.hurtbox.receive_hit(info):
 		_hit = true
 		vanish()

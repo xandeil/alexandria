@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "ultimo_igual"
+display_name = "O Último Igual"
+title = "Mini-chefe opcional da Montanha Carbonizada"
+sin = "Mini-chefe"
+sin_meaning = "Orgulho"
+race = "Dragão"
+attribute = "—"
+area = "Montanha Carbonizada"
+scaling = "—"
+suggested_order = "Opcional — no Fosso das Correntes"
+memory_reward = 700
+implemented = true
+unique_mechanic = "Preso por uma corrente: só alcança o raio dela. Na metade da vida, a corrente arrebenta."
+phases = Array[String](["Acorrentado: mordidas e investidas até onde a corrente deixa.", "A corrente arrebenta: livre e mais rápido."])
+history = "Um dragão velho que a Rachel acorrentou e deixou vivo."
+meaning = "O pior castigo do orgulho é o outro continuar de pé."

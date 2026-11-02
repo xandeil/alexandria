@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ButtonData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/button_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/botao_arrancado.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "botao_arrancado"
+display_name = "Botão Arrancado"
+description = "Ainda tem linha presa. Alguém puxou com força."
+kind = 6
+icon = ExtResource("2_icon")
+max_stack = 1
+effects = {"memoria": 0.15, "fragil": 0.1}
+effect_text = "Memórias por inimigo +15%; dano recebido +10%."

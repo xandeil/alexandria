@@ -24,7 +24,7 @@ extends Boss
 ##   • Fase 2: as Raízes-Veia curam Mabel e cospem lacaios. Corte as raízes,
 ##     mate os lacaios antes que ela os coma, e bata no VENTRE (de frente).
 
-enum Mode { SEATED, DECIDE, APPROACH, ATTACK, THROW, REACH, SWALLOW, GAG, EAT, TRANSITION, DEAD }
+enum Mode { SEATED, DECIDE, APPROACH, ATTACK, THROW, REACH, SWALLOW, GAG, EAT, TRANSITION, DEAD, INHALE }
 
 const LARVA_SCENE := preload("res://scenes/enemies/larva_seiva.tscn")
 const INCHADO_SCENE := preload("res://scenes/enemies/inchado.tscn")
@@ -89,6 +89,18 @@ const TASTED := [
 ## ...e com a boca escancarada (comendo ou engasgada).
 @export var open_belly_multiplier := 2.0
 
+@export_group("Fase 2 — A inspiração (v0.35)")
+## Ela inspira e PUXA tudo para a boca. Quem chega na boca leva um "bocado":
+## é engolido com mais dano e mais memória perdida. Dash para longe (os
+## i-frames do dash não são puxados) ou fique longe do alcance.
+@export var inhale_every := 9.0
+@export var inhale_windup := 0.8
+@export var inhale_time := 2.4
+@export var inhale_speed := 72.0
+@export var inhale_reach := 180.0
+@export var bite_range := 30.0
+@export var bite_damage := 30.0
+
 @onready var telegraph: TelegraphDrawer = $Telegraph
 
 var phase := 1
@@ -113,6 +125,7 @@ var _weak_text_cooldown := 0.0
 var _root_slots: Array[Vector2] = []
 var _all_roots_cut_said := false
 var _tasted_said := false
+var _inhale_timer := 4.0
 
 
 func enter_arena(_landing: Vector2) -> void:
@@ -157,6 +170,7 @@ func _physics_process(delta: float) -> void:
 		_throw_timer -= delta
 		_reach_timer -= delta
 		_eat_timer -= delta
+		_inhale_timer -= delta
 		_weak_text_cooldown -= delta
 		match mode:
 			Mode.DECIDE:
@@ -177,6 +191,8 @@ func _physics_process(delta: float) -> void:
 					_go_decide(0.3)
 			Mode.EAT:
 				_eat(delta)
+			Mode.INHALE:
+				_inhale(delta)
 			Mode.TRANSITION:
 				velocity = Vector2.ZERO
 		if phase == 2:
@@ -205,6 +221,9 @@ func _decide(delta: float) -> void:
 			_eat_started = false
 			_set_mode(Mode.EAT)
 			return
+	if phase == 2 and _inhale_timer <= 0.0 and distance <= inhale_reach:
+		start_inhale()
+		return
 	if distance <= slap_range:
 		if phase == 2 and distance < 34.0 and randf() < 0.35:
 			_queue_combo([belly_bite])
@@ -340,6 +359,50 @@ func _swallow(delta: float) -> void:
 		Fx.shake(4.0, 0.3)
 
 
+# --- Fase 2: a inspiração ---------------------------------------------------------------
+
+func start_inhale() -> void:
+	_inhale_timer = inhale_every
+	_combo.clear()
+	_runner.cancel()
+	_set_mode(Mode.INHALE)
+	Sfx.play(&"telegraph", -2.0)
+
+
+func is_inhaling() -> bool:
+	return mode == Mode.INHALE and _mode_time >= inhale_windup and _mode_time < inhale_windup + inhale_time
+
+
+func _inhale(delta: float) -> void:
+	velocity = Vector2.ZERO
+	facing = (target.global_position - global_position).normalized()
+	if is_inhaling():
+		if int(_mode_time * 6.0) != int((_mode_time - delta) * 6.0):
+			Fx.dust(target.global_position, 2)  # o ar passando por você, na direção dela
+		var mouth := global_position + Vector2(0, -4)
+		if not target.is_dead() and not target.hurtbox.invulnerable and not target.is_grabbed():
+			target.move_and_collide((mouth - target.global_position).normalized() * inhale_speed * delta)
+			if target.global_position.distance_to(mouth) <= bite_range:
+				take_bite()
+				return
+	if _mode_time >= inhale_windup + inhale_time:
+		_go_decide(0.4)
+
+
+## O "bocado": dano alto e engolido (perde memórias até escapar).
+func take_bite() -> void:
+	# Primeiro engole, DEPOIS morde: o golpe dá i-frames ao herói, e um herói
+	# invulnerável não pode ser agarrado (o mesmo cuidado do Mímico).
+	if target.grab(self, grab_taps + 3, Vector2(4, 0), grab_damage_per_second * 1.6, grab_memory_ratio * 1.5, grab_memory_min * 2, true):
+		target.stats.take_damage(bite_damage)
+		Sfx.play(&"gulp")
+		Fx.float_text(global_position + Vector2(-14, -60 * growth), "BOCADO", Color(1.0, 0.55, 0.5), 8)
+		_tasted_said = false
+		_set_mode(Mode.SWALLOW)
+	else:
+		_go_decide(0.3)
+
+
 ## Chamado pelo herói a cada segundo engolido (Player._state_grabbed).
 func on_memories_drained(amount: int) -> void:
 	stats.heal(stats.max_health * swallow_heal)
@@ -370,6 +433,8 @@ func _enter_phase_2() -> void:
 	_root_slots = _make_root_slots()
 	for slot in _root_slots:
 		grow_root(slot)
+	shift_arena(2)  # v0.35: as mesas somem e a arena encolhe (raízes nas bordas)
+	_inhale_timer = 3.5
 	await wait(2.2)
 	if dead:
 		return

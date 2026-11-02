@@ -42,6 +42,7 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `(` `)` `[` `]` | árvore, arbusto, tronco caído (2 células), soldado dormindo em pé | árvore/tronco/soldado |
 | `z` `s` `^` `?` | Sonâmbulo, Flor de Pólen, Cervo de Musgo, Fada Murcha (renascem ao descansar) | — |
 | `U` `0` | mini-chefes: o Vigia que Dormiu, a Mãe dos Esporos | — |
+| `N` | mini-chefe opcional: o Sino de Despertar (`bosque_sino.txt`) | — |
 | `/` | Nyssa Lumevel, deitada no ar (`arena_nyssa.txt`) | — |
 | `'` | terceira saída (`exit3_scene`/`exit3_spawn`/`exit3_requires`; quem chega aparece em "oeste") — no Teatro, a porta das Raízes | só trancada |
 | **Raízes da Fome** (os MESMOS caracteres do Bosque, outro significado: `THEME_ENTITIES`/`THEME_PROPS` no `level.gd`) | | |
@@ -50,6 +51,7 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `(` `)` `[` `]` | raiz retorcida, fruto de carne, canteiro da estufa (2 células), fogão | raiz/canteiro/fogão |
 | `z` `s` `^` `?` | Boca de Raiz, Inchado, Colhedor, Larvas de Seiva (um enxame de 3) | — |
 | `U` `0` | mini-chefes: O Banqueteiro, A Ninhada | — |
+| `E` `N` | a Mãe Faminta (reaproveitada) e Socorro, a Enfermeira (opcional) | — |
 | `/` | Mabel Vorágine (`arena_mabel.txt`) | — |
 | **Forjas Ocas** (tema "forjas") | | |
 | `.` `,` `:` `;` | laje de pedra, cinza, grade da fábrica, entulho | não |
@@ -58,6 +60,7 @@ texto e rode o jogo (ou marque **Rebuild** no nó da fase, dentro do editor).
 | `(` `)` `[` `]` | corrente da Âncora, engrenagens, prensa (2 células), estátua de bronze | corrente/prensa/estátua |
 | `z` `s` `^` `?` | Autômato de Bronze, Torreta de Faísca, Minerador Oco, Imitador | — |
 | `U` `0` | mini-chefes: O Protótipo, O Guardião da Âncora | — |
+| `N` | mini-chefe opcional: a Dançarina de Engrenagem (`forjas_dancarina.txt`) | — |
 | `/` | Durgan Vell (`arena_durgan.txt`) | — |
 | **Montanha Carbonizada** (tema "montanha") | | |
 | `.` `,` `g` `;` | cinza, basalto, mato queimado, entulho | não |
@@ -110,3 +113,32 @@ A arena de cada chefe é o retângulo `arena_rect_tiles` no nó da fase
 (x, y, largura, altura em células): Helena no `Teatro`, Aldir na `ArenaAldir`, Nyssa na `ArenaNyssa`, Mabel na `ArenaMabel`, Durgan na `ArenaDurgan`,
 a Governanta (o refeitório) no `Prologo`.
 Os buracos do martelo não ficam no mapa: abrem durante a luta.
+
+## v0.31 — Listas do Inspector (sem caractere no mapa)
+
+Algumas coisas não usam letra no `.txt`: ficam em listas no nó da fase, com a
+célula (x, y) em tiles. Assim não faltam caracteres e não há conflito entre temas.
+
+| Lista | Para quê | Exemplo |
+|---|---|---|
+| `exits` | saídas extras, sem o limite de 4 | `{"cell": Vector2i(40, 6), "scene": "res://scenes/world/teatro.tscn", "spawn": "tunel", "requires": "flag:atalho_tunel", "locked_dialogue": "tunel_trancado", "arrival": "tunel"}` |
+| `zones` | retângulo com regra para os inimigos de dentro e fio de alarme | `{"id": "quartel", "rect": Rect2i(10, 4, 8, 6), "requires": "!flag:corneteiro_morto", "triggers": [Vector2i(12, 9)]}` |
+| `objects` | alavanca, baú, porta de atalho (lembram o estado para sempre) | `{"kind": "atalho", "cell": Vector2i(12, 5), "key": "atalho_galho", "abre_de": "oeste", "locked_dialogue": "galho_trancado"}` |
+| `traps` | armadilha que dispara num ritmo | `{"kind": "pilao", "cells": [Vector2i(8, 6)], "period": 2.4, "offset": 0.0, "damage": 30}` |
+| `extra_capsules` | Câmaras extras (a `C` do mapa é a 1ª, ponto `camara`; estas viram `camara_2`...) | `[Vector2i(32, 18)]` |
+| `collapse_fights` | chão que desaba durante a luta de um mini-chefe (o entulho tapa no fim) | `{"boss": "couraca", "rect": Rect2i(14, 5, 30, 3), "interval": 2.6, "max": 10}` |
+| `traps` com `"kind": "flor"` | flores que respiram (Bosque): soltam pólen se você corre ou rola perto | `{"kind": "flor", "cells": [Vector2i(8, 10)]}` |
+| `decor` com `"group"` | o enfeite entra num grupo (ex.: `"mesas"`, que somem na fase 2 da Mabel) | `{"cell": Vector2i(10, 8), "texture": "...", "group": "mesas"}` |
+| `decor` | enfeite solto (com `dialogue` vira Examinar) | `{"cell": Vector2i(70, 13), "texture": "res://assets/props/aviso_cadaver_mesa.png"}` |
+
+`objects` também aceita `{"kind": "mimico", "cell": ..., "key": "mimico_cidade", "item": "fragmento_turvo"}`
+— o mímico é o baú comum espelhado; vencido, não volta nunca.
+
+Chefe com a arena mudando de fase: `phase_arena` no nó do chefe (`ArenaShift`), ex.
+`{2: {"fogo_borda": 2, "cresce": 14.0, "max": 4, "dps": 12.0}}` — anel de fogo
+que fecha a arena. Também há `"escuro": 0.4` (a luz cai), `"sono": 1.5` (a barra
+de sono enche mais rápido) e `"luz_flores": true` (as Flores de Pólen brilham).
+
+Montanha (v0.35): `E` = Couraça Queimada (inimiga comum, renasce), `N` = O Último Igual (opcional, `montanha_fosso.txt`).
+Domínio (v0.35): `E` = Protótipo numa vitrine (inimigo comum, acorda ao passar), `N` = O Mestre do Arconte (opcional, `dominio_aula.txt`).
+`still_trap` (no nó da fase): segundos parado até a vitrine de gelo fechar em volta (Arquivo e Sala do Arconte).

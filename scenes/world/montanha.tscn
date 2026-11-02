@@ -7,26 +7,27 @@
 [node name="Montanha" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/montanha.txt"
-farm_route = Array[Vector2i]([Vector2i(27, 20), Vector2i(60, 20), Vector2i(60, 26), Vector2i(34, 26), Vector2i(33, 23), Vector2i(27, 22)])
-farm_field_tiles = Rect2i(20, 20, 43, 8)
 area_name = "Montanha Carbonizada"
 area_subtitle = "Florestas queimadas, ossos de dragões e cinza no ar. No topo, alguém dorme sobre as ruínas."
 theme = "montanha"
 ambience = &"amb_volcano"
 darkness = Color(0.9, 0.74, 0.68, 1)
 outdoor = true
-exit_scene = "res://scenes/world/cidade.tscn"
-exit_spawn = "lateral"
-exit2_scene = "res://scenes/world/arena_rachel.tscn"
+exit_scene = "res://scenes/world/cidade_viaduto.tscn"
+exit_spawn = "escalada"
+pickups = Array[Dictionary]([{"cell": Vector2i(37, 27), "item": "botas_detentor"}])
+objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(5, 20), "key": "bau_montanha_1", "item": "capacete_caelis"}, {"kind": "bau", "cell": Vector2i(40, 21), "key": "bau_montanha_2", "item": "luvas_caelis"}, {"kind": "mimico", "cell": Vector2i(64, 13), "key": "mimico_montanha", "item": "peitoral_caelis"}])
+decor = Array[Dictionary]([{"cell": Vector2i(35, 27), "dialogue": "soldado_queimado", "name": "Soldado queimado", "texture": "res://assets/props/aviso_soldado_queimado.png"}])
+exits = Array[Dictionary]([{"cell": Vector2i(10, 3), "scene": "res://scenes/world/montanha_fosso.tscn", "spawn": "porta", "arrival": "fosso"}])
+enemy_power = 1.3
+exit2_scene = "res://scenes/world/montanha_ossario.tscn"
 exit2_spawn = "porta"
-exit2_requires = "matriarca"
-exit2_locked_dialogue = "porta_ninho"
-exit3_scene = "res://scenes/world/dominio.tscn"
-exit3_spawn = "porta"
-exit3_requires = "rachel"
-exit3_locked_dialogue = "tunel_de_gelo"
-lore_points = {"1": "sope_queimado", "2": "ossario", "3": "acampamento_capitao", "4": "trilha_ninho"}
-item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "conjunto:caelis", "sucata_temperada:3"])
+exit2_requires = ""
+exit2_locked_dialogue = ""
+
+lore_points = {"1": "sope_queimado", "3": "acampamento_capitao"}
+item_points = Array[String](["fragmento_turvo", "sucata_temperada:3", "sucata_temperada:2", "sucata_temperada:3"])
+people = Array[Dictionary]([{"cell": Vector2i(28, 24), "dialogue": "galeno_montanha", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(30, 24), "dialogue": "mochila_damiao", "name": "Mochila", "texture": "res://assets/props/mochila_damiao.png", "prompt": "Examinar", "requires": "flag:damiao_morreu_montanha"}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "socorro"
+display_name = "Socorro, A Enfermeira da Estufa"
+title = "Mini-chefe opcional das Raízes da Fome"
+sin = "Mini-chefe"
+sin_meaning = "Gula"
+race = "Humana"
+attribute = "—"
+area = "Raízes da Fome"
+scaling = "—"
+suggested_order = "Opcional — na Enfermaria"
+memory_reward = 600
+implemented = true
+unique_mechanic = "Todo golpe dela que acerta você a cura em 150% do dano (com bloqueio, metade). Golpes rápidos e fracos."
+phases = Array[String](["Agulhadas rápidas.", "Ronda da Noite: um combo longo de giros."])
+history = "Cuidava dos doentes com humanidade líquida. E provou."
+meaning = "Quem cuida de todo mundo também tem fome."

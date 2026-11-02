@@ -157,7 +157,9 @@ func _dress_hands() -> void:
 # --- Boss -----------------------------------------------------------------------------
 
 func display_name() -> String:
-	return "O Experimento Anterior"
+	# v0.41 (Etapa 5): o nome do jogo anterior, ESCRITO na barra (nunca falado).
+	var old_name := str(build.get("nome", ""))
+	return "%s, O Experimento Anterior" % old_name if not old_name.is_empty() else "O Experimento Anterior"
 
 
 func display_title() -> String:

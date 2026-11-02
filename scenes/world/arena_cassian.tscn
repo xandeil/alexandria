@@ -14,7 +14,8 @@ ambience = &"amb_ice"
 darkness = Color(0.84, 0.88, 1.0, 1)
 outdoor = true
 arena_rect_tiles = Rect2i(6, 3, 28, 18)
-exit_scene = "res://scenes/world/dominio.tscn"
+exit_scene = "res://scenes/world/dominio_galeria.tscn"
+still_trap = 3.5
 exit_spawn = "lateral"
 lore_points = {"1": "sala_do_arconte"}
 

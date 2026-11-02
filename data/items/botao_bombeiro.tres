@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ButtonData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/button_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/botao_bombeiro.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "botao_bombeiro"
+display_name = "Botão de Bombeiro"
+description = "Grosso, de casaco. Resistiu ao fogo. O casaco não."
+kind = 6
+icon = ExtResource("2_icon")
+max_stack = 1
+effects = {"def_fogo": 0.1}
+effect_text = "Dano de fogo −10%."

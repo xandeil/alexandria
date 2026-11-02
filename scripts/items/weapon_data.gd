@@ -21,6 +21,8 @@ const SCALING_ATTRIBUTES: Array[String] = ["forca", "destreza", "magia", "fe", "
 
 ## "Espada", "Martelo", "Besta"...
 @export var weapon_class := "Espada"
+## Peso (v0.34). 0 = usa o peso típico da classe (CLASS_WEIGHT).
+@export var peso := 0.0
 ## Atributo → letra. Ex.: {"forca": "B", "magia": "C"}.
 @export var scaling := {}
 ## Golpes próprios (vazio/null = os do herói).
@@ -73,3 +75,15 @@ func scaling_text() -> String:
 ## Letra do atributo ("-" quando a arma não escala com ele).
 func letter(attribute: String) -> String:
 	return str(scaling.get(attribute, "-"))
+
+
+## Peso típico de cada classe de arma (v0.34, Etapa 4). Uma tabela só: a arma
+## que não diz o próprio peso usa o da classe.
+const CLASS_WEIGHT := {
+	"Punhos": 0.0, "Adaga": 1.5, "Adagas": 2.5, "Arco": 2.5, "Espada": 3.0, "Lança": 4.0,
+	"Besta": 5.0, "Machado": 6.0, "Chicote": 7.0, "Espada Grande": 8.0, "Martelo": 9.0,
+}
+
+
+func weight() -> float:
+	return peso if peso > 0.0 else float(CLASS_WEIGHT.get(weapon_class, 3.0))

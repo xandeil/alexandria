@@ -44,13 +44,13 @@ signal grab_progress(taps: int, taps_needed: int)
 ## Durgan conta isso durante a luta e, na fase 2, copia o que você mais usou.
 signal action_used(action: StringName)
 
-enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED, PARRY, CRITICAL }
+enum State { FREE, ATTACK, DASH, HEAL, SANITY, STAGGER, LOCKED, DEAD, FALL, BLOCK, SLEEP, GRABBED, PARRY, CRITICAL, CAST }
 
 ## Ações de comando (o movimento fica de fora: andar logo após o diálogo é normal).
-const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &"heal", &"sanity", &"block", &"special"]
+const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &"heal", &"sanity", &"block", &"special", &"cast"]
 ## Estados "com os pés no chão": só neles dá para cair num buraco. No DASH o herói
 ## está no ar — é assim que se atravessa um buraco.
-const GROUNDED_STATES := [State.FREE, State.ATTACK, State.HEAL, State.SANITY, State.STAGGER, State.BLOCK, State.SLEEP]
+const GROUNDED_STATES := [State.FREE, State.ATTACK, State.HEAL, State.SANITY, State.STAGGER, State.BLOCK, State.SLEEP, State.CAST]
 
 ## Ângulo da espada em repouso (abaixada, apontando para frente e para baixo).
 const IDLE_SWORD_ANGLE := 1.15
@@ -288,6 +288,8 @@ var _stagger_duration := 0.3
 var _shield_recoil := 0.0
 ## Barra de Sonolência (0 = desperto).
 var drowsiness := 0.0
+## Multiplica todo o sono que chega (Nyssa fase 2: 1,5). Volta a 1 no fim.
+var drowsiness_scale := 1.0
 var _sleep_grace_left := 0.0
 var _zzz_timer := 0.0
 ## Raio do barulho AGORA (some rápido). Veja make_noise() e is_heard_from().
@@ -324,7 +326,8 @@ func _ready() -> void:
 	_build_off_hand()
 	equip_weapon(Game.current_weapon())
 	Game.weapon_changed.connect(func(_id: String): equip_weapon(Game.current_weapon()))
-	Game.armor_changed.connect(_on_armor_changed)  # método (não lambda): o herói morre e renasce, o Game fica
+	Game.armor_changed.connect(_on_armor_changed)
+	Game.buttons_changed.connect(_apply_armor_stats)  # v0.53: botão entrou/saiu da lata  # método (não lambda): o herói morre e renasce, o Game fica
 	_last_safe_position = global_position
 	var ring := NoiseRing.new()
 	ring.player = self
@@ -411,7 +414,7 @@ func apply_progress(refill: bool) -> void:
 ## Armadura → números do StatsComponent (vida máxima e pressa da estamina).
 func _apply_armor_stats() -> void:
 	stats.health_scale = 1.0 + Game.armor_bonus("vida")
-	stats.regen_bonus = 1.0 + Game.armor_bonus("folego")
+	stats.regen_bonus = 1.0 + Game.armor_bonus("folego") + Game.button_bonus("folego")  # v0.53: Botão do Corneteiro
 
 
 ## Vestiu/tirou uma peça no inventário: recalcula SEM encher a vida (trocar
@@ -442,6 +445,8 @@ func reach_multiplier() -> float:
 func rest() -> void:
 	_runner.cancel()
 	stats.revive()
+	Game.flags.erase("ultimo_pedido_gasto")  # v0.51: o Último Pedido volta ao descansar
+	Game.flags.erase("sino_tocou")  # v0.53: o Botão de Sino também
 	health_flasks = health_flasks_max
 	health_flasks_changed.emit(health_flasks, health_flasks_max)
 	if state != State.LOCKED:  # durante o descanso a fase mantém o herói travado
@@ -479,7 +484,8 @@ func _physics_process(delta: float) -> void:
 	_state_time += delta
 	_anim_time += delta
 	_chill_left = maxf(_chill_left - delta, 0.0)
-	on_ice = Ice.is_slippery(self)
+	_barrier_left = maxf(_barrier_left - delta, 0.0)
+	on_ice = Ice.is_slippery(self) and not Game.button_on("sem_escorregar")  # v0.53: Botão de Vidro
 	_combo_grace = maxf(_combo_grace - delta, 0.0)
 	_iframes_left = maxf(_iframes_left - delta, 0.0)
 	_update_drowsiness(delta)
@@ -511,6 +517,8 @@ func _physics_process(delta: float) -> void:
 			_state_parry(delta)
 		State.CRITICAL:
 			_state_critical(delta)
+		State.CAST:
+			_state_cast(delta)
 		State.LOCKED, State.DEAD:
 			velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 
@@ -597,6 +605,8 @@ func _read_input(delta: float) -> void:
 		_buffer(&"left_light")
 	if _just_pressed(&"special"):
 		_buffer(&"l2")
+	if _just_pressed(&"cast"):
+		_buffer(&"cast")  # v0.50: a magia equipada
 	if _just_pressed(&"interact"):
 		_buffer(&"interact")  # ✕ no controle / F no teclado: só conversa e examina
 	if _buffer_left > 0.0:
@@ -719,6 +729,8 @@ func _consume_buffer(allow_heal: bool = true) -> void:
 				_start_heal()
 		&"sanity":
 			_start_sanity()
+		&"cast":
+			_start_cast()
 		&"interact":
 			if _interactable != null:
 				_interactable.interact(self)
@@ -877,7 +889,7 @@ func add_drowsiness(amount: float) -> void:
 		return
 	if state == State.DEAD or state == State.SLEEP or state == State.LOCKED or _plunging:
 		return
-	drowsiness = minf(drowsiness + amount, drowsiness_max)
+	drowsiness = minf(drowsiness + amount * drowsiness_scale * (1.0 - Game.button_bonus("sono")), drowsiness_max)
 	drowsiness_changed.emit(drowsiness, drowsiness_max)
 	if drowsiness >= drowsiness_max:
 		_fall_asleep()
@@ -901,6 +913,14 @@ func _update_drowsiness(delta: float) -> void:
 
 
 func _fall_asleep() -> void:
+	if Game.button_on("acordar") and not Game.has_flag("sino_tocou"):
+		# v0.53: Botão de Sino — uma vez por descanso, acorda na hora do sono.
+		Game.flags["sino_tocou"] = true
+		drowsiness = 0.0
+		drowsiness_changed.emit(drowsiness, drowsiness_max)
+		Sfx.play(&"bell", -4.0)
+		Fx.float_text(global_position + Vector2(-8, -28), "dlim!", Color(1.0, 0.9, 0.6), 8)
+		return
 	_runner.cancel()
 	hitbox.deactivate()
 	_clear_input()
@@ -1146,7 +1166,7 @@ func _on_attack_phase_changed(phase: AttackRunner.Phase) -> void:
 func _activate_hitbox() -> void:
 	# Dano = golpe × arma × letras de escala × reforço do Ferreiro (Game.weapon_hit_damage:
 	# a MESMA conta que a ficha do inventário mostra).
-	var damage := attack_damage(_current_attack, _attack_hand)
+	var damage := attack_damage(_current_attack, _attack_hand) * button_damage_scale(_current_attack.damage_type)
 	var skill := _skill_of(_attack_hand)
 	if skill.fires_projectile(_current_attack):
 		skill.fire(self, _current_attack, damage, Vector2.from_angle(hitbox_pivot.rotation))
@@ -1155,6 +1175,23 @@ func _activate_hitbox() -> void:
 	skill.on_active(self, _current_attack, damage)
 	if _attack_hand == &"ambas":
 		_left_skill.on_active(self, _current_attack, damage)
+
+
+## v0.53: os botões que mexem no dano de um golpe que está saindo AGORA
+## (Engrenagem: depois da esquiva; Vestido Vermelho: pouca vida; Escama: fogo).
+var _dodge_bonus := false
+
+
+func button_damage_scale(damage_type: String = "fisico") -> float:
+	var scale := 1.0
+	if _dodge_bonus:
+		_dodge_bonus = false
+		scale *= 1.0 + Game.button_bonus("pos_esquiva")
+	if stats.health_ratio() <= 0.3:
+		scale *= 1.0 + Game.button_bonus("pouca_vida")
+	if damage_type == "fogo":
+		scale *= 1.0 + Game.button_bonus("dano_fogo")
+	return scale
 
 
 ## Duas mãos rende mais — menos para arco e besta (atirar já é com as duas).
@@ -1184,6 +1221,8 @@ func _on_hit_landed(target: Hurtbox, info: HitInfo) -> void:
 		if _attack_hand == &"ambas":
 			_left_skill.on_hit(self, target, info, _current_attack)
 	make_noise(noise_hit)
+	if Game.button_on("socorro"):  # v0.35/v0.53: o Botão de Socorro (na lata) devolve um pouco de vida
+		stats.heal(stats.max_health * Game.SOCORRO_HEAL_RATIO)
 	Fx.hitstop(_current_attack.hitstop)
 	Fx.shake(_current_attack.shake, 0.12)
 	Fx.vibrate(35 if _current_attack.is_heavy else 18)
@@ -1232,10 +1271,23 @@ func _setup_swing(attack: AttackData, direction: Vector2, combo_index: int) -> v
 
 # --- DASH ----------------------------------------------------------------------------
 
+## Rolamento pela CARGA (v0.34, Etapa 4): leve rola rápido e longe; pesado
+## demais (acima de 100%) nem rola — só anda.
+const DASH_BY_LOAD := {"rapido": [1.1, 1.15], "normal": [1.0, 1.0], "lento": [0.85, 0.85]}
+var _dash_speed_scale := 1.0
+var _dash_time_scale := 1.0
+
+
 func _start_dash() -> bool:
+	var tier := Game.load_tier()
+	if tier == "pesado":
+		Fx.float_text(global_position + Vector2(-14, -26), "pesado", Color(0.85, 0.8, 0.7), 7)
+		return false
 	if not stats.try_spend_stamina(dash_stamina_cost):
 		_deny_stamina()
 		return false
+	_dash_speed_scale = DASH_BY_LOAD[tier][0]
+	_dash_time_scale = DASH_BY_LOAD[tier][1]
 	var input := _move_input()
 	_dash_dir = input.normalized() if input.length() > 0.2 else facing
 	facing = _dash_dir
@@ -1252,21 +1304,77 @@ func _start_dash() -> bool:
 
 
 func _state_dash(delta: float) -> void:
-	if _state_time < dash_time:
+	var duration := dash_time * _dash_time_scale
+	if _state_time < duration:
 		# Começa rápido e desacelera no fim: sensação de rolamento, não de teleporte.
-		var t := _state_time / dash_time
-		velocity = _dash_dir * dash_speed * (1.0 - t * t * 0.7)
+		var t := _state_time / duration
+		velocity = _dash_dir * dash_speed * _dash_speed_scale * (1.0 + Game.button_bonus("rolamento")) * (1.0 - t * t * 0.7)
 		_afterimage_timer -= delta
 		if _afterimage_timer <= 0.0:
 			_afterimage_timer = 0.035
 			Fx.afterimage(body_sprite)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * 2.0 * delta)
-	if _state_time >= dash_time + dash_recovery_time:
+	if _state_time >= duration + dash_recovery_time:
+		if Game.button_on("pos_esquiva"):
+			_dodge_bonus = true  # v0.53: Botão de Engrenagem — o próximo golpe dói mais
 		_set_state(State.FREE)
 
 
 # --- Frascos ----------------------------------------------------------------------------
+
+# --- v0.50 (Etapa 10): MAGIA ---------------------------------------------------------
+## Botão Magia: o herói para, brilha (cast_time) e solta a magia equipada. Gasta
+## estamina ao começar (mesma regra dos golpes: sem estamina, não sai). Levar um
+## golpe no preparo (STAGGER) desperdiça a estamina — risco e recompensa.
+## O QUE a magia faz mora no SpellCaster; aqui só o estado.
+
+var _cast_spell: SpellData
+var _cast_direction := Vector2.RIGHT
+var _barrier_left := 0.0
+var _barrier_ratio := 1.0
+var _barrier_color := Color.WHITE
+
+signal spell_cast(spell_id: String)
+
+
+func _start_cast() -> bool:
+	var spell := Items.get_item(Game.equipped_spell) as SpellData if not Game.equipped_spell.is_empty() else null
+	if spell == null:
+		return false
+	if not stats.try_spend_stamina(spell.stamina_cost * (1.0 - Game.button_bonus("custo_magia"))):
+		stamina_denied.emit()
+		return false
+	_cast_spell = spell
+	_cast_direction = _aim_direction()
+	facing = _cast_direction
+	_set_state(State.CAST)
+	Fx.flash(body_sprite, spell.cast_time, spell.color)
+	return true
+
+
+func _state_cast(delta: float) -> void:
+	velocity = velocity.move_toward(Vector2.ZERO, _brake() * delta)
+	if not _effect_applied and _state_time >= _cast_spell.cast_time:
+		_effect_applied = true
+		SpellCaster.release(_cast_spell, self, _cast_direction)
+		spell_cast.emit(_cast_spell.id)
+		action_used.emit(&"magia")
+	if _state_time >= _cast_spell.cast_time + 0.25:
+		_set_state(State.FREE)
+
+
+## Barreira: por "seconds", só "ratio" do dano entra.
+func raise_barrier(ratio: float, seconds: float, color: Color) -> void:
+	_barrier_ratio = clampf(ratio, 0.0, 1.0)
+	_barrier_left = seconds
+	_barrier_color = color
+	Fx.flash(body_sprite, 0.3, color)
+
+
+func barrier_active() -> bool:
+	return _barrier_left > 0.0
+
 
 func _start_heal() -> bool:
 	if health_flasks <= 0 or stats.health >= stats.max_health:
@@ -1284,7 +1392,7 @@ func _state_heal(delta: float) -> void:
 	velocity = velocity.move_toward(_move_input() * move_speed * heal_move_multiplier, _grip() * delta)
 	if not _effect_applied and _state_time >= heal_time * heal_apply_at:
 		_effect_applied = true
-		stats.heal(heal_amount)
+		stats.heal(heal_amount * (1.0 + Game.button_bonus("frasco")))  # v0.53: Botão de Avental
 		Sfx.play(&"heal", -2.0)
 		Fx.splash(global_position + Vector2(0, -12), Color(0.9, 0.25, 0.25), 12)
 	if _state_time >= heal_time:
@@ -1319,14 +1427,28 @@ func _deny_stamina() -> void:
 func _on_hit_received(info: HitInfo) -> void:
 	if state == State.DEAD:
 		return
-	if Game.difficulty() > 1.0 and info.source != self:
-		info = info.scaled(Game.difficulty())  # NG+: o mundo bate mais forte
+	var harder := Game.difficulty() * Enemy.power_of(info.source)
+	if info.source != self:
+		# NG+ e áreas difíceis batem mais forte; a ARMADURA (v0.34) reduz cada
+		# tipo de dano pela sua defesa — tudo numa conta só, numa cópia do golpe.
+		var factor := harder * (1.0 - Game.armor_defense(info.damage_type))
+		if _barrier_left > 0.0:
+			factor *= _barrier_ratio  # v0.50: barreira (Escudo de Geada, Barreira)
+		if not is_equal_approx(factor, 1.0):
+			info = info.scaled(factor)
 	if state == State.BLOCK and _can_block(info):
 		_absorb_hit(info)
 		return
 	if state == State.PARRY and _state_time <= _parry_window and _can_parry(info):
 		_parry_success(info)
 		return
+	if info.damage >= stats.health and Game.has_flag("rezou_com_benedita") and not Game.has_flag("ultimo_pedido_gasto"):
+		# v0.51 (Etapa 10): ÚLTIMO PEDIDO — rezou com a Benedita. Uma vez por
+		# descanso, o golpe que mataria deixa 1 de vida.
+		Game.flags["ultimo_pedido_gasto"] = true
+		info = info.scaled(maxf(stats.health - 1.0, 0.0) / maxf(info.damage, 0.001))
+		Fx.splash(global_position + Vector2(0, -12), Color(1.0, 0.92, 0.55), 16)
+		Sfx.play(&"bell", -4.0)
 	var applied := stats.take_damage(info.damage)
 	_iframes_left = hurt_iframes
 	Fx.flash(body_sprite, 0.12)
@@ -1340,18 +1462,20 @@ func _on_hit_received(info: HitInfo) -> void:
 		return  # _on_died já assumiu
 	if state == State.GRABBED:
 		return  # preso: apanha, mas continua preso (só os toques soltam)
+	if not info.is_heavy and Game.button_on("firme"):
+		return  # v0.53: Botão de Corrente — golpe leve não interrompe
 	_runner.cancel()
 	velocity = info.direction * info.knockback
 	_set_state(State.STAGGER)
-	_stagger_duration = stagger_time
+	_stagger_duration = stagger_time * (1.0 - Game.button_bonus("postura"))  # v0.53: Botão de Farda
 
 
 ## Queimadura (fogo no chão): dano pequeno e contínuo, SEM cambalear e sem
 ## i-frames (senão o fogo "protegeria" você dos golpes). O dash por cima não queima.
-func apply_burn(amount: float) -> void:
+func apply_burn(amount: float, damage_type: String = "fogo") -> void:
 	if state == State.DEAD or _is_invulnerable() or amount <= 0.0:
 		return
-	var applied := stats.take_damage(amount)
+	var applied := stats.take_damage(amount * (1.0 - Game.armor_defense(damage_type)))
 	Fx.flash(body_sprite, 0.08, Color(1.0, 0.6, 0.3))
 	Fx.sparks(global_position + Vector2(0, -6), Vector2.UP, Color(1.0, 0.6, 0.2), 4, 50.0)
 	hurt.emit(applied)

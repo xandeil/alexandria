@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sebastioes"
+display_name = "Os Sebastiões"
+title = "A briga da ponte"
+sin = "Mini-chefe"
+sin_meaning = "Ira"
+race = "Humanos"
+attribute = "—"
+area = "Montanha Carbonizada"
+scaling = "—"
+suggested_order = "Opcional — entrar no meio da briga"
+memory_reward = 500
+implemented = true
+unique_mechanic = "Dois corpos, uma vida só: bater no Tião ou no Bastião desce a mesma barra."
+phases = Array[String](["Tião (colher de pau) e Bastião (vassoura com faca) cercam você pelos dois lados."])
+history = "Os dois são apelidos de Sebastião. Ninguém sabe se eram irmãos, amigos ou estranhos."
+meaning = "Se eu parar de odiar ele, eu esqueço ele."

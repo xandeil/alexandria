@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level.gd" id="1_level"]
+[ext_resource type="TileSet" path="res://assets/tiles/forjas_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/world/game_camera.gd" id="3_camera"]
+
+[node name="Passarela" type="Node2D"]
+script = ExtResource("1_level")
+layout_file = "res://levels/forjas_passarela.txt"
+area_name = "Passarela da Âncora"
+area_subtitle = "Lá embaixo, a corrente. Lá em cima, o gelo. No meio, você."
+theme = "forjas"
+ambience = &"amb_forge"
+darkness = Color(0.8, 0.78, 0.82, 1)
+outdoor = true
+exit_scene = "res://scenes/world/forjas_fornalha.tscn"
+exit_spawn = "lateral"
+exits = Array[Dictionary]([{"cell": Vector2i(12, 1), "scene": "res://scenes/world/dominio.tscn", "spawn": "porta", "arrival": "cascata"}, {"cell": Vector2i(8, 11), "scene": "res://scenes/world/raizes.tscn", "spawn": "porta", "arrival": "descida"}, {"cell": Vector2i(47, 11), "scene": "res://scenes/world/forjas_fornalha.tscn", "spawn": "elevador", "arrival": "elevador", "opens": "atalho_elevador"}])
+exit2_scene = "res://scenes/world/arena_durgan.tscn"
+exit2_spawn = "porta"
+exit2_requires = "guardiao_ancora"
+exit2_locked_dialogue = "porta_ancora"
+lore_points = {"1": "placa_ancora", "2": "porta_durgan"}
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+
+[node name="Floor" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = ExtResource("2_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

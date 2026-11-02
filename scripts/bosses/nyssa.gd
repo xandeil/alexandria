@@ -25,7 +25,7 @@ const DREAM_SHADOW := preload("res://assets/fx/dream_shadow.png")
 const DREAM_HOLE := preload("res://assets/fx/dream_hole.png")
 ## Ecos possíveis — só aparecem os de chefes que o herói JÁ venceu.
 const ECHO_POOL := ["governanta", "aldir", "helena", "sargento", "couraca", "vigia", "mae_esporos"]
-const NIGHTMARE_LIGHT := Color(0.55, 0.5, 0.8)
+const NIGHTMARE_LIGHT := Color(0.36, 0.33, 0.56)  # v0.35: mais escuro — só as flores iluminam
 
 const SPEECH_INTRO := "Você acorda tudo o que toca. Como a minha irmã... Durma."
 const SPEECH_INTRO_QUIET := "Você passou pelo Vigia sem acordá-lo... Então você entende. Fique. Ninguém precisa acordar."
@@ -230,8 +230,14 @@ func summon_echo(boss_id: String = "") -> DreamEcho:
 		return null
 	if boss_id.is_empty():
 		boss_id = echo_pool().pick_random()
-	var at := clamp_to_arena(target.global_position + Vector2.from_angle(randf() * TAU) * randf_range(70.0, 95.0), 20.0)
-	return DreamEcho.spawn(get_parent(), at, boss_id, self)
+	# No Pesadelo os ecos vêm de mais longe e saem do escuro (aparecem aos poucos).
+	var reach := randf_range(70.0, 95.0) if phase == 1 else randf_range(105.0, 130.0)
+	var at := clamp_to_arena(target.global_position + Vector2.from_angle(randf() * TAU) * reach, 20.0)
+	var echo := DreamEcho.spawn(get_parent(), at, boss_id, self)
+	if phase == 2 and echo:
+		echo.modulate.a = 0.0
+		echo.create_tween().tween_property(echo, "modulate:a", 1.0, 0.7)
+	return echo
 
 
 # --- Dano, fases ------------------------------------------------------------------
@@ -263,6 +269,7 @@ func _enter_nightmare() -> void:
 	Fx.shake(4.0, 0.5)
 	_dismiss_sleepers()
 	_set_light(NIGHTMARE_LIGHT, 1.6)
+	shift_arena(2)  # v0.35: flores acesas e o sono mais rápido (phase_arena)
 	await wait(2.2)
 	if dead:
 		return

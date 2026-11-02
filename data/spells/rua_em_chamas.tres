@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/rua_em_chamas.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rua_em_chamas"
+display_name = "Rua em Chamas"
+description = "A esquina da padaria, inteira, de uma vez."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "piromancia"
+form = "area"
+damage_type = "fogo"
+stamina_cost = 50.0
+cast_time = 0.8
+power = 70.0
+reach = 80.0
+poise_damage = 50.0
+knockback = 220.0
+color = Color(1, 0.45, 0.15, 1)

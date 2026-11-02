@@ -54,6 +54,12 @@ const SPEECH_DEFEAT := "...Eu só queria... que alguma coisa ficasse."
 @export var steal_range := 200.0
 @export var steal_suppress := 3.5
 
+@export_group("Fase 2 — A coleção de frascos (v0.35)")
+## De tempos em tempos ele congela um Frasco de Vida seu numa vitrine da
+## arena. Quebre a vitrine e o frasco volta.
+@export var flask_every := 13.0
+@export var flask_case_health := 30.0
+
 @onready var telegraph: TelegraphDrawer = $Telegraph
 
 var phase := 1
@@ -67,6 +73,12 @@ var _wall_timer := 5.0
 var _freeze_timer := 4.0
 var _summon_timer := 6.0
 var _steal_timer := 3.0
+var _flask_timer := 0.0
+## Vitrines com um frasco seu dentro (quebrar devolve).
+var flask_cases: Array[DestructibleCover] = []
+## v0.53 (Etapa 12): o botão da sua lata que ele congelou numa vitrine (uma vez por luta).
+var button_case: DestructibleCover
+var stolen_button := ""
 var _close_time := 0.0
 
 
@@ -113,6 +125,7 @@ func _physics_process(delta: float) -> void:
 			_freeze_timer -= delta
 			_summon_timer -= delta
 			_steal_timer -= delta
+			_flask_timer -= delta
 		_close_time = _close_time + delta if global_position.distance_to(target.global_position) < 36.0 else 0.0
 		match mode:
 			Mode.DECIDE:
@@ -164,6 +177,12 @@ func _decide() -> void:
 			return
 		if _steal_timer <= 0.0:
 			start_steal()
+			return
+		if stolen_button.is_empty() and Game.button_slots.any(func(b): return not b.is_empty()):
+			collect_button()
+			return
+		if _flask_timer <= 0.0 and target.health_flasks > 0:
+			collect_flask()
 			return
 	if distance < 34.0:
 		_set_mode(Mode.ATTACK)
@@ -265,11 +284,74 @@ func _enter_collector() -> void:
 	_freeze_timer = 2.5
 	_summon_timer = 5.0
 	_steal_timer = 7.0
+	_flask_timer = 4.0
 	await wait(2.0)
 	if dead:
 		return
 	hurtbox.invulnerable = false
 	_go_decide(0.2)
+
+
+## "Nada se perde aqui": um Frasco de Vida seu vai para uma vitrine da arena.
+func collect_flask() -> DestructibleCover:
+	_flask_timer = flask_every
+	if target == null or target.health_flasks <= 0:
+		return null
+	target.health_flasks -= 1
+	target.health_flasks_changed.emit(target.health_flasks, target.health_flasks_max)
+	var case := DestructibleCover.new()
+	case.texture_override = preload("res://assets/props/display_case.png")
+	case.max_health = flask_case_health
+	var spot := target.global_position + Vector2.from_angle(randf() * TAU) * randf_range(60.0, 110.0)
+	case.position = clamp_to_arena(spot, 24.0) if arena_rect.size != Vector2.ZERO else spot
+	get_parent().add_child(case)
+	case.destroyed.connect(_on_flask_case_broken)
+	flask_cases.append(case)
+	Fx.float_text(case.position + Vector2(-14, -30), "+1 peça", Color(0.75, 0.9, 1.0), 7)
+	Sfx.play(&"crystal", -2.0)
+	_set_mode(Mode.FREEZE)
+	return case
+
+
+## "Nada se perde aqui" (v0.53): um botão da sua Lata vai para uma vitrine.
+## Quebrar a vitrine devolve. (Uma vez por luta.)
+func collect_button() -> DestructibleCover:
+	for id in Game.button_slots:
+		if not id.is_empty():
+			stolen_button = id
+			break
+	if stolen_button.is_empty():
+		return null
+	Game.take_button_from_tin(stolen_button)
+	var case := DestructibleCover.new()
+	case.texture_override = preload("res://assets/props/display_case.png")
+	case.max_health = flask_case_health
+	var spot := target.global_position + Vector2.from_angle(randf() * TAU) * randf_range(60.0, 110.0)
+	case.position = clamp_to_arena(spot, 24.0) if arena_rect.size != Vector2.ZERO else spot
+	get_parent().add_child(case)
+	case.destroyed.connect(_on_button_case_broken)
+	button_case = case
+	Fx.float_text(case.position + Vector2(-20, -30), Items.display_name(stolen_button), Color(0.75, 0.9, 1.0), 7)
+	Sfx.play(&"crystal", -2.0)
+	_set_mode(Mode.FREEZE)
+	return case
+
+
+func _on_button_case_broken(case: DestructibleCover) -> void:
+	if not stolen_button.is_empty() and not Game.button_in_tin(stolen_button):
+		Game.toggle_button(stolen_button)  # de volta na lata
+		Fx.float_text(case.global_position + Vector2(-10, -26), "botão!", Color(1.0, 0.9, 0.6), 7)
+	button_case = null
+
+
+## Quebrou a vitrine: o frasco volta para você.
+func _on_flask_case_broken(case: DestructibleCover) -> void:
+	flask_cases.erase(case)
+	var player := get_tree().get_first_node_in_group("player") as Player
+	if player and player.health_flasks < player.health_flasks_max:
+		player.health_flasks += 1
+		player.health_flasks_changed.emit(player.health_flasks, player.health_flasks_max)
+		Fx.float_text(case.global_position + Vector2(-10, -26), "frasco!", Color(1.0, 0.6, 0.6), 7)
 
 
 ## Congela METADE da arena (o lado onde o herói está — com aviso longo).

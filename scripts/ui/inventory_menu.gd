@@ -13,7 +13,7 @@ extends CanvasLayer
 
 signal closed
 
-const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Materiais", "Lembranças"]
+const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Magias", "Botões", "Materiais", "Lembranças"]
 const SLOT := 30
 const COLUMNS := 5
 const GOLD_LINE := Color(0.62, 0.52, 0.32, 0.55)
@@ -130,6 +130,15 @@ func _build() -> void:
 	var memories := UIStyle.label("", 8, UIStyle.TEXT_DIM, UIStyle.FONT_NUMBERS)
 	memories.name = "Memorias"
 	equip.add_child(memories)
+	# v0.34: carga (o peso decide o rolamento) e as defesas da armadura vestida.
+	var load_label := UIStyle.label("", 7, UIStyle.TEXT_DIM)
+	load_label.name = "Carga"
+	equip.add_child(load_label)
+	var defense_label := UIStyle.label("", 7, UIStyle.TEXT_DIM)
+	defense_label.name = "Defesa"
+	defense_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	defense_label.custom_minimum_size = Vector2(118, 0)
+	equip.add_child(defense_label)
 
 	# Centro: a grade de espaços.
 	var center := VBoxContainer.new()
@@ -329,6 +338,12 @@ func entries(tab: int = -1) -> Array[Dictionary]:
 		"Frascos":
 			result.append({"id": "frasco_vida", "count": _health_flasks()})
 			result.append({"id": "frasco_sanidade", "count": Game.sanity_flasks})
+		"Magias":  # v0.50
+			result.append_array(_items_of(ItemData.Kind.MAGIA))
+		"Botões":  # v0.53: primeiro os da lata, depois os da mochila
+			var all := _items_of(ItemData.Kind.BOTAO)
+			all.sort_custom(func(a, b): return Game.button_in_tin(a["id"]) and not Game.button_in_tin(b["id"]))
+			result.append_array(all)
 		"Materiais":
 			result.append_array(_items_of(ItemData.Kind.MATERIAL))
 		"Lembranças":
@@ -460,6 +475,14 @@ func _refresh_equipped() -> void:
 	sanity.text = "Humanidade  x%d" % Game.sanity_flasks
 	var memories := _equip_rows["direita"].get_parent().get_node("Memorias") as Label
 	memories.text = "Memórias  %d" % Game.memories
+	var load_label := memories.get_parent().get_node("Carga") as Label
+	var tier := Game.load_tier()
+	load_label.text = "Carga %.1f/%.0f · %s" % [Game.equip_load(), Game.max_load(), Game.LOAD_TIER_NAMES[tier]]
+	load_label.add_theme_color_override("font_color", Color(1.0, 0.55, 0.45) if tier == "pesado" else UIStyle.TEXT_DIM)
+	var parts: Array[String] = []
+	for kind in ArmorSets.DAMAGE_TYPES:
+		parts.append("%s %d%%" % [ArmorSets.DAMAGE_NAMES[kind].left(4), roundi(Game.armor_defense(kind) * 100.0)])
+	(memories.get_parent().get_node("Defesa") as Label).text = "Defesa: " + " · ".join(parts)
 
 
 ## Linha "Armadura" da coluna EQUIPADO: os 5 espaços em miniatura (vazio = moldura).
@@ -509,6 +532,12 @@ func _select(item_id: String) -> void:
 	if item is ArmorData:
 		_show_armor(item as ArmorData)
 		return
+	if item is SpellData:
+		_show_spell(item as SpellData)
+		return
+	if item is ButtonData:
+		_show_button(item as ButtonData)
+		return
 	_detail_kind.text = ItemData.KIND_NAMES[item.kind]
 	match item_id:
 		"frasco_vida":
@@ -519,6 +548,27 @@ func _select(item_id: String) -> void:
 			_detail_stats.text = "Equipado" if Game.shield_equipped() else "Guardado"
 		_:
 			_detail_stats.text = "" if item.max_stack == 1 else "x%d" % Game.item_count(item_id)
+
+
+## v0.53: a ficha de um botão — o efeito, e se está na lata.
+func _show_button(button: ButtonData) -> void:
+	var inside := Game.button_in_tin(button.id)
+	var used := Game.button_slots.filter(func(b): return not b.is_empty()).size()
+	_detail_kind.text = "Botão  ·  na lata" if inside else "Botão  ·  na mochila"
+	_detail_stats.text = "Lata: %d/%d" % [used, Game.BUTTON_SLOTS] if Game.has_button_tin() else "Sem a Lata de Botões"
+	_detail_skill.text = button.effect_text + ("" if inside else "\nSó funciona dentro da lata.")
+
+
+## v0.50: a ficha de uma magia (escola, forma, custo, poder agora).
+func _show_spell(spell: SpellData) -> void:
+	_detail_kind.text = "%s%s" % [spell.school_name(), "  ·  equipada" if Game.equipped_spell == spell.id else ""]
+	var power := spell.power
+	if is_instance_valid(_player):
+		power = SpellCaster.power_of(spell, _player)
+	var what := "Cura" if spell.form == "cura" else ("Proteção" if spell.form == "barreira" else "Dano")
+	_detail_stats.text = "Estamina  %d\n%s  %d" % [spell.stamina_cost, what, power] if spell.form != "barreira" \
+		else "Estamina  %d\nBarreira  %d s" % [spell.stamina_cost, spell.duration]
+	_detail_skill.text = "Botão Magia: lançar. Cresce com %s." % ("Fé" if spell.school == "milagre" else "Magia")
 
 
 func _show_weapon(weapon: WeaponData) -> void:
@@ -550,7 +600,12 @@ func _show_weapon(weapon: WeaponData) -> void:
 func _show_armor(piece: ArmorData) -> void:
 	var info := ArmorSets.info(piece.set_id)
 	_detail_kind.text = "%s%s" % [ArmorData.SLOT_NAMES[piece.slot], "  ·  vestido" if Game.is_armor_equipped(piece.id) else ""]
-	_detail_stats.text = "%s\n%d/5 peças vestidas" % [info.get("name", ""), Game.armor_pieces(piece.set_id)]
+	var defenses: Array[String] = []
+	for kind in ArmorSets.DAMAGE_TYPES:
+		defenses.append("%s %.1f%%" % [ArmorSets.DAMAGE_NAMES[kind].left(4), ArmorSets.piece_defense(piece.set_id, piece.slot, kind) * 100.0])
+	_detail_stats.text = "%s (%s)\n%d/5 peças vestidas · peso %.1f\n%s" % [info.get("name", ""),
+		ArmorSets.weight_class(piece.set_id), Game.armor_pieces(piece.set_id), ArmorSets.piece_weight(piece.set_id, piece.slot),
+		" · ".join(defenses)]
 	_detail_skill.text = ArmorSets.rule_text(piece.set_id) + "\n" + _armor_now_text(piece.set_id)
 
 
@@ -597,6 +652,15 @@ func _activate(item_id: String) -> void:
 	elif item_id == "escudo_remendado":
 		Game.set_shield_equipped(not Game.shield_equipped())
 		Sfx.play(&"shield_up", -4.0)
+	elif Items.get_item(item_id) is ButtonData:
+		if not Game.toggle_button(item_id):
+			Sfx.play(&"ui_click")  # sem lata, ou a tampa não fecha (4 já)
+			_detail_skill.text = "A tampa não fecha: tire um botão antes." if Game.has_button_tin() else "Você ainda não tem onde guardar."
+			return
+		Sfx.play(&"pickup", -6.0)
+	elif Items.get_item(item_id) is SpellData:
+		Game.equip_spell(item_id)  # apertar a equipada = guardar
+		Sfx.play(&"chime", -6.0)
 	elif Items.get_armor(item_id):
 		if Game.is_armor_equipped(item_id):
 			Game.unequip_armor(Items.get_armor(item_id).slot)  # apertar a vestida = tirar

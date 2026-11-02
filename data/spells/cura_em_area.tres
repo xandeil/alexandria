@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/cura_em_area.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "cura_em_area"
+display_name = "Cura em Área"
+description = "Cura você e quem estiver perto."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "milagre"
+form = "cura"
+damage_type = "raio"
+stamina_cost = 45.0
+cast_time = 1.1
+power = 55.0
+reach = 80.0
+em_area = true
+color = Color(1, 0.92, 0.55, 1)

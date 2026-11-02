@@ -49,6 +49,14 @@ func _ready() -> void:
 		await shot("loja_titulo")
 		Game.quit_game()
 		return
+	if only == "amaro":
+		await _tour_amaro()
+		Game.quit_game()
+		return
+	if only == "magia":
+		await _tour_magic()
+		Game.quit_game()
+		return
 	if only == "guarda":
 		await _tour_guard()
 		Game.quit_game()
@@ -1589,44 +1597,101 @@ func _tour_creation() -> void:
 	Game.reset_progress()
 
 
-func _tour_guard() -> void:
+## v0.52: a armadilha do buraco (o Pitoco lá embaixo) e a Toca.
+func _tour_amaro() -> void:
 	Game.reset_progress()
+	Game.set_flag("amaro_4")
+	Game.pending_spawn = "porta"
+	var level := await open("res://scenes/world/raizes_varanda.tscn") as Level
+	await wait(2.5)
+	level.player._iframes_left = 9999.0
+	level.player.global_position = level._cell_feet(level.trap_hole.x, level.trap_hole.y) + Vector2(24, 0)
+	await wait(2.4)
+	await shot("a01_buraco_pitoco")
+	await wait(1.4)
+	await shot("a02_amaro_empurra")
+	Game.scene_changes_enabled = false
+	Game.pending_spawn = "inicio"
+	Game.scene_changes_enabled = true
+	level = await open("res://scenes/world/raizes_toca.tscn") as Level
+	await wait(2.0)
+	level.player._iframes_left = 9999.0
+	for node in get_tree().get_nodes_in_group("minibosses"):
+		level.player.global_position = (node as Node2D).global_position + Vector2(-90, 0)
+	level.camera.snap_to_target()
+	await wait(1.5)
+	await shot("a03_toca_pitoco")
+
+
+## v0.50: o sistema de magia (bola de fogo no ar, a explosão, o botão Magia).
+func _tour_magic() -> void:
+	Game.reset_progress()
+	for id in ["bola_de_fogo", "explosao_curta", "escudo_de_geada"]:
+		Game.add_item(id)
+	Game.equip_spell("bola_de_fogo")
 	Game.pending_spawn = "porta"
 	var level := await open("res://scenes/world/cidade.tscn") as Level
-	await wait(0.5)
-	var npc: Node2D = null
-	for node in get_tree().get_nodes_in_group("npcs"):
-		if (node as NPC).dialogue_id == "guarda_cidade":
-			npc = node
-	level.player.global_position = npc.global_position + Vector2(-30, 10)
-	level.camera.snap_to_target()
 	await wait(3.0)
-	await shot("q01_guarda_na_cidade")
-	Game.flags["guarda_conhecido"] = true
-	Game.flags["guarda_acompanha"] = true
-	Game.pending_spawn = "porta"
-	level = await open("res://scenes/world/cidade.tscn") as Level
-	await wait(3.2)
 	level.player._iframes_left = 9999.0
-	var soldier: Node2D = null
-	for node in get_tree().get_nodes_in_group("enemies"):
-		if soldier == null or (node as Node2D).global_position.distance_to(level.player.global_position) < soldier.global_position.distance_to(level.player.global_position):
-			soldier = node
-	level.player.global_position = soldier.global_position + Vector2(-50, 0)
-	level.camera.snap_to_target()
-	await wait(1.6)
-	await shot("q02_guarda_lutando")
-	Game.flags["guarda_acompanha"] = false
+	level.player.facing = Vector2.RIGHT
+	level.player._start_cast()
+	await wait(0.62)
+	await shot("m01_bola_de_fogo")
+	Game.equip_spell("explosao_curta")
+	level.player.stats.restore_stamina(999.0)
+	level.player._start_cast()
+	await wait(0.64)
+	await shot("m02_explosao")
+
+
+func _tour_guard() -> void:
+	# v0.45 (Etapa 8): o Heitor nos três lugares em que fica preso, e na arena.
+	Game.reset_progress()
+	for spot: Array in [["res://scenes/world/cidade.tscn", "poco_heitor", "q01_heitor_poco", ""],
+			["res://scenes/world/forjas.tscn", "estatua_heitor", "q02_heitor_estatua", "heitor_poco"],
+			["res://scenes/world/dominio.tscn", "gelo_heitor", "q03_heitor_gelo", "heitor_estatua"]]:
+		if not str(spot[3]).is_empty():
+			Game.set_flag(str(spot[3]))
+		Game.pending_spawn = "porta"
+		var level := await open(str(spot[0])) as Level
+		await wait(0.5)
+		for node in get_tree().get_nodes_in_group("npcs"):
+			if (node as NPC).dialogue_id == str(spot[1]):
+				level.player.global_position = (node as Node2D).global_position + Vector2(-30, 10)
+		level.player._iframes_left = 9999.0
+		level.camera.snap_to_target()
+		await wait(2.0)
+		await shot(str(spot[2]))
+	Game.set_flag("heitor_gelo")
 	Game.pending_spawn = "camara"
-	level = await open("res://scenes/world/teatro.tscn") as Level
+	var teatro := await open("res://scenes/world/teatro.tscn") as Level
 	await wait(3.0)
-	level.player._iframes_left = 9999.0
-	level._begin_modal()
-	level._on_dialogue_action("desafiar_helena")
-	await wait(2.6)
-	await shot("q03_o_sacrificio")
-	await wait(4.5)
-	await shot("q04_posto_vazio")
+	teatro.player._iframes_left = 9999.0
+	teatro._begin_modal()
+	teatro._on_dialogue_action("desafiar_helena")
+	await wait(4.0)
+	await shot("q04_heitor_na_arena")
+	# v0.46: o golpe no Heitor e a explosão (fase 2 → 3), depois as ruínas.
+	teatro._end_modal()
+	teatro.player.global_position = teatro.boss_arena.arena_rect.get_center()
+	await wait(3.0)
+	var helena := teatro._boss as HelenaAltiva
+	teatro.player._iframes_left = 9999.0
+	helena.stats.take_damage(99999.0)
+	await wait(2.0)
+	helena.stats.take_damage(99999.0)
+	await wait(2.2)
+	await shot("q05_elmo_caido")
+	await wait(6.2)
+	await shot("q06_explosao")
+	Game.set_flag("teatro_ruinas")
+	Game.pending_spawn = "camara"
+	teatro = await open("res://scenes/world/teatro.tscn") as Level
+	await wait(3.0)
+	teatro.player.global_position = teatro.player.global_position + Vector2(0, -60)
+	teatro.camera.snap_to_target()
+	await wait(1.0)
+	await shot("q07_teatro_em_ruinas")
 
 
 ## v0.25: o Traje da Vigília largado no palco e a aba Armadura do inventário.

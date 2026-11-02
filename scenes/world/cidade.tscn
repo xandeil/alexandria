@@ -7,6 +7,7 @@
 [node name="Cidade" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/cidade.txt"
+people = Array[Dictionary]([{"cell": Vector2i(11, 26), "dialogue": "poco_heitor", "name": "Poço", "texture": "res://assets/props/poco.png", "prompt": "Examinar"}, {"cell": Vector2i(14, 26), "dialogue": "mochila_damiao", "name": "Mochila", "texture": "res://assets/props/mochila_damiao.png", "prompt": "Examinar", "requires": "flag:damiao_morreu_cidade"}, {"cell": Vector2i(40, 3), "dialogue": "cicero_quartel", "name": "Seu Cícero", "texture": "res://assets/sprites/cicero_npc.png", "frames": 2}, {"cell": Vector2i(6, 6), "dialogue": "amaro_cidade", "name": "Amaro", "texture": "res://assets/sprites/amaro_npc.png", "frames": 2}])
 area_name = "Cidade Estilhaçada"
 area_subtitle = "Os soldados do governo subiram com a ilha e ainda cumprem a última ordem."
 theme = "cidade"
@@ -15,11 +16,14 @@ darkness = Color(0.86, 0.8, 0.82, 1)
 outdoor = true
 exit_scene = "res://scenes/world/teatro.tscn"
 exit_spawn = "porta"
-exit2_scene = "res://scenes/world/montanha.tscn"
+objects = Array[Dictionary]([{"kind": "bau", "cell": Vector2i(5, 25), "key": "bau_cidade_1", "item": "capacete_detentor"}, {"kind": "bau", "cell": Vector2i(43, 26), "key": "bau_cidade_2", "item": "luvas_detentor"}, {"kind": "mimico", "cell": Vector2i(44, 7), "key": "mimico_cidade", "item": "peitoral_detentor"}])
+exits = Array[Dictionary]([{"cell": Vector2i(0, 24), "scene": "res://scenes/world/raizes_varanda.tscn", "spawn": "tunel", "requires": "flag:atalho_tunel", "locked_dialogue": "tunel_trancado", "arrival": "tunel"}, {"cell": Vector2i(45, 9), "scene": "res://scenes/world/cidade_torre.tscn", "spawn": "porta", "arrival": "torre"}])
+exit2_scene = "res://scenes/world/cidade_quartel.tscn"
 exit2_spawn = "porta"
-exit2_requires = "durgan"
-exit2_locked_dialogue = "ponte_levadica"
-item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo", "conjunto:detentor"])
+exit2_requires = ""
+exit2_locked_dialogue = ""
+decor = Array[Dictionary]([{"cell": Vector2i(41, 2), "texture": "res://assets/props/quartel_bombeiros.png"}])
+item_points = Array[String](["escudo_remendado", "sucata_temperada:2", "sucata_temperada:2", "fragmento_turvo", "sucata_temperada:2"])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

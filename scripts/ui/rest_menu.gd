@@ -120,11 +120,18 @@ func _build_travel() -> void:
 	box.add_theme_constant_override("separation", 4)
 	add_child(box)
 	box.add_child(UIStyle.label("VIAJAR PARA", 9, Color(0.75, 0.68, 0.5), UIStyle.TITLE_FONT))
+	# v0.33: 15 Câmaras. Uma LINHA por ilha (as duas Câmaras lado a lado) e a
+	# lista rola — o foco do controle puxa a rolagem junto (follow_focus).
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(228, 176)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	box.add_child(scroll)
 	_grid = GridContainer.new()
-	_grid.columns = 3
+	_grid.columns = 2
 	_grid.add_theme_constant_override("h_separation", 6)
 	_grid.add_theme_constant_override("v_separation", 4)
-	box.add_child(_grid)
+	scroll.add_child(_grid)
 	_leave_button = DSMenuButton.make("Levantar", 11)
 	_leave_button.pressed.connect(func():
 		Sfx.play(&"ui_click")
@@ -142,8 +149,22 @@ func _rebuild_travel() -> void:
 	for child in _grid.get_children():
 		_grid.remove_child(child)
 		child.queue_free()
+	# Uma linha por ilha: se a ilha só tem uma Câmara aberta, um espaço vazio
+	# completa a linha (a próxima ilha começa sempre na coluna da esquerda).
+	var by_island := {}
+	var order: Array[String] = []
 	for info in Game.unlocked_capsules():
-		_grid.add_child(_make_card(info))
+		var island := str(info.get("island", ""))
+		if not by_island.has(island):
+			by_island[island] = []
+			order.append(island)
+		(by_island[island] as Array).append(info)
+	for island in order:
+		var row: Array = by_island[island]
+		for info: Dictionary in row:
+			_grid.add_child(_make_card(info))
+		for i in range(row.size(), _grid.columns):
+			_grid.add_child(_make_gap())
 	_link_focus()
 
 
@@ -232,17 +253,29 @@ func _first_focus() -> Control:
 
 
 ## Um "cartão" de Câmara: miniatura + nome. A Câmara em que você está fica marcada.
+## Espaço vazio que completa a linha de uma ilha (não recebe foco).
+func _make_gap() -> Button:
+	var gap := Button.new()
+	gap.custom_minimum_size = Vector2(108, 60)
+	gap.flat = true
+	gap.disabled = true
+	gap.focus_mode = Control.FOCUS_NONE
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gap.set_meta("gap", true)
+	return gap
+
+
 func _make_card(info: Dictionary) -> Button:
-	var scene_path: String = info["scene"]
-	var here := scene_path == _here
+	var key := str(info.get("key", info["scene"]))
+	var here := key == _here
 	var card := Button.new()
-	card.custom_minimum_size = Vector2(70, 62)
+	card.custom_minimum_size = Vector2(108, 60)
 	card.icon = load("res://assets/ui/capsula_%s.png" % info["thumb"])
 	card.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	card.expand_icon = false
 	card.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	card.text = "Você está aqui" if here else str(info["name"])
+	card.text = "Você está aqui" if here else "%s\n%s" % [info.get("island", ""), info.get("place", info["name"])]
 	card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_theme_font_override("font", UIStyle.FONT)
 	card.add_theme_font_size_override("font_size", 7)
@@ -257,13 +290,13 @@ func _make_card(info: Dictionary) -> Button:
 	card.disabled = here  # já está aqui: não viaja para o mesmo lugar
 	if here:
 		card.focus_mode = Control.FOCUS_NONE  # nem dá para selecionar (o controle pula)
-	card.set_meta("scene", scene_path)
+	card.set_meta("scene", key)
 	card.mouse_entered.connect(func():
 		if not card.disabled:
 			card.grab_focus())
 	card.pressed.connect(func():
 		Sfx.play(&"ui_open")
-		_picked.emit(scene_path))
+		_picked.emit(key))
 	return card
 
 
@@ -287,7 +320,7 @@ func _card_style(lit: bool) -> StyleBoxFlat:
 func run(here_scene: String) -> String:
 	_here = here_scene
 	var info := Game.capsule_info(here_scene)
-	_place.text = str(info.get("name", ""))
+	_place.text = "%s · %s" % [info.get("name", ""), info.get("place", "")] if info.has("place") else str(info.get("name", ""))
 	_rebuild_travel()
 	visible = true
 	_time = 0.0

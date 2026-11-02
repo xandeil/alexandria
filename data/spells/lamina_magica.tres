@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/magic/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/lamina_magica.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lamina_magica"
+display_name = "Lâmina Mágica"
+description = "Um corte de luz à sua frente, curto e rápido."
+kind = 5
+icon = ExtResource("2_icon")
+max_stack = 1
+school = "feitico"
+form = "frente"
+damage_type = "magia"
+stamina_cost = 22.0
+cast_time = 0.3
+power = 42.0
+reach = 36.0
+color = Color(0.6, 0.75, 1, 1)

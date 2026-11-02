@@ -13,6 +13,8 @@ const ICON_MEMORY := preload("res://assets/ui/icon_memory.png")
 const ICON_PAUSE := preload("res://assets/ui/icon_pause.png")
 
 var dialogue: DialogueBox
+## v0.41 (Etapa 5): a tela de digitar o nome (teclado, celular e controle).
+var name_entry: NameEntry
 var level_up_menu: LevelUpMenu
 var smith_menu: SmithMenu
 var rest_menu: RestMenu
@@ -32,6 +34,8 @@ var _health_flask_label: Label
 var _sanity_label: Label
 var _memory_label: Label
 var _boss_bar: BossBar
+## A segunda barra (luta em dupla: Os Sebastiões), logo abaixo da primeira.
+var _partner_bar: BossBar
 var _speech: Label
 var _area_title: Label
 var _area_subtitle: Label
@@ -80,6 +84,8 @@ func _ready() -> void:
 	inventory_menu = InventoryMenu.new()
 	add_child(inventory_menu)
 	pause_menu.inventory_menu = inventory_menu
+	name_entry = NameEntry.new()
+	add_child(name_entry)
 	_build_item_log()
 	Game.item_added.connect(show_item_gained)
 	Game.sanity_flasks_changed.connect(func(count: int): _sanity_label.text = "x%d" % count)
@@ -128,6 +134,13 @@ func _process(delta: float) -> void:
 		_vision_material.set_shader_parameter("aspect", view.x / view.y)
 	if is_instance_valid(_boss) and _boss_bar.visible:
 		_boss_bar.set_ratio(_boss.stats.health_ratio())
+		var partner := _boss.partner_bar()
+		_partner_bar.visible = not partner.is_empty()
+		if _partner_bar.visible:
+			_partner_bar.boss_name = str(partner.get("name", ""))
+			_partner_bar.set_ratio(float(partner.get("ratio", 0.0)))
+	elif _partner_bar.visible:
+		_partner_bar.visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -170,7 +183,7 @@ func _refresh_pause_button() -> void:
 ## mas abrir o menu por cima da tela "VOCÊ ESQUECEU" só confunde).
 func can_pause() -> bool:
 	if cutscene or get_tree().paused or Fader.busy or dialogue.visible or level_up_menu.visible or smith_menu.visible or inventory_menu.visible \
-			or rest_menu.visible or shop_menu.visible:
+			or rest_menu.visible or shop_menu.visible or name_entry.visible:
 		return false
 	return is_instance_valid(_player) and not _player.is_dead()
 
@@ -274,6 +287,15 @@ func _build_boss_bar() -> void:
 	_boss_bar.offset_bottom = 40
 	_boss_bar.visible = false
 	add_child(_boss_bar)
+	_partner_bar = BossBar.new()
+	_partner_bar.anchor_left = 0.5
+	_partner_bar.anchor_right = 0.5
+	_partner_bar.offset_left = -92
+	_partner_bar.offset_right = 92
+	_partner_bar.offset_top = 30
+	_partner_bar.offset_bottom = 64
+	_partner_bar.visible = false
+	add_child(_partner_bar)
 	_speech = UIStyle.label("", 9, Color(0.95, 0.88, 0.85))
 	_speech.anchor_left = 0.5
 	_speech.anchor_right = 0.5
@@ -496,6 +518,8 @@ func show_boss(boss: Boss) -> void:
 	_boss_bar.trail = 1.0
 	_boss_bar.armor = boss.armor_ratio()
 	_boss_bar.visible = true
+	_partner_bar.ratio = 1.0
+	_partner_bar.trail = 1.0
 	_boss_bar.modulate.a = 0.0
 	create_tween().tween_property(_boss_bar, "modulate:a", 1.0, 0.6)
 	if boss.has_meta("hud_bound"):

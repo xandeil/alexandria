@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ButtonData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/button_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/botao_giz.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "botao_giz"
+display_name = "Botão de Giz"
+description = "Branco de giz. Caiu do paletó numa aula que nunca acabou."
+kind = 6
+icon = ExtResource("2_icon")
+max_stack = 1
+effects = {"custo_magia": 0.2}
+effect_text = "Magias custam 20% menos estamina."

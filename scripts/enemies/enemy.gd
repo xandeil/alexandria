@@ -12,6 +12,15 @@ extends CharacterBody2D
 
 signal defeated(enemy: Enemy)
 
+## Força da ÁREA (v0.31, Etapa 2 — mapa livre): Raízes, Montanha e Domínio
+## podem ser visitados cedo, então os inimigos de lá são mais fortes de
+## verdade. Multiplica a vida (aqui) e o dano (no herói, Player._on_hit_received).
+## Quem define é a fase (Level.enemy_power), antes do inimigo entrar na cena.
+var area_power := 1.0
+## Alarme (gatilho de zona): o alcance de antes de ser chamado (-1 = não está).
+var _alert_base_range := -1.0
+var _alert_token := 0
+
 @export_group("Recompensa")
 ## Memórias ganhas ao derrotar (moeda + XP).
 @export var memory_reward := 40
@@ -75,7 +84,7 @@ func _ready() -> void:
 ## Quem não é "inimigo de verdade" (crianças do Prólogo, o bezerro que morre
 ## por contagem) devolve false em scales_with_cycle().
 func _apply_cycle() -> void:
-	var factor := Game.difficulty()
+	var factor := Game.difficulty() * area_power
 	if factor <= 1.0 or not scales_with_cycle():
 		return
 	stats.health_scale *= factor
@@ -84,6 +93,13 @@ func _apply_cycle() -> void:
 
 func scales_with_cycle() -> bool:
 	return true
+
+
+## Quanto o golpe de quem bateu é multiplicado pela força da área (1 = normal).
+## Serve para golpes diretos e para projéteis (o "source" do tiro é o atirador).
+static func power_of(source: Variant) -> float:
+	var enemy := source as Enemy if is_instance_valid(source) else null
+	return enemy.area_power if enemy and enemy.scales_with_cycle() else 1.0
 
 
 ## A mira assistida do herói ignora quem não é alvo válido.
@@ -98,8 +114,30 @@ func find_target() -> Player:
 	return player
 
 
+## ALARME (v0.31): um gatilho de zona chamou. Por alguns segundos o inimigo
+## "vê" o herói de qualquer lugar (alcance enorme, sem precisar de linha de
+## visão) — a IA de cada um continua a mesma, só a percepção muda.
+func alert(seconds: float = 8.0) -> void:
+	if _alert_base_range < 0.0:
+		_alert_base_range = aggro_range
+	aggro_range = maxf(_alert_base_range, 2000.0)
+	_alert_token += 1
+	var token := _alert_token
+	await get_tree().create_timer(seconds, false).timeout
+	if is_instance_valid(self) and token == _alert_token:
+		aggro_range = _alert_base_range
+		_alert_base_range = -1.0
+
+
+func is_alerted() -> bool:
+	return _alert_base_range >= 0.0
+
+
 ## Linha de visão: um raio contra a camada "mundo" (paredes/obstáculos).
+## Alarmado, enxerga através de tudo (alguém gritou onde você está).
 func can_see(point: Vector2) -> bool:
+	if is_alerted():
+		return true
 	var query := PhysicsRayQueryParameters2D.create(global_position + Vector2(0, -6), point + Vector2(0, -6), 1)
 	query.exclude = [get_rid()]
 	return get_world_2d().direct_space_state.intersect_ray(query).is_empty()
@@ -305,7 +343,7 @@ func _on_died() -> void:
 	set_deferred("collision_layer", 0)
 	set_deferred("collision_mask", 0)
 	hurtbox.set_deferred("monitorable", false)
-	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02) * (1.0 + Game.armor_bonus("memoria"))))
+	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02) * (1.0 + Game.armor_bonus("memoria") + Game.button_bonus("memoria"))))
 	Game.earn_memories(reward)
 	var player := find_target()
 	if player:

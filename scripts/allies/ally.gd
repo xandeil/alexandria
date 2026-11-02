@@ -1,17 +1,45 @@
-class_name GuardaAliado
+class_name Ally
 extends CharacterBody2D
-## O Guarda Sem Posto lutando ao seu lado (Bíblia: "Ele pode ser chamado para
-## ajudar contra alguns mini-chefes").
+## BASE DOS ALIADOS (v0.31, Etapa 1) — extraída do antigo Guarda Sem Posto
+## (que virou o Heitor na Etapa 8).
+## Todo companheiro que luta ao seu lado herda daqui: Lúcia, Galeno, Tião,
+## Bastião, Heitor... Cada um só escolhe a aparência, os números e o que
+## acontece quando cai (o gancho _on_fall).
 ##
-## Regras simples e legíveis:
+## NÍVEL: Game.ally_level(ally_id). Cada chefe (ou mini-chefe) vencido com o
+## aliado em pé = +1 nível (Level chama Game.raise_ally). Cada nível acima do 1
+## soma LEVEL_BONUS à vida e ao dano. Cair NÃO tira nível.
+##
+## ARENAS: por padrão, aliado não entra nas arenas dos Pecados. A opção "Lute
+## comigo" (ação de diálogo "lute_comigo:<id>") liga a flag "<id>_na_arena" e
+## ele entra na PRÓXIMA luta de chefe. Ou: can_enter_arenas = true, sempre.
+##
+## Regras de luta simples e legíveis:
 ##   • Segue você de perto. Inimigo perto de VOCÊ? Ele vai até o inimigo e corta.
 ##   • Os golpes dele são HitInfo como os seus (o inimigo não sabe a diferença).
 ##   • Os golpes dos inimigos acertam ele também (a hurtbox dele está na mesma
 ##     camada que a sua). Os inimigos não o escolhem como alvo: ele se põe no meio.
-##   • Caiu de joelhos? Recua para o Teatro. Fale com ele lá para chamar de novo.
+##   • Caiu de joelhos? Some (cada aliado decide para onde volta: _on_fall).
 
-const FRAMES := preload("res://assets/sprites/guarda_frames.tres")
 const SHADOW := preload("res://assets/fx/shadow.png")
+## +15% de vida e de dano por nível acima do 1.
+const LEVEL_BONUS := 0.15
+## Todos os aliados do jogo: id → script. Level usa para chamar quem está
+## acompanhando ("<id>_acompanha") ou foi chamado para a arena ("<id>_na_arena").
+const REGISTRY := {
+	"lucia": "res://scripts/allies/lucia_aliada.gd",
+	"galeno": "res://scripts/allies/galeno_aliado.gd",
+	"tiao": "res://scripts/allies/tiao_aliado.gd",
+	"bastiao": "res://scripts/allies/bastiao_aliado.gd",
+	"heitor": "res://scripts/allies/heitor_aliado.gd",
+}
+
+## Quem é (o id do save: "heitor", "lucia"...).
+var ally_id := ""
+var display_name := ""
+var frames: SpriteFrames
+## true = entra nas arenas dos Pecados sem precisar de "Lute comigo".
+var can_enter_arenas := false
 
 @export var max_health := 160.0
 @export var move_speed := 78.0
@@ -35,16 +63,27 @@ var _cooldown := 0.0
 var _side := 1.0
 
 
-static func spawn(parent: Node, near: Player) -> GuardaAliado:
-	var guard := GuardaAliado.new()
-	guard.player = near
-	guard.position = near.position + Vector2(-18, 6)
-	parent.add_child(guard)
-	return guard
+## Cria o aliado pelo id (REGISTRY) ao lado do herói.
+static func spawn_by_id(id: String, parent: Node, near: Player) -> Ally:
+	if not REGISTRY.has(id):
+		return null
+	var ally := (load(REGISTRY[id]) as GDScript).new() as Ally
+	ally.player = near
+	ally.position = near.position + Vector2(-18, 6)
+	parent.add_child(ally)
+	return ally
+
+
+## Multiplicador de vida e dano do nível atual (nível 1 = 1.0).
+func level_multiplier() -> float:
+	return 1.0 + LEVEL_BONUS * (Game.ally_level(ally_id) - 1)
 
 
 func _ready() -> void:
 	add_to_group(&"allies")
+	_setup()
+	max_health *= level_multiplier()
+	strike_damage *= level_multiplier()
 	health = max_health
 	collision_layer = 0  # não empurra você nem os inimigos
 	collision_mask = 1  # mas respeita paredes
@@ -60,7 +99,7 @@ func _ready() -> void:
 	shadow.position = Vector2(0, -1)
 	add_child(shadow)
 	_sprite = AnimatedSprite2D.new()
-	_sprite.sprite_frames = FRAMES
+	_sprite.sprite_frames = frames
 	_sprite.offset = Vector2(0, -11)
 	_sprite.play(&"idle")
 	add_child(_sprite)
@@ -143,7 +182,7 @@ func _strike() -> void:
 		var info := HitInfo.create(strike_damage, global_position, enemy.global_position)
 		info.knockback = 110.0
 		info.poise_damage = 18.0
-		info.attack_name = "Espada do Guarda"
+		info.attack_name = display_name
 		info.source = self
 		enemy.hurtbox.receive_hit(info)
 
@@ -158,20 +197,40 @@ func _on_hit(info: HitInfo) -> void:
 		fall()
 
 
-## Caiu de joelhos: avisa, some aos poucos e volta para o Teatro.
+## Caiu de joelhos: avisa, some aos poucos (o gancho _on_fall diz o resto).
 func fall() -> void:
 	fallen = true
 	_hurtbox.set_deferred("monitorable", false)
-	Game.flags["guarda_acompanha"] = false
-	_sprite.play(&"caido")
+	if _sprite.sprite_frames and _sprite.sprite_frames.has_animation(&"caido"):
+		_sprite.play(&"caido")
 	Sfx.play(&"hit_heavy", -4.0)
+	var message := _on_fall()
 	var level := Level.find(self)
-	if level and level.hud:
-		level.hud.toast("O Guarda caiu de joelhos. Ele volta para o Teatro.")
+	if level and level.hud and not message.is_empty():
+		level.hud.toast(message)
 	var tween := create_tween()
 	tween.tween_interval(1.2)
 	tween.tween_property(self, "modulate:a", 0.0, 1.0)
 	tween.tween_callback(queue_free)
+
+
+# --- Ganchos de cada aliado -----------------------------------------------------------
+
+## Aparência e números (ally_id, display_name, frames, max_health, strike_damage...).
+func _setup() -> void:
+	pass
+
+
+## Venceram juntos (chefe ou mini-chefe, ele de pé). O nível sobe na base;
+## aqui cada aliado soma o que é dele (os fragmentos do Galeno...).
+func _on_victory() -> void:
+	pass
+
+
+## Caiu: o que muda no save, e o aviso na tela ("" = nenhum).
+func _on_fall() -> String:
+	Game.flags["%s_acompanha" % ally_id] = false
+	return ""
 
 
 func _update_visual() -> void:
@@ -182,5 +241,5 @@ func _update_visual() -> void:
 		anim = &"golpe"
 	elif velocity.length() > 8.0:
 		anim = &"walk"
-	if _sprite.animation != anim:
+	if _sprite.animation != anim and _sprite.sprite_frames and _sprite.sprite_frames.has_animation(anim):
 		_sprite.play(anim)

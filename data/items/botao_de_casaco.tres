@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/botao_de_casaco.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "botao_de_casaco"
+display_name = "Botão de Casaco"
+description = "Arrancado de um casaco de inverno. A linha ainda está presa nele.
+Alguém puxava quando ficava nervoso."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1

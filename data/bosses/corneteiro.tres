@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/boss_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "corneteiro"
+display_name = "O Corneteiro"
+title = "Mini-chefe opcional da Cidade Estilhaçada"
+sin = "Mini-chefe"
+sin_meaning = "Ira"
+race = "Humano"
+attribute = "—"
+area = "Cidade Estilhaçada"
+scaling = "—"
+suggested_order = "Opcional — no alto da Torre"
+memory_reward = 450
+implemented = true
+unique_mechanic = "O toque da corneta é um anel que se espalha e chama três soldados. Vencido, os soldados da Cidade não voltam mais."
+phases = Array[String](["Sabre e estocada; toca a corneta (anel de som) e chama três Soldados Remendados."])
+history = "Tocava o recolher todas as noites. Ninguém nunca voltou para dentro."
+meaning = "Silenciar quem chama é acabar com o chamado."

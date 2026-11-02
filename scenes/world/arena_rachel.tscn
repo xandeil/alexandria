@@ -14,7 +14,7 @@ ambience = &"amb_volcano"
 darkness = Color(0.92, 0.72, 0.64, 1)
 outdoor = true
 arena_rect_tiles = Rect2i(6, 3, 28, 18)
-exit_scene = "res://scenes/world/montanha.tscn"
+exit_scene = "res://scenes/world/montanha_encosta.tscn"
 exit_spawn = "lateral"
 lore_points = {"1": "o_ninho"}
 

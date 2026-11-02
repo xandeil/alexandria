@@ -38,8 +38,12 @@ signal item_added(id: String, count: int)
 signal weapon_upgraded(level: int)
 ## Gravou o save no disco (o HUD mostra um aviso discreto).
 signal saved
+## Uma flag de história mudou (portas e NPCs que dependem dela se atualizam).
+signal flags_changed
 ## Trocou a arma da mão direita (o herói troca o sprite e os golpes).
 signal weapon_changed(id: String)
+## v0.50: a magia equipada mudou ("" = nenhuma).
+signal spell_changed(id: String)
 ## Vestiu ou tirou uma peça de armadura (o herói recalcula vida e velocidade).
 signal armor_changed
 
@@ -109,27 +113,36 @@ const BASE_LIGHT := preload("res://data/attacks/player_light_1.tres")
 const BASE_HEAVY := preload("res://data/attacks/player_heavy.tres")
 
 ## O que cada chefe deixa ao ser vencido PELA PRIMEIRA VEZ (além das memórias).
+## v0.34 (Etapa 4): o 1º mini-chefe de cada ilha guarda a CALÇA do conjunto
+## de lá. As outras peças: capacete e luvas nos baús, peitoral no mímico, botas
+## em outra ilha (Level.pickups).
 const BOSS_REWARDS := {
 	"cavaleiro": {"lembranca_cavaleiro": 1},
+	"corneteiro": {"botao_corneteiro": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
+	"sino": {"botao_sino": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
+	"dancarina": {"botao_engrenagem": 1, "caixa_musica_bronze": 1, "sucata_temperada": 5},
+	"socorro": {"botao_socorro": 1, "sucata_temperada": 5},
+	"ultimo_igual": {"botao_corrente": 1, "corrente_igual": 1, "sucata_temperada": 6},
+	"mestre_arconte": {"botao_giz": 1, "fragmento_turvo": 1, "sucata_temperada": 6},
 	"governanta": {"lembranca_governanta": 1},
-	"sargento": {"apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
+	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"aldir": {"lembranca_aldir": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
-	"helena": {"lembranca_helena": 1, "fragmento_turvo": 1},
-	"vigia": {"fragmento_turvo": 1, "sucata_temperada": 3},
+	"helena": {"botao_vestido": 1, "lembranca_helena": 1, "fragmento_turvo": 1},
+	"vigia": {"calca_sono": 1, "fragmento_turvo": 1, "sucata_temperada": 3},
 	"mae_esporos": {"fragmento_turvo": 1, "sucata_temperada": 2},
 	"nyssa": {"lembranca_nyssa": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
-	"banqueteiro": {"fragmento_turvo": 1, "sucata_temperada": 3},
+	"banqueteiro": {"calca_banquete": 1, "fragmento_turvo": 1, "sucata_temperada": 3},
 	"ninhada": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"mabel": {"lembranca_mabel": 1, "fragmento_turvo": 1, "sucata_temperada": 5},
-	"prototipo": {"sucata_temperada": 4},
+	"prototipo": {"calca_eco": 1, "sucata_temperada": 4},
 	"guardiao_ancora": {"fragmento_turvo": 1, "sucata_temperada": 4},
 	"durgan": {"lembranca_durgan": 1, "fragmento_turvo": 1, "sucata_temperada": 8},
 	"capitao": {"fragmento_turvo": 1, "sucata_temperada": 4},
-	"matriarca": {"fragmento_turvo": 1, "sucata_temperada": 4},
+	"matriarca": {"calca_caelis": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
 	"rachel": {"lembranca_rachel": 1, "fragmento_turvo": 2, "sucata_temperada": 10},
 	"curadora": {"fragmento_turvo": 1, "sucata_temperada": 4},
-	"golem_arquivo": {"fragmento_turvo": 1, "sucata_temperada": 5},
+	"golem_arquivo": {"calca_arconte": 1, "fragmento_turvo": 1, "sucata_temperada": 5},
 	"cassian": {"lembranca_cassian": 1, "fragmento_turvo": 2, "sucata_temperada": 12},
 }
 
@@ -154,6 +167,13 @@ var left_hand := ""
 var two_handing := false
 ## Arma na mão direita (id do catálogo; sempre uma arma que você tem).
 var equipped_weapon := START_WEAPON
+## v0.50 (Etapa 10): a magia que o botão Magia lança ("" = nenhuma).
+var equipped_spell := ""
+## v0.53 (Etapa 12): a LATA DE BOTÕES — 4 espaços ("" = vazio). Só funciona o
+## botão que está aqui dentro. Morrer não tira nada da lata.
+const BUTTON_SLOTS := 4
+var button_slots: Array[String] = ["", "", "", ""]
+signal buttons_changed
 ## Armadura vestida: espaço do corpo ("capacete"...) → id da peça ("" = nada).
 var armor := {}
 ## NG+ (v0.27): 0 = a primeira jornada; 1 = NG+, 2 = NG++...
@@ -178,6 +198,16 @@ var flags := {}
 ## (o número é a ordem do inimigo no mapa). Eles NÃO voltam ao trocar de área —
 ## só ao descansar numa Câmara ou ao morrer (regra do Dark Souls, v0.30.7).
 var slain := {}
+## Mortos PARA SEMPRE (nem descanso nem morte trazem de volta): o mesmo formato.
+## Ex.: os soldados da Cidade depois de vencer o Corneteiro (Etapa 6).
+var slain_forever := {}
+## Nome do herói (v0.31): ele acorda sem nome; a Governanta pergunta. "" = ainda sem nome.
+var player_name := ""
+## Objetos do mundo que LEMBRAM o estado (alavanca puxada, baú aberto, atalho
+## aberto): {"chave": valor}. Não voltam ao descansar nem ao morrer.
+var world_state := {}
+## Nível de cada aliado ({"heitor": 2}): sobe ao vencer um chefe com ele junto.
+var ally_levels := {}
 ## Aparência escolhida na criação de personagem (ver Appearance).
 var appearance := Appearance.default_data()
 ## Id do ponto onde o herói aparece na próxima área carregada.
@@ -263,6 +293,10 @@ func reset_progress() -> void:
 		attributes[attribute] = StatsComponent.BASE_ATTRIBUTE
 	defeated_bosses.clear()
 	slain = {}
+	slain_forever = {}
+	player_name = ""
+	world_state = {}
+	ally_levels = {}
 	appearance = Appearance.default_data()
 	rest_scene = START_SCENE
 	rest_spawn = START_SPAWN
@@ -275,6 +309,8 @@ func reset_progress() -> void:
 	inventory = {}
 	weapon_level = 0
 	equipped_weapon = START_WEAPON
+	equipped_spell = ""
+	button_slots.assign(["", "", "", ""])
 	left_hand = ""
 	two_handing = false
 	armor = _empty_armor()
@@ -366,10 +402,19 @@ func try_level_up(attribute: String) -> bool:
 ## Registra uma morte e devolve quantas memórias foram perdidas.
 ## É chamada NO INSTANTE da morte (e salva na hora): fechar o app ou voltar ao
 ## título durante a animação não pode apagar a punição.
+## Botão de Socorro: quanto da vida máxima cada golpe seu devolve, e quanto
+## a morte cobra a mais.
+const SOCORRO_HEAL_RATIO := 0.02
+const SOCORRO_LOSS_MULTIPLIER := 1.5
+
+
 func register_death() -> int:
 	deaths += 1
 	vision_loss = mini(vision_loss + 1, MAX_VISION_LOSS)
-	var lost := int(floor(memories * MEMORY_LOSS_RATIO))
+	# Botão de Socorro (v0.35): cura a cada golpe, mas a morte cobra mais.
+	# v0.53: só vale DENTRO da Lata de Botões.
+	var ratio := MEMORY_LOSS_RATIO * (SOCORRO_LOSS_MULTIPLIER if button_on("socorro") else 1.0)
+	var lost := int(floor(memories * minf(ratio, 1.0)))
 	memories -= lost
 	deaths_changed.emit(deaths)
 	vision_changed.emit(vision_loss)
@@ -424,58 +469,177 @@ const SELL_PRICES := {"sucata_temperada": 60, "fragmento_turvo": 300}
 ## Depois que a Rachel cai, ele "vende mais barato. Só um pouco." (diálogo dele)
 const RACHEL_DISCOUNT := 0.8
 
-## Quantos de cada item com limite você já comprou (id → quantidade).
+## v0.49 (Etapa 10) — LOJA DO DAMIÃO, o Sucateiro: sempre mais barata; o
+## estoque cresce com as ilhas ("quando"); compra Algo Quebrado.
+const DAMIAO_STOCK := [
+	{"id": "botao_cerzido", "preco": 900, "limite": 1},
+	{"id": "sucata_temperada", "preco": 160},
+	{"id": "meio_pingente", "preco": 40, "limite": 1},
+	{"id": "fragmento_turvo", "preco": 750, "limite": 2, "quando": "aldir"},
+	{"id": "lanca_cobaia", "preco": 600, "limite": 1, "quando": "nyssa"},
+	{"id": "arco_cobaia", "preco": 600, "limite": 1, "quando": "mabel"},
+	{"id": "martelo_cobaia", "preco": 700, "limite": 1, "quando": "durgan"},
+]
+const DAMIAO_BUYS := {"sucata_temperada": 70, "fragmento_turvo": 320, "algo_quebrado": 150}
+## "Desconto pra quem salvou minha vida! ...Pequeno. Desconto pequeno."
+const DAMIAO_THANKS_DISCOUNT := 0.9
+## O Fragmento de Loja (a mochila dele) entregue ao Vendedor: ele passa a vender
+## o estoque do Damião e baixa os próprios preços.
+const INHERITED_DISCOUNT := 0.85
+## v0.51 (Etapa 10) — DALVA (feitiços): estoque ÚNICO — cada coisa vendida ela
+## esquece, e some da loja ("some": true). O último, o feitiço "Dalva".
+const DALVA_STOCK := [
+	{"id": "botao_tunica_azul", "preco": 1500, "limite": 1},
+	{"id": "projetil_arcano", "preco": 900, "limite": 1},
+	{"id": "lamina_magica", "preco": 1100, "limite": 1},
+	{"id": "escudo_de_geada", "preco": 1300, "limite": 1},
+	{"id": "capacete_aprendiz", "preco": 500, "limite": 1},
+	{"id": "peitoral_aprendiz", "preco": 800, "limite": 1},
+	{"id": "luvas_aprendiz", "preco": 400, "limite": 1},
+	{"id": "calca_aprendiz", "preco": 500, "limite": 1},
+	{"id": "botas_aprendiz", "preco": 400, "limite": 1},
+	{"id": "feitico_dalva", "preco": 4000, "limite": 1},
+]
+## CÍCERO (piromancias): "Rua em Chamas" só se ele guardou a chama.
+const CICERO_STOCK := [
+	{"id": "botao_bombeiro", "preco": 1200, "limite": 1},
+	{"id": "bola_de_fogo", "preco": 1000},
+	{"id": "chicote_de_chamas", "preco": 1200},
+	{"id": "explosao_curta", "preco": 1500},
+	{"id": "rua_em_chamas", "preco": 3500, "quando": "flag:chama_guardada"},
+	{"id": "peitoral_bombeiro", "preco": 1200, "limite": 1},
+	{"id": "luvas_bombeiro", "preco": 600, "limite": 1},
+	{"id": "calca_bombeiro", "preco": 800, "limite": 1},
+	{"id": "botas_bombeiro", "preco": 600, "limite": 1},
+]
+## BENEDITA (milagres).
+const BENEDITA_STOCK := [
+	{"id": "botao_romeira", "preco": 1200, "limite": 1},
+	{"id": "milagre_cura", "preco": 1000},
+	{"id": "lanca_de_raio", "preco": 1300},
+	{"id": "milagre_barreira", "preco": 1400},
+	{"id": "cura_em_area", "preco": 2200, "quando": "memorias:3"},
+	{"id": "tempestade", "preco": 3800, "quando": "memorias:5"},
+	{"id": "capacete_romeira", "preco": 500, "limite": 1},
+	{"id": "peitoral_romeira", "preco": 800, "limite": 1},
+	{"id": "luvas_romeira", "preco": 400, "limite": 1},
+	{"id": "calca_romeira", "preco": 500, "limite": 1},
+	{"id": "botas_romeira", "preco": 400, "limite": 1},
+]
+## Todas as lojas: id → quem é, o que vende e o que compra. ShopMenu.run(…, id).
+## "some": o que esgota sai da lista (a Dalva esquece). "venda": a fala ao vender.
+const MERCHANTS := {
+	"vendedor": {"nome": "Vendedor Dragonoide", "retrato": "res://assets/sprites/npc_vendedor.png",
+		"fala": "\"Memórias por tralhas, tralhas por memórias. É assim que se vive aqui.\"",
+		"cor": Color(0.86, 0.46, 0.28), "estoque": SHOP_STOCK, "compra": SELL_PRICES},
+	"damiao": {"nome": "Damião, o Sucateiro", "retrato": "res://assets/sprites/damiao_npc.png",
+		"fala": "\"Achado não é roubado! Achado é... achado. É outra coisa.\"",
+		"cor": Color(0.74, 0.62, 0.38), "estoque": DAMIAO_STOCK, "compra": DAMIAO_BUYS},
+	"dalva": {"nome": "Dona Dalva", "retrato": "res://assets/sprites/dalva_npc.png",
+		"fala": "\"Eu não escrevo nada. Escrever é guardar. Ensinar é soltar.\"",
+		"venda": "\"Pronto, leva. ...Leva o quê? Ah. Já foi. Bom sinal.\"",
+		"cor": Color(0.42, 0.56, 0.92), "estoque": DALVA_STOCK, "compra": {}, "some": true},
+	"cicero": {"nome": "Seu Cícero", "retrato": "res://assets/sprites/cicero_npc.png",
+		"fala": "\"Eu apagava fogo. Agora vendo fogo. Pode rir. Eu rio também, de vez em quando.\"",
+		"cor": Color(0.9, 0.42, 0.2), "estoque": CICERO_STOCK, "compra": {}},
+	"benedita": {"nome": "Dona Benedita", "retrato": "res://assets/sprites/benedita_npc.png",
+		"fala": "\"Ajoelha, filho. Não precisa rezar. Só ajoelha. Já ajuda.\"",
+		"cor": Color(0.86, 0.76, 0.4), "estoque": BENEDITA_STOCK, "compra": {}},
+}
+
+## Quantos de cada item com limite você já comprou ("id", ou "loja:id" nas
+## outras lojas) → quantidade.
 var shop_bought := {}
 
 
-func shop_price(item_id: String) -> int:
-	for entry: Dictionary in SHOP_STOCK:
+## O que esta loja tem agora (as linhas cujo "quando" vale).
+func merchant_stock(merchant: String = "vendedor") -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var lists: Array = [MERCHANTS[merchant]["estoque"]]
+	if merchant == "vendedor" and has_flag("dado_fragmento_de_loja"):
+		lists.append(DAMIAO_STOCK)  # a loja herdada
+	for list: Array in lists:
+		for entry: Dictionary in list:
+			if requirement_met(str(entry.get("quando", ""))) and not result.any(func(e): return e["id"] == entry["id"]):
+				if MERCHANTS[merchant].get("some", false) and entry.has("limite") \
+						and int(shop_bought.get(_bought_key(entry["id"], merchant), 0)) >= int(entry["limite"]):
+					continue  # a Dalva esqueceu: some da loja
+				result.append(entry)
+	return result
+
+
+func _stock_entry(item_id: String, merchant: String) -> Dictionary:
+	for entry: Dictionary in merchant_stock(merchant):
 		if entry["id"] == item_id:
-			var price := int(entry["preco"])
-			return int(round(price * RACHEL_DISCOUNT)) if is_boss_defeated("rachel") else price
-	return 0
+			return entry
+	return {}
+
+
+func _bought_key(item_id: String, merchant: String) -> String:
+	return item_id if merchant == "vendedor" else "%s:%s" % [merchant, item_id]
+
+
+func shop_price(item_id: String, merchant: String = "vendedor") -> int:
+	var entry := _stock_entry(item_id, merchant)
+	if entry.is_empty():
+		return 0
+	var price := float(entry["preco"])
+	if merchant == "vendedor":
+		if is_boss_defeated("rachel"):
+			price *= RACHEL_DISCOUNT
+		if has_flag("dado_fragmento_de_loja"):
+			price *= INHERITED_DISCOUNT
+	elif merchant == "damiao" and DAMIAO_TRIPS.any(func(d): return has_flag("damiao_salvo_" + d)):
+		price *= DAMIAO_THANKS_DISCOUNT
+	return int(round(price))
 
 
 ## Quantos ainda restam (-1 = infinito).
-func shop_left(item_id: String) -> int:
-	for entry: Dictionary in SHOP_STOCK:
-		if entry["id"] == item_id and entry.has("limite"):
-			return maxi(int(entry["limite"]) - int(shop_bought.get(item_id, 0)), 0)
+func shop_left(item_id: String, merchant: String = "vendedor") -> int:
+	var entry := _stock_entry(item_id, merchant)
+	if entry.has("limite"):
+		return maxi(int(entry["limite"]) - int(shop_bought.get(_bought_key(item_id, merchant), 0)), 0)
 	return -1
 
 
 ## "" = pode comprar; senão o motivo: "memories", "esgotado" ou "cheio".
-func shop_block_reason(item_id: String) -> String:
-	if shop_left(item_id) == 0:
+func shop_block_reason(item_id: String, merchant: String = "vendedor") -> String:
+	if shop_left(item_id, merchant) == 0:
 		return "esgotado"
 	var item := Items.get_item(item_id)
 	if item_id != "frasco_sanidade" and item and item_count(item_id) >= item.max_stack:
 		return "cheio"
-	if memories < shop_price(item_id):
+	if memories < shop_price(item_id, merchant):
 		return "memories"
 	return ""
 
 
-func buy_from_shop(item_id: String) -> bool:
-	if shop_block_reason(item_id) != "":
+func buy_from_shop(item_id: String, merchant: String = "vendedor") -> bool:
+	if _stock_entry(item_id, merchant).is_empty() or shop_block_reason(item_id, merchant) != "":
 		return false
-	spend_memories(shop_price(item_id))
+	spend_memories(shop_price(item_id, merchant))
 	if item_id == "frasco_sanidade":
 		sanity_flasks += 1  # o Frasco de Sanidade é um contador, não um item da mochila
 		sanity_flasks_changed.emit(sanity_flasks)
 	else:
 		add_item(item_id, 1, false)
-	if shop_left(item_id) >= 0:
-		shop_bought[item_id] = int(shop_bought.get(item_id, 0)) + 1
+	if shop_left(item_id, merchant) >= 0:
+		var key := _bought_key(item_id, merchant)
+		shop_bought[key] = int(shop_bought.get(key, 0)) + 1
+	if item_id == "feitico_dalva":
+		flags["dalva_vazia"] = true  # "...Bom dia! Quem é você? Quem sou eu?"
 	items_changed.emit()
 	save_game()
 	return true
 
 
-## Preço de venda (0 = o Vendedor não compra isso).
-func sell_price(item_id: String) -> int:
-	if SELL_PRICES.has(item_id):
-		return int(SELL_PRICES[item_id])
+## Preço de venda (0 = esta loja não compra isso).
+func sell_price(item_id: String, merchant: String = "vendedor") -> int:
+	var buys: Dictionary = MERCHANTS[merchant]["compra"]
+	if buys.has(item_id):
+		return int(buys[item_id])
+	if not merchant in ["vendedor", "damiao"]:
+		return 0  # v0.51: Dalva, Cícero e Benedita só vendem
 	var weapon := Items.get_weapon(item_id)
 	if weapon and item_id != START_WEAPON and item_id != FISTS:
 		return maxi(300, weapon.forge_memories / 3)
@@ -484,10 +648,10 @@ func sell_price(item_id: String) -> int:
 
 ## O que dá para vender agora: [{id, count, price}]. Lembranças, escudo e
 ## anel NÃO entram (são da história). Arma: só as cópias que não estão na mão.
-func sellable_items() -> Array[Dictionary]:
+func sellable_items(merchant: String = "vendedor") -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for item_id: String in Items.CATALOG:
-		var price := sell_price(item_id)
+		var price := sell_price(item_id, merchant)
 		if price <= 0:
 			continue
 		var count := _sellable_count(item_id)
@@ -503,8 +667,8 @@ func _sellable_count(item_id: String) -> int:
 	return maxi(item_count(item_id) - in_hands, 0)
 
 
-func sell_to_shop(item_id: String) -> bool:
-	var price := sell_price(item_id)
+func sell_to_shop(item_id: String, merchant: String = "vendedor") -> bool:
+	var price := sell_price(item_id, merchant)
 	if price <= 0 or _sellable_count(item_id) <= 0:
 		return false
 	remove_item(item_id, 1)
@@ -512,6 +676,48 @@ func sell_to_shop(item_id: String) -> bool:
 	items_changed.emit()
 	save_game()
 	return true
+
+
+# --- v0.49 (Etapa 10): as viagens do Damião --------------------------------------------
+## Liberadas com 3 memórias de chefe, nesta ordem. Ele avisa (falando com ele),
+## some no próximo descanso ou chefe vencido, e volta no seguinte — salvo, se a
+## missão do NPC daquela ilha não foi perdida; senão, morre lá (damiao_morto).
+const DAMIAO_TRIPS := ["cidade", "forjas", "raizes", "montanha"]
+## Quem perdeu a missão de cada ilha (aí ninguém o salva).
+const DAMIAO_DOOM := {
+	"cidade": "flag:lucia_congelada|flag:lucia_esquecida",
+	"forjas": "flag:galeno_morto",
+	"raizes": "flag:tiao_cinzento",
+	"montanha": "flag:bastiao_cinzento",
+}
+
+
+## O destino da próxima viagem ("" = acabaram).
+func damiao_destination() -> String:
+	var trip := int(flags.get("damiao_viagem", 0))
+	return DAMIAO_TRIPS[trip] if trip < DAMIAO_TRIPS.size() else ""
+
+
+## Chamado ao descansar e ao vencer um chefe (Level).
+func damiao_tick() -> void:
+	if not has_flag("mercador_damiao_encontrado") or has_flag("damiao_morto"):
+		return
+	var destination := damiao_destination()
+	if destination.is_empty():
+		return
+	if has_flag("damiao_fora"):
+		flags.erase("damiao_fora")
+		flags.erase("damiao_avisou")
+		if requirement_met(DAMIAO_DOOM[destination]):
+			flags["damiao_morto"] = true
+			flags["damiao_morreu_" + destination] = true
+		else:
+			flags["damiao_salvo_" + destination] = true
+			flags["damiao_viagem"] = int(flags.get("damiao_viagem", 0)) + 1
+		flags_changed.emit()
+		save_game()
+	elif has_flag("damiao_avisou"):
+		set_flag("damiao_fora")
 
 
 ## Compra genérica de item do Vendedor.
@@ -554,26 +760,128 @@ func seven_memories() -> int:
 	return SEVEN.filter(func(id): return defeated_bosses.has(id)).size()
 
 
-## Uma condição de porta: o id de um chefe, ou "sete" (as sete memórias juntas).
+## Uma CONDIÇÃO (de porta, de NPC, de fala). Um lugar só entende todas:
+##   ""                 sempre
+##   "aldir"            chefe vencido (o jeito antigo continua valendo)
+##   "chefe:aldir"      o mesmo, escrito por extenso
+##   "sete"             as sete memórias juntas
+##   "memorias:3"       pelo menos 3 memórias de chefe (0 a 7)
+##   "flag:atalho_galho"   uma flag de história ligada
+##   "item:flor_de_pedra"  ter o item
+##   "estado:bau_cidade_1" um objeto do mundo já acionado (world_state)
+##   "!flag:x"          o contrário de qualquer uma acima (o "!" na frente)
+##   "a+b"              todas juntas (E)    ·    "a|b"  qualquer uma (OU)
+## Ex.: "memorias:6|item:flor_de_pedra"  (como a Helena acorda, na Etapa 8).
 func requirement_met(requires: String) -> bool:
-	if requires.is_empty():
+	var text := requires.strip_edges()
+	if text.is_empty():
 		return true
-	if requires == "sete":
-		return seven_memories() == SEVEN.size()
-	return is_boss_defeated(requires)
+	if text.contains("|"):
+		for part in text.split("|"):
+			if requirement_met(part):
+				return true
+		return false
+	if text.contains("+"):
+		for part in text.split("+"):
+			if not requirement_met(part):
+				return false
+		return true
+	if text.begins_with("!"):
+		return not requirement_met(text.substr(1))
+	var kind := text.get_slice(":", 0) if text.contains(":") else ""
+	var value := text.get_slice(":", 1) if text.contains(":") else text
+	match kind:
+		"":
+			if value == "nome":  # v0.41: o herói já tem nome (a Governanta perguntou)
+				return not player_name.is_empty()
+			if value == "feriu":  # v0.47: feriu alguma criança no prólogo
+				return criancas_feridas > 0
+			if value == "sanidade":  # v0.47: tem Frasco de Sanidade
+				return sanity_flasks > 0
+			if value == "prologo":  # v0.47: o prólogo acabou (voltou ao laboratório)
+				return prologue_done
+			if value == "poupou":  # v0.48: ninguém ferido (o Tito é a Criança Poupada)
+				return spared_child
+			return seven_memories() == SEVEN.size() if value == "sete" else is_boss_defeated(value)
+		"chefe":
+			return is_boss_defeated(value)
+		"memorias":
+			return seven_memories() >= int(value)
+		"flag":
+			return has_flag(value)
+		"item":
+			return has_item(value)
+		"estado":
+			return world_flag(value)
+		"novo_chefe":  # v0.51: venceu mais chefes do que <flag> registra (Benedita)
+			return seven_memories() > int(flags.get(value, 0))
+		"final_anterior":  # v0.51: como acabou o ciclo passado (NG+)
+			return str(flags.get("final_anterior", "")) == value
+		"damiao":  # v0.49: o destino da próxima viagem do Damião
+			return damiao_destination() == value
+		"conta":  # v0.42: "conta:lucia_quedas:3" = o contador chegou a 3
+			return int(flags.get(value, 0)) >= int(text.get_slice(":", 2))
+	push_warning("Condição desconhecida: %s" % text)
+	return false
+
+
+# --- Estado dos objetos do mundo (alavancas, baús, atalhos) -------------------------
+
+## Acionado? (true, ou um estado com nome: "aberto", "quebrado"...).
+func world_flag(key: String) -> bool:
+	var value: Variant = world_state.get(key, false)
+	if value is String:
+		return not (value as String).is_empty()
+	return value == true
+
+
+## Quantos objetos do mundo estão num estado (ex.: baús "aberto" / "quebrado").
+func world_count(state: Variant) -> int:
+	return world_state.values().filter(func(v): return v == state).size()
+
+
+func set_world_state(key: String, value: Variant = true) -> void:
+	world_state[key] = value
+	flags_changed.emit()
+	save_game()
+
+
+# --- Aliados ------------------------------------------------------------------------
+
+func ally_level(ally_id: String) -> int:
+	return int(ally_levels.get(ally_id, 1))
+
+
+## Venceram um chefe juntos: o aliado fica mais forte (cair não tira nível).
+func raise_ally(ally_id: String) -> void:
+	ally_levels[ally_id] = ally_level(ally_id) + 1
+
+
+# --- Nome do herói --------------------------------------------------------------------
+
+## O nome ESCRITO (botões, terminal, menus): "{nome}" vira o nome digitado
+## (ou "..." se ainda não tem). Nunca em falas — o jogo é dublado.
+func spoken_name() -> String:
+	return player_name if not player_name.is_empty() else "..."
+
+
+func set_player_name(new_name: String) -> void:
+	player_name = new_name.strip_edges().left(16)
+	save_game()
 
 
 # --- Inimigos abatidos (só voltam ao descansar ou morrer) -------------------------------
 
-func mark_slain(scene_path: String, index: int) -> void:
-	var list: Array = slain.get(scene_path, [])
+func mark_slain(scene_path: String, index: int, forever: bool = false) -> void:
+	var book := slain_forever if forever else slain
+	var list: Array = book.get(scene_path, [])
 	if not list.has(index):
 		list.append(index)
-	slain[scene_path] = list
+	book[scene_path] = list
 
 
 func is_slain(scene_path: String, index: int) -> bool:
-	return (slain.get(scene_path, []) as Array).has(index)
+	return (slain.get(scene_path, []) as Array).has(index) or (slain_forever.get(scene_path, []) as Array).has(index)
 
 
 ## Descansou (ou morreu): o mundo inteiro volta a se encher.
@@ -584,61 +892,105 @@ func clear_slain() -> void:
 func set_rest_point(scene_path: String, spawn_id: String) -> void:
 	rest_scene = scene_path
 	rest_spawn = spawn_id
-	unlock_capsule(scene_path)
+	unlock_capsule(scene_path, spawn_id)
 	save_game()
 
 
 # --- Viagem entre Câmaras (menu de descanso) ------------------------------------------------
-## Todas as Câmaras para onde dá para viajar, na ordem da jornada.
-## O Prólogo fica de fora: ele é um caminho só de ida.
+## v0.33 (Etapa 3): 15 Câmaras — duas por ilha, mais Teatro, laboratório e Núcleo.
+## Cada uma é (cena, ponto): a 1ª "C" do mapa é o ponto "camara" (como sempre);
+## a 2ª é "camara_2". A CHAVE de uma Câmara (no save e no menu) é o caminho da
+## cena para a 1ª — exatamente como nos saves antigos — e "cena#camara_2" para a 2ª.
+## "island" agrupa no menu de viagem; "place" é o nome do lugar dentro da ilha.
 const CAPSULES := [
-	{"scene": "res://scenes/world/teatro.tscn", "name": "Teatro Alexandria", "thumb": "teatro"},
-	{"scene": "res://scenes/world/cidade.tscn", "name": "Cidade Estilhaçada", "thumb": "cidade"},
-	{"scene": "res://scenes/world/bosque.tscn", "name": "Bosque do Sono Eterno", "thumb": "bosque"},
-	{"scene": "res://scenes/world/raizes.tscn", "name": "Raízes da Fome", "thumb": "raizes"},
-	{"scene": "res://scenes/world/forjas.tscn", "name": "Forjas Ocas", "thumb": "forjas"},
-	{"scene": "res://scenes/world/montanha.tscn", "name": "Montanha Carbonizada", "thumb": "montanha"},
-	{"scene": "res://scenes/world/dominio.tscn", "name": "Domínio Congelado", "thumb": "dominio"},
-	{"scene": "res://scenes/world/nucleo.tscn", "name": "O Núcleo", "thumb": "nucleo"},
+	{"scene": "res://scenes/world/teatro.tscn", "spawn": "camara", "name": "Teatro Alexandria", "place": "Diante do palco", "island": "Teatro", "thumb": "teatro"},
+	{"scene": "res://scenes/world/prologo.tscn", "spawn": "camara", "name": "Complexo das Cápsulas", "place": "A sua cápsula", "island": "Laboratório", "thumb": "prologo"},
+	{"scene": "res://scenes/world/cidade.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Avenida em Chamas", "island": "Cidade", "thumb": "cidade"},
+	{"scene": "res://scenes/world/cidade_quartel.tscn", "spawn": "camara", "name": "Cidade Estilhaçada", "place": "Quartel Desabado", "island": "Cidade", "thumb": "cidade"},
+	{"scene": "res://scenes/world/bosque.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Margem do Lago", "island": "Bosque", "thumb": "bosque"},
+	{"scene": "res://scenes/world/bosque_dormitorio.tscn", "spawn": "camara", "name": "Bosque do Sono Eterno", "place": "Dormitório", "island": "Bosque", "thumb": "bosque"},
+	{"scene": "res://scenes/world/forjas.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Salão das Estátuas", "island": "Forjas", "thumb": "forjas"},
+	{"scene": "res://scenes/world/forjas_fornalha.tscn", "spawn": "camara", "name": "Forjas Ocas", "place": "Fornalha", "island": "Forjas", "thumb": "forjas"},
+	{"scene": "res://scenes/world/raizes.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Estufa 3", "island": "Raízes", "thumb": "raizes"},
+	{"scene": "res://scenes/world/raizes_despensa.tscn", "spawn": "camara", "name": "Raízes da Fome", "place": "Despensa", "island": "Raízes", "thumb": "raizes"},
+	{"scene": "res://scenes/world/montanha.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Floresta de Carvão", "island": "Montanha", "thumb": "montanha"},
+	{"scene": "res://scenes/world/montanha_ossario.tscn", "spawn": "camara", "name": "Montanha Carbonizada", "place": "Ossário", "island": "Montanha", "thumb": "montanha"},
+	{"scene": "res://scenes/world/dominio.tscn", "spawn": "camara", "name": "Domínio Congelado", "place": "Lago da Mesa de Chá", "island": "Domínio", "thumb": "dominio"},
+	{"scene": "res://scenes/world/dominio_arquivo.tscn", "spawn": "camara", "name": "Domínio Congelado", "place": "Arquivo", "island": "Domínio", "thumb": "dominio"},
+	{"scene": "res://scenes/world/nucleo.tscn", "spawn": "camara", "name": "O Núcleo", "place": "O Jardim", "island": "Núcleo", "thumb": "nucleo"},
 ]
 
 
-static func capsule_info(scene_path: String) -> Dictionary:
+## A chave de uma Câmara: "cena" para a 1ª ("camara"), "cena#ponto" para as outras.
+static func capsule_key(scene_path: String, spawn_id: String = "camara") -> String:
+	return scene_path if spawn_id == "camara" or spawn_id.is_empty() else "%s#%s" % [scene_path, spawn_id]
+
+
+static func _split_key(key: String) -> Array:
+	return [key.get_slice("#", 0), key.get_slice("#", 1) if key.contains("#") else "camara"]
+
+
+## A ficha de uma Câmara pela chave (ou pelo caminho da cena = a 1ª dela).
+static func capsule_info(key: String) -> Dictionary:
+	var parts := _split_key(key)
 	for info: Dictionary in CAPSULES:
-		if info["scene"] == scene_path:
-			return info
+		if info["scene"] == parts[0] and info["spawn"] == parts[1]:
+			var result := info.duplicate()
+			result["key"] = capsule_key(info["scene"], info["spawn"])
+			return result
 	return {}
 
 
 ## Descansou numa Câmara: ela passa a aparecer no menu de viagem.
-func unlock_capsule(scene_path: String) -> void:
-	if not capsule_info(scene_path).is_empty() and not capsules.has(scene_path):
-		capsules.append(scene_path)
+func unlock_capsule(scene_path: String, spawn_id: String = "camara") -> void:
+	var key := capsule_key(scene_path, spawn_id) if not scene_path.contains("#") else scene_path
+	if not capsule_info(key).is_empty() and not capsules.has(key):
+		capsules.append(key)
 
 
-## As Câmaras desbloqueadas, na ordem da jornada (não na ordem em que você achou).
+## As Câmaras desbloqueadas, na ordem do mapa (agrupadas por ilha), não na ordem em que você achou.
+## Câmaras que mudaram de fase na v0.35 (Etapa 6): chave antiga → fase nova
+## (a 1ª Câmara dela, "camara"). Saves antigos são convertidos ao carregar.
+const MOVED_CAPSULES := {
+	"res://scenes/world/cidade.tscn#camara_2": "res://scenes/world/cidade_quartel.tscn",
+	"res://scenes/world/bosque.tscn#camara_2": "res://scenes/world/bosque_dormitorio.tscn",
+	"res://scenes/world/forjas.tscn#camara_2": "res://scenes/world/forjas_fornalha.tscn",
+	"res://scenes/world/raizes.tscn#camara_2": "res://scenes/world/raizes_despensa.tscn",
+	"res://scenes/world/montanha.tscn#camara_2": "res://scenes/world/montanha_ossario.tscn",
+	"res://scenes/world/dominio.tscn#camara_2": "res://scenes/world/dominio_arquivo.tscn",
+}
+const NEW_CITY_SECOND := "res://scenes/world/cidade_quartel.tscn"
+
+
 func unlocked_capsules() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for info: Dictionary in CAPSULES:
-		if is_capsule_unlocked(info["scene"]):
-			result.append(info)
+		var key := capsule_key(info["scene"], info["spawn"])
+		if is_capsule_unlocked(key):
+			var entry := info.duplicate()
+			entry["key"] = key
+			result.append(entry)
 	return result
 
 
 ## O Teatro é a casa: depois do Prólogo, a Câmara dele está sempre aberta.
-func is_capsule_unlocked(scene_path: String) -> bool:
-	return capsules.has(scene_path) or (scene_path == HUB_SCENE and prologue_done)
+## A do laboratório também vira destino depois do Prólogo (Etapa 3).
+func is_capsule_unlocked(key: String) -> bool:
+	if capsules.has(key):
+		return true
+	return prologue_done and (key == HUB_SCENE or key == START_SCENE)
 
 
 ## Viaja para outra Câmara: a próxima vez que morrer, renasce lá; e o herói
 ## sai de dentro da cápsula (a mesma animação do despertar).
-func travel_to_capsule(scene_path: String) -> bool:
-	if not is_capsule_unlocked(scene_path):
+func travel_to_capsule(key: String) -> bool:
+	if not is_capsule_unlocked(key):
 		return false
-	set_rest_point(scene_path, "camara")
+	var parts := _split_key(key)
+	set_rest_point(parts[0], parts[1])
 	clear_carry()
 	wake_from_capsule = true
-	travel(scene_path, "camara")
+	travel(parts[0], parts[1])
 	return true
 
 
@@ -716,6 +1068,28 @@ func remove_item(item_id: String, count: int = 1) -> bool:
 func set_flag(flag: String) -> void:
 	if not flags.get(flag, false):
 		flags[flag] = true
+		_check_tito_deadline(flag)
+		flags_changed.emit()
+		save_game()
+
+
+## v0.47 (Etapa 9): o prazo do Tito é o último fragmento do Galeno (o 3º,
+## depois da Rachel; ou a escolha "lembrar/esquecer"). Caído até lá, ele não
+## levanta mais. (v0.48: o 3º fragmento também conta — GalenoAliado chama.)
+func _check_tito_deadline(flag: String = "") -> void:
+	var last_fragment := int(flags.get("galeno_fragmentos", 0)) >= 3 or flag in ["galeno_lembrou", "galeno_esqueceu"]
+	if last_fragment and flags.get("tito_caido", false) and not flags.get("tito_revivido", false):
+		flags["tito_morto"] = true
+
+
+func check_tito_deadline() -> void:
+	_check_tito_deadline()
+
+
+func clear_flag(flag: String) -> void:
+	if flags.get(flag, false):
+		flags[flag] = false
+		flags_changed.emit()
 		save_game()
 
 
@@ -815,6 +1189,74 @@ func armor_bonus(effect: String) -> float:
 		if piece and ArmorSets.effect_of(piece.set_id) == effect:
 			total += ArmorSets.per_piece(piece.set_id)
 	return total
+
+
+# --- v0.34 (Etapa 4): defesa e carga --------------------------------------------------
+
+## Quanto a armadura vestida reduz este tipo de dano (0.0 a ArmorSets.DEFENSE_CAP).
+## As 5 partes preenchidas (de qualquer conjunto) somam +10%.
+func armor_defense(damage_type: String) -> float:
+	var total := 0.0
+	var worn := 0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece:
+			worn += 1
+			total += ArmorSets.piece_defense(piece.set_id, slot, damage_type)
+	if worn == ArmorData.SLOTS.size():
+		total *= 1.0 + ArmorSets.FULL_BODY_BONUS
+	# v0.53: botões de defesa (Bombeiro, Bronze, Vidro); o Arrancado deixa frágil.
+	total += button_bonus("def_" + damage_type) - button_bonus("fragil")
+	return minf(total, ArmorSets.DEFENSE_CAP)
+
+
+## Carga máxima: vem da Força (cada ponto acima de 0 soma 1,5).
+const LOAD_BASE := 30.0
+const LOAD_PER_FORCE := 1.5
+## Peso do escudo (o único item de mão esquerda que não é arma).
+const SHIELD_WEIGHT := 4.0
+
+
+func max_load() -> float:
+	return (LOAD_BASE + LOAD_PER_FORCE * float(attributes.get("forca", StatsComponent.BASE_ATTRIBUTE))) \
+		* (1.0 + button_bonus("carga"))  # v0.53: Botão de Cerzido
+
+
+## Tudo que o herói carrega no corpo: armadura vestida + armas nas mãos + escudo.
+func equip_load() -> float:
+	var total := 0.0
+	for slot in ArmorData.SLOTS:
+		var piece := armor_in(slot)
+		if piece:
+			total += ArmorSets.piece_weight(piece.set_id, slot)
+	total += current_weapon().weight()
+	var left := left_weapon()
+	if left:
+		total += left.weight()
+	elif left_hand == SHIELD:
+		total += SHIELD_WEIGHT
+	return total
+
+
+func load_ratio() -> float:
+	return equip_load() / maxf(max_load(), 1.0)
+
+
+## O rolamento pela carga: "rapido" (até 30%), "normal" (até 70%),
+## "lento" (até 100%) e "pesado" (acima: não rola, só anda).
+func load_tier() -> String:
+	var ratio := load_ratio()
+	if ratio <= 0.3:
+		return "rapido"
+	if ratio <= 0.7:
+		return "normal"
+	if ratio <= 1.0:
+		return "lento"
+	return "pesado"
+
+
+const LOAD_TIER_NAMES := {"rapido": "Rolamento rápido", "normal": "Rolamento normal", "lento": "Rolamento lento",
+	"pesado": "Pesado demais: não rola"}
 
 
 ## Peças do efeito X vestidas (o "passo" precisa da contagem, não da soma).
@@ -943,6 +1385,68 @@ func _copies_free(id: String, hand: String) -> int:
 ## Equipa uma arma numa mão ("direita" ou "esquerda").
 ## Sem uma cópia sobrando, a arma MUDA de mão: sai da esquerda e vai para a
 ## direita. A direita nunca fica vazia (o golpe precisa de uma arma).
+# --- v0.53 (Etapa 12): a Lata de Botões ------------------------------------------------
+
+func has_button_tin() -> bool:
+	return has_item("lata_de_botoes")
+
+
+func button_in_tin(id: String) -> bool:
+	return button_slots.has(id)
+
+
+## Põe na lata (no 1º espaço livre) ou tira, se já está lá. false = não deu
+## (sem lata, sem o botão, ou a tampa não fecha: 4 já).
+func toggle_button(id: String) -> bool:
+	var slot := button_slots.find(id)
+	if slot >= 0:
+		button_slots[slot] = ""
+	else:
+		var free := button_slots.find("")
+		if not has_button_tin() or item_count(id) <= 0 or not Items.get_item(id) is ButtonData or free < 0:
+			return false
+		button_slots[free] = id
+	buttons_changed.emit()
+	items_changed.emit()
+	save_game()
+	return true
+
+
+## Tira o botão da lata (o Cassian congela um na vitrine). "" = nenhum.
+func take_button_from_tin(id: String) -> void:
+	var slot := button_slots.find(id)
+	if slot >= 0:
+		button_slots[slot] = ""
+		buttons_changed.emit()
+
+
+## Soma do efeito em todos os botões DENTRO da lata (0.0 = nenhum).
+func button_bonus(effect: String) -> float:
+	var total := 0.0
+	for id in button_slots:
+		var button := Items.get_item(id) as ButtonData if not id.is_empty() else null
+		if button:
+			total += float(button.effects.get(effect, 0.0))
+	return total
+
+
+func button_on(effect: String) -> bool:
+	return button_bonus(effect) > 0.0
+
+
+## v0.50: equipa (ou guarda, se já é ela) uma magia que você tem.
+func equip_spell(id: String) -> bool:
+	if id.is_empty() or equipped_spell == id:
+		equipped_spell = ""
+	elif item_count(id) > 0 and Items.get_item(id) is SpellData:
+		equipped_spell = id
+	else:
+		return false
+	spell_changed.emit(equipped_spell)
+	save_game()
+	return true
+
+
 func equip_weapon(id: String, hand: String = "direita") -> bool:
 	if not owns_weapon(id):
 		return false
@@ -1227,6 +1731,8 @@ func _to_dict() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"memories": memories,
+		"magia_equipada": equipped_spell,
+		"botoes": button_slots.duplicate(),
 		"deaths": deaths,
 		"vision_loss": vision_loss,
 		"sanity_flasks": sanity_flasks,
@@ -1253,6 +1759,10 @@ func _to_dict() -> Dictionary:
 		"play_seconds": play_seconds,
 		"flags": flags.duplicate(),
 		"abatidos": slain.duplicate(true),
+		"abatidos_sempre": slain_forever.duplicate(true),
+		"nome": player_name,
+		"estado_mundo": world_state.duplicate(true),
+		"aliados": ally_levels.duplicate(),
 		"shop_bought": shop_bought.duplicate(),
 		"appearance": appearance.duplicate(),
 	}
@@ -1276,6 +1786,11 @@ func _from_dict(data: Dictionary) -> void:
 			defeated_bosses.append(str(boss))
 	rest_scene = str(data.get("rest_scene", START_SCENE))
 	rest_spawn = str(data.get("rest_spawn", START_SPAWN))
+	# MIGRAÇÃO (v0.35): a 2ª Câmara de algumas ilhas mudou para uma fase anexa.
+	var moved_rest := "%s#%s" % [rest_scene, rest_spawn]
+	if MOVED_CAPSULES.has(moved_rest):
+		rest_scene = MOVED_CAPSULES[moved_rest]
+		rest_spawn = "camara"
 	if data.has("vibration"):  # saves antigos: a vibração agora mora nas Opções do aparelho
 		Settings.import_legacy_vibration(bool(data["vibration"]))
 	criancas_feridas = maxi(int(data.get("criancas_feridas", 0)), 0)
@@ -1298,6 +1813,29 @@ func _from_dict(data: Dictionary) -> void:
 	guardian = (saved_guardian as Dictionary).duplicate(true) if saved_guardian is Dictionary else {}
 	starter_sword = bool(data.get("espada_inicial", true))
 	chosen_weapon = str(data.get("arma_escolhida", ""))
+	equipped_spell = str(data.get("magia_equipada", ""))
+	var saved_buttons: Variant = data.get("botoes", [])
+	button_slots.assign(["", "", "", ""])
+	if saved_buttons is Array:
+		for i in mini((saved_buttons as Array).size(), BUTTON_SLOTS):
+			var button_id := str(saved_buttons[i])
+			button_slots[i] = button_id if item_count(button_id) > 0 else ""
+	if not equipped_spell.is_empty() and item_count(equipped_spell) <= 0:
+		equipped_spell = ""
+	player_name = str(data.get("nome", ""))
+	var saved_state: Variant = data.get("estado_mundo", {})
+	world_state = (saved_state as Dictionary).duplicate(true) if saved_state is Dictionary else {}
+	ally_levels = {}
+	var saved_allies: Variant = data.get("aliados", {})
+	if saved_allies is Dictionary:
+		for ally_id: Variant in saved_allies:
+			ally_levels[str(ally_id)] = maxi(int(saved_allies[ally_id]), 1)
+	slain_forever = {}
+	var saved_forever: Variant = data.get("abatidos_sempre", {})
+	if saved_forever is Dictionary:
+		for scene: Variant in saved_forever:
+			if saved_forever[scene] is Array:
+				slain_forever[str(scene)] = (saved_forever[scene] as Array).map(func(i): return int(i))
 	slain = {}
 	var saved_slain: Variant = data.get("abatidos", {})
 	if saved_slain is Dictionary:
@@ -1321,10 +1859,11 @@ func _from_dict(data: Dictionary) -> void:
 	var saved_capsules: Variant = data.get("capsules", [])
 	if typeof(saved_capsules) == TYPE_ARRAY:
 		for scene_path in saved_capsules:
-			unlock_capsule(str(scene_path))
+			var key := str(scene_path)
+			unlock_capsule(MOVED_CAPSULES.get(key, key))
 	# MIGRAÇÃO (saves de antes da v0.22): a Câmara onde você descansou por último
 	# e a do Teatro (depois do Prólogo) já contam como desbloqueadas.
-	unlock_capsule(rest_scene)
+	unlock_capsule(rest_scene, rest_spawn)
 	if prologue_done:
 		unlock_capsule(HUB_SCENE)
 	var saved_weapon := str(data.get("equipped_weapon", START_WEAPON))
@@ -1394,11 +1933,14 @@ func start_new_journey(look: Dictionary = {}) -> void:
 	var next_cycle := cycle + 1
 	var keep_guardian := guardian.duplicate(true)
 	var seen: Array = (flags.get("finais_vistos", []) as Array).duplicate()
+	var last_ending := str(flags.get("final", ""))
 	reset_progress()
 	attributes = keep_attributes
 	cycle = next_cycle
 	guardian = keep_guardian
 	flags["finais_vistos"] = seen
+	if not last_ending.is_empty():
+		flags["final_anterior"] = last_ending  # v0.51: a Benedita sonhou que caía
 	_awaken(look)
 
 
@@ -1427,6 +1969,7 @@ func _guardian_snapshot() -> Dictionary:
 		"atributos": attributes.duplicate(),
 		"frascos": health_flasks_max,
 		"ciclo": cycle,
+		"nome": player_name,  # v0.41: a barra dele mostra "{nome antigo}, O Experimento Anterior"
 	}
 
 

@@ -82,6 +82,7 @@ const LIBRARY := {
 	&"amb_ice": "res://assets/sfx/amb_ice.wav",
 	&"gravity": "res://assets/sfx/gravity.wav",
 	&"bell": "res://assets/sfx/bell.wav",
+	&"music_box": "res://assets/sfx/music_box.wav",
 	&"amb_core": "res://assets/sfx/amb_core.wav",
 	&"tema_alexandria": "res://assets/sfx/tema_alexandria.wav",
 }
@@ -116,6 +117,19 @@ func play(sound: StringName, volume_db: float = 0.0, pitch_jitter: float = 0.07)
 	player.stream = _stream(sound)
 	player.volume_db = volume_db
 	player.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
+	player.play()
+
+
+## Toca numa altura exata (a melodia da Dançarina: cada nota é a mesma
+## amostra, mais aguda ou mais grave).
+func play_pitched(sound: StringName, pitch: float, volume_db: float = 0.0) -> void:
+	if muted or not LIBRARY.has(sound):
+		return
+	var player := _pool[_next]
+	_next = (_next + 1) % POOL_SIZE
+	player.stream = _stream(sound)
+	player.volume_db = volume_db
+	player.pitch_scale = pitch
 	player.play()
 
 

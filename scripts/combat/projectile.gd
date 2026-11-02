@@ -114,6 +114,7 @@ func _try_hit_player() -> void:
 	info.knockback = knockback
 	info.source = source
 	info.attack_name = {FIRE: "Bola de fogo", FROST: "Estilhaço de gelo", TOME: "Livro congelado"}.get(element, "Tiro")
+	info.damage_type = {FIRE: "fogo", FROST: "gelo"}.get(element, "fisico")
 	if player.hurtbox.receive_hit(info):  # i-frames do dash: o tiro passa direto
 		if element == FROST:
 			player.apply_chill(FROST_CHILL)

@@ -20,6 +20,7 @@ var _is_heavy := false
 var _unblockable := false
 var _parryable := false
 var _attack_name := ""
+var _damage_type := "fisico"
 var _already_hit: Array[Area2D] = []
 
 
@@ -30,12 +31,13 @@ func _ready() -> void:
 
 func activate_with(attack: AttackData, damage: float) -> void:
 	activate_raw(damage, attack.poise_damage, attack.knockback, attack.is_heavy, attack.display_name, attack.unblockable,
-		attack.parryable and not attack.unblockable)
+		attack.parryable and not attack.unblockable, attack.damage_type)
 
 
 ## parryable: golpe "cru" (sem AttackData) não dá para aparar, a menos que diga.
 func activate_raw(damage: float, poise_damage: float, knockback: float, is_heavy: bool = false, attack_name: String = "",
-		unblockable: bool = false, parryable: bool = false) -> void:
+		unblockable: bool = false, parryable: bool = false, damage_type: String = "fisico") -> void:
+	_damage_type = damage_type
 	_damage = damage
 	_poise_damage = poise_damage
 	_knockback = knockback
@@ -78,6 +80,7 @@ func _build_info(target: Hurtbox) -> HitInfo:
 	info.is_heavy = _is_heavy
 	info.unblockable = _unblockable
 	info.parryable = _parryable
+	info.damage_type = _damage_type
 	info.attack_name = _attack_name
 	info.source = source
 	return info

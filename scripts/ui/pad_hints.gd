@@ -19,6 +19,8 @@ var sanity_flasks := 0
 ## O que L1 e L2 fazem agora (mudam com o que está nas mãos — hand_labels).
 var l1_label := "Escudo"
 var l2_label := "Aparar"
+## v0.50: a magia equipada ("" = nenhuma): "Cima: <nome>" no direcional.
+var spell_label := ""
 
 
 ## [L1, L2] para cada jeito de segurar (Game.hand_mode). Um lugar só: a
@@ -63,6 +65,8 @@ func _draw() -> void:
 	_text(center + Vector2(-step - 9, 3), "Frasco x%d" % flasks, font, HORIZONTAL_ALIGNMENT_RIGHT)
 	_text(center + Vector2(step + 9, 3), "Esquiva · segure: correr", font, HORIZONTAL_ALIGNMENT_LEFT)
 	_text(center + Vector2(0, step + 15), interact_label, font, HORIZONTAL_ALIGNMENT_CENTER)
+	if not spell_label.is_empty():
+		_text(center + Vector2(-58, step + 15), "Direcional ↑  " + spell_label, font, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func _text(at: Vector2, text: String, font: Font, align: HorizontalAlignment) -> void:

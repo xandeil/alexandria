@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/oculos_rachados.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "oculos_rachados"
+display_name = "Óculos Rachados"
+description = "A lente esquerda rachou em estrela. A direita ainda serve.
+Alguém via metade do mundo."
+kind = 3
+icon = ExtResource("2_icon")
+max_stack = 1
