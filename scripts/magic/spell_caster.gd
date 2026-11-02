@@ -10,7 +10,9 @@ const PER_POINT := 0.04
 
 ## O poder desta magia com os atributos de agora.
 static func power_of(spell: SpellData, caster: Player) -> float:
-	return spell.power * caster.stats.damage_multiplier(spell.scaling_attribute(), PER_POINT)
+	# v0.51: Conjunto de Aprendiz / Vestes de Romeira somam poder ("magia_poder").
+	return spell.power * caster.stats.damage_multiplier(spell.scaling_attribute(), PER_POINT) \
+		* (1.0 + Game.armor_bonus("magia_poder"))
 
 
 static func release(spell: SpellData, caster: Player, direction: Vector2) -> void:

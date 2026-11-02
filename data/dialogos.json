@@ -2822,5 +2822,324 @@
 				"acao": "flag:damiao_avisou"
 			}
 		]
+	},
+	"dalva_bosque": {
+		"nome": "Dona Dalva",
+		"some_quando": "flag:mercador_dalva_encontrado",
+		"falas": [
+			"Shh. Ele conta tudo que sai daqui. ...Você não é dele, é? Ótimo.",
+			"Eu não escrevo nada. Escrever é guardar. Ensinar é soltar."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_dalva_encontrado;presente:dalva_presente:luvas_arconte;loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_dalva_encontrado;presente:dalva_presente:luvas_arconte"
+			}
+		]
+	},
+	"dalva_teatro": {
+		"nome": "Dona Dalva",
+		"variantes": [
+			{
+				"quando": "flag:dalva_vazia",
+				"usar": "dalva_vazia_fala"
+			},
+			{
+				"quando": "sete",
+				"usar": "dalva_fim"
+			},
+			{
+				"quando": "cassian+!flag:dalva_contou_cassian",
+				"usar": "dalva_cassian"
+			}
+		],
+		"falas": [
+			"Meus dedos? O gelo pega o que fica parado. Eu fiquei parada tempo demais olhando uma vitrine."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "presente:dalva_presente:luvas_arconte;loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": "presente:dalva_presente:luvas_arconte"
+			}
+		]
+	},
+	"dalva_cassian": {
+		"nome": "Dona Dalva",
+		"falas": [
+			"Ele caiu? ...E eu ainda lembro do nome dele. Era a única coisa que eu queria esquecer."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:dalva_contou_cassian;loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:dalva_contou_cassian"
+			}
+		]
+	},
+	"dalva_fim": {
+		"nome": "Dona Dalva",
+		"falas": [
+			"Você deixou uma coisa comigo. Obrigada. É pouco, mas é meu."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:dalva"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"dalva_vazia_fala": {
+		"nome": "Senhora de xale",
+		"falas": [
+			"...Bom dia! Quem é você? Quem sou eu? ...Que lugar bonito."
+		]
+	},
+	"cicero_quartel": {
+		"nome": "Seu Cícero",
+		"some_quando": "flag:mercador_cicero_encontrado",
+		"falas": [
+			"Cuidado aí. Esse fogo não apaga. Eu tentei por... quanto tempo? Muito.",
+			"Eu apagava fogo. Agora vendo fogo. Pode rir. Eu rio também, de vez em quando."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_cicero_encontrado;loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_cicero_encontrado"
+			}
+		]
+	},
+	"cicero_teatro": {
+		"nome": "Seu Cícero",
+		"variantes": [
+			{
+				"quando": "flag:cidade_apagada",
+				"usar": "cicero_apagado"
+			},
+			{
+				"quando": "flag:chama_guardada",
+				"usar": "cicero_guardou"
+			},
+			{
+				"quando": "flag:cicero_pediu+item:gelo_perpetuo",
+				"usar": "cicero_gelo"
+			},
+			{
+				"quando": "rachel+!flag:cicero_pediu",
+				"usar": "cicero_rachel"
+			}
+		],
+		"falas": [
+			"Essa chama? É da minha rua. Da esquina da padaria. Foi o que sobrou.",
+			"Eu odiava a Senhora do Céu. Agora cuido do que ela deixou. Vai entender."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"cicero_rachel": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"Ela morreu? ...E o fogo não apagou. Achei que ia apagar junto.",
+			"Se você trouxer... Não. Não traz. ...Traz."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:cicero_pediu;loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:cicero_pediu"
+			}
+		]
+	},
+	"cicero_gelo": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"Essa chama? É da minha rua. Da esquina da padaria. Foi o que sobrou."
+		],
+		"opcoes": [
+			{
+				"texto": "Apague",
+				"acao": "dar:gelo_perpetuo;flag:cidade_apagada;ganhar:capacete_bombeiro;falar:cicero_apagado"
+			},
+			{
+				"texto": "Guarde",
+				"acao": "dar:gelo_perpetuo;flag:chama_guardada;falar:cicero_guardou"
+			},
+			{
+				"texto": "Ainda não",
+				"acao": ""
+			}
+		]
+	},
+	"cicero_apagado": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"...Pronto. Agora é só uma rua."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"cicero_guardou": {
+		"nome": "Seu Cícero",
+		"falas": [
+			"Amanhã. Eu apago amanhã."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:cicero"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"civil_sentado": {
+		"nome": "Civil Cinzento",
+		"falas": [
+			"Sentado na calçada, olhando a rua apagada. Parado, pela primeira vez."
+		]
+	},
+	"benedita_borda": {
+		"nome": "Dona Benedita",
+		"some_quando": "flag:mercador_benedita_encontrado",
+		"falas": [
+			"Que não caia. Que não caia.",
+			"Todo mundo reza pra cima. Eu rezo pra baixo. Foi lá que Ele ficou."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:mercador_benedita_encontrado;contar_chefes:benedita_chefes;loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:mercador_benedita_encontrado;contar_chefes:benedita_chefes"
+			}
+		]
+	},
+	"benedita_teatro": {
+		"nome": "Dona Benedita",
+		"variantes": [
+			{
+				"quando": "final_anterior:destruir+!flag:benedita_sonho",
+				"usar": "benedita_sonho"
+			},
+			{
+				"quando": "sete+!flag:rezou_com_benedita+!flag:benedita_recusou",
+				"usar": "benedita_final"
+			},
+			{
+				"quando": "novo_chefe:benedita_chefes",
+				"usar": "benedita_chefe"
+			}
+		],
+		"falas": [
+			"Ajoelha, filho. Não precisa rezar. Só ajoelha. Já ajuda.",
+			"Ele chora de noite, sabia? Lá embaixo. Quem reza escuta."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": ""
+			}
+		]
+	},
+	"benedita_chefe": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"Mais um descansou. Que Deus receba. ...Que alguém receba."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "contar_chefes:benedita_chefes;loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": "contar_chefes:benedita_chefes"
+			}
+		]
+	},
+	"benedita_final": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"Você vai lá embaixo, não vai? Até Ele.",
+			"Eu rezei a vida inteira pra ilha não cair. ...Mas nunca perguntei se Ele queria segurar.",
+			"Reza comigo. Uma vez só."
+		],
+		"opcoes": [
+			{
+				"texto": "Rezar com ela",
+				"acao": "flag:rezou_com_benedita;ganhar:ultimo_pedido"
+			},
+			{
+				"texto": "Recusar",
+				"acao": "flag:benedita_recusou;falar:benedita_recusa"
+			}
+		]
+	},
+	"benedita_recusa": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"Tudo bem. Eu rezo pelos dois."
+		]
+	},
+	"benedita_sonho": {
+		"nome": "Dona Benedita",
+		"falas": [
+			"...Eu sonhei que caía. Foi bonito."
+		],
+		"opcoes": [
+			{
+				"texto": "Negociar",
+				"acao": "flag:benedita_sonho;loja:benedita"
+			},
+			{
+				"texto": "Sair",
+				"acao": "flag:benedita_sonho"
+			}
+		]
 	}
 }

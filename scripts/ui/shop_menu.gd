@@ -94,6 +94,11 @@ func _activate(id: String) -> void:
 		return
 	Sfx.play(&"memory")
 	_line.text = "\"Negócio fechado.\"" if _tab == 0 else "\"Hm. Aceito. Não pergunto de onde veio.\""
+	if _tab == 0 and Game.MERCHANTS[merchant].has("venda"):
+		_line.text = Game.MERCHANTS[merchant]["venda"]
+	if merchant == "dalva" and Game.has_flag("dalva_vazia"):
+		close()  # v0.51: ela esqueceu tudo — a loja fecha
+		return
 	_selected = ""
 	refresh()
 	flash_slot(id)

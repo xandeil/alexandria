@@ -584,7 +584,7 @@ func build() -> void:
 		for x in range(-1, _width + 1):
 			_build_cell(x, y, _char_at(x, y), tiles)
 	_build_listed()
-	canvas_modulate.color = darkness
+	canvas_modulate.color = darkness * Color(0.62, 0.62, 0.72) if _city_put_out() else darkness
 	if outdoor:
 		_add_sky()
 
@@ -920,6 +920,11 @@ func _inward_of(x: int, y: int) -> Vector2:
 
 func _build_entity(x: int, y: int, c: String) -> void:
 	var feet := _cell_feet(x, y)
+	if _city_put_out() and (c == "f" or c == "v"):
+		# v0.51 (Etapa 10): o Cícero apagou a rua. Sem fogo; os Civis Cinzentos sentam.
+		if c == "v":
+			_make_npc("civil_sentado", "Civil Cinzento", "res://assets/sprites/civil.png", 5, feet, "Examinar")
+		return
 	var prop := _prop_def(c)
 	if not prop.is_empty():
 		entities.add_child(_make_prop(prop, feet))
@@ -1599,6 +1604,11 @@ func start_galeno_fight() -> GalenoEscudo:
 	return galeno
 
 
+## v0.51: a Cidade depois do "Apague" do Cícero (cidade_apagada).
+func _city_put_out() -> bool:
+	return theme == "cidade" and not Engine.is_editor_hint() and Game.has_flag("cidade_apagada")
+
+
 ## v0.47 (Etapa 9): o Frasco de Sanidade no Tito caído. Ele levanta — mas o
 ## olho castanho fica branco: não cresce mais (tito_revivido).
 func revive_tito() -> void:
@@ -1930,6 +1940,14 @@ func _on_dialogue_action(action: String) -> void:
 				return
 			"chama":
 				call_brawler(value)
+				return
+			"presente":  # v0.51: "presente:<flag>:<item>" — um presente, uma vez só
+				if not Game.has_flag(value):
+					Game.set_flag(value)
+					Game.add_item(action.get_slice(":", 2), 1)
+				return
+			"contar_chefes":  # v0.51: "contar_chefes:<flag>" — guarda quantos chefes já viu
+				Game.flags[value] = Game.seven_memories()
 				return
 			"loja":  # v0.49: "loja:damiao" — a loja de outro vendedor
 				await hud.shop_menu.open_shop(player, value)

@@ -7,6 +7,7 @@
 [node name="Bosque" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/bosque.txt"
+people = Array[Dictionary]([{"cell": Vector2i(33, 13), "dialogue": "dalva_bosque", "name": "Dona Dalva", "texture": "res://assets/sprites/dalva_npc.png", "frames": 2}])
 area_name = "Bosque do Sono Eterno"
 area_subtitle = "Tudo dorme. Quase nada ataca se você não fizer barulho."
 theme = "bosque"

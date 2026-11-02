@@ -444,6 +444,7 @@ func reach_multiplier() -> float:
 func rest() -> void:
 	_runner.cancel()
 	stats.revive()
+	Game.flags.erase("ultimo_pedido_gasto")  # v0.51: o Último Pedido volta ao descansar
 	health_flasks = health_flasks_max
 	health_flasks_changed.emit(health_flasks, health_flasks_max)
 	if state != State.LOCKED:  # durante o descanso a fase mantém o herói travado
@@ -1412,6 +1413,13 @@ func _on_hit_received(info: HitInfo) -> void:
 	if state == State.PARRY and _state_time <= _parry_window and _can_parry(info):
 		_parry_success(info)
 		return
+	if info.damage >= stats.health and Game.has_flag("rezou_com_benedita") and not Game.has_flag("ultimo_pedido_gasto"):
+		# v0.51 (Etapa 10): ÚLTIMO PEDIDO — rezou com a Benedita. Uma vez por
+		# descanso, o golpe que mataria deixa 1 de vida.
+		Game.flags["ultimo_pedido_gasto"] = true
+		info = info.scaled(maxf(stats.health - 1.0, 0.0) / maxf(info.damage, 0.001))
+		Fx.splash(global_position + Vector2(0, -12), Color(1.0, 0.92, 0.55), 16)
+		Sfx.play(&"bell", -4.0)
 	var applied := stats.take_damage(info.damage)
 	_iframes_left = hurt_iframes
 	Fx.flash(body_sprite, 0.12)

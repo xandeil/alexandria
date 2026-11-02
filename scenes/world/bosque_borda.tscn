@@ -20,7 +20,7 @@ exit2_scene = "res://scenes/world/arena_nyssa.tscn"
 exit2_spawn = "porta"
 exit2_requires = "mae_esporos"
 exit2_locked_dialogue = "espinhos_nyssa"
-people = Array[Dictionary]([{"cell": Vector2i(45, 4), "dialogue": "lucia_bosque", "name": "Lúcia", "texture": "res://assets/sprites/lucia_npc.png", "frames": 2}, {"cell": Vector2i(18, 7), "dialogue": "bastiao_bosque_borda", "name": "Bastião", "texture": "res://assets/sprites/bastiao_npc.png", "frames": 2}])
+people = Array[Dictionary]([{"cell": Vector2i(45, 4), "dialogue": "lucia_bosque", "name": "Lúcia", "texture": "res://assets/sprites/lucia_npc.png", "frames": 2}, {"cell": Vector2i(18, 7), "dialogue": "bastiao_bosque_borda", "name": "Bastião", "texture": "res://assets/sprites/bastiao_npc.png", "frames": 2}, {"cell": Vector2i(12, 9), "dialogue": "benedita_borda", "name": "Dona Benedita", "texture": "res://assets/sprites/benedita_npc.png", "frames": 2}])
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 

@@ -147,6 +147,9 @@ func _ready() -> void:
 		"test_damiao_trips_and_backpack",
 		"test_spell_projectile_and_area",
 		"test_spell_heal_barrier_and_menu",
+		"test_new_vendors_and_shops",
+		"test_cicero_puts_out_the_city",
+		"test_benedita_prayer",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -1931,6 +1934,103 @@ func test_spell_heal_barrier_and_menu() -> void:
 	menu.queue_free()
 	check(Items.get_item("bola_de_fogo") is SpellData and Game.sell_price("bola_de_fogo") == 0, "magia é item (não se vende)")
 	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.51 (Etapa 10): Dalva, Cícero e Benedita — encontrados, mudam para o Teatro; as lojas.
+func test_new_vendors_and_shops() -> void:
+	Game.reset_progress()
+	var level := await open_level(BOSQUE, "porta")
+	check(find_npc("dalva_bosque") != null, "a Dalva no Bosque")
+	await level._on_dialogue_action("flag:mercador_dalva_encontrado;presente:dalva_presente:luvas_arconte")
+	await level._on_dialogue_action("presente:dalva_presente:luvas_arconte")
+	check(Game.item_count("luvas_arconte") == 1, "ela dá uma peça do Manto do Arconte (uma vez)")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(BORDA, "porta")
+	check(find_npc("benedita_borda") != null, "a Benedita na beirada, acima da luz")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "porta")
+	check(find_npc("cicero_quartel") != null, "o Cícero no quartel de bombeiros")
+	level.queue_free()
+	await frames(2)
+	for id in ["cicero", "benedita"]:
+		Game.set_flag("mercador_%s_encontrado" % id)
+	level = await open_level(TEATRO, "camara")
+	for id in ["dalva_teatro", "cicero_teatro", "benedita_teatro"]:
+		check(find_npc(id) != null, "%s: mudou para o Teatro" % id)
+	level.queue_free()
+	await frames(2)
+	# A Dalva esquece o que vende.
+	Game.memories = 99999
+	check(Game.buy_from_shop("projetil_arcano", "dalva"), "comprou o Projétil Arcano")
+	var ids := Game.merchant_stock("dalva").map(func(e): return e["id"])
+	check(not ids.has("projetil_arcano"), "ela esqueceu: some da loja")
+	check(Game.sell_price("sucata_temperada", "dalva") == 0, "ela não compra nada")
+	check(Game.buy_from_shop("feitico_dalva", "dalva") and Game.has_flag("dalva_vazia"), "comprou o feitiço 'Dalva': dalva_vazia")
+	level = await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("dalva_teatro") == "dalva_vazia_fala", "'...Bom dia! Quem é você?'")
+	level.queue_free()
+	await frames(2)
+	check(not Game.merchant_stock("cicero").map(func(e): return e["id"]).has("rua_em_chamas"), "Rua em Chamas só com a chama guardada")
+	check(not Game.merchant_stock("benedita").map(func(e): return e["id"]).has("tempestade"), "Tempestade só mais tarde")
+	Game.reset_progress()
+
+
+## O Gelo Perpétuo na mão do Cícero: "Apague" ou "Guarde".
+func test_cicero_puts_out_the_city() -> void:
+	Game.reset_progress()
+	Game.set_flag("mercador_cicero_encontrado")
+	Game.defeated_bosses.assign(["rachel"])
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("cicero_teatro") == "cicero_rachel", "depois da Rachel: 'Se você trouxer... Traz.'")
+	Game.set_flag("cicero_pediu")
+	Game.add_item("gelo_perpetuo")
+	check(level.resolve_dialogue("cicero_teatro") == "cicero_gelo", "com o Gelo Perpétuo: a escolha")
+	await level._on_dialogue_action("dar:gelo_perpetuo;flag:cidade_apagada;ganhar:capacete_bombeiro")
+	check(Game.has_flag("cidade_apagada") and Game.has_item("capacete_bombeiro") and not Game.has_item("gelo_perpetuo"), "Apague: o Capacete do Bombeiro")
+	level.queue_free()
+	await frames(2)
+	level = await open_level(CIDADE, "porta")
+	var civis := get_tree().get_nodes_in_group("enemies").filter(func(e): return e is CivilCinzento)
+	check(civis.is_empty() and find_npc("civil_sentado") != null, "os Civis Cinzentos ficam sentados")
+	check(level.canvas_modulate.color.v < level.darkness.v, "a Cidade fica escura (sem o fogo)")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+	Game.set_flag("chama_guardada")
+	check(Game.merchant_stock("cicero").map(func(e): return e["id"]).has("rua_em_chamas"), "Guarde: libera Rua em Chamas")
+	Game.reset_progress()
+
+
+## A reza antes do fim: o Último Pedido (uma vez por descanso, sobrevive com 1).
+func test_benedita_prayer() -> void:
+	Game.reset_progress()
+	Game.set_flag("mercador_benedita_encontrado")
+	var level := await open_level(TEATRO, "camara")
+	Game.defeated_bosses.assign(["aldir"])
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_chefe", "'Mais um descansou.'")
+	await level._on_dialogue_action("contar_chefes:benedita_chefes")
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_teatro", "uma vez por chefe")
+	Game.defeated_bosses.assign(["aldir", "nyssa", "mabel", "durgan", "rachel", "cassian", "helena"])
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_final", "sete memórias: 'Reza comigo. Uma vez só.'")
+	await level._on_dialogue_action("flag:rezou_com_benedita;ganhar:ultimo_pedido")
+	var player := level.player
+	var lethal := HitInfo.create(99999.0, player.global_position + Vector2(10, 0), player.global_position)
+	player.hurtbox.receive_hit(lethal)
+	check(not player.is_dead() and is_equal_approx(player.stats.health, 1.0), "Último Pedido: sobreviveu com 1 de vida")
+	player.rest()
+	check(not Game.has_flag("ultimo_pedido_gasto"), "descansou: o pedido volta")
+	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+	Game.flags["final_anterior"] = "destruir"
+	Game.set_flag("mercador_benedita_encontrado")
+	level = await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("benedita_teatro") == "benedita_sonho", "NG+ depois de Destruir: 'Eu sonhei que caía.'")
+	level.queue_free()
 	await frames(2)
 	Game.reset_progress()
 
@@ -6600,7 +6700,7 @@ func _wear_set(set_id: String) -> void:
 
 func test_armor_rules() -> void:
 	Game.reset_progress()
-	check(ArmorSets.SETS.size() == 7, "sete conjuntos")
+	check(ArmorSets.SETS.size() == 10, "dez conjuntos (v0.51: Aprendiz, Bombeiro, Romeira)")
 	for set_id: String in ArmorSets.SETS:
 		for id in ArmorSets.pieces(set_id):
 			var piece := Items.get_armor(id)
@@ -6711,13 +6811,23 @@ func test_armor_in_world_and_menu() -> void:
 		for id: String in Game.BOSS_REWARDS[boss]:
 			if Items.get_armor(id):
 				found[id] = found.get(id, 0) + 1
+	# v0.51 (Etapa 10): os conjuntos dos vendedores — na loja, ou dado numa conversa.
+	for merchant: String in Game.MERCHANTS:
+		for entry: Dictionary in Game.MERCHANTS[merchant]["estoque"]:
+			if Items.get_armor(str(entry["id"])):
+				found[entry["id"]] = found.get(entry["id"], 0) + 1
+	var talks := JSON.stringify(JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogos.json")))
+	for set_id in ["aprendiz", "bombeiro", "romeira"]:
+		for id in ArmorSets.pieces(set_id):
+			if talks.contains("ganhar:" + id):
+				found[id] = found.get(id, 0) + 1
 	var missing := []
 	for set_id: String in ArmorSets.SETS:
 		for id in ArmorSets.pieces(set_id):
 			if found.get(id, 0) != 1:
 				missing.append("%s=%d" % [id, found.get(id, 0)])
-	check(missing.is_empty(), "as 35 peças, cada uma num lugar só (%s)" % [missing])
-	check(found.size() == 35, "nenhuma peça a mais (%d)" % found.size())
+	check(missing.is_empty(), "as 50 peças, cada uma num lugar só (%s)" % [missing])
+	check(found.size() == 50, "nenhuma peça a mais (%d)" % found.size())
 	# No chão: as 5 peças em volta do ponto, cada uma com a própria chave.
 	var level := await open_level("res://scenes/world/teatro.tscn", "camara")
 	var pile := level.entities.get_children().filter(func(n): return n is ItemPickup and Items.get_armor(n.item_id) != null)

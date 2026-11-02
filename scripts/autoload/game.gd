@@ -479,7 +479,45 @@ const DAMIAO_THANKS_DISCOUNT := 0.9
 ## O Fragmento de Loja (a mochila dele) entregue ao Vendedor: ele passa a vender
 ## o estoque do Damião e baixa os próprios preços.
 const INHERITED_DISCOUNT := 0.85
+## v0.51 (Etapa 10) — DALVA (feitiços): estoque ÚNICO — cada coisa vendida ela
+## esquece, e some da loja ("some": true). O último, o feitiço "Dalva".
+const DALVA_STOCK := [
+	{"id": "projetil_arcano", "preco": 900, "limite": 1},
+	{"id": "lamina_magica", "preco": 1100, "limite": 1},
+	{"id": "escudo_de_geada", "preco": 1300, "limite": 1},
+	{"id": "capacete_aprendiz", "preco": 500, "limite": 1},
+	{"id": "peitoral_aprendiz", "preco": 800, "limite": 1},
+	{"id": "luvas_aprendiz", "preco": 400, "limite": 1},
+	{"id": "calca_aprendiz", "preco": 500, "limite": 1},
+	{"id": "botas_aprendiz", "preco": 400, "limite": 1},
+	{"id": "feitico_dalva", "preco": 4000, "limite": 1},
+]
+## CÍCERO (piromancias): "Rua em Chamas" só se ele guardou a chama.
+const CICERO_STOCK := [
+	{"id": "bola_de_fogo", "preco": 1000},
+	{"id": "chicote_de_chamas", "preco": 1200},
+	{"id": "explosao_curta", "preco": 1500},
+	{"id": "rua_em_chamas", "preco": 3500, "quando": "flag:chama_guardada"},
+	{"id": "peitoral_bombeiro", "preco": 1200, "limite": 1},
+	{"id": "luvas_bombeiro", "preco": 600, "limite": 1},
+	{"id": "calca_bombeiro", "preco": 800, "limite": 1},
+	{"id": "botas_bombeiro", "preco": 600, "limite": 1},
+]
+## BENEDITA (milagres).
+const BENEDITA_STOCK := [
+	{"id": "milagre_cura", "preco": 1000},
+	{"id": "lanca_de_raio", "preco": 1300},
+	{"id": "milagre_barreira", "preco": 1400},
+	{"id": "cura_em_area", "preco": 2200, "quando": "memorias:3"},
+	{"id": "tempestade", "preco": 3800, "quando": "memorias:5"},
+	{"id": "capacete_romeira", "preco": 500, "limite": 1},
+	{"id": "peitoral_romeira", "preco": 800, "limite": 1},
+	{"id": "luvas_romeira", "preco": 400, "limite": 1},
+	{"id": "calca_romeira", "preco": 500, "limite": 1},
+	{"id": "botas_romeira", "preco": 400, "limite": 1},
+]
 ## Todas as lojas: id → quem é, o que vende e o que compra. ShopMenu.run(…, id).
+## "some": o que esgota sai da lista (a Dalva esquece). "venda": a fala ao vender.
 const MERCHANTS := {
 	"vendedor": {"nome": "Vendedor Dragonoide", "retrato": "res://assets/sprites/npc_vendedor.png",
 		"fala": "\"Memórias por tralhas, tralhas por memórias. É assim que se vive aqui.\"",
@@ -487,6 +525,16 @@ const MERCHANTS := {
 	"damiao": {"nome": "Damião, o Sucateiro", "retrato": "res://assets/sprites/damiao_npc.png",
 		"fala": "\"Achado não é roubado! Achado é... achado. É outra coisa.\"",
 		"cor": Color(0.74, 0.62, 0.38), "estoque": DAMIAO_STOCK, "compra": DAMIAO_BUYS},
+	"dalva": {"nome": "Dona Dalva", "retrato": "res://assets/sprites/dalva_npc.png",
+		"fala": "\"Eu não escrevo nada. Escrever é guardar. Ensinar é soltar.\"",
+		"venda": "\"Pronto, leva. ...Leva o quê? Ah. Já foi. Bom sinal.\"",
+		"cor": Color(0.42, 0.56, 0.92), "estoque": DALVA_STOCK, "compra": {}, "some": true},
+	"cicero": {"nome": "Seu Cícero", "retrato": "res://assets/sprites/cicero_npc.png",
+		"fala": "\"Eu apagava fogo. Agora vendo fogo. Pode rir. Eu rio também, de vez em quando.\"",
+		"cor": Color(0.9, 0.42, 0.2), "estoque": CICERO_STOCK, "compra": {}},
+	"benedita": {"nome": "Dona Benedita", "retrato": "res://assets/sprites/benedita_npc.png",
+		"fala": "\"Ajoelha, filho. Não precisa rezar. Só ajoelha. Já ajuda.\"",
+		"cor": Color(0.86, 0.76, 0.4), "estoque": BENEDITA_STOCK, "compra": {}},
 }
 
 ## Quantos de cada item com limite você já comprou ("id", ou "loja:id" nas
@@ -503,6 +551,9 @@ func merchant_stock(merchant: String = "vendedor") -> Array[Dictionary]:
 	for list: Array in lists:
 		for entry: Dictionary in list:
 			if requirement_met(str(entry.get("quando", ""))) and not result.any(func(e): return e["id"] == entry["id"]):
+				if MERCHANTS[merchant].get("some", false) and entry.has("limite") \
+						and int(shop_bought.get(_bought_key(entry["id"], merchant), 0)) >= int(entry["limite"]):
+					continue  # a Dalva esqueceu: some da loja
 				result.append(entry)
 	return result
 
@@ -565,6 +616,8 @@ func buy_from_shop(item_id: String, merchant: String = "vendedor") -> bool:
 	if shop_left(item_id, merchant) >= 0:
 		var key := _bought_key(item_id, merchant)
 		shop_bought[key] = int(shop_bought.get(key, 0)) + 1
+	if item_id == "feitico_dalva":
+		flags["dalva_vazia"] = true  # "...Bom dia! Quem é você? Quem sou eu?"
 	items_changed.emit()
 	save_game()
 	return true
@@ -575,6 +628,8 @@ func sell_price(item_id: String, merchant: String = "vendedor") -> int:
 	var buys: Dictionary = MERCHANTS[merchant]["compra"]
 	if buys.has(item_id):
 		return int(buys[item_id])
+	if not merchant in ["vendedor", "damiao"]:
+		return 0  # v0.51: Dalva, Cícero e Benedita só vendem
 	var weapon := Items.get_weapon(item_id)
 	if weapon and item_id != START_WEAPON and item_id != FISTS:
 		return maxi(300, weapon.forge_memories / 3)
@@ -748,6 +803,10 @@ func requirement_met(requires: String) -> bool:
 			return has_item(value)
 		"estado":
 			return world_flag(value)
+		"novo_chefe":  # v0.51: venceu mais chefes do que <flag> registra (Benedita)
+			return seven_memories() > int(flags.get(value, 0))
+		"final_anterior":  # v0.51: como acabou o ciclo passado (NG+)
+			return str(flags.get("final_anterior", "")) == value
 		"damiao":  # v0.49: o destino da próxima viagem do Damião
 			return damiao_destination() == value
 		"conta":  # v0.42: "conta:lucia_quedas:3" = o contador chegou a 3
@@ -1805,11 +1864,14 @@ func start_new_journey(look: Dictionary = {}) -> void:
 	var next_cycle := cycle + 1
 	var keep_guardian := guardian.duplicate(true)
 	var seen: Array = (flags.get("finais_vistos", []) as Array).duplicate()
+	var last_ending := str(flags.get("final", ""))
 	reset_progress()
 	attributes = keep_attributes
 	cycle = next_cycle
 	guardian = keep_guardian
 	flags["finais_vistos"] = seen
+	if not last_ending.is_empty():
+		flags["final_anterior"] = last_ending  # v0.51: a Benedita sonhou que caía
 	_awaken(look)
 
 

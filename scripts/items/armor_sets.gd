@@ -53,6 +53,19 @@ const SETS := {
 		"name": "Manto do Arconte", "suffix": "do Arconte", "effect": "memoria", "per_piece": 0.08,
 		"text": "Memórias de cada inimigo +{p}% por peça.",
 	},
+	# v0.51 (Etapa 10): Dalva, Cícero e Benedita.
+	"aprendiz": {
+		"name": "Conjunto de Aprendiz", "suffix": "de Aprendiz", "effect": "magia_poder", "per_piece": 0.05,
+		"text": "Magias +{p}% de poder por peça.",
+	},
+	"bombeiro": {
+		"name": "Conjunto do Bombeiro", "suffix": "do Bombeiro", "effect": "vida", "per_piece": 0.04,
+		"text": "Vida máxima +{p}% por peça.",
+	},
+	"romeira": {
+		"name": "Vestes de Romeira", "suffix": "de Romeira", "effect": "magia_poder", "per_piece": 0.05,
+		"text": "Magias +{p}% de poder por peça.",
+	},
 }
 
 ## Passo (Escamas de Caelis): quanto a CORRIDA ganha por peça, além do andar.
@@ -80,6 +93,9 @@ const PROFILES := {
 	"caelis": {"peso": 17.0, "classe": "medio", "defesa": {"fisico": 0.18, "fogo": 0.34, "magia": 0.12, "raio": 0.12, "gelo": 0.10}},
 	"detentor": {"peso": 27.0, "classe": "pesado", "defesa": {"fisico": 0.32, "fogo": 0.16, "magia": 0.14, "raio": 0.16, "gelo": 0.16}},
 	"eco": {"peso": 25.0, "classe": "pesado", "defesa": {"fisico": 0.26, "fogo": 0.14, "magia": 0.14, "raio": 0.36, "gelo": 0.14}},
+	"aprendiz": {"peso": 6.0, "classe": "leve", "defesa": {"fisico": 0.08, "fogo": 0.06, "magia": 0.24, "raio": 0.08, "gelo": 0.18}},
+	"bombeiro": {"peso": 18.0, "classe": "medio", "defesa": {"fisico": 0.20, "fogo": 0.38, "magia": 0.10, "raio": 0.12, "gelo": 0.10}},
+	"romeira": {"peso": 7.0, "classe": "leve", "defesa": {"fisico": 0.08, "fogo": 0.08, "magia": 0.14, "raio": 0.30, "gelo": 0.08}},
 }
 
 
