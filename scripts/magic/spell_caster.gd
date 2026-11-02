@@ -11,8 +11,14 @@ const PER_POINT := 0.04
 ## O poder desta magia com os atributos de agora.
 static func power_of(spell: SpellData, caster: Player) -> float:
 	# v0.51: Conjunto de Aprendiz / Vestes de Romeira somam poder ("magia_poder").
+	# v0.53: Jaleco (todas), Túnica Azul (feitiços), Romeira (milagres).
+	var buttons := Game.button_bonus("magia_dano")
+	if spell.school == "feitico" or spell.school == "milagre":
+		buttons += Game.button_bonus(spell.school)
+	if spell.damage_type == "fogo":
+		buttons += Game.button_bonus("dano_fogo")  # v0.53: Botão de Escama
 	return spell.power * caster.stats.damage_multiplier(spell.scaling_attribute(), PER_POINT) \
-		* (1.0 + Game.armor_bonus("magia_poder"))
+		* (1.0 + Game.armor_bonus("magia_poder") + buttons)
 
 
 static func release(spell: SpellData, caster: Player, direction: Vector2) -> void:

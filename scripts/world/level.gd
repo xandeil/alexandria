@@ -1871,6 +1871,11 @@ func _on_npc_talked(npc: NPC) -> void:
 
 ## Conversas que mudam o mundo (marcam uma flag no save).
 func _after_talk(dialogue_id: String) -> void:
+	# v0.53 (Etapa 12): a Criança Poupada dá o Botão de Pijama (só se não feriu ninguém).
+	if dialogue_id == SPARED_CHILD_TALKS and Game.spared_child and not Game.has_flag("pijama_dado"):
+		Game.set_flag("pijama_dado")
+		Game.add_item("botao_pijama")
+		hud.toast("Ela te deu um botão. Tem um ursinho desenhado.")
 	# v0.45: as visitas à Helena bêbada contam (uma fala nova por visita).
 	match dialogue_id:
 		"helena":

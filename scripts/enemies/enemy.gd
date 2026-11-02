@@ -343,7 +343,7 @@ func _on_died() -> void:
 	set_deferred("collision_layer", 0)
 	set_deferred("collision_mask", 0)
 	hurtbox.set_deferred("monitorable", false)
-	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02) * (1.0 + Game.armor_bonus("memoria"))))
+	var reward := int(round(memory_reward * (1.0 + (Game.attributes.get("sorte", 10) - 10) * 0.02) * (1.0 + Game.armor_bonus("memoria") + Game.button_bonus("memoria"))))
 	Game.earn_memories(reward)
 	var player := find_target()
 	if player:

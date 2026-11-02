@@ -7,7 +7,7 @@
 [node name="Prologo" type="Node2D"]
 script = ExtResource("1_prologo")
 layout_file = "res://levels/prologo.txt"
-people = Array[Dictionary]([{"cell": Vector2i(27, 24), "dialogue": "galeno_laboratorio", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}])
+people = Array[Dictionary]([{"cell": Vector2i(27, 24), "dialogue": "galeno_laboratorio", "name": "Galeno", "texture": "res://assets/sprites/galeno_npc.png", "frames": 2}, {"cell": Vector2i(16, 35), "dialogue": "botao_jaleco_chao", "name": "Botão branco", "texture": "res://assets/items/botao_jaleco.png", "prompt": "Examinar", "requires": "prologo+!flag:jaleco_pego"}])
 item_points = Array[String](["arma_escolhida"])
 area_name = "Complexo das Cápsulas"
 area_subtitle = "Nada aqui cresceu. Apenas se repetiu."

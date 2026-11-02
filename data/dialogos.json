@@ -227,6 +227,16 @@
 				"texto": "Agora não",
 				"acao": ""
 			}
+		],
+		"variantes": [
+			{
+				"quando": "!flag:lata_recebida",
+				"usar": "fada_lata"
+			},
+			{
+				"quando": "nyssa+!flag:fada_botao_nyssa",
+				"usar": "fada_botao_nyssa"
+			}
 		]
 	},
 	"vendedor": {
@@ -3317,6 +3327,53 @@
 		"nome": "Escalada",
 		"falas": [
 			"Dá para subir por aqui, pisando no que sobrou deles."
+		]
+	},
+	"botao_jaleco_chao": {
+		"nome": "Botão branco",
+		"falas": [
+			"Um botão de jaleco no chão do laboratório. Branco. Lavado demais."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar",
+				"acao": "flag:jaleco_pego;ganhar:botao_jaleco"
+			},
+			{
+				"texto": "Deixar",
+				"acao": ""
+			}
+		]
+	},
+	"fada_lata": {
+		"nome": "Fada",
+		"falas": [
+			"Toma. Parece de biscoito, mas não é. Nunca é.",
+			"Eu guardava os botões de quem eu acordava. Caíam das roupas. Ninguém voltava pra buscar.",
+			"Quatro cabem bem. Mais que isso, a tampa não fecha.",
+			"O que estiver aí dentro, você não esquece. Nem morrendo."
+		],
+		"opcoes": [
+			{
+				"texto": "Pegar a lata",
+				"acao": "presente:lata_recebida:lata_de_botoes"
+			}
+		]
+	},
+	"fada_botao_nyssa": {
+		"nome": "Fada",
+		"falas": [
+			"Tinha um botão dela aí. Eu tirei pra caber o seu."
+		],
+		"opcoes": [
+			{
+				"texto": "Fortalecer-se",
+				"acao": "flag:fada_botao_nyssa;subir_nivel"
+			},
+			{
+				"texto": "Agora não",
+				"acao": "flag:fada_botao_nyssa"
+			}
 		]
 	}
 }

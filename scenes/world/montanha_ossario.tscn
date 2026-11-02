@@ -7,6 +7,7 @@
 [node name="Ossario" type="Node2D"]
 script = ExtResource("1_level")
 layout_file = "res://levels/montanha_ossario.txt"
+pickups = Array[Dictionary]([{"cell": Vector2i(10, 8), "item": "botao_escama"}])
 area_name = "Ossário"
 area_subtitle = "Os ossos estão em ordem. Alguém ainda arruma."
 theme = "montanha"

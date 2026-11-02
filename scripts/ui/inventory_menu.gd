@@ -13,7 +13,7 @@ extends CanvasLayer
 
 signal closed
 
-const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Magias", "Materiais", "Lembranças"]
+const TABS: Array[String] = ["Armas", "Escudos", "Armadura", "Frascos", "Magias", "Botões", "Materiais", "Lembranças"]
 const SLOT := 30
 const COLUMNS := 5
 const GOLD_LINE := Color(0.62, 0.52, 0.32, 0.55)
@@ -340,6 +340,10 @@ func entries(tab: int = -1) -> Array[Dictionary]:
 			result.append({"id": "frasco_sanidade", "count": Game.sanity_flasks})
 		"Magias":  # v0.50
 			result.append_array(_items_of(ItemData.Kind.MAGIA))
+		"Botões":  # v0.53: primeiro os da lata, depois os da mochila
+			var all := _items_of(ItemData.Kind.BOTAO)
+			all.sort_custom(func(a, b): return Game.button_in_tin(a["id"]) and not Game.button_in_tin(b["id"]))
+			result.append_array(all)
 		"Materiais":
 			result.append_array(_items_of(ItemData.Kind.MATERIAL))
 		"Lembranças":
@@ -531,6 +535,9 @@ func _select(item_id: String) -> void:
 	if item is SpellData:
 		_show_spell(item as SpellData)
 		return
+	if item is ButtonData:
+		_show_button(item as ButtonData)
+		return
 	_detail_kind.text = ItemData.KIND_NAMES[item.kind]
 	match item_id:
 		"frasco_vida":
@@ -541,6 +548,15 @@ func _select(item_id: String) -> void:
 			_detail_stats.text = "Equipado" if Game.shield_equipped() else "Guardado"
 		_:
 			_detail_stats.text = "" if item.max_stack == 1 else "x%d" % Game.item_count(item_id)
+
+
+## v0.53: a ficha de um botão — o efeito, e se está na lata.
+func _show_button(button: ButtonData) -> void:
+	var inside := Game.button_in_tin(button.id)
+	var used := Game.button_slots.filter(func(b): return not b.is_empty()).size()
+	_detail_kind.text = "Botão  ·  na lata" if inside else "Botão  ·  na mochila"
+	_detail_stats.text = "Lata: %d/%d" % [used, Game.BUTTON_SLOTS] if Game.has_button_tin() else "Sem a Lata de Botões"
+	_detail_skill.text = button.effect_text + ("" if inside else "\nSó funciona dentro da lata.")
 
 
 ## v0.50: a ficha de uma magia (escola, forma, custo, poder agora).
@@ -636,6 +652,12 @@ func _activate(item_id: String) -> void:
 	elif item_id == "escudo_remendado":
 		Game.set_shield_equipped(not Game.shield_equipped())
 		Sfx.play(&"shield_up", -4.0)
+	elif Items.get_item(item_id) is ButtonData:
+		if not Game.toggle_button(item_id):
+			Sfx.play(&"ui_click")  # sem lata, ou a tampa não fecha (4 já)
+			_detail_skill.text = "A tampa não fecha: tire um botão antes." if Game.has_button_tin() else "Você ainda não tem onde guardar."
+			return
+		Sfx.play(&"pickup", -6.0)
 	elif Items.get_item(item_id) is SpellData:
 		Game.equip_spell(item_id)  # apertar a equipada = guardar
 		Sfx.play(&"chime", -6.0)

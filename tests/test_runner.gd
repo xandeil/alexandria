@@ -153,6 +153,10 @@ func _ready() -> void:
 		"test_amaro_encounters",
 		"test_amaro_trap_and_toca",
 		"test_pitoco_and_forgiveness",
+		"test_button_tin",
+		"test_button_effects",
+		"test_buttons_in_the_world",
+		"test_cassian_steals_a_button",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -2155,6 +2159,132 @@ func test_pitoco_and_forgiveness() -> void:
 	level = await open_level(TEATRO, "camara")
 	check(find_npc("amaro_teatro") == null, "e vai embora")
 	level.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## v0.53 (Etapa 12): a Lata de Botões — a Fada dá; 4 espaços; só vale dentro; morrer não tira.
+func test_button_tin() -> void:
+	Game.reset_progress()
+	var level := await open_level(TEATRO, "camara")
+	check(level.resolve_dialogue("fada") == "fada_lata", "1º encontro: 'Parece de biscoito, mas não é.'")
+	await level._on_dialogue_action("presente:lata_recebida:lata_de_botoes")
+	check(Game.has_button_tin() and level.resolve_dialogue("fada") == "fada", "a lata é sua")
+	Game.defeated_bosses.assign(["nyssa"])
+	check(level.resolve_dialogue("fada") == "fada_botao_nyssa", "depois de Nyssa: 'Tinha um botão dela aí.'")
+	level.queue_free()
+	await frames(2)
+	for id in ["botao_pijama", "botao_farda", "botao_musgo", "botao_vidro", "botao_giz"]:
+		Game.add_item(id)
+	check(is_zero_approx(Game.button_bonus("rolamento")), "na mochila, o botão não faz nada")
+	for id in ["botao_pijama", "botao_farda", "botao_musgo", "botao_vidro"]:
+		check(Game.toggle_button(id), "%s na lata" % id)
+	check(not Game.toggle_button("botao_giz"), "o 5º não cabe: a tampa não fecha")
+	check(is_equal_approx(Game.button_bonus("rolamento"), 0.15), "dentro da lata, funciona")
+	check(Game.toggle_button("botao_pijama") and not Game.button_in_tin("botao_pijama"), "apertar de novo tira")
+	Game.toggle_button("botao_giz")
+	Game.memories = 500
+	Game.register_death()
+	check(Game.button_in_tin("botao_giz") and Game.button_in_tin("botao_vidro"), "morrer não tira nada da lata")
+	var saved := Game._to_dict()
+	Game.button_slots.assign(["", "", "", ""])
+	Game._from_dict(saved)
+	check(Game.button_in_tin("botao_giz"), "a lata volta do save")
+	var menu := InventoryMenu.new()
+	add_child(menu)
+	await frames(2)
+	var ids := menu.entries(InventoryMenu.TABS.find("Botões")).map(func(e): return e["id"])
+	check(ids.size() == 5 and Game.button_in_tin(ids[0]), "a aba Botões: primeiro os da lata")
+	menu.queue_free()
+	Game.reset_progress()
+
+
+## Alguns efeitos, cada um no sistema que já existia.
+func test_button_effects() -> void:
+	Game.reset_progress()
+	Game.add_item("lata_de_botoes")
+	var player := spawn_player(Vector2(200, 200))
+	await frames(2)
+	for id in ["botao_bombeiro", "botao_avental", "botao_corrente", "botao_giz"]:
+		Game.add_item(id)
+		Game.toggle_button(id)
+	check(Game.armor_defense("fogo") >= 0.1, "Botão de Bombeiro: menos dano de fogo")
+	player.stats.take_damage(player.stats.max_health * 0.7)
+	var hp := player.stats.health
+	player.health_flasks = 3
+	check(player._start_heal(), "bebeu um frasco")
+	await seconds(player.heal_time + 0.1)
+	check(player.stats.health - hp > player.heal_amount, "Botão de Avental: o frasco cura mais")
+	var light := HitInfo.create(5.0, player.global_position + Vector2(10, 0), player.global_position)
+	player._iframes_left = 0.0
+	player.hurtbox.receive_hit(light)
+	check(player.state != Player.State.STAGGER, "Botão de Corrente: golpe leve não interrompe")
+	Game.add_item("bola_de_fogo")
+	Game.equip_spell("bola_de_fogo")
+	player.stats.restore_stamina(999.0)
+	var before := player.stats.stamina
+	player._start_cast()
+	var cost := before - player.stats.stamina
+	check(cost < (Items.get_item("bola_de_fogo") as SpellData).stamina_cost, "Botão de Giz: magia custa menos (%.0f)" % cost)
+	Game.toggle_button("botao_giz")
+	Game.add_item("botao_arrancado")
+	Game.toggle_button("botao_arrancado")
+	check(Game.button_bonus("memoria") > 0.0 and Game.armor_defense("fisico") < 0.0, "Arrancado: mais memórias, menos defesa")
+	player.queue_free()
+	await frames(2)
+	Game.reset_progress()
+
+
+## Cada botão tem um lugar no mundo (e um só).
+func test_buttons_in_the_world() -> void:
+	var places := {}
+	var count := func(id: String):
+		places[id] = int(places.get(id, 0)) + 1
+	for boss: String in Game.BOSS_REWARDS:
+		for id: String in Game.BOSS_REWARDS[boss]:
+			if Items.get_item(id) is ButtonData:
+				count.call(id)
+	for merchant: String in Game.MERCHANTS:
+		for entry: Dictionary in Game.MERCHANTS[merchant]["estoque"]:
+			if Items.get_item(str(entry["id"])) is ButtonData:
+				count.call(str(entry["id"]))
+	var dir := DirAccess.open("res://scenes/world")
+	for file in dir.get_files():
+		if not file.ends_with(".tscn"):
+			continue
+		var text := FileAccess.get_file_as_string("res://scenes/world/" + file)
+		for id: String in Items.CATALOG:
+			if Items.get_item(id) is ButtonData and (text.contains('"item": "%s"' % id) or text.contains('"item2": "%s"' % id)):
+				count.call(id)
+	var talks := FileAccess.get_file_as_string("res://data/dialogos.json") + FileAccess.get_file_as_string("res://scripts/world/level.gd")
+	for id: String in Items.CATALOG:
+		if Items.get_item(id) is ButtonData and (talks.contains("ganhar:" + id) or talks.contains('add_item("%s")' % id)):
+			count.call(id)
+	var buttons := Items.CATALOG.keys().filter(func(id): return Items.get_item(id) is ButtonData)
+	check(buttons.size() == 20, "vinte botões (%d)" % buttons.size())
+	var wrong := buttons.filter(func(id): return int(places.get(id, 0)) != 1).map(func(id): return "%s=%d" % [id, places.get(id, 0)])
+	check(wrong.is_empty(), "cada botão num lugar só (%s)" % [wrong])
+
+
+## Fase 2 do Cassian: um botão da lata vai para uma vitrine; quebrar devolve.
+func test_cassian_steals_a_button() -> void:
+	Game.reset_progress()
+	Game.add_item("lata_de_botoes")
+	Game.add_item("botao_vidro")
+	Game.toggle_button("botao_vidro")
+	var player := spawn_player(Vector2(200, 300))
+	var cassian := (load("res://scenes/bosses/cassian.tscn") as PackedScene).instantiate() as CassianVirel
+	cassian.position = Vector2(200, 200)
+	_world.add_child(cassian)
+	await frames(3)
+	cassian.target = player
+	var case := cassian.collect_button()
+	check(case != null and not Game.button_in_tin("botao_vidro") and Game.has_item("botao_vidro"), "o botão vai para a vitrine (não some)")
+	case.smash()
+	await frames(2)
+	check(Game.button_in_tin("botao_vidro"), "quebrou a vitrine: o botão volta para a lata")
+	cassian.queue_free()
+	player.queue_free()
 	await frames(2)
 	Game.reset_progress()
 
@@ -6245,6 +6375,7 @@ func test_dialogue_conditions_and_name() -> void:
 	var level := await open_level(TEATRO, "camara")
 	await level._on_dialogue_action(options[1]["acao"])
 	check(Game.has_flag("nome_dito_teste") and Game.has_flag("teste_disse"), "disse o nome: nome_dito_<personagem> + a ação junto")
+	Game.set_flag("lata_recebida")  # v0.53: antes disso, a Fada entrega a lata
 	check(level.resolve_dialogue("teste_base") == "teste_outra" and level.resolve_dialogue("fada") == "fada",
 		"Level usa as variantes do .json e mantém as antigas")
 	level.queue_free()
@@ -7986,6 +8117,9 @@ func test_socorro() -> void:
 	await frames(3)
 	check(Game.is_boss_defeated("socorro") and Game.has_item("botao_socorro"), "vencida: o Botão de Socorro")
 	# O Botão de Socorro: cada golpe devolve vida; a morte cobra mais memórias.
+	# v0.53: só vale DENTRO da Lata de Botões.
+	Game.add_item("lata_de_botoes")
+	Game.toggle_button("botao_socorro")
 	Game.memories = 1000
 	var lost := Game.register_death()
 	check(lost == int(floor(1000 * Game.MEMORY_LOSS_RATIO * Game.SOCORRO_LOSS_MULTIPLIER)), "com o Botão de Socorro, a morte cobra mais (%d)" % lost)

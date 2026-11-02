@@ -14,6 +14,7 @@ enum Kind {
 	LEMBRANCA,    ## Itens-chave de lore: não servem para nada além de lembrar.
 	ARMADURA,     ## Capacete, peitoral, luvas, calça, botas (ArmorData).
 	MAGIA,        ## v0.50: feitiços, piromancias e milagres (SpellData).
+	BOTAO,        ## v0.53: botões da Lata de Botões (ButtonData).
 }
 
 const KIND_NAMES := {
@@ -23,6 +24,7 @@ const KIND_NAMES := {
 	Kind.LEMBRANCA: "Lembranças",
 	Kind.ARMADURA: "Armadura",
 	Kind.MAGIA: "Magias",
+	Kind.BOTAO: "Botões",
 }
 
 @export var id := ""

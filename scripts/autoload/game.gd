@@ -118,17 +118,17 @@ const BASE_HEAVY := preload("res://data/attacks/player_heavy.tres")
 ## em outra ilha (Level.pickups).
 const BOSS_REWARDS := {
 	"cavaleiro": {"lembranca_cavaleiro": 1},
-	"corneteiro": {"fragmento_turvo": 1, "sucata_temperada": 4},
-	"sino": {"fragmento_turvo": 1, "sucata_temperada": 4},
-	"dancarina": {"caixa_musica_bronze": 1, "sucata_temperada": 5},
+	"corneteiro": {"botao_corneteiro": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
+	"sino": {"botao_sino": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
+	"dancarina": {"botao_engrenagem": 1, "caixa_musica_bronze": 1, "sucata_temperada": 5},
 	"socorro": {"botao_socorro": 1, "sucata_temperada": 5},
-	"ultimo_igual": {"corrente_igual": 1, "sucata_temperada": 6},
-	"mestre_arconte": {"fragmento_turvo": 1, "sucata_temperada": 6},
+	"ultimo_igual": {"botao_corrente": 1, "corrente_igual": 1, "sucata_temperada": 6},
+	"mestre_arconte": {"botao_giz": 1, "fragmento_turvo": 1, "sucata_temperada": 6},
 	"governanta": {"lembranca_governanta": 1},
 	"sargento": {"calca_detentor": 1, "apito_sargento": 1, "fragmento_turvo": 1, "sucata_temperada": 2},
 	"couraca": {"fragmento_turvo": 1, "sucata_temperada": 3},
 	"aldir": {"lembranca_aldir": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
-	"helena": {"lembranca_helena": 1, "fragmento_turvo": 1},
+	"helena": {"botao_vestido": 1, "lembranca_helena": 1, "fragmento_turvo": 1},
 	"vigia": {"calca_sono": 1, "fragmento_turvo": 1, "sucata_temperada": 3},
 	"mae_esporos": {"fragmento_turvo": 1, "sucata_temperada": 2},
 	"nyssa": {"lembranca_nyssa": 1, "fragmento_turvo": 1, "sucata_temperada": 4},
@@ -169,6 +169,11 @@ var two_handing := false
 var equipped_weapon := START_WEAPON
 ## v0.50 (Etapa 10): a magia que o botão Magia lança ("" = nenhuma).
 var equipped_spell := ""
+## v0.53 (Etapa 12): a LATA DE BOTÕES — 4 espaços ("" = vazio). Só funciona o
+## botão que está aqui dentro. Morrer não tira nada da lata.
+const BUTTON_SLOTS := 4
+var button_slots: Array[String] = ["", "", "", ""]
+signal buttons_changed
 ## Armadura vestida: espaço do corpo ("capacete"...) → id da peça ("" = nada).
 var armor := {}
 ## NG+ (v0.27): 0 = a primeira jornada; 1 = NG+, 2 = NG++...
@@ -305,6 +310,7 @@ func reset_progress() -> void:
 	weapon_level = 0
 	equipped_weapon = START_WEAPON
 	equipped_spell = ""
+	button_slots.assign(["", "", "", ""])
 	left_hand = ""
 	two_handing = false
 	armor = _empty_armor()
@@ -406,8 +412,8 @@ func register_death() -> int:
 	deaths += 1
 	vision_loss = mini(vision_loss + 1, MAX_VISION_LOSS)
 	# Botão de Socorro (v0.35): cura a cada golpe, mas a morte cobra mais.
-	# (Até a Lata de Botões existir — Etapa 12 — vale estando na bolsa.)
-	var ratio := MEMORY_LOSS_RATIO * (SOCORRO_LOSS_MULTIPLIER if has_item("botao_socorro") else 1.0)
+	# v0.53: só vale DENTRO da Lata de Botões.
+	var ratio := MEMORY_LOSS_RATIO * (SOCORRO_LOSS_MULTIPLIER if button_on("socorro") else 1.0)
 	var lost := int(floor(memories * minf(ratio, 1.0)))
 	memories -= lost
 	deaths_changed.emit(deaths)
@@ -466,6 +472,7 @@ const RACHEL_DISCOUNT := 0.8
 ## v0.49 (Etapa 10) — LOJA DO DAMIÃO, o Sucateiro: sempre mais barata; o
 ## estoque cresce com as ilhas ("quando"); compra Algo Quebrado.
 const DAMIAO_STOCK := [
+	{"id": "botao_cerzido", "preco": 900, "limite": 1},
 	{"id": "sucata_temperada", "preco": 160},
 	{"id": "meio_pingente", "preco": 40, "limite": 1},
 	{"id": "fragmento_turvo", "preco": 750, "limite": 2, "quando": "aldir"},
@@ -482,6 +489,7 @@ const INHERITED_DISCOUNT := 0.85
 ## v0.51 (Etapa 10) — DALVA (feitiços): estoque ÚNICO — cada coisa vendida ela
 ## esquece, e some da loja ("some": true). O último, o feitiço "Dalva".
 const DALVA_STOCK := [
+	{"id": "botao_tunica_azul", "preco": 1500, "limite": 1},
 	{"id": "projetil_arcano", "preco": 900, "limite": 1},
 	{"id": "lamina_magica", "preco": 1100, "limite": 1},
 	{"id": "escudo_de_geada", "preco": 1300, "limite": 1},
@@ -494,6 +502,7 @@ const DALVA_STOCK := [
 ]
 ## CÍCERO (piromancias): "Rua em Chamas" só se ele guardou a chama.
 const CICERO_STOCK := [
+	{"id": "botao_bombeiro", "preco": 1200, "limite": 1},
 	{"id": "bola_de_fogo", "preco": 1000},
 	{"id": "chicote_de_chamas", "preco": 1200},
 	{"id": "explosao_curta", "preco": 1500},
@@ -505,6 +514,7 @@ const CICERO_STOCK := [
 ]
 ## BENEDITA (milagres).
 const BENEDITA_STOCK := [
+	{"id": "botao_romeira", "preco": 1200, "limite": 1},
 	{"id": "milagre_cura", "preco": 1000},
 	{"id": "lanca_de_raio", "preco": 1300},
 	{"id": "milagre_barreira", "preco": 1400},
@@ -1195,6 +1205,8 @@ func armor_defense(damage_type: String) -> float:
 			total += ArmorSets.piece_defense(piece.set_id, slot, damage_type)
 	if worn == ArmorData.SLOTS.size():
 		total *= 1.0 + ArmorSets.FULL_BODY_BONUS
+	# v0.53: botões de defesa (Bombeiro, Bronze, Vidro); o Arrancado deixa frágil.
+	total += button_bonus("def_" + damage_type) - button_bonus("fragil")
 	return minf(total, ArmorSets.DEFENSE_CAP)
 
 
@@ -1206,7 +1218,8 @@ const SHIELD_WEIGHT := 4.0
 
 
 func max_load() -> float:
-	return LOAD_BASE + LOAD_PER_FORCE * float(attributes.get("forca", StatsComponent.BASE_ATTRIBUTE))
+	return (LOAD_BASE + LOAD_PER_FORCE * float(attributes.get("forca", StatsComponent.BASE_ATTRIBUTE))) \
+		* (1.0 + button_bonus("carga"))  # v0.53: Botão de Cerzido
 
 
 ## Tudo que o herói carrega no corpo: armadura vestida + armas nas mãos + escudo.
@@ -1372,6 +1385,55 @@ func _copies_free(id: String, hand: String) -> int:
 ## Equipa uma arma numa mão ("direita" ou "esquerda").
 ## Sem uma cópia sobrando, a arma MUDA de mão: sai da esquerda e vai para a
 ## direita. A direita nunca fica vazia (o golpe precisa de uma arma).
+# --- v0.53 (Etapa 12): a Lata de Botões ------------------------------------------------
+
+func has_button_tin() -> bool:
+	return has_item("lata_de_botoes")
+
+
+func button_in_tin(id: String) -> bool:
+	return button_slots.has(id)
+
+
+## Põe na lata (no 1º espaço livre) ou tira, se já está lá. false = não deu
+## (sem lata, sem o botão, ou a tampa não fecha: 4 já).
+func toggle_button(id: String) -> bool:
+	var slot := button_slots.find(id)
+	if slot >= 0:
+		button_slots[slot] = ""
+	else:
+		var free := button_slots.find("")
+		if not has_button_tin() or item_count(id) <= 0 or not Items.get_item(id) is ButtonData or free < 0:
+			return false
+		button_slots[free] = id
+	buttons_changed.emit()
+	items_changed.emit()
+	save_game()
+	return true
+
+
+## Tira o botão da lata (o Cassian congela um na vitrine). "" = nenhum.
+func take_button_from_tin(id: String) -> void:
+	var slot := button_slots.find(id)
+	if slot >= 0:
+		button_slots[slot] = ""
+		buttons_changed.emit()
+
+
+## Soma do efeito em todos os botões DENTRO da lata (0.0 = nenhum).
+func button_bonus(effect: String) -> float:
+	var total := 0.0
+	for id in button_slots:
+		var button := Items.get_item(id) as ButtonData if not id.is_empty() else null
+		if button:
+			total += float(button.effects.get(effect, 0.0))
+	return total
+
+
+func button_on(effect: String) -> bool:
+	return button_bonus(effect) > 0.0
+
+
 ## v0.50: equipa (ou guarda, se já é ela) uma magia que você tem.
 func equip_spell(id: String) -> bool:
 	if id.is_empty() or equipped_spell == id:
@@ -1670,6 +1732,7 @@ func _to_dict() -> Dictionary:
 		"version": SAVE_VERSION,
 		"memories": memories,
 		"magia_equipada": equipped_spell,
+		"botoes": button_slots.duplicate(),
 		"deaths": deaths,
 		"vision_loss": vision_loss,
 		"sanity_flasks": sanity_flasks,
@@ -1751,6 +1814,12 @@ func _from_dict(data: Dictionary) -> void:
 	starter_sword = bool(data.get("espada_inicial", true))
 	chosen_weapon = str(data.get("arma_escolhida", ""))
 	equipped_spell = str(data.get("magia_equipada", ""))
+	var saved_buttons: Variant = data.get("botoes", [])
+	button_slots.assign(["", "", "", ""])
+	if saved_buttons is Array:
+		for i in mini((saved_buttons as Array).size(), BUTTON_SLOTS):
+			var button_id := str(saved_buttons[i])
+			button_slots[i] = button_id if item_count(button_id) > 0 else ""
 	if not equipped_spell.is_empty() and item_count(equipped_spell) <= 0:
 		equipped_spell = ""
 	player_name = str(data.get("nome", ""))

@@ -326,7 +326,8 @@ func _ready() -> void:
 	_build_off_hand()
 	equip_weapon(Game.current_weapon())
 	Game.weapon_changed.connect(func(_id: String): equip_weapon(Game.current_weapon()))
-	Game.armor_changed.connect(_on_armor_changed)  # método (não lambda): o herói morre e renasce, o Game fica
+	Game.armor_changed.connect(_on_armor_changed)
+	Game.buttons_changed.connect(_apply_armor_stats)  # v0.53: botão entrou/saiu da lata  # método (não lambda): o herói morre e renasce, o Game fica
 	_last_safe_position = global_position
 	var ring := NoiseRing.new()
 	ring.player = self
@@ -413,7 +414,7 @@ func apply_progress(refill: bool) -> void:
 ## Armadura → números do StatsComponent (vida máxima e pressa da estamina).
 func _apply_armor_stats() -> void:
 	stats.health_scale = 1.0 + Game.armor_bonus("vida")
-	stats.regen_bonus = 1.0 + Game.armor_bonus("folego")
+	stats.regen_bonus = 1.0 + Game.armor_bonus("folego") + Game.button_bonus("folego")  # v0.53: Botão do Corneteiro
 
 
 ## Vestiu/tirou uma peça no inventário: recalcula SEM encher a vida (trocar
@@ -445,6 +446,7 @@ func rest() -> void:
 	_runner.cancel()
 	stats.revive()
 	Game.flags.erase("ultimo_pedido_gasto")  # v0.51: o Último Pedido volta ao descansar
+	Game.flags.erase("sino_tocou")  # v0.53: o Botão de Sino também
 	health_flasks = health_flasks_max
 	health_flasks_changed.emit(health_flasks, health_flasks_max)
 	if state != State.LOCKED:  # durante o descanso a fase mantém o herói travado
@@ -483,7 +485,7 @@ func _physics_process(delta: float) -> void:
 	_anim_time += delta
 	_chill_left = maxf(_chill_left - delta, 0.0)
 	_barrier_left = maxf(_barrier_left - delta, 0.0)
-	on_ice = Ice.is_slippery(self)
+	on_ice = Ice.is_slippery(self) and not Game.button_on("sem_escorregar")  # v0.53: Botão de Vidro
 	_combo_grace = maxf(_combo_grace - delta, 0.0)
 	_iframes_left = maxf(_iframes_left - delta, 0.0)
 	_update_drowsiness(delta)
@@ -887,7 +889,7 @@ func add_drowsiness(amount: float) -> void:
 		return
 	if state == State.DEAD or state == State.SLEEP or state == State.LOCKED or _plunging:
 		return
-	drowsiness = minf(drowsiness + amount * drowsiness_scale, drowsiness_max)
+	drowsiness = minf(drowsiness + amount * drowsiness_scale * (1.0 - Game.button_bonus("sono")), drowsiness_max)
 	drowsiness_changed.emit(drowsiness, drowsiness_max)
 	if drowsiness >= drowsiness_max:
 		_fall_asleep()
@@ -911,6 +913,14 @@ func _update_drowsiness(delta: float) -> void:
 
 
 func _fall_asleep() -> void:
+	if Game.button_on("acordar") and not Game.has_flag("sino_tocou"):
+		# v0.53: Botão de Sino — uma vez por descanso, acorda na hora do sono.
+		Game.flags["sino_tocou"] = true
+		drowsiness = 0.0
+		drowsiness_changed.emit(drowsiness, drowsiness_max)
+		Sfx.play(&"bell", -4.0)
+		Fx.float_text(global_position + Vector2(-8, -28), "dlim!", Color(1.0, 0.9, 0.6), 8)
+		return
 	_runner.cancel()
 	hitbox.deactivate()
 	_clear_input()
@@ -1156,7 +1166,7 @@ func _on_attack_phase_changed(phase: AttackRunner.Phase) -> void:
 func _activate_hitbox() -> void:
 	# Dano = golpe × arma × letras de escala × reforço do Ferreiro (Game.weapon_hit_damage:
 	# a MESMA conta que a ficha do inventário mostra).
-	var damage := attack_damage(_current_attack, _attack_hand)
+	var damage := attack_damage(_current_attack, _attack_hand) * button_damage_scale(_current_attack.damage_type)
 	var skill := _skill_of(_attack_hand)
 	if skill.fires_projectile(_current_attack):
 		skill.fire(self, _current_attack, damage, Vector2.from_angle(hitbox_pivot.rotation))
@@ -1165,6 +1175,23 @@ func _activate_hitbox() -> void:
 	skill.on_active(self, _current_attack, damage)
 	if _attack_hand == &"ambas":
 		_left_skill.on_active(self, _current_attack, damage)
+
+
+## v0.53: os botões que mexem no dano de um golpe que está saindo AGORA
+## (Engrenagem: depois da esquiva; Vestido Vermelho: pouca vida; Escama: fogo).
+var _dodge_bonus := false
+
+
+func button_damage_scale(damage_type: String = "fisico") -> float:
+	var scale := 1.0
+	if _dodge_bonus:
+		_dodge_bonus = false
+		scale *= 1.0 + Game.button_bonus("pos_esquiva")
+	if stats.health_ratio() <= 0.3:
+		scale *= 1.0 + Game.button_bonus("pouca_vida")
+	if damage_type == "fogo":
+		scale *= 1.0 + Game.button_bonus("dano_fogo")
+	return scale
 
 
 ## Duas mãos rende mais — menos para arco e besta (atirar já é com as duas).
@@ -1194,7 +1221,7 @@ func _on_hit_landed(target: Hurtbox, info: HitInfo) -> void:
 		if _attack_hand == &"ambas":
 			_left_skill.on_hit(self, target, info, _current_attack)
 	make_noise(noise_hit)
-	if Game.has_item("botao_socorro"):  # v0.35: o Botão de Socorro devolve um pouco de vida
+	if Game.button_on("socorro"):  # v0.35/v0.53: o Botão de Socorro (na lata) devolve um pouco de vida
 		stats.heal(stats.max_health * Game.SOCORRO_HEAL_RATIO)
 	Fx.hitstop(_current_attack.hitstop)
 	Fx.shake(_current_attack.shake, 0.12)
@@ -1281,7 +1308,7 @@ func _state_dash(delta: float) -> void:
 	if _state_time < duration:
 		# Começa rápido e desacelera no fim: sensação de rolamento, não de teleporte.
 		var t := _state_time / duration
-		velocity = _dash_dir * dash_speed * _dash_speed_scale * (1.0 - t * t * 0.7)
+		velocity = _dash_dir * dash_speed * _dash_speed_scale * (1.0 + Game.button_bonus("rolamento")) * (1.0 - t * t * 0.7)
 		_afterimage_timer -= delta
 		if _afterimage_timer <= 0.0:
 			_afterimage_timer = 0.035
@@ -1289,6 +1316,8 @@ func _state_dash(delta: float) -> void:
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * 2.0 * delta)
 	if _state_time >= duration + dash_recovery_time:
+		if Game.button_on("pos_esquiva"):
+			_dodge_bonus = true  # v0.53: Botão de Engrenagem — o próximo golpe dói mais
 		_set_state(State.FREE)
 
 
@@ -1313,7 +1342,7 @@ func _start_cast() -> bool:
 	var spell := Items.get_item(Game.equipped_spell) as SpellData if not Game.equipped_spell.is_empty() else null
 	if spell == null:
 		return false
-	if not stats.try_spend_stamina(spell.stamina_cost):
+	if not stats.try_spend_stamina(spell.stamina_cost * (1.0 - Game.button_bonus("custo_magia"))):
 		stamina_denied.emit()
 		return false
 	_cast_spell = spell
@@ -1363,7 +1392,7 @@ func _state_heal(delta: float) -> void:
 	velocity = velocity.move_toward(_move_input() * move_speed * heal_move_multiplier, _grip() * delta)
 	if not _effect_applied and _state_time >= heal_time * heal_apply_at:
 		_effect_applied = true
-		stats.heal(heal_amount)
+		stats.heal(heal_amount * (1.0 + Game.button_bonus("frasco")))  # v0.53: Botão de Avental
 		Sfx.play(&"heal", -2.0)
 		Fx.splash(global_position + Vector2(0, -12), Color(0.9, 0.25, 0.25), 12)
 	if _state_time >= heal_time:
@@ -1433,10 +1462,12 @@ func _on_hit_received(info: HitInfo) -> void:
 		return  # _on_died já assumiu
 	if state == State.GRABBED:
 		return  # preso: apanha, mas continua preso (só os toques soltam)
+	if not info.is_heavy and Game.button_on("firme"):
+		return  # v0.53: Botão de Corrente — golpe leve não interrompe
 	_runner.cancel()
 	velocity = info.direction * info.knockback
 	_set_state(State.STAGGER)
-	_stagger_duration = stagger_time
+	_stagger_duration = stagger_time * (1.0 - Game.button_bonus("postura"))  # v0.53: Botão de Farda
 
 
 ## Queimadura (fogo no chão): dano pequeno e contínuo, SEM cambalear e sem

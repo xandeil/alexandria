@@ -34,6 +34,8 @@ const LAST_WORDS := "...Era meu. ...Era meu."
 
 ## Nome do estado no save (vencido = "morto").
 var key := ""
+## v0.53: um segundo item (o botão que os mímicos guardam: Bronze, Vidro).
+var extra_drop := ""
 var ai := AI.DORMANT
 var interactable: Interactable
 var _ai_time := 0.0
@@ -45,6 +47,7 @@ static func spawn(parent: Node, def: Dictionary, at: Vector2) -> Mimico:
 	mimic.key = str(def.get("key", ""))
 	mimic.drop_item = str(def.get("item", ""))
 	mimic.drop_chance = 1.0 if not mimic.drop_item.is_empty() else 0.0
+	mimic.extra_drop = str(def.get("item2", ""))
 	mimic.position = at
 	parent.add_child(mimic)
 	return mimic
@@ -185,6 +188,8 @@ func _on_died() -> void:
 	interactable.enabled = false
 	if not key.is_empty():
 		Game.set_world_state(key, "morto")
+	if not extra_drop.is_empty():
+		ItemPickup.drop(get_parent(), global_position + Vector2(12, 4), extra_drop, 1)
 	if randf() < 0.35:
 		Fx.float_text(global_position + Vector2(-30, -30), LAST_WORDS, Color(0.95, 0.85, 0.75), 7)
 	super._on_died()

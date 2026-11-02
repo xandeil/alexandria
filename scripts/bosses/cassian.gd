@@ -76,6 +76,9 @@ var _steal_timer := 3.0
 var _flask_timer := 0.0
 ## Vitrines com um frasco seu dentro (quebrar devolve).
 var flask_cases: Array[DestructibleCover] = []
+## v0.53 (Etapa 12): o botão da sua lata que ele congelou numa vitrine (uma vez por luta).
+var button_case: DestructibleCover
+var stolen_button := ""
 var _close_time := 0.0
 
 
@@ -174,6 +177,9 @@ func _decide() -> void:
 			return
 		if _steal_timer <= 0.0:
 			start_steal()
+			return
+		if stolen_button.is_empty() and Game.button_slots.any(func(b): return not b.is_empty()):
+			collect_button()
 			return
 		if _flask_timer <= 0.0 and target.health_flasks > 0:
 			collect_flask()
@@ -305,6 +311,37 @@ func collect_flask() -> DestructibleCover:
 	Sfx.play(&"crystal", -2.0)
 	_set_mode(Mode.FREEZE)
 	return case
+
+
+## "Nada se perde aqui" (v0.53): um botão da sua Lata vai para uma vitrine.
+## Quebrar a vitrine devolve. (Uma vez por luta.)
+func collect_button() -> DestructibleCover:
+	for id in Game.button_slots:
+		if not id.is_empty():
+			stolen_button = id
+			break
+	if stolen_button.is_empty():
+		return null
+	Game.take_button_from_tin(stolen_button)
+	var case := DestructibleCover.new()
+	case.texture_override = preload("res://assets/props/display_case.png")
+	case.max_health = flask_case_health
+	var spot := target.global_position + Vector2.from_angle(randf() * TAU) * randf_range(60.0, 110.0)
+	case.position = clamp_to_arena(spot, 24.0) if arena_rect.size != Vector2.ZERO else spot
+	get_parent().add_child(case)
+	case.destroyed.connect(_on_button_case_broken)
+	button_case = case
+	Fx.float_text(case.position + Vector2(-20, -30), Items.display_name(stolen_button), Color(0.75, 0.9, 1.0), 7)
+	Sfx.play(&"crystal", -2.0)
+	_set_mode(Mode.FREEZE)
+	return case
+
+
+func _on_button_case_broken(case: DestructibleCover) -> void:
+	if not stolen_button.is_empty() and not Game.button_in_tin(stolen_button):
+		Game.toggle_button(stolen_button)  # de volta na lata
+		Fx.float_text(case.global_position + Vector2(-10, -26), "botão!", Color(1.0, 0.9, 0.6), 7)
+	button_case = null
 
 
 ## Quebrou a vitrine: o frasco volta para você.
