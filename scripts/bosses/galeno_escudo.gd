@@ -162,7 +162,17 @@ func _on_died() -> void:
 	Game.set_flag("galeno_morto")
 	Game.add_item("escudo_sem_dono")
 	_defeat(SPEECH_DEFEAT[0])
-	for i in [1, 2]:
-		get_tree().create_timer(2.2 * i).timeout.connect(func():
-			if is_instance_valid(self):
-				speech.emit(SPEECH_DEFEAT[i]))
+
+
+## O corpo se desfaz como o de todos, mas o nó só sai depois das três falas
+## (v0.53.2: antes ele saía em 0,7 s e levava junto as duas últimas).
+func _play_death() -> void:
+	var tween := create_tween()
+	tween.tween_property(visual, "modulate", Color(2.2, 2.2, 2.4, 1.0), 0.12)
+	tween.tween_property(visual, "scale", Vector2(1.4, 0.15), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(visual, "modulate:a", 0.0, 0.55)
+	for i in range(1, SPEECH_DEFEAT.size()):
+		tween.tween_interval(2.2 if i > 1 else 1.55)  # uma fala a cada 2,2 s
+		tween.tween_callback(speech.emit.bind(SPEECH_DEFEAT[i]))
+	tween.tween_interval(3.0)  # tempo de ler a última
+	tween.tween_callback(queue_free)

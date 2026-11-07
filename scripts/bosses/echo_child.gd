@@ -80,7 +80,7 @@ func _try_hit() -> void:
 		return
 	var info := HitInfo.create(damage, global_position - direction * 4.0, player.global_position)
 	info.knockback = 110.0
-	info.source = source
+	info.source = source if is_instance_valid(source) else null  # a Governanta pode já ter ido
 	info.attack_name = "Eco"
 	info.damage_type = "magia"
 	if player.hurtbox.receive_hit(info):

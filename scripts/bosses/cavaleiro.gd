@@ -206,6 +206,14 @@ func _next_cut() -> void:
 	_combo_index += 1
 
 
+## O contragolpe: um corte pesado só. Depois dele, volta a decidir.
+func _counter_cut() -> void:
+	_set_mode(Mode.ATTACK)
+	facing = (target.global_position - global_position).normalized() if target else facing
+	start_attack(combo[mini(2, combo.size() - 1)], facing)
+	_combo_index = combo.size()
+
+
 func _on_attack_finished() -> void:
 	if mode == Mode.ATTACK:
 		if target and global_position.distance_to(target.global_position) <= reach_to_attack * 1.4:
@@ -250,9 +258,10 @@ func _incoming_damage_multiplier(info: HitInfo) -> float:
 
 func _on_damaged(_amount: float, _info: HitInfo, blocked: bool) -> void:
 	if blocked and mode == Mode.GUARD:
-		# Bateu na guarda: o contragolpe (o corte pesado).
-		_combo_index = 2 if combo.size() > 2 else 0
-		_next_cut()
+		# Bateu na guarda: o contragolpe (o corte pesado). v0.53.2: na fase 1
+		# também — antes o "terceiro tempo" não existia na fase 1 e a guarda
+		# só abaixava, sem resposta.
+		_counter_cut()
 		return
 	if phase != 1 or mode == Mode.ATTACK or mode == Mode.TRANSITION:
 		return

@@ -62,6 +62,13 @@ func _fight(delta: float) -> void:
 			if _runner.is_running():
 				velocity = _runner.step(delta, velocity)
 				return
+			# v0.53.2: a hora da troca vem ANTES da pancada. Antes, com o herói
+			# colado, uma pancada emendava na outra e a troca nunca chegava.
+			if _mode_time >= shield_time:
+				_next = Mode.FLAME
+				_set_mode(Mode.SWAP)
+				Sfx.play(&"clank", -4.0)
+				return
 			var to_target := target.global_position - global_position
 			facing = facing.slerp(to_target.normalized(), minf(3.0 * delta, 1.0))  # vira devagar
 			if _cooldown <= 0.0 and to_target.length() < 30.0:
@@ -69,10 +76,6 @@ func _fight(delta: float) -> void:
 				_cooldown = 1.2
 				return
 			velocity = velocity.move_toward(facing * move_speed * 0.6, acceleration * delta)
-			if _mode_time >= shield_time:
-				_next = Mode.FLAME
-				_set_mode(Mode.SWAP)
-				Sfx.play(&"clank", -4.0)
 		Mode.SWAP:
 			velocity = velocity.move_toward(Vector2.ZERO, acceleration * delta)
 			if _mode_time >= swap_time:

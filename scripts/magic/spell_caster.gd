@@ -60,7 +60,12 @@ static func release(spell: SpellData, caster: Player, direction: Vector2) -> voi
 static func _hit_around(spell: SpellData, caster: Player, power: float, direction: Vector2, half_angle: float) -> int:
 	var hits := 0
 	var center := caster.global_position
-	for node in caster.get_tree().get_nodes_in_group(&"enemies"):
+	# v0.53.2: mini-chefe dormindo (ou voltando ao posto) também leva — e acorda.
+	var targets := caster.get_tree().get_nodes_in_group(&"enemies")
+	for node in caster.get_tree().get_nodes_in_group(&"wake_on_hit"):
+		if not targets.has(node):
+			targets.append(node)
+	for node in targets:
 		var enemy := node as Enemy
 		if enemy == null or enemy.dead or not enemy.is_targetable():
 			continue

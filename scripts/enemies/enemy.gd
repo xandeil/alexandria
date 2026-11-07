@@ -326,11 +326,27 @@ func receive_critical(damage: float, from: Node2D) -> void:
 	Fx.flash(body_sprite, 0.2, Color(1.0, 0.3, 0.3))
 	Fx.sparks(global_position + Vector2(0, -8), Vector2.UP, Color(0.9, 0.1, 0.15), 18)
 	Sfx.play(&"hit_heavy")
+	var phase_before: Variant = _phase_marker()
 	stats.take_damage(damage)
-	if not dead:
-		var info := HitInfo.create(0.0, from.global_position, global_position)
-		_on_poise_broken(info)  # ainda no chão depois do golpe
-		_runner.cancel()
+	if dead:
+		return
+	var info := HitInfo.create(0.0, from.global_position, global_position)
+	# v0.53.2: o crítico também é "levou dano" — quem troca de fase na metade da
+	# vida troca NA HORA, sem esperar o próximo golpe.
+	_on_damaged(damage, info, false)
+	if dead or _phase_marker() != phase_before:
+		# O crítico abriu a troca de fase (ou zerou a fase e o chefe reviveu nela):
+		# a troca segue. Derrubá-lo agora cancelava a troca no meio — e ele ficava
+		# imune para sempre (v0.53.2, bugs 1 e 2).
+		return
+	_on_poise_broken(info)  # ainda no chão depois do golpe
+	_runner.cancel()
+
+
+## Em que fase o inimigo está (null = não tem fases). O crítico usa para saber se
+## abriu uma troca de fase.
+func _phase_marker() -> Variant:
+	return get(&"phase")
 
 
 # --- Morte ---------------------------------------------------------------------------

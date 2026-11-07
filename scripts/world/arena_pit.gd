@@ -113,8 +113,17 @@ func is_active() -> bool:
 ## O ponto está dentro da elipse? margin > 0 aumenta a área ("perto da borda"
 ## também conta); margin < 0 diminui (dá uma folga antes de cair).
 func contains_point(point: Vector2, margin: float = 0.0) -> bool:
-	if state != State.OPEN:
-		return false
+	return state == State.OPEN and _in_ellipse(point, margin)
+
+
+## v0.53.2: o chão neste ponto é do buraco — rachando OU aberto? (Entulho é chão.)
+## Não decide queda (isso é contains_point); responde se o chão é FIRME. Uma
+## rachadura ainda aguenta o herói, mas vai abrir: não serve de ponto seguro.
+func covers_point(point: Vector2, margin: float = 0.0) -> bool:
+	return is_active() and _in_ellipse(point, margin)
+
+
+func _in_ellipse(point: Vector2, margin: float) -> bool:
 	var d := point - global_position
 	var rx := maxf(radius.x + margin, 1.0)
 	var ry := maxf(radius.y + margin, 1.0)
