@@ -676,7 +676,7 @@ func _enter_phase_2() -> void:
 	Fx.slow_motion(0.3, 0.45)
 	eyes.visible = true
 	visual.modulate = Color(1.08, 0.94, 0.9)
-	shift_arena(2)  # a praça pega fogo pelas bordas e a arena encolhe (Etapa 6)
+	shift_arena(2)  # a praça pega fogo: focos espalhados pelo meio (no máximo 12)
 	for i in 3:
 		await wait(0.45)
 		if token != _transition_token or dead:

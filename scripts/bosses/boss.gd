@@ -24,7 +24,8 @@ signal ready_to_fight
 @export var wake_distance := 0.0
 
 ## O que muda na arena em cada fase (v0.35, Etapa 6): fase → config de
-## ArenaShift. Ex.: {2: {"fogo_borda": 2, "cresce": 12.0, "max": 4}}.
+## ArenaShift. Ex.: {2: {"focos": 12, "escuro": 0.6}}. (Nada de borda: o
+## desabamento da borda é só da Rachel — v0.53.1.)
 @export var phase_arena := {}
 
 ## Limites da arena (em coordenadas do mundo), preenchidos pela BossArena.

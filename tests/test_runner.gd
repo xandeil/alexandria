@@ -157,6 +157,8 @@ func _ready() -> void:
 		"test_button_effects",
 		"test_buttons_in_the_world",
 		"test_cassian_steals_a_button",
+		"test_only_rachel_crumbles_the_edge",
+		"test_phase2_frame_cost",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -169,7 +171,7 @@ func _ready() -> void:
 		"test_couraca_back_only",
 		"test_city_expansion",
 		"test_corneteiro_silences_city",
-		"test_arena_shift_fire_ring",
+		"test_arena_shift_foci",
 		"test_bosque_expansion",
 		"test_breathing_flowers",
 		"test_sino_despertar",
@@ -2286,6 +2288,147 @@ func test_cassian_steals_a_button() -> void:
 	cassian.queue_free()
 	player.queue_free()
 	await frames(2)
+	Game.reset_progress()
+
+
+# --- v0.53.1: a borda que desaba é só da Rachel ------------------------------------------
+
+## Chaves que as marcas na arena aceitam. Nenhuma mexe na borda.
+const ARENA_MARK_KEYS := ["focos", "focos_a_cada", "focos_tipo", "dps", "escuro", "sono", "some", "luz_flores"]
+var _edge_pits: Array = []
+
+
+func _track_pit(node: Node) -> void:
+	if node is ArenaPit:
+		_edge_pits.append(node)
+
+
+## Quantos buracos (dos que nasceram desde o último clear) ficaram perto da borda.
+func _pits_on_edge(rect: Rect2) -> int:
+	var count := 0
+	for pit in _edge_pits:
+		if is_instance_valid(pit) and rect.size != Vector2.ZERO and not rect.grow(-30.0).has_point((pit as Node2D).global_position):
+			count += 1
+	return count
+
+
+## Bate até cair (25% da vida por vez, com tempo para as fases trocarem).
+func _beat(boss: Node, level: Level) -> void:
+	var guard := 0
+	while is_instance_valid(boss) and not boss.dead and guard < 40:
+		level.player._iframes_left = 999.0
+		level.player.stats.heal(9999.0)
+		var stats: StatsComponent = boss.get("stats")
+		if is_instance_valid(stats):
+			stats.take_damage(stats.max_health * 0.25)
+		await seconds(0.9)
+		guard += 1
+	await seconds(2.0)
+
+
+## Vence CADA chefe principal e cada mini-chefe: só a arena da Rachel perde a borda.
+func test_only_rachel_crumbles_the_edge() -> void:
+	for scene in DirAccess.get_files_at("res://scenes/bosses"):
+		if scene.ends_with(".tscn"):
+			var text := FileAccess.get_file_as_string("res://scenes/bosses/" + scene)
+			var line := text.get_slice("phase_arena = ", 1).get_slice("\n", 0) if text.contains("phase_arena = ") else ""
+			for key in ["fogo_borda", "cresce", "\"max\"", "\"borda\""]:
+				check(not line.contains(key), "%s: marca de arena sem borda (%s)" % [scene, key])
+	get_tree().node_added.connect(_track_pit)
+	var arenas := [["aldir", "res://scenes/world/arena_aldir.tscn"], ["nyssa", ARENA_NYSSA], ["mabel", ARENA_MABEL],
+		["durgan", ARENA_DURGAN], ["rachel", ARENA_RACHEL], ["cassian", ARENA_CASSIAN], ["helena", TEATRO]]
+	for spec in arenas:
+		Game.reset_progress()
+		_edge_pits.clear()
+		var level := await open_level(spec[1], "camara" if spec[0] == "helena" else "porta")
+		var boss := level._boss
+		level.player._iframes_left = 999.0
+		if level.boss_arena.state == BossArena.State.IDLE:
+			level.boss_arena.arm()
+		level._end_modal()
+		await seconds(1.5)
+		level.player.global_position = level.boss_arena.arena_rect.get_center()
+		var waited := 0
+		while not boss.active and waited < 24:
+			await seconds(0.5)
+			waited += 1
+		var rect: Rect2 = boss.arena_rect
+		var id: String = boss.data.id
+		await _beat(boss, level)
+		var edge := _pits_on_edge(rect)
+		check(Game.is_boss_defeated(id), "%s: vencido" % id)
+		if id == "rachel":
+			check(edge > 0, "Rachel: a borda desaba (%d buracos na beirada)" % edge)
+		else:
+			check(edge == 0, "%s: a borda NÃO desaba (%d)" % [id, edge])
+		level.queue_free()
+		await frames(3)
+	var annexes := ["cidade_quartel", "cidade_torre", "bosque_dormitorio", "bosque_borda", "bosque_sino", "forjas_fornalha",
+		"forjas_passarela", "forjas_dancarina", "raizes_despensa", "raizes_varanda", "raizes_enfermaria", "raizes_toca",
+		"montanha_ossario", "montanha_encosta", "montanha_fosso", "dominio_arquivo", "dominio_galeria", "dominio_aula"]
+	var minis_beaten := 0
+	for annex in annexes:
+		Game.reset_progress()
+		var level := await open_level("res://scenes/world/%s.tscn" % annex, "porta")
+		for mini in get_tree().get_nodes_in_group("minibosses").duplicate():
+			if not is_instance_valid(mini) or (mini as MiniBoss).dead:
+				continue
+			_edge_pits.clear()
+			level.player.global_position = (mini as Node2D).global_position + Vector2(40, 0)
+			mini.target = level.player
+			mini.start_fight()
+			var rect: Rect2 = mini.arena_rect
+			var id: String = mini.data.id if mini.data else str(mini.name)
+			await _beat(mini, level)
+			check(_pits_on_edge(rect) == 0, "%s: a borda não desaba" % id)
+			minis_beaten += 1
+		level.queue_free()
+		await frames(3)
+	check(minis_beaten >= 18, "venceu os mini-chefes (%d)" % minis_beaten)
+	get_tree().node_added.disconnect(_track_pit)
+	Game.reset_progress()
+
+
+## Mediana do tempo de quadro (ms), depois de aquecer.
+func _frame_ms(count: int) -> float:
+	for i in 30:
+		await get_tree().process_frame
+	var times: Array[float] = []
+	for i in count:
+		var start := Time.get_ticks_usec()
+		await get_tree().process_frame
+		times.append(float(Time.get_ticks_usec() - start) / 1000.0)
+	times.sort()
+	return times[times.size() / 2]
+
+
+## O desempenho também não volta: a fase 2 (com os 12 focos acesos) não pode
+## deixar o quadro mais de 30% mais lento que a fase 1.
+func test_phase2_frame_cost() -> void:
+	for spec in [["Aldir", "res://scenes/world/arena_aldir.tscn"], ["Mabel", ARENA_MABEL]]:
+		Game.reset_progress()
+		var level := await open_level(spec[1], "porta")
+		var boss := level._boss
+		level.player._iframes_left = 9999.0
+		if level.boss_arena.state == BossArena.State.IDLE:
+			level.boss_arena.arm()
+		await seconds(1.5)
+		level.player.global_position = level.boss_arena.arena_rect.get_center()
+		var waited := 0
+		while not boss.active and waited < 24:
+			await seconds(0.5)
+			waited += 1
+		boss.set_physics_process(false)  # o chefe parado nas duas medidas: compara só a arena
+		var phase_1 := await _frame_ms(240)
+		var shift := boss.shift_arena(2)
+		for i in shift.focus_limit():
+			shift.spawn_focus()
+		var phase_2 := await _frame_ms(240)
+		check(shift.foci.size() == 12, "%s: os 12 focos acesos durante a medida" % spec[0])
+		print("MEDIDA|%s|fase 1 = %.2f ms|fase 2 = %.2f ms|%+.0f%%" % [spec[0], phase_1, phase_2, (phase_2 / phase_1 - 1.0) * 100.0])
+		check(phase_2 <= phase_1 * 1.3, "%s: fase 2 %.2f ms x fase 1 %.2f ms (limite +30%%)" % [spec[0], phase_2, phase_1])
+		level.queue_free()
+		await frames(3)
 	Game.reset_progress()
 
 
@@ -7734,25 +7877,41 @@ func test_corneteiro_silences_city() -> void:
 	Game.reset_progress()
 
 
-func test_arena_shift_fire_ring() -> void:
+## v0.53.1: as marcas na arena NÃO mexem na borda. Fase 2 do Aldir: focos de
+## fogo pelo meio, no máximo 12; nasceu o 13º, o mais antigo apaga.
+func test_arena_shift_foci() -> void:
 	Game.reset_progress()
 	var player := spawn_player(Vector2(100, 100))
 	player.set_physics_process(false)
 	await frames(2)
-	var shift := ArenaShift.apply(_world, Rect2(0, 0, 320, 240), {"fogo_borda": 2, "cresce": 0.5, "max": 3, "dps": 20.0})
-	check(shift.burns(Vector2(10, 10)) and not shift.burns(Vector2(160, 120)), "a borda queima, o meio não")
-	player.global_position = Vector2(8, 120)
+	var arena := Rect2(0, 0, 320, 240)
+	var shift := ArenaShift.apply(_world, arena, {"focos": 12, "focos_a_cada": 999.0, "dps": 20.0})
+	var first := shift.spawn_focus()
+	for i in 12:
+		shift.spawn_focus()
+	await frames(2)
+	check(shift.foci.size() == 12, "no máximo 12 focos ao mesmo tempo (%d)" % shift.foci.size())
+	await seconds(0.8)
+	check(not is_instance_valid(first), "nasceu o 13º: o mais antigo apagou")
+	var inner := shift.focus_area().grow(0.5)
+	check(shift.foci.all(func(f): return inner.has_point(f.global_position)), "os focos nascem no miolo da arena")
+	check(shift.foci.all(func(f): return arena.grow(-30.0).has_point(f.global_position)), "nenhum foco perto da borda (30 px)")
+	var focus: FirePatch = shift.foci[0]
+	player.global_position = focus.global_position
 	var hp := player.stats.health
-	await seconds(1.2)
-	check(player.stats.health < hp, "quem fica no fogo queima (%.0f → %.0f)" % [hp, player.stats.health])
-	check(shift.border_tiles == 3.0, "o anel cresce até o máximo (%.0f)" % shift.border_tiles)
+	await seconds(0.7)
+	check(player.stats.health < hp, "quem pisa no foco queima (%.0f → %.0f)" % [hp, player.stats.health])
+	var roots := ArenaShift.apply(_world, arena, {"focos": 3, "focos_tipo": "raizes"})
+	check(roots.spawn_focus().kind == FirePatch.ROOTS, "na Mabel, os focos são de raízes")
 	var aldir := spawn_aldir(Vector2(160, 120))
 	await frames(2)
-	check(aldir.phase_arena.has(2), "o Aldir tem a praça em chamas na fase 2")
-	aldir.arena_rect = Rect2(0, 0, 320, 240)
+	aldir.arena_rect = arena
 	var made := aldir.shift_arena(2)
-	check(made != null and made.border_tiles == 2.0, "a fase 2 acende o anel de fogo")
+	check(made != null and made.focus_limit() == 12, "a fase 2 do Aldir acende focos (limite 12)")
 	shift.queue_free()
+	await frames(2)
+	check(focus == null or not is_instance_valid(focus), "acabou a luta (a marca saiu): os focos apagam junto")
+	roots.queue_free()
 	made.queue_free()
 	aldir.queue_free()
 	player.queue_free()

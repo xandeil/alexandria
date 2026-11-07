@@ -6,12 +6,17 @@ extends Node2D
 ## O dash por cima não queima (i-frames). A chama encolhe e apaga sozinha.
 
 const TICK := 0.5
+## v0.53.1: o mesmo "chão que queima" em versão de raízes (a arena da Mabel):
+## dano físico e cor de carne em vez de fogo.
+const FIRE := &"fogo"
+const ROOTS := &"raizes"
 
 var radius := 14.0
 var duration := 2.5
 ## Dano por segundo (aplicado em pedaços a cada TICK).
 var dps := 10.0
 var source: Node2D
+var kind := FIRE
 
 var _time := 0.0
 var _tick := 0.0
@@ -64,7 +69,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var player := get_tree().get_first_node_in_group("player") as Player
 	if player and covers(player.global_position):
-		player.apply_burn(dps * TICK)
+		player.apply_burn(dps * TICK, "fisico" if kind == ROOTS else "fogo")
 
 
 func _burn_enemies() -> void:
@@ -77,9 +82,21 @@ func _burn_enemies() -> void:
 		Fx.flash(enemy.body_sprite, 0.08, Color(1.0, 0.6, 0.3))
 
 
+## Apaga já (o foco mais antigo, quando passa do limite da arena).
+func extinguish() -> void:
+	_time = maxf(_time, duration - 0.6)  # encolhe nos últimos 0,6 s e some
+
+
 func _draw() -> void:
 	var r := current_radius()
 	var t := _time * 9.0 + _seed
+	if kind == ROOTS:
+		var pulse := 0.5 + 0.5 * sin(_time * 2.5 + _seed)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.67))
+		draw_circle(Vector2.ZERO, r, Color(0.4, 0.06, 0.1, 0.5))
+		draw_circle(Vector2.ZERO, r * (0.45 + 0.15 * pulse), Color(0.8, 0.25, 0.3, 0.6))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.67))
 	draw_circle(Vector2.ZERO, r, Color(0.55, 0.12, 0.04, 0.35))
 	draw_circle(Vector2.ZERO, r * 0.7, Color(0.95, 0.4, 0.08, 0.35))
