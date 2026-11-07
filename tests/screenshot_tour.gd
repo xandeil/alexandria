@@ -49,6 +49,10 @@ func _ready() -> void:
 		await shot("loja_titulo")
 		Game.quit_game()
 		return
+	if only == "focos":
+		await _tour_foci()
+		Game.quit_game()
+		return
 	if only == "amaro":
 		await _tour_amaro()
 		Game.quit_game()
@@ -1595,6 +1599,29 @@ func _tour_creation() -> void:
 	await shot("c05_no_jogo")
 	level.queue_free()
 	Game.reset_progress()
+
+
+## v0.53.1: a fase 2 do Aldir e da Mabel — focos pelo meio, nada na borda.
+func _tour_foci() -> void:
+	for spec in [["f01_aldir_focos", "res://scenes/world/arena_aldir.tscn"], ["f02_mabel_focos", "res://scenes/world/arena_mabel.tscn"]]:
+		Game.reset_progress()
+		Game.pending_spawn = "porta"
+		var level := await open(str(spec[1])) as Level
+		await wait(1.0)
+		level.player._iframes_left = 9999.0
+		if level.boss_arena.state == BossArena.State.IDLE:
+			level.boss_arena.arm()
+		await wait(1.5)
+		level.player.global_position = level.boss_arena.arena_rect.get_center() + Vector2(0, 40)
+		await wait(4.0)
+		var boss := level._boss
+		boss.set_physics_process(false)
+		var shift := boss.shift_arena(2)
+		for i in shift.focus_limit():
+			shift.spawn_focus()
+		await wait(1.2)
+		level.camera.snap_to_target()
+		await shot(str(spec[0]))
 
 
 ## v0.52: a armadilha do buraco (o Pitoco lá embaixo) e a Toca.

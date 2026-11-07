@@ -433,7 +433,7 @@ func _enter_phase_2() -> void:
 	_root_slots = _make_root_slots()
 	for slot in _root_slots:
 		grow_root(slot)
-	shift_arena(2)  # v0.35: as mesas somem e a arena encolhe (raízes nas bordas)
+	shift_arena(2)  # as mesas somem e brotam focos de raízes pelo meio (no máximo 12)
 	_inhale_timer = 3.5
 	await wait(2.2)
 	if dead:
