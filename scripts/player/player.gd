@@ -51,6 +51,9 @@ const INPUT_ACTIONS: Array[StringName] = [&"attack", &"attack_heavy", &"dash", &
 ## Estados "com os pés no chão": só neles dá para cair num buraco. No DASH o herói
 ## está no ar — é assim que se atravessa um buraco.
 const GROUNDED_STATES := [State.FREE, State.ATTACK, State.HEAL, State.SANITY, State.STAGGER, State.BLOCK, State.SLEEP, State.CAST]
+## Perto assim de um buraco (aberto ou rachando) ainda não é chão firme: o ponto
+## seguro não é guardado ali.
+const PIT_EDGE_MARGIN := 10.0
 
 ## Ângulo da espada em repouso (abaixada, apontando para frente e para baixo).
 const IDLE_SWORD_ANGLE := 1.15
@@ -1510,6 +1513,7 @@ func _state_stagger(delta: float) -> void:
 # --- Buracos (arena do Aldir) -------------------------------------------------------
 
 ## Pisou num buraco aberto? Cai. Longe de buracos? Guarda o ponto como seguro.
+## v0.53.2: "longe" vale para RACHADURAS também — ponto seguro só em chão firme.
 func _check_pits() -> void:
 	if not GROUNDED_STATES.has(state):
 		return
@@ -1522,10 +1526,46 @@ func _check_pits() -> void:
 		if pit.contains_point(global_position, -3.0):  # 3 px de folga na borda
 			_start_fall(pit)
 			return
-		if pit.contains_point(global_position, 10.0):
+		if pit.covers_point(global_position, PIT_EDGE_MARGIN):
 			near_edge = true
 	if not near_edge:
 		_last_safe_position = global_position
+
+
+## v0.53.2 — Chão firme perto de `point`: fora de qualquer buraco ativo (rachando
+## ou aberto, com a folga da borda) e sem parede no caminho. O ponto seguro pode
+## ter ficado EMBAIXO de um buraco que nasceu depois (o herói estava parado ali
+## quando o chão rachou): aí ele sai pelo lado mais perto, em anéis de 4 px.
+func _firm_ground(point: Vector2) -> Vector2:
+	if _is_firm_ground(point, point):
+		return point
+	for ring in range(1, 41):  # até 160 px
+		var reach := 4.0 * ring
+		for i in 16:
+			var candidate := point + Vector2.RIGHT.rotated(TAU * i / 16.0) * reach
+			if _is_firm_ground(candidate, point):
+				return candidate
+	return point
+
+
+func _is_firm_ground(point: Vector2, from: Vector2) -> bool:
+	for node in get_tree().get_nodes_in_group(&"pits"):
+		if (node as ArenaPit).covers_point(point, PIT_EDGE_MARGIN):
+			return false
+	var space := get_world_2d().direct_space_state
+	if point != from:  # não pode atravessar parede (camada "mundo") para chegar lá
+		var ray := PhysicsRayQueryParameters2D.create(from, point, 1, [get_rid()])
+		if not space.intersect_ray(ray).is_empty():
+			return false
+	var body := get_node_or_null(^"CollisionShape2D") as CollisionShape2D
+	if body == null or body.shape == null:
+		return true
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = body.shape
+	query.transform = Transform2D(0.0, point + body.position)
+	query.collision_mask = collision_mask
+	query.exclude = [get_rid()]
+	return space.intersect_shape(query, 1).is_empty()
 
 
 func _start_fall(pit: ArenaPit) -> void:
@@ -1553,6 +1593,7 @@ func _state_fall(_delta: float) -> void:
 func _finish_fall() -> void:
 	if _fall_tween and _fall_tween.is_valid():
 		_fall_tween.kill()
+	_last_safe_position = _firm_ground(_last_safe_position)  # v0.53.2: nunca de volta para o buraco
 	global_position = _last_safe_position
 	visual.scale = Vector2.ONE
 	visual.modulate = Color.WHITE

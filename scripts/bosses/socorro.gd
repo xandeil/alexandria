@@ -5,7 +5,7 @@ extends MiniBoss
 ## humanidade líquida — e provou.
 ##
 ## A regra: TODO golpe dela que acerta você a cura em 150% do dano; se você
-## bloqueou, metade disso. Golpes rápidos e fracos: deixar acertar é dar
+## bloqueou, metade disso. Parry perfeito: nada (v0.53.2). Golpes rápidos e fracos: deixar acertar é dar
 ## comida a ela. Fase 2, "Ronda da Noite": um combo longo de giros.
 
 enum Mode { DECIDE, APPROACH, ATTACK }
@@ -29,6 +29,8 @@ var _mode_time := 0.0
 var _decision := 0.0
 var _combo: Array[AttackData] = []
 var _blocked_info: HitInfo
+## O golpe que o herói aparou no tempo certo (parry perfeito): esse não alimenta.
+var _parried_info: HitInfo
 var _fed_said := false
 var _care_said := false
 
@@ -113,6 +115,12 @@ func _on_target_blocked(info: HitInfo) -> void:
 	_blocked_info = info
 
 
+## Parry perfeito: o golpe não entrou de verdade — ela não come nada.
+func parried(info: HitInfo) -> bool:
+	_parried_info = info
+	return super.parried(info)
+
+
 ## O golpe dela entrou: ela come. (Adiado um quadro: se você bloqueou, o aviso
 ## de bloqueio chega primeiro e ela come só metade.)
 func _on_my_hit_landed(_hurtbox: Hurtbox, info: HitInfo) -> void:
@@ -120,7 +128,7 @@ func _on_my_hit_landed(_hurtbox: Hurtbox, info: HitInfo) -> void:
 
 
 func feed(info: HitInfo, force_blocked: bool) -> float:
-	if dead:
+	if dead or (info == _parried_info and not force_blocked):
 		return 0.0
 	var blocked := force_blocked or info == _blocked_info
 	var amount := info.damage * (BLOCKED_HEAL_RATIO if blocked else HEAL_RATIO)

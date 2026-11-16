@@ -159,6 +159,17 @@ func _ready() -> void:
 		"test_cassian_steals_a_button",
 		"test_only_rachel_crumbles_the_edge",
 		"test_phase2_frame_cost",
+		"test_pit_safe_point_firm_ground",
+		"test_miniboss_hit_wakes_on_the_way_back",
+		"test_miniboss_keeps_health_until_home",
+		"test_miniboss_stuck_returns_in_smoke",
+		"test_sargento_no_wake_give_up_loop",
+		"test_critical_keeps_phase_change",
+		"test_critical_past_half_starts_phase_2",
+		"test_socorro_parry_does_not_feed",
+		"test_capitao_swaps_when_glued",
+		"test_cavaleiro_guard_counter_phase_1",
+		"test_galeno_says_all_defeat_lines",
 		"test_save_v2_migration",
 		"test_new_game_starts_prologue",
 		"test_fx_time_effects_stack",
@@ -1252,6 +1263,71 @@ func test_pit_fall_and_dash() -> void:
 	check(player.global_position.x > 160.0 + 16.0, "o dash atravessa o buraco (x=%.0f)" % player.global_position.x)
 	pit.fill()
 	check(not pit.contains_point(Vector2(160, 200)), "buraco entupido de entulho é chão de novo")
+
+
+## v0.53.2 — Bug 3: o ponto seguro só vale em CHÃO FIRME. Antes, o herói parado
+## em cima de uma rachadura guardava ali o ponto seguro; quando ela abria, ele
+## caía, voltava para dentro do buraco e caía de novo — até morrer.
+func test_pit_safe_point_firm_ground() -> void:
+	var player := spawn_player(Vector2(160, 200))
+	var fall_cost := maxf(player.fall_min_damage, player.stats.max_health * player.fall_damage_ratio)
+	await frames(3)
+	# 1) Parado em cima de uma rachadura que abre: cai UMA vez, volta para chão
+	#    firme e não cai de novo.
+	var crack := ArenaPit.create(Vector2(160, 200), Vector2(19, 12), 0.4)
+	_world.add_child(crack)
+	var falls: int = await _count_falls(player, 240)  # 4 s parado, sem tocar em nada
+	check(falls == 1, "parado na rachadura que abre: cai uma vez só (caiu %d vezes)" % falls)
+	check(player.state == Player.State.FREE, "volta a ficar de pé (estado %s)" % Player.State.keys()[player.state])
+	check(not _over_active_pit(player.global_position, 6.0), "volta para chão firme, fora do buraco (%s)" % player.global_position)
+	check(is_equal_approx(player.stats.health, player.stats.max_health - fall_cost), "paga uma queda só (vida=%s)" % player.stats.health)
+	# 2) Pisou numa rachadura ainda fechada: ali não é ponto seguro. Quando ela
+	#    abre, ele volta para o último chão firme onde pisou — não para a rachadura.
+	#    (Herói e chão novos: o que aconteceu na parte 1 não interfere.)
+	player.queue_free()
+	crack.queue_free()
+	await frames(2)
+	var firm := Vector2(100, 120)
+	player = spawn_player(firm)
+	await frames(3)
+	var crack2 := ArenaPit.create(Vector2(160, 120), Vector2(19, 12), 0.6)
+	_world.add_child(crack2)
+	await frames(2)
+	player.global_position = Vector2(160, 120)  # em cima da rachadura (ainda fechada)
+	var health_before := player.stats.health
+	falls = await _count_falls(player, 180)
+	check(falls == 1, "pisou na rachadura: cai uma vez só quando ela abre (caiu %d vezes)" % falls)
+	check(player.global_position.distance_to(firm) < 2.0, "volta para o último chão firme %s, não para a rachadura (%s)" % [firm, player.global_position])
+	check(is_equal_approx(player.stats.health, health_before - fall_cost), "paga uma queda só (vida=%s)" % player.stats.health)
+
+
+## Quantas quedas o herói paga em `count` quadros. Cada queda termina com um
+## `hurt` (e aqui não há inimigos: todo `hurt` é queda). Contar pelo estado não
+## serve: ele pode voltar e cair de novo no MESMO quadro, sem passar por FREE.
+func _count_falls(player: Player, count: int) -> int:
+	var falls := [0]
+	var on_hurt := func(_amount: float) -> void: falls[0] += 1
+	player.hurt.connect(on_hurt)
+	await frames(count)
+	if is_instance_valid(player) and player.hurt.is_connected(on_hurt):
+		player.hurt.disconnect(on_hurt)
+	return falls[0]
+
+
+## O ponto está em cima (ou a menos de `margin`) de um buraco que ainda não virou
+## entulho — rachando ou aberto? A elipse é conferida aqui mesmo, sem depender
+## do código do buraco que está sendo testado.
+func _over_active_pit(point: Vector2, margin: float) -> bool:
+	for node in get_tree().get_nodes_in_group(&"pits"):
+		var pit := node as ArenaPit
+		if pit == null or not pit.is_active():
+			continue
+		var d := point - pit.global_position
+		var rx := pit.radius.x + margin
+		var ry := pit.radius.y + margin
+		if (d.x * d.x) / (rx * rx) + (d.y * d.y) / (ry * ry) <= 1.0:
+			return true
+	return false
 
 
 ## Cobertura de concreto segura a Onda de Choque (e é desgastada por ela).
@@ -2700,20 +2776,355 @@ func test_miniboss_resets_when_player_flees() -> void:
 	player.global_position = Vector2(900, 900)
 	await seconds(sarge.reset_time + 0.5)
 	check(resets[0] == 1 and not sarge.active, "herói fugiu: ele desiste")
-	check(is_equal_approx(sarge.stats.health, sarge.stats.max_health), "volta com a vida cheia")
-	check(not sarge.is_in_group("enemies"), "fora da luta não é alvo")
-	# v0.30.7: herói parado na BEIRADA (logo além da distância de desistir). O
-	# chefe volta para casa passando perto dele — não pode acordar/desistir em loop.
+	check(not sarge.is_in_group("enemies"), "fora da luta não é alvo de aliados e alarmes")
+	# v0.53.2: a vida enche quando ele CHEGA ao posto (antes enchia na hora).
+	var arrived := await wait_for(func(): return sarge.global_position.distance_to(sarge.home_position) <= 6.0, 300)
+	await frames(2)
+	check(arrived and is_equal_approx(sarge.stats.health, sarge.stats.max_health), "chegou ao posto: volta com a vida cheia")
+	# (O loop de acordar e desistir na beirada, v0.30.7: test_sargento_no_wake_give_up_loop.)
+
+
+## v0.53.2 — (a) Bater no mini-chefe enquanto ele VOLTA ao posto acorda ele, e o
+## dano conta. Espada, flecha e magia. (Antes: imune e fora da mira na volta.)
+func test_miniboss_hit_wakes_on_the_way_back() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 9999.0
+	var spell := Items.get_item("explosao_curta") as SpellData
+	for weapon in ["espada", "flecha", "magia"]:
+		var sarge := spawn_mini(SARGENTO_SCENE, Vector2(280, 200))
+		player.global_position = Vector2(200, 200)
+		await frames(3)
+		check(sarge.active, "%s: acorda com o herói perto" % weapon)
+		player.global_position = Vector2(900, 900)  # fugiu
+		var gave_up := await wait_for(func(): return not sarge.active, 300)
+		await frames(6)
+		check(gave_up and sarge.global_position.distance_to(sarge.home_position) > 10.0, "%s: desistiu e está voltando para o posto" % weapon)
+		var hp := sarge.stats.health
+		var damage := 0.0
+		match weapon:
+			"espada":
+				damage = 20.0
+				var accepted := sarge.hurtbox.receive_hit(HitInfo.create(damage, sarge.global_position + Vector2(-20, 0), sarge.global_position))
+				check(accepted, "espada: o golpe entra (nada de imunidade na volta)")
+			"flecha":
+				damage = 15.0  # o herói está longe: quem acorda é a flecha
+				PlayerShot.fire(_world, sarge.global_position + Vector2(-40, 0), Vector2.RIGHT, player, damage, PlayerShot.ARROW)
+				await wait_for(func(): return sarge.stats.health < hp, 40)
+			"magia":
+				# Lança no mesmo quadro em que chega perto: quem acorda é a magia, não a distância.
+				player.global_position = sarge.global_position + Vector2(-24, 0)
+				damage = SpellCaster.power_of(spell, player)
+				SpellCaster.release(spell, player, Vector2.RIGHT)
+		check(sarge.active, "%s: o golpe acorda ele no caminho" % weapon)
+		check(is_equal_approx(hp - sarge.stats.health, damage), "%s: o dano conta (tirou %.1f de %.1f)" % [weapon, hp - sarge.stats.health, damage])
+		sarge.queue_free()
+		await frames(2)
+
+
+## v0.53.2 — (b) A vida só volta ao máximo quando ele CHEGA ao posto. Acordado no
+## caminho, continua com a vida que tinha. E quem acorda é a distância do herói
+## até ELE (não até o posto).
+func test_miniboss_keeps_health_until_home() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 9999.0
+	var sarge := spawn_mini(SARGENTO_SCENE, Vector2(280, 200))
+	var home := sarge.home_position
+	await frames(3)
+	check(sarge.active, "acorda")
+	sarge.stats.take_damage(50.0)
+	var hurt := sarge.stats.health
+	player.global_position = Vector2(900, 900)
+	await wait_for(func(): return not sarge.active, 300)
+	await seconds(0.4)
+	check(not sarge.active and sarge.global_position.distance_to(home) > 10.0, "desistiu e está voltando")
+	check(is_equal_approx(sarge.stats.health, hurt), "voltando, a vida NÃO enche (%.0f de %.0f)" % [sarge.stats.health, sarge.stats.max_health])
+	# Ele tinha perseguido longe. O herói, FORA do território, chega perto DELE.
+	sarge.global_position = home + Vector2(240, 0)
+	player.global_position = home + Vector2(300, 0)
+	var woke := await wait_for(func(): return sarge.active, 30)
+	check(woke, "perto dele (mesmo longe do posto): acorda no caminho")
+	check(is_equal_approx(sarge.stats.health, hurt), "acordado no caminho: continua com a vida que tinha (%.0f)" % sarge.stats.health)
+	# Agora sim: desiste e CHEGA ao posto — vida cheia.
+	player.global_position = Vector2(900, 900)
+	sarge.reset_fight()  # desiste já (a trava dos 5 s de luta não é o assunto aqui)
+	var arrived := await wait_for(func(): return sarge.global_position.distance_to(home) <= 6.0, 300)
+	await frames(2)
+	check(arrived and is_equal_approx(sarge.stats.health, sarge.stats.max_health), "chegou ao posto: vida cheia (%.0f)" % sarge.stats.health)
+
+
+## v0.53.2 — (c) Travado longe do posto (parede, ou a Dançarina, que não anda):
+## em até 4 s some numa fumaça e reaparece no posto, com a vida cheia.
+func test_miniboss_stuck_returns_in_smoke() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 9999.0
+	# 1) A Dançarina não anda: depois de um disparo, fica onde parou.
+	var dancer := spawn_mini(load("res://scenes/bosses/dancarina.tscn"), Vector2(260, 200))
+	var dancer_home := dancer.home_position
+	await frames(3)
+	check(dancer.active, "a Dançarina acorda")
+	dancer.stats.take_damage(40.0)
+	player.global_position = Vector2(900, 900)
+	var gave_up := await wait_for(func(): return not dancer.active, 300)
+	dancer.global_position = dancer_home + Vector2(0, 120)  # parou longe (fim de um disparo)
+	var back := await wait_for(func(): return dancer.global_position.distance_to(dancer_home) <= 6.0, 250)
+	check(gave_up and back, "a Dançarina não anda: em até 4 s reaparece no posto")
+	await frames(2)
+	check(not dancer.active and is_equal_approx(dancer.stats.health, dancer.stats.max_health), "de volta ao posto: dormindo e com a vida cheia")
+	dancer.queue_free()
+	# 2) Preso num cercado, longe do posto.
+	player.global_position = Vector2(200, 200)
+	var sarge := spawn_mini(SARGENTO_SCENE, Vector2(280, 200))
+	var home := sarge.home_position
+	await frames(3)
+	check(sarge.active, "o Sargento acorda")
+	player.global_position = Vector2(900, 900)
+	gave_up = await wait_for(func(): return not sarge.active, 300)
+	var pen_center := home + Vector2(0, 90)
+	_world.add_child(_pen(pen_center, Vector2(44, 44)))
+	sarge.global_position = pen_center
+	back = await wait_for(func(): return sarge.global_position.distance_to(home) <= 6.0, 250)
+	check(gave_up and back, "preso no cercado: em até 4 s reaparece no posto")
+
+
+## Um cercado de paredes (camada "mundo") em volta de `center`.
+func _pen(center: Vector2, size: Vector2) -> StaticBody2D:
+	var pen := StaticBody2D.new()
+	pen.collision_layer = 1
+	pen.collision_mask = 0
+	pen.position = center
+	var half := size * 0.5
+	for side in [[Vector2(0, -half.y), Vector2(size.x + 8, 6)], [Vector2(0, half.y), Vector2(size.x + 8, 6)],
+			[Vector2(-half.x, 0), Vector2(6, size.y + 8)], [Vector2(half.x, 0), Vector2(6, size.y + 8)]]:
+		var shape := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = side[1]
+		shape.shape = rect
+		shape.position = side[0]
+		pen.add_child(shape)
+	return pen
+
+
+## v0.53.2 — (d) O Sargento não entra em loop de acordar e desistir (v0.30.7).
+## Agora quem acorda é a distância até ELE; as travas contra o loop:
+##   • desistiu colado no herói: a distância só volta a acordá-lo depois que o
+##     herói sai do alcance uma vez (bater acorda sempre);
+##   • já desistiu antes: só desiste de novo depois de 5 s de luta.
+func test_sargento_no_wake_give_up_loop() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 9999.0
+	var sarge := spawn_mini(SARGENTO_SCENE, Vector2(140, 200))
+	var home := sarge.home_position
 	var starts := [0]
+	var resets := [0]
 	sarge.fight_started.connect(func(_b): starts[0] += 1)
-	var home: Vector2 = sarge.home_position
+	sarge.fight_reset.connect(func(_b): resets[0] += 1)
+	await frames(3)
+	check(starts[0] == 1, "acorda com o herói perto")
+	# 1) Ele perseguiu o herói até a BEIRADA (logo além da distância de desistir).
+	#    O herói fica parado ali, colado nele: desiste UMA vez e volta para casa.
 	player.global_position = home + Vector2(sarge.reset_distance + 20.0, 0)
-	sarge.global_position = player.global_position + Vector2(-30, 0)  # estava perseguindo até ali
-	await seconds(8.0)
-	check(starts[0] == 0, "na beirada ele volta para o posto sem acordar de novo (acordou %d vezes)" % starts[0])
+	sarge.global_position = player.global_position + Vector2(-30, 0)
+	await seconds(9.0)
+	check(starts[0] == 1 and resets[0] == 1, "na beirada: desiste uma vez e não acorda de novo (acordou %d, desistiu %d)" % [starts[0], resets[0]])
+	check(not sarge.active and sarge.global_position.distance_to(home) <= 6.0, "terminou no posto, dormindo")
+	check(is_equal_approx(sarge.stats.health, sarge.stats.max_health), "no posto, vida cheia")
+	# 2) Ele desistiu longe do posto. O herói segue ele FORA do território e chega
+	#    perto: acorda (a distância é até ele). Mas, como já desistiu antes, só
+	#    desiste de novo depois de 5 s de luta.
 	player.global_position = home + Vector2(60, 0)
-	await seconds(1.0)
-	check(starts[0] == 1 and sarge.active, "chegou perto de verdade: a luta recomeça")
+	await frames(3)
+	sarge.reset_fight()
+	sarge.global_position = home + Vector2(240, 0)
+	player.global_position = Vector2(900, 900)
+	await frames(3)
+	player.global_position = home + Vector2(290, 0)
+	var woke := await wait_for(func(): return sarge.active, 30)
+	check(woke, "seguiu ele fora do território: perto dele, acorda")
+	var fought := 0
+	while woke and sarge.active and fought < 600:
+		await frames(1)
+		fought += 1
+	check(fought >= 295 and fought <= 360, "já tinha desistido: só desiste de novo com 5 s de luta (desistiu em %.1f s)" % (fought / 60.0))
+	# Desistiu de novo colado no herói: volta para casa sem acordar.
+	var starts_before: int = starts[0]
+	await seconds(6.0)
+	check(starts[0] == starts_before and not sarge.active, "desistiu colado no herói: volta sem acordar de novo (acordou mais %d)" % (starts[0] - starts_before))
+
+
+## v0.53.2 — Bugs 1 e 2: um CRÍTICO que zera a fase NÃO cancela a troca de fase.
+## Antes: o crítico zerava a vida, o chefe revivia e começava a troca — e logo em
+## seguida o próprio crítico o derrubava ("cambaleio"), o que cancelava a troca
+## no meio. Ele ficava imune para sempre: os golpes normais não tiravam vida.
+func test_critical_keeps_phase_change() -> void:
+	var player := spawn_player(Vector2(200, 300))
+	player._iframes_left = 9999.0
+	player.set_physics_process(false)
+	for who in ["Governanta", "Aldir", "Helena"]:
+		var boss := _spawn_phase_boss(who)
+		await frames(2)
+		boss.visible = true
+		boss.start_fight()
+		await seconds(0.3)
+		boss.stats.set_health(boss.stats.max_health * 0.6)
+		await _critical_on(boss, player, boss.stats.health + 50.0)  # zera a fase 1
+		check(boss.get("phase") == 2 and not boss.dead, "%s: o crítico que zera a fase 1 inicia a fase 2" % who)
+		check(is_equal_approx(boss.stats.health, boss.stats.max_health * 0.5), "%s: começa a fase 2 com metade da vida (%.0f)" % [who, boss.stats.health])
+		await seconds(4.0)  # a troca termina
+		check(await _normal_hit_hurts(boss, player), "%s: depois da troca, os golpes normais voltam a tirar vida" % who)
+		if who == "Helena":
+			var helena := boss as HelenaAltiva
+			await _critical_on(helena, player, helena.stats.health + 50.0)  # zera a fase 2
+			check(helena.phase == 3, "Helena: o crítico que zera a fase 2 inicia a fase 3")
+			await seconds(5.0)
+			check(not helena.dead and is_equal_approx(helena.stats.health, helena.stats.max_health) and helena.stats.health > 0.0, "Helena: revive na fase 3 (vida %.0f)" % helena.stats.health)
+			check(await _normal_hit_hurts(helena, player), "Helena: na fase 3, os golpes normais tiram vida")
+		boss.queue_free()
+		await frames(3)
+
+
+## v0.53.2 — Crítico que passa dos 50%: a fase 2 começa NA HORA, sem esperar o
+## próximo golpe (antes, o crítico não passava pelo "levou dano" do chefe).
+func test_critical_past_half_starts_phase_2() -> void:
+	var player := spawn_player(Vector2(200, 300))
+	player._iframes_left = 9999.0
+	player.set_physics_process(false)
+	for who in ["Governanta", "Aldir", "Helena"]:
+		var boss := _spawn_phase_boss(who)
+		await frames(2)
+		boss.visible = true
+		boss.start_fight()
+		await seconds(0.3)
+		boss.stats.set_health(boss.stats.max_health * 0.6)
+		await _critical_on(boss, player, boss.stats.max_health * 0.2)  # 60% → 40%
+		check(boss.get("phase") == 2, "%s: crítico até 40%%: a fase 2 começa na hora (fase %s)" % [who, boss.get("phase")])
+		boss.queue_free()
+		await frames(3)
+
+
+func _spawn_phase_boss(who: String) -> Boss:
+	match who:
+		"Governanta":
+			return spawn_governess(Vector2(200, 200))
+		"Aldir":
+			return spawn_aldir(Vector2(200, 200))
+	var helena := HELENA_SCENE.instantiate() as HelenaAltiva
+	helena.position = Vector2(200, 200)
+	_world.add_child(helena)
+	return helena
+
+
+## O crítico de verdade: o parry abre a guarda (se der) e o golpe entra.
+func _critical_on(boss: Enemy, player: Player, damage: float) -> void:
+	boss.parried(HitInfo.create(0.0, player.global_position, boss.global_position))
+	boss.receive_critical(damage, player)
+	await frames(2)
+
+
+func _normal_hit_hurts(boss: Enemy, player: Player) -> bool:
+	var hp := boss.stats.health
+	var info := HitInfo.create(10.0, player.global_position, boss.global_position)
+	info.source = player
+	boss.hurtbox.receive_hit(info)
+	await frames(1)
+	return boss.stats.health < hp
+
+
+## v0.53.2 — Socorro: parry perfeito NÃO a cura. Bloqueio cura metade; golpe que
+## acerta, o valor cheio.
+func test_socorro_parry_does_not_feed() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 9999.0
+	var nurse := spawn_mini(load("res://scenes/bosses/socorro.tscn"), Vector2(240, 200)) as Socorro
+	await frames(3)
+	check(nurse.active, "a Socorro acorda")
+	nurse.stats.take_damage(150.0)
+	var hp := nurse.stats.health
+	# 1) Parry perfeito: o golpe dela "entra" no herói, mas ela não come nada.
+	var parried := _nurse_hit(nurse, player)
+	player._parry_success(parried)
+	nurse._on_my_hit_landed(player.hurtbox, parried)
+	await frames(2)
+	check(is_equal_approx(nurse.stats.health, hp), "parry perfeito: não cura nada (+%.1f)" % (nurse.stats.health - hp))
+	# 2) Bloqueio: metade.
+	var blocked := _nurse_hit(nurse, player)
+	player.blocked.emit(blocked)
+	nurse._on_my_hit_landed(player.hurtbox, blocked)
+	await frames(2)
+	check(is_equal_approx(nurse.stats.health, hp + 14.0 * Socorro.BLOCKED_HEAL_RATIO), "bloqueio: cura metade (+%.1f)" % (nurse.stats.health - hp))
+	# 3) Golpe que acerta: o valor cheio.
+	hp = nurse.stats.health
+	var landed := _nurse_hit(nurse, player)
+	nurse._on_my_hit_landed(player.hurtbox, landed)
+	await frames(2)
+	check(is_equal_approx(nurse.stats.health, hp + 14.0 * Socorro.HEAL_RATIO), "golpe que acerta: cura o valor cheio (+%.1f)" % (nurse.stats.health - hp))
+
+
+func _nurse_hit(nurse: Socorro, player: Player) -> HitInfo:
+	var info := HitInfo.create(14.0, nurse.global_position, player.global_position)
+	info.source = nurse
+	return info
+
+
+## v0.53.2 — Capitão Dragonoide: troca de postura mesmo com o herói colado nele
+## (antes, colado, ele só dava pancadas de escudo e nunca trocava).
+func test_capitao_swaps_when_glued() -> void:
+	var player := spawn_player(Vector2(200, 200))
+	player._iframes_left = 9999.0
+	player.set_physics_process(false)
+	var captain := spawn_mini(CAPITAO_SCENE, Vector2(220, 200)) as CapitaoDragonoide
+	await frames(3)
+	check(captain.active and captain.mode == CapitaoDragonoide.Mode.SHIELD, "acorda de escudo")
+	var swapped := false
+	for i in int((captain.shield_time + 2.5) * 60.0):
+		player.global_position = captain.global_position + captain.facing * 18.0  # colado, na frente
+		await frames(1)
+		if captain.mode != CapitaoDragonoide.Mode.SHIELD:
+			swapped = true
+			break
+	check(swapped, "colado nele: troca de postura no tempo dela (%.1f s de escudo)" % captain._mode_time)
+
+
+## v0.53.2 — Cavaleiro: bater na guarda na FASE 1 gera o contragolpe (o corte pesado).
+func test_cavaleiro_guard_counter_phase_1() -> void:
+	var player := spawn_player(Vector2(160, 200))
+	player._iframes_left = 9999.0
+	player.set_physics_process(false)
+	var knight := load("res://scenes/bosses/cavaleiro.tscn").instantiate() as CavaleiroDesolado
+	knight.position = Vector2(200, 200)
+	_world.add_child(knight)
+	await frames(2)
+	knight.visible = true
+	knight.start_fight()
+	await frames(2)
+	check(knight.phase == 1, "fase 1")
+	knight._set_mode(CavaleiroDesolado.Mode.GUARD)
+	knight.facing = Vector2.LEFT  # de frente para o herói
+	var info := HitInfo.create(20.0, player.global_position, knight.global_position)
+	info.source = player
+	knight.hurtbox.receive_hit(info)
+	await frames(1)
+	var heavy: AttackData = knight.combo[mini(2, knight.combo.size() - 1)]
+	check(knight.mode == CavaleiroDesolado.Mode.ATTACK and knight._runner.data == heavy, "bateu na guarda: o contragolpe pesado (modo %s)" % CavaleiroDesolado.Mode.keys()[knight.mode])
+
+
+## v0.53.2 — Galeno: as TRÊS falas de derrota aparecem (antes, o corpo sumia e
+## levava junto as duas últimas).
+func test_galeno_says_all_defeat_lines() -> void:
+	Game.reset_progress()
+	var player := spawn_player(Vector2(200, 260))
+	player._iframes_left = 9999.0
+	player.set_physics_process(false)
+	var galeno := spawn_mini(load("res://scenes/bosses/galeno_escudo.tscn"), Vector2(200, 200)) as GalenoEscudo
+	var said: Array[String] = []
+	galeno.speech.connect(func(t: String): said.append(t))
+	await frames(3)
+	if not galeno.active:
+		galeno.start_fight()
+	galeno.stats.take_damage(99999.0)
+	await seconds(6.0)
+	for line: String in GalenoEscudo.SPEECH_DEFEAT:
+		check(said.has(line), "fala de derrota: \"%s\"" % line)
+	Game.reset_progress()
 
 
 ## "Só leva dano real pelas costas." Vira devagar; quem cola nas costas leva o giro.
@@ -4951,19 +5362,32 @@ func _collect_keys(path: String, out: Array[String]) -> void:
 ## A versão do jogo aparece em três lugares; os três têm de concordar.
 func test_version_consistency() -> void:
 	var version := str(ProjectSettings.get_setting("application/config/version"))
-	var presets := FileAccess.get_file_as_string("res://export_presets.cfg")
+	var presets := FileAccess.get_file_as_string("res://export_presets.cfg").replace("\r\n", "\n")
+	# versionCode = meio × 10 + correção (0.21.1 → 211, 0.22.0 → 220): SEMPRE sobe,
+	# e o Android só instala por cima se o número subir.
+	var expected := int(version.get_slice(".", 1)) * 10 + int(version.get_slice(".", 2))
+	# v0.53.2: no Windows o Git pode entregar o arquivo com fim de linha CRLF
+	# ("\r\n"). A leitura tem de dar o mesmo resultado dos dois jeitos.
+	for ending: String in ["\n", "\r\n"]:
+		var label := "LF" if ending == "\n" else "CRLF"
+		var found := _preset_versions(presets.replace("\n", ending))
+		var names: Array = found[0]
+		var codes: Array = found[1]
+		check(names.size() == 2 and names.all(func(n): return n == version), "[%s] versão igual no projeto e nos presets (%s / %s)" % [label, version, names])
+		check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == expected, "[%s] versionCode acompanha a versão (%s, esperado %d)" % [label, codes, expected])
+
+
+## [nomes, códigos] de versão dos presets de exportação.
+func _preset_versions(text: String) -> Array:
 	var names := []
 	var codes := []
-	for line in presets.split("\n"):
+	for raw in text.split("\n"):
+		var line := raw.strip_edges()  # tira o "\r" do CRLF (e espaços soltos)
 		if line.begins_with("version/name="):
 			names.append(line.get_slice("=", 1).trim_prefix("\"").trim_suffix("\""))
 		if line.begins_with("version/code="):
 			codes.append(int(line.get_slice("=", 1)))
-	check(names.size() == 2 and names.all(func(n): return n == version), "versão igual no projeto e nos presets (%s / %s)" % [version, names])
-	# versionCode = meio × 10 + correção (0.21.1 → 211, 0.22.0 → 220): SEMPRE sobe,
-	# e o Android só instala por cima se o número subir.
-	var expected := int(version.get_slice(".", 1)) * 10 + int(version.get_slice(".", 2))
-	check(codes.size() == 2 and codes[0] == codes[1] and codes[0] == expected, "versionCode acompanha a versão (%s, esperado %d)" % [codes, expected])
+	return [names, codes]
 
 
 # --- v0.45 (Etapa 8): Heitor e Helena ---------------------------------------------------

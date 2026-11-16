@@ -100,6 +100,11 @@ func _should_reset(delta: float) -> bool:
 	return _away_time >= reset_time
 
 
+## Caindo do céu (entrada) não dá para acordá-lo com um golpe: ele nem chegou.
+func _can_wake_by_hit() -> bool:
+	return mode != Mode.ENTER
+
+
 func _on_reset() -> void:
 	telegraph.clear()
 	_set_air(false)
